@@ -1,0 +1,87 @@
+.update-budget-dialog {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  .update-budget-dialog h1 {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  
+  .update-budget-dialog h2 {
+    font-size: 18px;
+    color: #4caf50;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .budget-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  mat-form-field {
+    flex: 1;
+  }
+  
+  mat-dialog-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+
+  
+  
+  /* Style for the dialog actions container */
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px; /* Add spacing between buttons */
+    margin-top: 15px;
+  }
+  
+  /* Base button styling for better aesthetics */
+  .dialog-actions button {
+    padding: 8px 16px;
+    border-radius: 8px; /* Rounded corners */
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s ease; /* Smooth hover effect */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for a raised look */
+  }
+  
+  /* Save button with a gradient and hover effect */
+  .save-button {
+    background: linear-gradient(45deg, #4caf50, #81c784); /* Green gradient */
+    color: white;
+    border: none;
+  }
+  
+  .save-button:hover {
+    background: linear-gradient(45deg, #388e3c, #66bb6a); /* Darker green on hover */
+    transform: scale(1.05); /* Slightly larger on hover */
+  }
+  
+  /* Cancel button with a gradient and hover effect */
+  .cancel-button {
+    background: linear-gradient(45deg, #e53935, #ef5350); /* Red gradient */
+    color: white;
+    border: none;
+  }
+  
+  .cancel-button:hover {
+    background: linear-gradient(45deg, #c62828, #e57373); /* Darker red on hover */
+    transform: scale(1.05); /* Slightly larger on hover */
+  }
+  
+  /* Add focus effect for accessibility */
+  .dialog-actions button:focus {
+    outline: none;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+  }
+  

@@ -1,0 +1,112 @@
+<nav class="navbar">
+  <span class="brand-name" (click)="navigateTo('')" role="button" tabindex="0">
+    <i class="fas fa-chart-pie"></i>
+    MoneFi
+  </span>
+</nav>
+
+<!-- Loading Spinner -->
+<div class="loading-spinner" *ngIf="isLoading">
+  <div class="spinner"></div>
+</div>
+
+<div class="signup-container">
+  <div class="signup-content">
+    <div class="chart-card">
+      <canvas baseChart 
+        [data]="mixedChartData"
+        [options]="mixedChartOptions"
+        [type]="'bar'">
+      </canvas>
+    </div>
+    <div class="signup-card">
+      <div class="card-brand-name" (click)="navigateTo('')" role="button" tabindex="0">
+        <i class="fas fa-chart-pie"></i>
+        MoneFi
+      </div>
+      <h2>Create Account</h2>
+      <form [formGroup]="signupForm" (submit)="onSubmit(signupForm.value)">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input 
+            type="text" 
+            id="name" 
+            formControlName="name" 
+            placeholder="Enter your name"
+          >
+          <div class="error-message" *ngIf="signupForm.get('name')?.touched && signupForm.get('name')?.errors?.['required']">
+            Name is required
+          </div>
+          <div class="error-message" *ngIf="signupForm.get('username')?.touched && signupForm.get('username')?.errors?.['email']">
+            Please enter a valid name
+          </div>
+        </div>
+
+
+        <div class="form-group">
+          <label for="username">Email</label>
+          <input 
+            type="text" 
+            id="username" 
+            formControlName="username" 
+            placeholder="Enter your email"
+          >
+          <div class="error-message" *ngIf="signupForm.get('username')?.touched && signupForm.get('username')?.errors?.['required']">
+            Email is required
+          </div>
+          <div class="error-message" *ngIf="signupForm.get('username')?.touched && signupForm.get('username')?.errors?.['email']">
+            Please enter a valid email
+          </div>
+        </div>
+  
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="password-input">
+            <input 
+              [type]="showPassword ? 'text' : 'password'"
+              id="password" 
+              formControlName="password" 
+              placeholder="Enter your password"
+            >
+            <button type="button" class="toggle-password" (click)="togglePasswordVisibility('password')">
+              <i class="fas fa-eye{{ showPassword ? '' : '-slash' }}"></i>
+            </button>
+          </div>
+          <div class="error-message" *ngIf="signupForm.get('password')?.touched && signupForm.get('password')?.errors?.['required']">
+            Password is required
+          </div>
+          <div class="error-message" *ngIf="signupForm.get('password')?.touched && signupForm.get('password')?.errors?.['minlength']">
+            Password must be at least 6 characters
+          </div>
+        </div>
+  
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <div class="password-input">
+            <input 
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              id="confirmPassword" 
+              formControlName="confirmPassword" 
+              placeholder="Confirm your password"
+            >
+            <button type="button" class="toggle-password" (click)="togglePasswordVisibility('confirmPassword')">
+              <i class="fas fa-eye{{ showConfirmPassword ? '' : '-slash' }}"></i>
+            </button>
+          </div>
+          <div class="error-message" *ngIf="signupForm.get('confirmPassword')?.touched && signupForm.get('confirmPassword')?.errors?.['required']">
+            Please confirm your password
+          </div>
+          <div class="error-message" *ngIf="signupForm.hasError('mismatch') && signupForm.get('confirmPassword')?.touched">
+            Passwords do not match
+          </div>
+        </div>
+  
+        <button type="submit" [disabled]="!signupForm.valid" class="submit-btn">Sign Up</button>
+  
+        <div class="login-link">
+          Already have an account? <a href="javascript:void(0)" (click)="goToLogin()">Login</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

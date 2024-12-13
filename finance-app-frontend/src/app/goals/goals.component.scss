@@ -1,0 +1,445 @@
+.goals-container {
+  padding: 1rem;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+
+    .title-section {
+      h1 {
+        font-size: 1.8rem;
+        color: #333;
+        margin: 0;
+        background: linear-gradient(45deg, #2196F3, #673AB7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      p {
+        color: #666;
+        margin: 0.5rem 0 0;
+      }
+    }
+
+    .add-goal-btn {
+      background: linear-gradient(45deg, #2196F3, #673AB7);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 25px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+      }
+    }
+  }
+
+  .goals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+
+    .goal-card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: translateY(-5px);
+      }
+
+      .goal-header {
+        padding: 1.5rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        .icon-wrapper {
+          width: 48px;
+          height: 48px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.5rem;
+        }
+
+        .goal-info {
+          h3 {
+            margin: 0;
+            font-size: 1.2rem;
+          }
+          .category {
+            font-size: 0.9rem;
+            opacity: 0.8;
+          }
+        }
+      }
+
+      .goal-content {
+        padding: 1.5rem;
+
+        .progress-circle-container {
+          display: flex;
+          justify-content: center;
+          margin-bottom: 1.5rem;
+
+          .progress-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+
+            .progress-inner {
+              width: 100px;
+              height: 100px;
+              background: white;
+              border-radius: 50%;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+
+              .percentage {
+                font-size: 1.5rem;
+                font-weight: bold;
+                color: #333;
+              }
+
+              .label {
+                font-size: 0.8rem;
+                color: #666;
+              }
+            }
+          }
+        }
+
+        .amount-details {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 1.5rem;
+          padding: 1rem;
+          background: #f8f9fa;
+          border-radius: 12px;
+
+          .current,
+          .target {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            .label {
+              font-size: 0.8rem;
+              color: #666;
+              margin-bottom: 0.25rem;
+            }
+
+            .value {
+              font-weight: bold;
+              color: #333;
+            }
+          }
+        }
+
+        .timeline {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 1.5rem;
+          padding: 0.75rem;
+          background: #fff3e0;
+          border-radius: 8px;
+          color: #f57c00;
+
+          i {
+            font-size: 1.2rem;
+          }
+
+          .days-left {
+            font-weight: bold;
+          }
+
+          .deadline {
+            margin-left: auto;
+            font-size: 0.9rem;
+          }
+        }
+
+        .status-badges-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          margin: 1rem 0;
+          background-color: #f1eeee;
+          border-radius: 8px;
+        
+          .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            
+            i {
+              font-size: 1rem;
+            }
+          }
+        }
+
+
+        .monthly-target {
+          background: #e3f2fd;
+          padding: 1rem;
+          border-radius: 8px;
+          margin-bottom: 1.5rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          .label {
+            color: #1976d2;
+            font-size: 0.9rem;
+          }
+
+          .value {
+            font-weight: bold;
+            color: #1976d2;
+          }
+        }
+
+        .actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 10px;
+          padding: 10px;
+        }
+
+        .add-btn {
+          flex: 2;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 8px 16px;
+          background-color: #4CAF50;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        }
+
+        .add-btn:hover {
+          background-color: #45a049;
+        }
+
+        .icon-buttons {
+          flex: 1;
+          display: flex;
+          gap: 8px;
+        }
+
+        .icon-btn {
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        }
+
+        .update-btn {
+          background-color: #2196F3;
+          color: white;
+        }
+
+        .update-btn:hover {
+          background-color: #1976D2;
+        }
+
+        .delete-btn {
+          background-color: #f44336;
+          color: white;
+        }
+
+        .delete-btn:hover {
+          background-color: #d32f2f;
+        }
+      }
+    }
+  }
+
+  
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: translateY(-5px);
+      }
+
+      .card-content {
+        h3 {
+          color: #666;
+          font-size: 0.9rem;
+          margin: 0;
+        }
+
+        .amount {
+          font-size: 1.8rem;
+          font-weight: bold;
+          color: #333;
+          margin: 0.5rem 0;
+        }
+
+        .period {
+          color: #888;
+          font-size: 0.8rem;
+          margin: 0;
+        }
+        text-align: center;
+      }
+
+      .icon {
+        font-size: 2rem;
+        opacity: 0.2;
+      }
+
+      &.remaining {
+        background: #e8f5e9;
+        .card-content {
+          .amount {
+            color: #2e7d32;
+          }
+        }
+      }
+      
+      &.goal-savings {
+        background: linear-gradient(135deg, #3f51b5, #5c6bc0);
+        .card-content {
+          h3, .amount, .period {
+            color: white;
+          }
+        }
+        .icon {
+          color: white;
+          opacity: 0.5;
+        }
+      }
+
+      &.available-balance {
+        background: white;
+        border: 1px solid #eee;
+      }
+
+    }
+  }
+
+
+  
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #666;
+  
+    i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 1;
+    }
+  
+    .add-goal-btn {
+      background: linear-gradient(45deg, #2196F3, #673AB7);
+      color: white;
+      border: none;
+      padding: 0.75rem 2rem;  // Increased padding for better balance
+      border-radius: 12px;  // Rounded corners for a soft look
+      font-size: 1rem;  // Font size adjusted for better readability
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  
+      &:hover {
+        background: linear-gradient(45deg, #2196F3, #673AB7);
+        transform: translateY(-2px);  // Slight lift effect on hover
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);  // Subtle shadow for depth
+      }
+  
+      &:active {
+        transform: translateY(0);  // Reset the hover effect when clicked
+        box-shadow: none;  // Remove shadow on click
+      }
+    }
+  }
+
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+
+    i {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #2196F3;
+    }
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .goals-container {
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .goals-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+
+
+

@@ -1,0 +1,150 @@
+<div class="goals-container">
+  <!-- Header Section -->
+  <div class="header">
+    <div class="title-section">
+      <h1>Financial Goals</h1>
+      <p>Track and achieve your financial dreams</p>
+    </div>
+    <button class="add-goal-btn" (click)="addGoal()">
+      <i class="fas fa-plus"></i>
+      Add New Goal
+    </button>
+  </div>
+
+   <!-- Summary Cards -->
+   <div class="summary-cards">
+
+    <div class="card remaining">
+      <div class="card-content">
+        <h3>Total Remaining Balance</h3>
+        <p class="amount"><span [appCountUp]="totalNetworth"></span></p>
+        <p class="period">Previous Month</p>
+      </div>
+      <i class="fas fa-piggy-bank icon"></i>
+    </div>
+
+    <div class="card goal-savings">
+      <div class="card-content">
+        <h3>Total Gaol Savings</h3>
+        <p class="amount"><span [appCountUp]="totalGoalSavings"></span></p>
+        <p class="period">Overall</p>
+      </div>
+      <i class="fas fa-bullseye icon"></i>
+    </div>
+
+    <div class="card available-balance">
+      <div class="card-content">
+        <h3>Available Balance</h3>
+        <p class="amount"><span [appCountUp]="totalRemainingBalance"></span></p>
+        <p class="period">Previous Month</p>
+      </div>
+      <i class="fas fa-wallet icon"></i>
+    </div>
+
+  </div>
+
+
+<!-- Goals Grid -->
+<div class="goals-grid">
+  <div class="goal-card" *ngFor="let goal of goals">
+    <!-- Existing code for goal details -->
+    <div class="goal-header" [style.backgroundColor]="goal.color">
+      <div class="icon-wrapper">
+        <i class="fas" [class]="goal.icon"></i>
+      </div>
+      <div class="goal-info">
+        <h3>{{ goal.goalName }}</h3>
+        <span class="category">{{ goal.category }}</span>
+      </div>
+    </div>
+
+    <div class="goal-content">
+      <!-- Existing progress circle and other content -->
+      <div class="progress-circle-container">
+        <div
+          class="progress-circle"
+          [style.background]="'conic-gradient(' + goal.color + ' ' +
+          getProgressPercentage(goal.currentAmount, goal.targetAmount) +
+          '%, #f0f0f0 0)'"
+        >
+          <div class="progress-inner">
+            <span class="percentage">
+              {{ getProgressPercentage(goal.currentAmount, goal.targetAmount) | number:'1.0-0' }}%
+            </span>
+            <span class="label">Complete</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="amount-details">
+        <div class="current">
+          <span class="label">Current</span>
+          <span class="value">{{ goal.currentAmount | currency:'INR' }}</span>
+        </div>
+        <div class="target">
+          <span class="label">Target</span>
+          <span class="value">{{ goal.targetAmount | currency:'INR' }}</span>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="timeline">
+        <i class="fas fa-clock"></i>
+        <span class="days-left">{{ getDaysRemaining(goal.deadLine) }} days left</span>
+        <span class="deadline">Due by {{ goal.deadLine | date }}</span>
+      </div>
+
+      <!-- Status Badges Container -->
+      <div class="status-badges-container">
+        <div class="status-badge" *ngIf="getGoalStatus(goal) === 'overdue'">
+          <i class="fas fa-exclamation-circle"></i> Overdue
+        </div>
+        <div class="status-badge" *ngIf="getGoalStatus(goal) === 'completed-early'">
+          <i class="fas fa-check-circle"></i> Completed Early
+        </div>
+        <div class="status-badge" *ngIf="getGoalStatus(goal) === 'completed-on-time'">
+          <i class="fas fa-check-circle"></i> Completed On Time
+        </div>
+        <div class="status-badge" *ngIf="getGoalStatus(goal) === 'in-progress'">
+          <i class="fas fa-hourglass-half"></i> On Going 
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button class="add-btn" (click)="addAmount(goal.id)">
+          <i class="fas fa-plus"></i>
+          Add Amount
+        </button>
+        <div class="icon-buttons">
+          <button class="icon-btn update-btn" (click)="updateGoal(goal)" title="Update Goal">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="icon-btn delete-btn" (click)="deleteGoal(goal.id)" title="Delete Goal">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!loading && goals.length === 0">
+    <i class="fas fa-bullseye"></i>
+    <h3>No Financial Goals Yet</h3>
+    <p>Start setting your financial goals and track your progress</p>
+    <button class="add-goal-btn" (click)="addGoal()">Create Your First Goal</button>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading" *ngIf="loading">
+    <i class="fas fa-spinner fa-spin"></i>
+    <p>Loading your goals...</p>
+  </div>
+</div>
+
+
+
+

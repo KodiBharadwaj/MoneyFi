@@ -1,0 +1,244 @@
+:host {
+  display: block;
+  background-color: #f4f6f9;
+  min-height: 100%;
+}
+
+.overview-container {
+  padding: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  /* background-color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 12px; */
+}
+
+/* Header Section */
+.header-section {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.greeting-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-text {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.financial-quote {
+  font-size: 1rem;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* Financial Overview Grid */
+.financial-overview {
+  margin-bottom: 2rem;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.overview-tile {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.overview-tile:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.tile-icon-title-container {
+  display: flex;
+  align-items: center;
+}
+
+.tile-icon {
+  margin-right: 1rem;
+  color: #667eea;
+  font-size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.tile-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+  color: #2d3748;
+  line-height: 1.2;
+}
+
+.tile-content {
+  text-align: right;
+}
+
+.tile-amount {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0;
+  color: #2d3748;
+  line-height: 1.2;
+}
+
+.tile-subtext {
+  display: block;
+  font-size: 0.9rem;
+  color: #718096;
+  margin-top: 0.5rem;
+}
+
+.income-tile .tile-icon { color: #48bb78; }
+.expenses-tile .tile-icon { color: #f56565; }
+.savings-tile .tile-icon { color: #4299e1; }
+.net-worth-tile .tile-icon { color: #ed64a6; }
+
+/* Progress Section */
+.progress-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.progress-container {
+  background-color: #f7fafc;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  /* border: 1px solid #e2e8f0; */
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.progress-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #2d3748;
+}
+
+.progress-percentage {
+  font-weight: 600;
+  color: #718096;
+}
+
+mat-progress-bar {
+  height: 8px !important;
+  border-radius: 4px;
+  --mdc-linear-progress-active-indicator-height: 6px;
+  --mdc-linear-progress-track-height: 6px;;
+}
+
+::ng-deep .mat-mdc-progress-bar {
+  --mdc-linear-progress-active-indicator-color: #4CAF50;
+  --mdc-linear-progress-track-color: rgba(0, 0, 0, 0.1);
+  --mdc-linear-progress-buffer-color: rgba(0, 0, 0, 0.1);
+}
+
+::ng-deep .warning.mat-mdc-progress-bar {
+  --mdc-linear-progress-active-indicator-color: #f44336;
+  --mdc-linear-progress-active-indicator-height: 6px;
+  --mdc-linear-progress-track-color: rgba(0, 0, 0, 0.1);
+  --mdc-linear-progress-buffer-color: rgba(0, 0, 0, 0.1);
+}
+
+.progress-description {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #718096;
+}
+
+/* Quick Actions */
+.quick-actions {
+  background-color: #f7fafc;
+  padding: 1.5rem;
+  border-radius: 12px;
+}
+
+.quick-actions h3 {
+  margin-bottom: 1rem;
+  color: #2d3748;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.action-buttons button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  font-weight: 500;
+}
+
+.action-buttons button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .progress-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .overview-container {
+    padding: 1rem;
+  }
+
+  .overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-text {
+    font-size: 2rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+}
+
+/* Warning and Alert Styles */
+.warning {
+  background-color: #fed7d7;
+}

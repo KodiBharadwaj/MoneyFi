@@ -1,0 +1,176 @@
+<div class="analysis-container">
+  <!-- Header Section -->
+  <header class="header-section">
+    <h1>Financial Analytics</h1>
+    <p class="subtitle">Track your spending patterns and financial progress with detailed insights</p>
+  </header>
+
+  <!-- Analytics Overview Section -->
+  <section class="analytics-overview">
+    <!-- Top Row - Radar Chart and Description -->
+    <div class="chart-row">
+      <div class="chart-section">
+        <div class="chart-card">
+          <canvas baseChart [data]="radarChartData" [options]="radarChartOptions" [type]="'radar'"></canvas>
+        </div>
+      </div>
+      <div class="description-box-container">
+        <div class="description-box" [class.is-flipped]="isRadarFlipped">
+          <div class="description-box-front">
+            <h2>Budget vs. Spending Analysis</h2>
+            <div class="description-content">
+              <p class="description-text">
+                This radar chart provides a comprehensive comparison between your allocated budget and actual spending across different expense categories for the current month:
+              </p>
+              <ul class="description-list">
+                <li><span class="highlight">Monthly Budget:</span> Your preset spending limits per category</li>
+                <li><span class="highlight">Current Spending:</span> Your actual expenditure this month</li>
+              </ul>
+              <div class="insight-box">
+                <h3>Key Insights</h3>
+                <p>
+                  Areas where the blue line (spending) exceeds the pink line (budget) indicate potential overspending. 
+                  Use these insights to adjust your budgets or modify spending habits for better financial management.
+                </p>
+              </div>
+              <button class="ai-analysis-btn" (click)="flipCard('radar')">
+                <i class="fas fa-robot"></i>
+                Get AI Analysis
+              </button>
+            </div>
+          </div>
+          <div class="description-box-back">
+            <h2>AI Analysis</h2>
+            <div class="description-content">
+              <div class="ai-analysis-content">
+                <div *ngIf="isRadarAnalysisLoading" class="analysis-loading">
+                  <i class="fas fa-robot fa-spin"></i>
+                  <p>Generating AI Analysis...</p>
+                </div>
+                <div *ngIf="!isRadarAnalysisLoading" class="analysis-text">
+                  {{ radarAnalysis }}
+                </div>
+              </div>
+              <button class="back-to-description-btn" (click)="flipCard('radar')">
+                <i class="fas fa-arrow-left"></i>
+                Description
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Second Row - Mixed Chart and Description -->
+    <div class="chart-row">
+      <div class="chart-section">
+        <div class="chart-card">
+          <canvas baseChart [data]="mixedChartData" [options]="mixedChartOptions" [type]="'bar'"></canvas>
+        </div>
+      </div>
+      <div class="description-box-container">
+        <div class="description-box" [class.is-flipped]="isMixedFlipped">
+          <div class="description-box-front">
+            <h2>Financial Flow Analysis</h2>
+            <div class="description-content">
+              <p class="description-text">
+                Track your yearly financial patterns with this comprehensive visualization of income, expenses, and savings:
+              </p>
+              <ul class="description-list">
+                <li><span class="highlight">Income (Blue Line):</span> Monthly earnings trajectory</li>
+                <li><span class="highlight">Expenses (Pink Bars):</span> Monthly spending distribution</li>
+                <li><span class="highlight">Savings (Teal Line):</span> Monthly savings progression</li>
+              </ul>
+              <div class="insight-box">
+                <h3>Trend Analysis</h3>
+                <p>
+                  The relationship between these three metrics reveals your financial health. 
+                  Higher savings line and lower expense bars relative to income indicate effective money management. 
+                  Watch for months where expenses approach income levels.
+                </p>
+              </div>
+              <button class="ai-analysis-btn" (click)="flipCard('mixed')">
+                <i class="fas fa-robot"></i>
+                Get AI Analysis
+              </button>
+            </div>
+          </div>
+          <div class="description-box-back">
+            <h2>AI Analysis</h2>
+            <div class="description-content">
+              <div class="ai-analysis-content">
+                <div *ngIf="isMixedAnalysisLoading" class="analysis-loading">
+                  <i class="fas fa-robot fa-spin"></i>
+                  <p>Generating AI Analysis...</p>
+                </div>
+                <div *ngIf="!isMixedAnalysisLoading" class="analysis-text">
+                  {{ mixedAnalysis }}
+                </div>
+              </div>
+              <button class="back-to-description-btn" (click)="flipCard('mixed')">
+                <i class="fas fa-arrow-left"></i>
+                Description
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Third Row - Line Chart and Description -->
+    <div class="chart-row">
+      <div class="chart-section">
+        <div class="chart-card">
+          <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" [type]="'line'"></canvas>
+        </div>
+      </div>
+      <div class="description-box-container">
+        <div class="description-box" [class.is-flipped]="isLineFlipped">
+          <div class="description-box-front">
+            <h2>Cumulative Savings Growth</h2>
+            <div class="description-content">
+              <p class="description-text">
+                Track your progressive savings accumulation throughout the year with this cumulative trend analysis:
+              </p>
+              <ul class="description-list">
+                <li><span class="highlight">Growth Trajectory:</span> Visualize your savings buildup month by month</li>
+                <li><span class="highlight">Trend Line:</span> Shows the total accumulated savings at each point</li>
+              </ul>
+              <div class="insight-box">
+                <h3>Growth Analysis</h3>
+                <p>
+                  The slope of this line indicates your saving momentum. A steeper curve shows accelerated saving,
+                  while plateaus might suggest months where saving slowed. Use this trend to set and adjust your
+                  long-term savings goals and track your progress toward financial milestones.
+                </p>
+              </div>
+              <button class="ai-analysis-btn" (click)="flipCard('line')">
+                <i class="fas fa-robot"></i>
+                Get AI Analysis
+              </button>
+            </div>
+          </div>
+          <div class="description-box-back">
+            <h2>AI Analysis</h2>
+            <div class="description-content">
+              <div class="ai-analysis-content">
+                <div *ngIf="isLineAnalysisLoading" class="analysis-loading">
+                  <i class="fas fa-robot fa-spin"></i>
+                  <p>Generating AI Analysis...</p>
+                </div>
+                <div *ngIf="!isLineAnalysisLoading" class="analysis-text">
+                  {{ lineAnalysis }}
+                </div>
+              </div>
+              <button class="back-to-description-btn" (click)="flipCard('line')">
+                <i class="fas fa-arrow-left"></i>
+                Description
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+  

@@ -1,0 +1,16 @@
+<h1 mat-dialog-title>Add Amount</h1>
+<div mat-dialog-content>
+  <form [formGroup]="amountForm">
+    <mat-form-field appearance="fill">
+      <mat-label>Amount</mat-label>
+      <input matInput type="number" formControlName="amount" />
+      <mat-error *ngIf="amountForm.get('amount')?.invalid">
+        Amount must be greater than 0
+      </mat-error>
+    </mat-form-field>
+  </form>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="amountForm.invalid">Save</button>
+</div>
