@@ -1,13 +1,10 @@
 package com.finance.user.service.microservices.expense;
 
-import com.finance.user.dto.BudgetModel;
 import com.finance.user.dto.ExpenseModel;
-import com.finance.user.feign.BudgetFeignClient;
 import com.finance.user.feign.ExpenseFeignClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
@@ -16,9 +13,6 @@ public class UserExpenseServiceImplementation implements UserExpenseService {
 
     @Autowired
     private ExpenseFeignClient expenseFeignClient;
-
-    @Autowired
-    private BudgetFeignClient budgetFeignClient;
 
 
     @Override
@@ -41,6 +35,11 @@ public class UserExpenseServiceImplementation implements UserExpenseService {
     @Override
     public List<ExpenseModel> getAllExpensesByYear(int userId, int year) {
         return expenseFeignClient.getAllExpensesByYear(userId, year).getBody();
+    }
+
+    @Override
+    public List<Double> getMonthlyExpenses(int userId, int year) {
+        return expenseFeignClient.getMonthlyExpenses(userId, year);
     }
 
     @Override

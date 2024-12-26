@@ -15,18 +15,7 @@ public class BudgetServiceImplementation implements BudgetService{
 
     @Override
     public BudgetModel save(BudgetModel budget) {
-//        BudgetModel budgetModel = budgetRepository.findByCategory(budget.getCategory());
-//        if(budgetModel != null){
-//            budget.setCurrentSpending(budgetModel.getCurrentSpending() + budget.getCurrentSpending());
-//        }
         return budgetRepository.save(budget);
-    }
-
-    @Override
-    public BudgetModel addToBudget(BudgetModel budget) {
-        BudgetModel getBudget = budgetRepository.findByCategory(budget.getCategory());
-        getBudget.setCurrentSpending(budget.getCurrentSpending());
-        return save(getBudget);
     }
 
     @Override
@@ -51,10 +40,5 @@ public class BudgetServiceImplementation implements BudgetService{
         }
 
         return save(budgetModel);
-    }
-
-    @Override
-    public void deleteParticularBudgetByCategory(int userId, String category) {
-        budgetRepository.deleteParticularBudgetByCategory(userId, category);
     }
 }

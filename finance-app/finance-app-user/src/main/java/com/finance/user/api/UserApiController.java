@@ -75,10 +75,7 @@ public class UserApiController {
 
         return userRepository.save(userModel);
     }
-//    @GetMapping("/getUserId/{email}")
-//    public ResponseEntity<Integer> getUserIdByEmail(@PathVariable("email") String email){
-//        return ResponseEntity.status(HttpStatus.OK).body(userService.getUserIdFromEmail(email));
-//    }
+
     @PostMapping
     public ResponseEntity<UserModel> save(@RequestBody UserModel user) {
         UserModel user2 = userService.save(user);
@@ -96,6 +93,7 @@ public class UserApiController {
 
 
     // Income Api calls
+    // add income
     @PostMapping("/{userId}/income")
     public ResponseEntity<IncomeModel> addIncome(@PathVariable int userId, @RequestBody IncomeModel income) {
         IncomeModel createdIncome = incomeService.addIncome(userId, income);
@@ -106,21 +104,25 @@ public class UserApiController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
     }
+    // get list of incomes of a particular user
     @GetMapping("/{userId}/incomes")
     public ResponseEntity<List<IncomeModel>> getAllIncomes(@PathVariable("userId") int userId) {
         List<IncomeModel> incomesList = incomeService.getAllIncomes(userId);
         return ResponseEntity.ok(incomesList);
     }
-    @GetMapping("/{userId}/totalIncome")
-    public Integer getTotalIncome(@PathVariable("userId") int userId){
-        List<IncomeModel> incomesList = incomeService.getAllIncomes(userId);
-        return (int) incomesList.stream().mapToDouble(i->i.getAmount()).sum();
-    }
+    // get total income of a user
+//    @GetMapping("/{userId}/totalIncome")
+//    public Integer getTotalIncome(@PathVariable("userId") int userId){
+//        List<IncomeModel> incomesList = incomeService.getAllIncomes(userId);
+//        return (int) incomesList.stream().mapToDouble(i->i.getAmount()).sum();
+//    }
+    // get total income of a user in a particular month and year
     @GetMapping("/{userId}/totalIncome/{month}/{year}")
-    public Integer getTotalIncomeByMonthAndYear(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year){
+    public Double getTotalIncomeByMonthAndYear(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year){
         List<IncomeModel> incomesList = incomeService.getAllIncomesByDate(userId, month, year);
-        return (int) incomesList.stream().mapToDouble(i->i.getAmount()).sum();
+        return incomesList.stream().mapToDouble(i->i.getAmount()).sum();
     }
+    //get remaining balance of a user upto previous month in a year
     @GetMapping("/{userId}/totalRemainingIncomeOfPreviousMonth/{month}/{year}")
     public Integer getTotalRemainingIncomeByMonthAndYear(
             @PathVariable("userId") int userId,
@@ -158,6 +160,7 @@ public class UserApiController {
         // Return the remaining amount as an integer
         return (int) (totalIncome - totalExpenses);
     }
+    // get list of incomes of a user in a particular month and year
     @GetMapping("/incomes/{userId}/{month}/{year}")
     public ResponseEntity<List<IncomeModel>> getAllIncomesByDate(@PathVariable("userId") int userId,
                                                                    @PathVariable("month") int month,
@@ -165,18 +168,19 @@ public class UserApiController {
         List<IncomeModel> incomesList = incomeService.getAllIncomesByDate(userId, month, year);
         return ResponseEntity.ok(incomesList);
     }
+    // get all incomes of a user in a year
     @GetMapping("/incomes/{userId}/{year}")
     public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") int userId,
                                                                    @PathVariable("year") int year) {
         List<IncomeModel> incomesList = incomeService.getAllIncomesByYear(userId, year);
         return ResponseEntity.ok(incomesList);
-
     }
+    // get list of total income of every month in a year
     @GetMapping("/{userId}/monthlyTotalIncomesList/{year}")
     public List<Double> getMonthlyInocmeTotals(@PathVariable("userId") int userId, @PathVariable("year") int year) {
-        Double[] value = restTemplate.getForObject("http://FINANCE-APP-INCOME/api/income/"+userId+"/monthlyTotalIncomesList/"+year,Double[].class);
-        return Arrays.asList(value);
+        return incomeService.getAllIncomesOfEveryMonth(userId, year);
     }
+    // update a particular income of a user by income id
     @PutMapping("/{id}/income")
     public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") int id, @RequestBody IncomeModel income){
         IncomeModel updatedIncome = incomeService.updateIncome(id, income);
@@ -187,6 +191,7 @@ public class UserApiController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
     }
+    // delete a particular income of a user by income id
     @DeleteMapping("/{id}/income")
     public ResponseEntity<Void> deleteIncomeById(@PathVariable("id") int id) {
         boolean isDeleted = incomeService.deleteIncomeById(id);
@@ -202,7 +207,9 @@ public class UserApiController {
 
 
 
+
     // Expense Api calls
+    // add expense of a user
     @PostMapping("/{userId}/expense")
     public ResponseEntity<ExpenseModel> addExpense(@PathVariable int userId, @RequestBody ExpenseModel expense) {
         ExpenseModel createdExpense = expenseService.addExpense(userId, expense);
@@ -213,11 +220,13 @@ public class UserApiController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
     }
+    // get all expenses of a user
     @GetMapping("/{userId}/expenses")
     public ResponseEntity<List<ExpenseModel>> getAllExpenses(@PathVariable("userId") int userId) {
         List<ExpenseModel> expensesList = expenseService.getAllExpenses(userId);
         return ResponseEntity.ok(expensesList);
     }
+    // get list of expenses of a user in a particular month and year
     @GetMapping("/expenses/{userId}/{month}/{year}")
     public ResponseEntity<List<ExpenseModel>> getAllExpensesByDate(@PathVariable("userId") int userId,
                                                                    @PathVariable("month") int month,
@@ -225,30 +234,33 @@ public class UserApiController {
         List<ExpenseModel> expensesList = expenseService.getAllExpensesByDate(userId, month, year);
         return ResponseEntity.ok(expensesList);
     }
+    // get list of expenses of a user in a particular year
     @GetMapping("/expenses/{userId}/{year}")
     public ResponseEntity<List<ExpenseModel>> getAllExpensesByYear(@PathVariable("userId") int userId,
                                                                    @PathVariable("year") int year) {
         List<ExpenseModel> expensesList = expenseService.getAllExpensesByYear(userId, year);
         return ResponseEntity.ok(expensesList);
     }
-    @GetMapping("/{userId}/totalExpense")
-    public Integer getTotalExpense(@PathVariable("userId") int userId){
-        List<ExpenseModel> expensesList = expenseService.getAllExpenses(userId);
-        return (int) expensesList.stream().mapToDouble(i->i.getAmount()).sum();
-    }
+//    @GetMapping("/{userId}/totalExpense")
+//    public Integer getTotalExpense(@PathVariable("userId") int userId){
+//        List<ExpenseModel> expensesList = expenseService.getAllExpenses(userId);
+//        return (int) expensesList.stream().mapToDouble(i->i.getAmount()).sum();
+//    }
+    // get total expense of a user in a particular month and year
     @GetMapping("/expenses/{userId}/totalExpenses/{month}/{year}")
     public Double getTotalExpenseByMonthAndDate(@PathVariable("userId") int userId,
                                                 @PathVariable("month") int month,
                                                 @PathVariable("year") int year){
-        List<ExpenseModel> expensesList = expenseService.getAllExpenses(userId);
-        return expensesList.stream().filter(i->i.getDate().getMonthValue()==month && i.getDate().getYear()==year)
-                .mapToDouble(i->i.getAmount()).sum();
+
+        List<ExpenseModel> expensesList = expenseService.getAllExpensesByDate(userId, month, year);
+        return expensesList.stream().mapToDouble(i->i.getAmount()).sum();
     }
+    // get list of expenses by monthly wise in a year
     @GetMapping("/{userId}/monthlyTotalExpensesList/{year}")
     public List<Double> getMonthlyTotals(@PathVariable("userId") int userId, @PathVariable("year") int year) {
-        Double[] value = restTemplate.getForObject("http://FINANCE-APP-EXPENSE/api/expense/"+userId+"/monthlyTotalExpensesList/"+year,Double[].class);
-        return Arrays.asList(value);
+        return expenseService.getMonthlyExpenses(userId, year);
     }
+    // get total savings of a user in particular month and year
     @GetMapping("/{userId}/totalSavings/{month}/{year}")
     public Double getTotalSavingsByMonthAndDate(@PathVariable("userId") int userId,
                                                 @PathVariable("month") int month,
@@ -318,6 +330,8 @@ public class UserApiController {
 
 
 
+
+
     // Budget calls
     @PostMapping("/{userId}/budget")
     public ResponseEntity<BudgetModel> addBudget(@PathVariable int userId, @RequestBody BudgetModel budget) {
@@ -352,6 +366,7 @@ public class UserApiController {
         // Optionally handle the response body or status
         return response;
     }
+
 
 
 
@@ -426,9 +441,8 @@ public class UserApiController {
         BudgetModel[] list = restTemplate.getForObject("http://FINANCE-APP-BUDGET/api/budget/"+userId, BudgetModel[].class);
         List<BudgetModel> budgetsList = new ArrayList<>(Arrays.asList(list));
 
-        List<ExpenseModel> expensesList = expenseService.getAllExpenses(userId);
-        double currentSpending = expensesList.stream().filter(i->i.getDate().getMonthValue()==month && i.getDate().getYear()==year)
-                .mapToDouble(i->i.getAmount()).sum();
+        List<ExpenseModel> expensesList = expenseService.getAllExpensesByDate(userId, month, year);
+        double currentSpending = expensesList.stream().mapToDouble(i->i.getAmount()).sum();
 
         double moneyLimit = budgetsList.stream().mapToDouble(i->i.getMoneyLimit()).sum();
         return currentSpending/moneyLimit;
@@ -456,7 +470,6 @@ public class UserApiController {
     @GetMapping("/getName/{userId}")
     public String getNameFromUserId(@PathVariable("userId") int userId){
         return userService.getNameFromUserId(userId);
-
     }
 
 }

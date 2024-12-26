@@ -24,6 +24,9 @@ public interface IncomeFeignClient {
     @GetMapping("/api/income/{userId}/{year}")
     public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") int userId, @PathVariable("year") int year);
 
+    @GetMapping("/api/income/{userId}/monthlyTotalIncomesList/{year}")
+    public List<Double> getAllIncomesOfEveryMonth(@PathVariable("userId") int userId, @PathVariable("year") int year);
+
     @PutMapping("api/income/{id}")
     public IncomeModel updateIncome(@PathVariable("id") int id, @RequestBody IncomeModel income);
 
