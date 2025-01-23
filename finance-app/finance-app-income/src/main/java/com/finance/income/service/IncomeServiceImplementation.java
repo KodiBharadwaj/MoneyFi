@@ -18,27 +18,28 @@ public class IncomeServiceImplementation implements IncomeService {
 
     @Override
     public IncomeModel save(IncomeModel income) {
+        income.set_deleted(false);
         return incomeRepository.save(income);
     }
 
     @Override
     public List<IncomeModel> getAllIncomes(int userId) {
-        return incomeRepository.findIncomesOfUser(userId);
+        return incomeRepository.findIncomesOfUser(userId).stream().filter(i->i.is_deleted()==false).toList();
     }
 
     @Override
-    public List<IncomeModel> getAllIncomesByDate(int userId, int month, int year) {
-        return incomeRepository.getAllIncomesByDate(userId, month, year);
+    public List<IncomeModel> getAllIncomesByDate(int userId, int month, int year, boolean deleteStatus) {
+        return incomeRepository.getAllIncomesByDate(userId, month, year, deleteStatus);
     }
 
     @Override
-    public List<IncomeModel> getAllIncomesByYear(int userId, int year) {
-        return incomeRepository.getAllIncomesByYear(userId, year);
+    public List<IncomeModel> getAllIncomesByYear(int userId, int year, boolean deleteStatus) {
+        return incomeRepository.getAllIncomesByYear(userId, year, deleteStatus);
     }
 
     @Override
     public List<Double> getMonthlyIncomes(int userId, int year) {
-        List<Object[]> rawIncomes = incomeRepository.findMonthlyIncomes(userId, year);
+        List<Object[]> rawIncomes = incomeRepository.findMonthlyIncomes(userId, year, false);
         Double[] monthlyTotals = new Double[12];
         Arrays.fill(monthlyTotals, 0.0); // Initialize all months to 0
 
@@ -75,6 +76,9 @@ public class IncomeServiceImplementation implements IncomeService {
 
     @Override
     public void deleteParticularIncomeBySource(int id) {
-        incomeRepository.deleteById(id);
+//        incomeRepository.deleteById(id);
+        IncomeModel income = incomeRepository.findById(id).orElse(null);
+        income.set_deleted(true);
+        incomeRepository.save(income);
     }
 }

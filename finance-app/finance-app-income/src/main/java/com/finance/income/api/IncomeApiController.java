@@ -38,13 +38,14 @@ public class IncomeApiController {
 //        }
     }
 
-    @GetMapping("/{userId}/{month}/{year}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomesByDate(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year){
-        return ResponseEntity.status(HttpStatus.OK).body(incomeService.getAllIncomesByDate(userId, month, year));
+    @GetMapping("/{userId}/{month}/{year}/{deleteStatus}")
+    public ResponseEntity<List<IncomeModel>> getAllIncomesByDate(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year, @PathVariable("deleteStatus") boolean deleteStatus){
+        return ResponseEntity.status(HttpStatus.OK).body(incomeService.getAllIncomesByDate(userId, month, year, deleteStatus));
     }
-    @GetMapping("/{userId}/{year}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") int userId, @PathVariable("year") int year){
-        return ResponseEntity.status(HttpStatus.OK).body(incomeService.getAllIncomesByYear(userId, year));
+
+    @GetMapping("/{userId}/{year}/{deleteStatus}")
+    public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") int userId, @PathVariable("year") int year, @PathVariable("deleteStatus") boolean deleteStatus){
+        return ResponseEntity.status(HttpStatus.OK).body(incomeService.getAllIncomesByYear(userId, year, deleteStatus));
     }
 
 

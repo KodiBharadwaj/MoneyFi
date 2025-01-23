@@ -18,11 +18,11 @@ public interface IncomeFeignClient {
     @GetMapping("api/income/{userId}")
     public ResponseEntity<List<IncomeModel>> getAllIncomes(@PathVariable("userId") int userId);
 
-    @GetMapping("/api/income/{userId}/{month}/{year}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomesByDate(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year);
+    @GetMapping("/api/income/{userId}/{month}/{year}/{deleteStatus}")
+    public ResponseEntity<List<IncomeModel>> getAllIncomesByDate(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year, @PathVariable("deleteStatus") boolean deleteStatus);
 
-    @GetMapping("/api/income/{userId}/{year}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") int userId, @PathVariable("year") int year);
+    @GetMapping("/api/income/{userId}/{year}/{deleteStatus}")
+    public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") int userId, @PathVariable("year") int year, @PathVariable("deleteStatus") boolean deleteStatus);
 
     @GetMapping("/api/income/{userId}/monthlyTotalIncomesList/{year}")
     public List<Double> getAllIncomesOfEveryMonth(@PathVariable("userId") int userId, @PathVariable("year") int year);

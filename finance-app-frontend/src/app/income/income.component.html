@@ -150,3 +150,39 @@
     </div>
   </div>
 </div>
+
+
+
+
+<div>
+  <h2>Deleted Income Sources</h2>
+  <button (click)="isDeletedClicked()">Click me</button>
+  <table *ngIf="!loading && deletedIncomeSources.length > 0">
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let deletedIncome of deletedIncomeSources">
+        <td>{{ deletedIncome.source }}</td>
+        <td>
+          <span class="category-badge">{{ deletedIncome.category }}</span>
+        </td>
+        <td>₹{{ deletedIncome.amount.toLocaleString() }}</td>
+        <td>{{ deletedIncome.date | date:'mediumDate' }}</td>
+        <td>
+          <span class="type-badge" [class.recurring]="deletedIncome.recurring">
+            {{ deletedIncome.recurring ? 'Recurring' : 'One-time' }}
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>

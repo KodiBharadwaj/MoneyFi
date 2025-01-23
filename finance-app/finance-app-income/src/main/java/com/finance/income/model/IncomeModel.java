@@ -24,4 +24,5 @@ public class IncomeModel {
     private LocalDate date;
     private String category;
     private boolean recurring;
+    private boolean is_deleted;
 }

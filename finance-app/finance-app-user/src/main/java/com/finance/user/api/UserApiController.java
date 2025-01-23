@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -119,7 +120,7 @@ public class UserApiController {
     // get total income of a user in a particular month and year
     @GetMapping("/{userId}/totalIncome/{month}/{year}")
     public Double getTotalIncomeByMonthAndYear(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year){
-        List<IncomeModel> incomesList = incomeService.getAllIncomesByDate(userId, month, year);
+        List<IncomeModel> incomesList = incomeService.getAllIncomesByDate(userId, month, year, false);
         return incomesList.stream().mapToDouble(i->i.getAmount()).sum();
     }
     //get remaining balance of a user upto previous month in a year
@@ -161,18 +162,20 @@ public class UserApiController {
         return (int) (totalIncome - totalExpenses);
     }
     // get list of incomes of a user in a particular month and year
-    @GetMapping("/incomes/{userId}/{month}/{year}")
+    @GetMapping("/incomes/{userId}/{month}/{year}/{deleteStatus}")
     public ResponseEntity<List<IncomeModel>> getAllIncomesByDate(@PathVariable("userId") int userId,
                                                                    @PathVariable("month") int month,
-                                                                   @PathVariable("year") int year) {
-        List<IncomeModel> incomesList = incomeService.getAllIncomesByDate(userId, month, year);
+                                                                   @PathVariable("year") int year,
+                                                                   @PathVariable("deleteStatus") boolean deleteStatus) {
+        List<IncomeModel> incomesList = incomeService.getAllIncomesByDate(userId, month, year, deleteStatus);
         return ResponseEntity.ok(incomesList);
     }
     // get all incomes of a user in a year
-    @GetMapping("/incomes/{userId}/{year}")
+    @GetMapping("/incomes/{userId}/{year}/{deleteStatus}")
     public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") int userId,
-                                                                   @PathVariable("year") int year) {
-        List<IncomeModel> incomesList = incomeService.getAllIncomesByYear(userId, year);
+                                                                   @PathVariable("year") int year,
+                                                                   @PathVariable("deleteStatus") boolean deleteStatus) {
+        List<IncomeModel> incomesList = incomeService.getAllIncomesByYear(userId, year, deleteStatus);
         return ResponseEntity.ok(incomesList);
     }
     // get list of total income of every month in a year
@@ -266,7 +269,7 @@ public class UserApiController {
                                                 @PathVariable("month") int month,
                                                 @PathVariable("year") int year){
 
-        List<IncomeModel> incomesList = incomeService.getAllIncomesByDate(userId, month, year);
+        List<IncomeModel> incomesList = incomeService.getAllIncomesByDate(userId, month, year, false);
         Double income = incomesList.stream().mapToDouble(i->i.getAmount()).sum();
 
         List<ExpenseModel> expensesList = expenseService.getAllExpenses(userId);
@@ -291,15 +294,33 @@ public class UserApiController {
         Double[] incomes = restTemplate.getForObject("http://FINANCE-APP-INCOME/api/income/"+userId+"/monthlyTotalIncomesList/"+year,Double[].class);
         Double[] expenses = restTemplate.getForObject("http://FINANCE-APP-EXPENSE/api/expense/"+userId+"/monthlyTotalExpensesList/"+year,Double[].class);
 
+        LocalDate currentDate = LocalDate.now();
+        int currentYear = currentDate.getYear();
+        int currentMonth = currentDate.getMonthValue();
+
+        if(year > currentYear) return Arrays.asList(new Double[12]);
+
+        int lastMonth = (year < currentYear) ? 12 : currentMonth;
+
         List<Double> savings = new ArrayList<>();
         for (int i = 0; i < 12; i++) {
-            savings.add(incomes[i] - expenses[i]);
+            if(i < lastMonth){
+                savings.add(incomes[i] - expenses[i]);
+            }
+            else{
+                savings.add(0.0);
+            }
         }
 
         List<Double> cumulativeSavings = new ArrayList<>();
         cumulativeSavings.add(savings.get(0));
         for(int i=1; i<12; i++){
-            cumulativeSavings.add(cumulativeSavings.get(i-1)+savings.get(i));
+            if(i < lastMonth){
+                cumulativeSavings.add(cumulativeSavings.get(i-1)+savings.get(i));
+            }
+            else {
+                cumulativeSavings.add(0.0);
+            }
         }
         return cumulativeSavings;
     }

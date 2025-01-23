@@ -1,0 +1,3 @@
+- Implement soft delete
+- Google authentication
+- pdf export of the data of the user
