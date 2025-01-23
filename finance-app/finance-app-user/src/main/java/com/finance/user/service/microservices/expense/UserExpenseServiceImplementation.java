@@ -28,13 +28,13 @@ public class UserExpenseServiceImplementation implements UserExpenseService {
     }
 
     @Override
-    public List<ExpenseModel> getAllExpensesByDate(int userId, int month, int year) {
-        return expenseFeignClient.getAllExpensesByDate(userId, month,year).getBody();
+    public List<ExpenseModel> getAllExpensesByDate(int userId, int month, int year, boolean deleteStatus) {
+        return expenseFeignClient.getAllExpensesByDate(userId, month,year, deleteStatus).getBody();
     }
 
     @Override
-    public List<ExpenseModel> getAllExpensesByYear(int userId, int year) {
-        return expenseFeignClient.getAllExpensesByYear(userId, year).getBody();
+    public List<ExpenseModel> getAllExpensesByYear(int userId, int year, boolean deleteStatus) {
+        return expenseFeignClient.getAllExpensesByYear(userId, year, deleteStatus).getBody();
     }
 
     @Override

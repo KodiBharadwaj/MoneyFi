@@ -230,18 +230,20 @@ public class UserApiController {
         return ResponseEntity.ok(expensesList);
     }
     // get list of expenses of a user in a particular month and year
-    @GetMapping("/expenses/{userId}/{month}/{year}")
+    @GetMapping("/expenses/{userId}/{month}/{year}/{deleteStatus}")
     public ResponseEntity<List<ExpenseModel>> getAllExpensesByDate(@PathVariable("userId") int userId,
                                                                    @PathVariable("month") int month,
-                                                                   @PathVariable("year") int year) {
-        List<ExpenseModel> expensesList = expenseService.getAllExpensesByDate(userId, month, year);
+                                                                   @PathVariable("year") int year,
+                                                                   @PathVariable("deleteStatus") boolean deleteStatus) {
+        List<ExpenseModel> expensesList = expenseService.getAllExpensesByDate(userId, month, year, deleteStatus);
         return ResponseEntity.ok(expensesList);
     }
     // get list of expenses of a user in a particular year
-    @GetMapping("/expenses/{userId}/{year}")
+    @GetMapping("/expenses/{userId}/{year}/{deleteStatus}")
     public ResponseEntity<List<ExpenseModel>> getAllExpensesByYear(@PathVariable("userId") int userId,
-                                                                   @PathVariable("year") int year) {
-        List<ExpenseModel> expensesList = expenseService.getAllExpensesByYear(userId, year);
+                                                                   @PathVariable("year") int year,
+                                                                   @PathVariable("deleteStatus") boolean deleteStatus) {
+        List<ExpenseModel> expensesList = expenseService.getAllExpensesByYear(userId, year, deleteStatus);
         return ResponseEntity.ok(expensesList);
     }
 //    @GetMapping("/{userId}/totalExpense")
@@ -255,7 +257,7 @@ public class UserApiController {
                                                 @PathVariable("month") int month,
                                                 @PathVariable("year") int year){
 
-        List<ExpenseModel> expensesList = expenseService.getAllExpensesByDate(userId, month, year);
+        List<ExpenseModel> expensesList = expenseService.getAllExpensesByDate(userId, month, year, false);
         return expensesList.stream().mapToDouble(i->i.getAmount()).sum();
     }
     // get list of expenses by monthly wise in a year
@@ -462,7 +464,7 @@ public class UserApiController {
         BudgetModel[] list = restTemplate.getForObject("http://FINANCE-APP-BUDGET/api/budget/"+userId, BudgetModel[].class);
         List<BudgetModel> budgetsList = new ArrayList<>(Arrays.asList(list));
 
-        List<ExpenseModel> expensesList = expenseService.getAllExpensesByDate(userId, month, year);
+        List<ExpenseModel> expensesList = expenseService.getAllExpensesByDate(userId, month, year, false);
         double currentSpending = expensesList.stream().mapToDouble(i->i.getAmount()).sum();
 
         double moneyLimit = budgetsList.stream().mapToDouble(i->i.getMoneyLimit()).sum();

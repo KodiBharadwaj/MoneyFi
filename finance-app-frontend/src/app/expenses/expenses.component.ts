@@ -123,10 +123,10 @@ export class ExpensesComponent {
         let url: string;
         if (this.selectedMonth === 0) {
           // Fetch all expenses for the selected year
-          url = `${this.baseUrl}/api/user/expenses/${userId}/${this.selectedYear}`;
+          url = `${this.baseUrl}/api/user/expenses/${userId}/${this.selectedYear}/false`;
         } else {
           // Fetch expenses for the specific month and year
-          url = `${this.baseUrl}/api/user/expenses/${userId}/${this.selectedMonth}/${this.selectedYear}`;
+          url = `${this.baseUrl}/api/user/expenses/${userId}/${this.selectedMonth}/${this.selectedYear}/false`;
         }
   
         this.httpClient.get<Expense[]>(url).subscribe({

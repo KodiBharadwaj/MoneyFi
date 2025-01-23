@@ -41,13 +41,13 @@ public class ExpenseApiController {
 //            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // 404
 //        }
     }
-    @GetMapping("/{userId}/{month}/{year}")
-    public ResponseEntity<List<ExpenseModel>> getAllExpensesByDate(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year){
-        return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllexpensesByDate(userId, month, year));
+    @GetMapping("/{userId}/{month}/{year}/{deleteStatus}")
+    public ResponseEntity<List<ExpenseModel>> getAllExpensesByDate(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year, @PathVariable("deleteStatus") boolean deleteStatus){
+        return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllexpensesByDate(userId, month, year, deleteStatus));
     }
-    @GetMapping("/{userId}/{year}")
-    public ResponseEntity<List<ExpenseModel>> getAllExpensesByYear(@PathVariable("userId") int userId, @PathVariable("year") int year){
-        return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllexpensesByYear(userId, year));
+    @GetMapping("/{userId}/{year}/{deleteStatus}")
+    public ResponseEntity<List<ExpenseModel>> getAllExpensesByYear(@PathVariable("userId") int userId, @PathVariable("year") int year, @PathVariable("deleteStatus") boolean deleteStatus){
+        return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllexpensesByYear(userId, year, deleteStatus));
     }
 
     @PutMapping("/{id}")

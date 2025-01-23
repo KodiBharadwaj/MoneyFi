@@ -10,9 +10,9 @@ public interface UserExpenseService {
 
     public List<ExpenseModel> getAllExpenses(int userId);
 
-    public List<ExpenseModel> getAllExpensesByDate(int userId, int month, int year);
+    public List<ExpenseModel> getAllExpensesByDate(int userId, int month, int year, boolean deleteStatus);
 
-    public List<ExpenseModel> getAllExpensesByYear(int userId, int year);
+    public List<ExpenseModel> getAllExpensesByYear(int userId, int year, boolean deleteStatus);
 
     public List<Double> getMonthlyExpenses(int userId, int year);
 

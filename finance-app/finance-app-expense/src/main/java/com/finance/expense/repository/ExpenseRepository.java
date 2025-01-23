@@ -14,10 +14,6 @@ import java.util.List;
 
 public interface ExpenseRepository extends JpaRepository<ExpenseModel, Integer> {
 
-    public ExpenseModel findByUserId(int userId);
-
-    public ExpenseModel findByCategory(String category);
-
     @Query("select e from ExpenseModel e where e.userId = :userId")
     public List<ExpenseModel> findExpensesByUserId(int userId);
 
@@ -26,19 +22,20 @@ public interface ExpenseRepository extends JpaRepository<ExpenseModel, Integer> 
 
     @Query("SELECT e FROM ExpenseModel e WHERE e.userId = :userId " +
             "AND EXTRACT(MONTH FROM e.date) = :month " +
-            "AND EXTRACT(YEAR FROM e.date) = :year")
-    public List<ExpenseModel> getAllexpensesByDate(int userId, int month, int year);
+            "AND EXTRACT(YEAR FROM e.date) = :year " +
+            "AND e.is_deleted = :deleteStatus")
+    public List<ExpenseModel> getAllexpensesByDate(int userId, int month, int year, boolean deleteStatus);
 
-    @Query("SELECT e FROM ExpenseModel e WHERE e.userId = :userId " +
+    @Query("SELECT e FROM ExpenseModel e WHERE e.userId = :userId AND e.is_deleted = :deleteStatus " +
             "AND EXTRACT(YEAR FROM e.date) = :year")
-    public List<ExpenseModel> getAllexpensesByYear(int userId, int year);
+    public List<ExpenseModel> getAllexpensesByYear(int userId, int year, boolean deleteStatus);
 
     @Query("SELECT MONTH(e.date) AS month, SUM(e.amount) AS total " +
             "FROM ExpenseModel e " +
-            "where e.userId = :userId AND YEAR(e.date)=:year " +
+            "where e.userId = :userId AND YEAR(e.date)=:year AND e.is_deleted = :deleteStatus " +
             "GROUP BY MONTH(e.date) " +
             "ORDER BY month ASC")
-    public List<Object[]> findMonthlyExpenses(int userId, int year);
+    public List<Object[]> findMonthlyExpenses(int userId, int year, boolean deleteStatus);
 
 
 

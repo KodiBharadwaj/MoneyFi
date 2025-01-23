@@ -23,5 +23,6 @@ public class ExpenseModel {
     private LocalDate date;
     private boolean recurring;
     private String description;
+    private boolean is_deleted;
 
 }
