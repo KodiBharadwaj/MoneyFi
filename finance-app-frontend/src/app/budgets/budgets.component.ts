@@ -95,9 +95,9 @@ export class BudgetsComponent {
       next: (userId) => {
         let url: string;
         if (this.selectedMonth === 0) {
-          url = `${this.baseUrl}/api/user/expenses/${userId}/${this.selectedYear}`;
+          url = `${this.baseUrl}/api/user/expenses/${userId}/${this.selectedYear}/false`;
         } else {
-          url = `${this.baseUrl}/api/user/expenses/${userId}/${this.selectedMonth}/${this.selectedYear}`;
+          url = `${this.baseUrl}/api/user/expenses/${userId}/${this.selectedMonth}/${this.selectedYear}/false`;
         }
   
         this.httpClient.get<Expense[]>(url).subscribe({

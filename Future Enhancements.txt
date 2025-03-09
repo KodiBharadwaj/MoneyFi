@@ -4,3 +4,9 @@
 
 
 - ask confirmation before deleting a goal.
+
+
+
+-- api call should come under network section in console.
+-- In budget edit section, even If I didn't do any changes, it is still getting toast with updated.
+-- implement logout issue correctly in the backend too.
