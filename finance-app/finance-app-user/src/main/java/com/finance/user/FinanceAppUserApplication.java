@@ -13,6 +13,7 @@ public class FinanceAppUserApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(FinanceAppUserApplication.class, args);
 		System.out.println("User MS Running");
+		System.out.println("Kodi sqlserver");
 	}
 
 }

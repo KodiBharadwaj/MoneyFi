@@ -11,6 +11,7 @@ public class FinanceAppIncomeApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(FinanceAppIncomeApplication.class, args);
 		System.out.println("Income MS Running");
+		System.out.println("checking postgres");
 	}
 
 }
