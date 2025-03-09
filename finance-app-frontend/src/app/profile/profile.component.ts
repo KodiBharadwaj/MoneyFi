@@ -73,7 +73,7 @@ export class ProfileComponent implements OnInit {
   // Save the profile to the backend
   saveProfile(): void {
     const token = sessionStorage.getItem('finance.auth');
-    console.log(token);
+    // console.log(token);
 
     this.http.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
       next : (userId) => {

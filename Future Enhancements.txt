@@ -21,4 +21,4 @@ Minor Corrections:
 
 
 Defects:
-- In budget edit section, even If I didn't do any changes, it is still getting toast with updated.
+- In budget edit section, profile section, even If I didn't do any changes, it is still getting toast with updated.
