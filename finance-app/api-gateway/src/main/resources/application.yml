@@ -30,12 +30,12 @@ spring:
               lb://finance-app-user
             predicates:
               - Path=/api/user/**
-#
-#          - id: finance-app-income
-#            uri:
-#              lb://manager-service
-#            predicates:
-#              - Path=/manager/**
+
+          - id: finance-app-income
+            uri:
+              lb://finance-app-income
+            predicates:
+              - Path=/api/income/**
 #
 #
 #          - id: trainer-service

@@ -95,16 +95,16 @@ public class UserApiController {
 
     // Income Api calls
     // add income
-    @PostMapping("/{userId}/income")
-    public ResponseEntity<IncomeModel> addIncome(@PathVariable int userId, @RequestBody IncomeModel income) {
-        IncomeModel createdIncome = incomeService.addIncome(userId, income);
-        if(createdIncome!=null){
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdIncome);
-        }
-        else{
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
-        }
-    }
+//    @PostMapping("/{userId}/income")
+//    public ResponseEntity<IncomeModel> addIncome(@PathVariable int userId, @RequestBody IncomeModel income) {
+//        IncomeModel createdIncome = incomeService.addIncome(userId, income);
+//        if(createdIncome!=null){
+//            return ResponseEntity.status(HttpStatus.CREATED).body(createdIncome);
+//        }
+//        else{
+//            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+//        }
+//    }
     // get list of incomes of a particular user
     @GetMapping("/{userId}/incomes")
     public ResponseEntity<List<IncomeModel>> getAllIncomes(@PathVariable("userId") int userId) {
@@ -162,38 +162,38 @@ public class UserApiController {
         return (int) (totalIncome - totalExpenses);
     }
     // get list of incomes of a user in a particular month and year
-    @GetMapping("/incomes/{userId}/{month}/{year}/{deleteStatus}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomesByDate(@PathVariable("userId") int userId,
-                                                                   @PathVariable("month") int month,
-                                                                   @PathVariable("year") int year,
-                                                                   @PathVariable("deleteStatus") boolean deleteStatus) {
-        List<IncomeModel> incomesList = incomeService.getAllIncomesByDate(userId, month, year, deleteStatus);
-        return ResponseEntity.ok(incomesList);
-    }
+//    @GetMapping("/incomes/{userId}/{month}/{year}/{deleteStatus}")
+//    public ResponseEntity<List<IncomeModel>> getAllIncomesByDate(@PathVariable("userId") int userId,
+//                                                                   @PathVariable("month") int month,
+//                                                                   @PathVariable("year") int year,
+//                                                                   @PathVariable("deleteStatus") boolean deleteStatus) {
+//        List<IncomeModel> incomesList = incomeService.getAllIncomesByDate(userId, month, year, deleteStatus);
+//        return ResponseEntity.ok(incomesList);
+//    }
     // get all incomes of a user in a year
-    @GetMapping("/incomes/{userId}/{year}/{deleteStatus}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") int userId,
-                                                                   @PathVariable("year") int year,
-                                                                   @PathVariable("deleteStatus") boolean deleteStatus) {
-        List<IncomeModel> incomesList = incomeService.getAllIncomesByYear(userId, year, deleteStatus);
-        return ResponseEntity.ok(incomesList);
-    }
+//    @GetMapping("/incomes/{userId}/{year}/{deleteStatus}")
+//    public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") int userId,
+//                                                                   @PathVariable("year") int year,
+//                                                                   @PathVariable("deleteStatus") boolean deleteStatus) {
+//        List<IncomeModel> incomesList = incomeService.getAllIncomesByYear(userId, year, deleteStatus);
+//        return ResponseEntity.ok(incomesList);
+//    }
     // get list of total income of every month in a year
     @GetMapping("/{userId}/monthlyTotalIncomesList/{year}")
     public List<Double> getMonthlyInocmeTotals(@PathVariable("userId") int userId, @PathVariable("year") int year) {
         return incomeService.getAllIncomesOfEveryMonth(userId, year);
     }
     // update a particular income of a user by income id
-    @PutMapping("/{id}/income")
-    public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") int id, @RequestBody IncomeModel income){
-        IncomeModel updatedIncome = incomeService.updateIncome(id, income);
-        if(updatedIncome!=null){
-            return ResponseEntity.status(HttpStatus.CREATED).body(updatedIncome);
-        }
-        else{
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
-        }
-    }
+//    @PutMapping("/{id}/income")
+//    public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") int id, @RequestBody IncomeModel income){
+//        IncomeModel updatedIncome = incomeService.updateIncome(id, income);
+//        if(updatedIncome!=null){
+//            return ResponseEntity.status(HttpStatus.CREATED).body(updatedIncome);
+//        }
+//        else{
+//            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+//        }
+//    }
     // delete a particular income of a user by income id
     @DeleteMapping("/{id}/income")
     public ResponseEntity<Void> deleteIncomeById(@PathVariable("id") int id) {

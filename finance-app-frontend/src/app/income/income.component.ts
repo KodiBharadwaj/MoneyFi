@@ -109,7 +109,7 @@ export class IncomeComponent {
 
   deleted : boolean = false;
   isDeletedClicked(){
-    console.log("clicked");
+    // console.log("clicked");
     this.deleted = true;
     this.loadDeletedIncomeData()
   }
@@ -125,10 +125,10 @@ export class IncomeComponent {
         let url: string;
         if (this.selectedMonth === 0) {
           // Fetch all expenses for the selected year
-          url = `${this.baseUrl}/api/user/incomes/${userId}/${this.selectedYear}/${this.deleted}`;
+          url = `${this.baseUrl}/api/income/${userId}/${this.selectedYear}/${this.deleted}`;
         } else {
           // Fetch expenses for the specific month and year
-          url = `${this.baseUrl}/api/user/incomes/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.deleted}`;
+          url = `${this.baseUrl}/api/income/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.deleted}`;
         }
 
         this.httpClient.get<IncomeSource[]>(url).subscribe({
@@ -174,15 +174,16 @@ export class IncomeComponent {
         let url: string;
         if (this.selectedMonth === 0) {
           // Fetch all expenses for the selected year
-          url = `${this.baseUrl}/api/user/incomes/${userId}/${this.selectedYear}/${this.deleted}`;
+          url = `${this.baseUrl}/api/income/${userId}/${this.selectedYear}/${this.deleted}`;
         } else {
           // Fetch expenses for the specific month and year
-          url = `${this.baseUrl}/api/user/incomes/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.deleted}`;
+          url = `${this.baseUrl}/api/income/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.deleted}`;
         }
 
         this.httpClient.get<IncomeSource[]>(url).subscribe({
           next: (data) => {
             if (data && data.length > 0) {
+              // console.log(data);
               this.deletedIncomeSources = data;
               this.applyFilters();
               this.calculateTotalIncome();
@@ -235,7 +236,7 @@ export class IncomeComponent {
               userId: userId, // Add userId if your backend requires it
             };
             console.log(incomeData);
-            this.httpClient.post<IncomeSource>(`${this.baseUrl}/api/user/${userId}/income`, incomeData, {
+            this.httpClient.post<IncomeSource>(`${this.baseUrl}/api/income/${userId}`, incomeData, {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
@@ -289,7 +290,7 @@ export class IncomeComponent {
             };
             console.log(updatedIncomeData);
 
-            this.httpClient.put<IncomeSource>(`${this.baseUrl}/api/user/${income.id}/income`, updatedIncomeData,
+            this.httpClient.put<IncomeSource>(`${this.baseUrl}/api/income/${income.id}`, updatedIncomeData,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
