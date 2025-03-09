@@ -1,12 +1,24 @@
-- Implement soft delete
+Project MoneyFi:
+
+Major Corrections:
+- Implement soft delete and set 30 day expiration for the deleted transactions(Income, Expense).
+- Replace Jpa & Jpql with ms sql queries and stored procedures through repository.
+- Error handling in both backend and frontend.
+- Add api's through api gateway not through user service. Remove all.
+- Pdf/Excel export of the data of the user (If possible any uploads)
 - Google authentication
-- pdf export of the data of the user
-
-
-- ask confirmation before deleting a goal.
+- try adding reports
 
 
 
--- api call should come under network section in console.
--- In budget edit section, even If I didn't do any changes, it is still getting toast with updated.
--- implement logout issue correctly in the backend too.
+Minor Corrections:
+- @operation(summary = "...") replace all comments with this in all controller files.
+- Ask confirmation before deleting a goal/income/expense etc in the frontend.
+- Replace sessionStorage with secureSessionStorage in the frontend.
+- Api calls should come under network section in console.
+- Implement logout issue in the backend too.
+
+
+
+Defects:
+- In budget edit section, even If I didn't do any changes, it is still getting toast with updated.
