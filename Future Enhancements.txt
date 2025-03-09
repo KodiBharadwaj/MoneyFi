@@ -6,6 +6,7 @@ Major Corrections:
 - Error handling in both backend and frontend.
 - Add api's through api gateway not through user service. Remove all.
 - Pdf/Excel export of the data of the user (If possible any uploads)
+- otp verification during signup
 - Google authentication
 - try adding reports
 
@@ -17,6 +18,7 @@ Minor Corrections:
 - Replace sessionStorage with secureSessionStorage in the frontend.
 - Api calls should come under network section in console.
 - Implement logout issue in the backend too.
+- add err0r codes to all controllers
 
 
 

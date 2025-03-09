@@ -12,14 +12,15 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/income")
-@CrossOrigin
 public class IncomeApiController {
 
     @Autowired
     private IncomeService incomeService;
 
-    @PostMapping
-    public ResponseEntity<IncomeModel> saveIncome(@RequestBody IncomeModel income) {
+    @PostMapping("/{userId}")
+    public ResponseEntity<IncomeModel> saveIncome(@RequestBody IncomeModel income,
+                                                  @PathVariable("userId") int userId) {
+        income.setUserId(userId);
         IncomeModel income1 = incomeService.save(income);
         if (income1 != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(income1); // 201
@@ -39,23 +40,34 @@ public class IncomeApiController {
     }
 
     @GetMapping("/{userId}/{month}/{year}/{deleteStatus}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomesByDate(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year, @PathVariable("deleteStatus") boolean deleteStatus){
-        return ResponseEntity.status(HttpStatus.OK).body(incomeService.getAllIncomesByDate(userId, month, year, deleteStatus));
+    public ResponseEntity<List<IncomeModel>> getAllIncomesByDate(@PathVariable("userId") int userId,
+                                                                 @PathVariable("month") int month,
+                                                                 @PathVariable("year") int year,
+                                                                 @PathVariable("deleteStatus") boolean deleteStatus){
+        List<IncomeModel> incomesList = incomeService.getAllIncomesByDate(userId, month, year, deleteStatus);
+        return ResponseEntity.ok(incomesList);
+//        return ResponseEntity.status(HttpStatus.OK).body(incomeService.getAllIncomesByDate(userId, month, year, deleteStatus));
     }
 
     @GetMapping("/{userId}/{year}/{deleteStatus}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") int userId, @PathVariable("year") int year, @PathVariable("deleteStatus") boolean deleteStatus){
-        return ResponseEntity.status(HttpStatus.OK).body(incomeService.getAllIncomesByYear(userId, year, deleteStatus));
+    public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") int userId,
+                                                                 @PathVariable("year") int year,
+                                                                 @PathVariable("deleteStatus") boolean deleteStatus){
+        List<IncomeModel> incomesList = incomeService.getAllIncomesByYear(userId, year, deleteStatus);
+        return ResponseEntity.ok(incomesList);
+//        return ResponseEntity.status(HttpStatus.OK).body(incomeService.getAllIncomesByYear(userId, year, deleteStatus));
     }
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") int userId, @RequestBody IncomeModel income) {
-        IncomeModel updatedIncome = incomeService.updateBySource(userId, income);
-        if (updatedIncome != null) {
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body(updatedIncome); // 202
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") int id, @RequestBody IncomeModel income) {
+        IncomeModel updatedIncome = incomeService.updateBySource(id, income);
+
+        if(updatedIncome!=null){
+            return ResponseEntity.status(HttpStatus.CREATED).body(updatedIncome);
+        }
+        else{
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
     }
 
