@@ -10,6 +10,7 @@ public class ApiGatewayApplication {
 		SpringApplication.run(ApiGatewayApplication.class, args);
 		System.out.println("API Gateway running");
 		System.out.println("checking apigateway");
+		System.out.println("checking apigateway 2");
 	}
 
 }
