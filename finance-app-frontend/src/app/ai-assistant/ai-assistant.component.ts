@@ -43,11 +43,11 @@ export class AiAssistantComponent implements OnInit {
         // Create parallel requests for all financial data
         forkJoin({
           // Monthly data
-          monthlyIncome: this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalIncome/${this.currentMonth}/${this.currentYear}`),
+          monthlyIncome: this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalIncome/${this.currentMonth}/${this.currentYear}`),
           monthlyExpenses: this.httpClient.get<number>(`${this.baseUrl}/api/user/expenses/${userId}/totalExpenses/${this.currentMonth}/${this.currentYear}`),
           
           // Yearly data
-          yearlyIncomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlyTotalIncomesList/${this.currentYear}`),
+          yearlyIncomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/income/${userId}/monthlyTotalIncomesList/${this.currentYear}`),
           yearlyExpenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlyTotalExpensesList/${this.currentYear}`),
           yearlySavings: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlySavingsInYear/${this.currentYear}`),
           cumulativeSavings: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlyCumulativeSavingsInYear/${this.currentYear}`),

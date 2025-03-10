@@ -191,7 +191,7 @@ export class IncomeComponent {
               this.updateUniqueCategories();
             } else {
               this.deletedIncomeSources = [];
-              this.toastr.warning('No income data available. Try adding income', 'No Data');
+              this.toastr.warning('No deleted income data available in this range', 'No Data');
             }
             this.loading = false;
           },
@@ -288,7 +288,7 @@ export class IncomeComponent {
               date: formattedDate,
               userId: userId,
             };
-            console.log(updatedIncomeData);
+            // console.log(updatedIncomeData);
 
             this.httpClient.put<IncomeSource>(`${this.baseUrl}/api/income/${income.id}`, updatedIncomeData,
               {
@@ -298,7 +298,8 @@ export class IncomeComponent {
               }
             ).subscribe({
               next: (updatedIncome) => {
-                console.log('Income updated successfully:', updatedIncome);
+                // console.log('Income updated successfully:', updatedIncome);
+                this.toastr.success("Income of " + updatedIncome.source + " updated successfully");
                 this.loadIncomeData(); 
               },
               error: (error) => {
@@ -321,17 +322,18 @@ export class IncomeComponent {
   
 
   deleteIncome(incomeId: number): void {
-    console.log(incomeId);
+    // console.log(incomeId);
     const index = this.incomeSources.findIndex(i=>i.id === incomeId);
     if (index !== -1) {
       this.incomeSources.splice(index, 1); // Remove the item at the found index
     }
     this.calculateTotalIncome();
-    this.httpClient.delete<void>(`${this.baseUrl}/api/user/${incomeId}/income`)
+    this.httpClient.delete<void>(`${this.baseUrl}/api/income/${incomeId}`)
       .subscribe({
         next: () => {
-          console.log(`Income with ID ${incomeId} deleted successfully.`);
+          // console.log(`Income with ID ${incomeId} deleted successfully.`);
           // this.loadIncomeData(); // Reload the data after successful deletion
+          this.toastr.warning("Income has been deleted");
         },
         error: (err) => {
           console.error('Error deleting income:', err);
