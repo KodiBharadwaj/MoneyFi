@@ -2,6 +2,7 @@ package com.finance.income.api;
 
 import com.finance.income.model.IncomeModel;
 import com.finance.income.service.IncomeService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.ws.rs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ public class IncomeApiController {
     @Autowired
     private IncomeService incomeService;
 
+    @Operation(summary = "Method to save the income details")
     @PostMapping("/{userId}")
     public ResponseEntity<IncomeModel> saveIncome(@RequestBody IncomeModel income,
                                                   @PathVariable("userId") int userId) {
@@ -29,16 +31,14 @@ public class IncomeApiController {
         }
     }
 
+    @Operation(summary = "Method to get all the income details of a user")
     @GetMapping("/{userId}")
     public ResponseEntity<List<IncomeModel>> getAllIncomes(@PathVariable("userId") int userId) {
         List<IncomeModel> list = incomeService.getAllIncomes(userId);
-//        if (!list.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(list); // 200
-//        } else {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // 404
-//        }
     }
 
+    @Operation(summary = "Method to get all the income details in a particular month and in a particular year")
     @GetMapping("/{userId}/{month}/{year}/{deleteStatus}")
     public ResponseEntity<List<IncomeModel>> getAllIncomesByDate(@PathVariable("userId") int userId,
                                                                  @PathVariable("month") int month,
@@ -46,19 +46,30 @@ public class IncomeApiController {
                                                                  @PathVariable("deleteStatus") boolean deleteStatus){
         List<IncomeModel> incomesList = incomeService.getAllIncomesByDate(userId, month, year, deleteStatus);
         return ResponseEntity.ok(incomesList);
-//        return ResponseEntity.status(HttpStatus.OK).body(incomeService.getAllIncomesByDate(userId, month, year, deleteStatus));
     }
 
+    @Operation(summary = "Method to get all the income details in a particular year")
     @GetMapping("/{userId}/{year}/{deleteStatus}")
     public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") int userId,
                                                                  @PathVariable("year") int year,
                                                                  @PathVariable("deleteStatus") boolean deleteStatus){
         List<IncomeModel> incomesList = incomeService.getAllIncomesByYear(userId, year, deleteStatus);
         return ResponseEntity.ok(incomesList);
-//        return ResponseEntity.status(HttpStatus.OK).body(incomeService.getAllIncomesByYear(userId, year, deleteStatus));
     }
 
+    @Operation(summary = "Method to get the total income amount in a particular month and in a particular year")
+    @GetMapping("/{userId}/totalIncome/{month}/{year}")
+    public Double getTotalIncomeByMonthAndYear(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year){
+        return incomeService.getTotalIncomeInMonthAndYear(userId, month, year);
+    }
 
+    @Operation(summary = "Method to get the list of total income amount of all months in a particular year")
+    @GetMapping("/{userId}/monthlyTotalIncomesList/{year}")
+    public List<Double> getMonthlyTotals(@PathVariable("userId") int userId, @PathVariable("year") int year) {
+        return incomeService.getMonthlyIncomes(userId, year);
+    }
+
+    @Operation(summary = "Method to update the income details")
     @PutMapping("/{id}")
     public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") int id, @RequestBody IncomeModel income) {
         IncomeModel updatedIncome = incomeService.updateBySource(id, income);
@@ -71,15 +82,15 @@ public class IncomeApiController {
         }
     }
 
+    @Operation(summary = "Method to delete the particular income. Here which is typically soft delete only")
     @DeleteMapping("/{id}")
-    public void deleteIncomeBySource(@PathVariable("id") int id) {
-        incomeService.deleteParticularIncomeBySource(id);
+    public ResponseEntity<Void> deleteIncomeById(@PathVariable("id") int id) {
+        boolean isDeleted = incomeService.deleteIncomeById(id);
+        if (isDeleted) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); // 204: No Content
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // 404: Not Found
+        }
     }
-
-    @GetMapping("/{userId}/monthlyTotalIncomesList/{year}")
-    public List<Double> getMonthlyTotals(@PathVariable("userId") int userId, @PathVariable("year") int year) {
-        return incomeService.getMonthlyIncomes(userId, year);
-    }
-
 
 }

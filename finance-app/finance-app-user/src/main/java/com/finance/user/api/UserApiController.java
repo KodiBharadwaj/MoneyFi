@@ -106,11 +106,11 @@ public class UserApiController {
 //        }
 //    }
     // get list of incomes of a particular user
-    @GetMapping("/{userId}/incomes")
-    public ResponseEntity<List<IncomeModel>> getAllIncomes(@PathVariable("userId") int userId) {
-        List<IncomeModel> incomesList = incomeService.getAllIncomes(userId);
-        return ResponseEntity.ok(incomesList);
-    }
+//    @GetMapping("/{userId}/incomes")
+//    public ResponseEntity<List<IncomeModel>> getAllIncomes(@PathVariable("userId") int userId) {
+//        List<IncomeModel> incomesList = incomeService.getAllIncomes(userId);
+//        return ResponseEntity.ok(incomesList);
+//    }
     // get total income of a user
 //    @GetMapping("/{userId}/totalIncome")
 //    public Integer getTotalIncome(@PathVariable("userId") int userId){
@@ -118,11 +118,11 @@ public class UserApiController {
 //        return (int) incomesList.stream().mapToDouble(i->i.getAmount()).sum();
 //    }
     // get total income of a user in a particular month and year
-    @GetMapping("/{userId}/totalIncome/{month}/{year}")
-    public Double getTotalIncomeByMonthAndYear(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year){
-        List<IncomeModel> incomesList = incomeService.getAllIncomesByDate(userId, month, year, false);
-        return incomesList.stream().mapToDouble(i->i.getAmount()).sum();
-    }
+//    @GetMapping("/{userId}/totalIncome/{month}/{year}")
+//    public Double getTotalIncomeByMonthAndYear(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year){
+//        List<IncomeModel> incomesList = incomeService.getAllIncomesByDate(userId, month, year, false);
+//        return incomesList.stream().mapToDouble(i->i.getAmount()).sum();
+//    }
     //get remaining balance of a user upto previous month in a year
     @GetMapping("/{userId}/totalRemainingIncomeOfPreviousMonth/{month}/{year}")
     public Integer getTotalRemainingIncomeByMonthAndYear(
@@ -179,10 +179,10 @@ public class UserApiController {
 //        return ResponseEntity.ok(incomesList);
 //    }
     // get list of total income of every month in a year
-    @GetMapping("/{userId}/monthlyTotalIncomesList/{year}")
-    public List<Double> getMonthlyInocmeTotals(@PathVariable("userId") int userId, @PathVariable("year") int year) {
-        return incomeService.getAllIncomesOfEveryMonth(userId, year);
-    }
+//    @GetMapping("/{userId}/monthlyTotalIncomesList/{year}")
+//    public List<Double> getMonthlyInocmeTotals(@PathVariable("userId") int userId, @PathVariable("year") int year) {
+//        return incomeService.getAllIncomesOfEveryMonth(userId, year);
+//    }
     // update a particular income of a user by income id
 //    @PutMapping("/{id}/income")
 //    public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") int id, @RequestBody IncomeModel income){
@@ -195,15 +195,15 @@ public class UserApiController {
 //        }
 //    }
     // delete a particular income of a user by income id
-    @DeleteMapping("/{id}/income")
-    public ResponseEntity<Void> deleteIncomeById(@PathVariable("id") int id) {
-        boolean isDeleted = incomeService.deleteIncomeById(id);
-        if (isDeleted) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); // 204: No Content
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // 404: Not Found
-        }
-    }
+//    @DeleteMapping("/{id}/income")
+//    public ResponseEntity<Void> deleteIncomeById(@PathVariable("id") int id) {
+//        boolean isDeleted = incomeService.deleteIncomeById(id);
+//        if (isDeleted) {
+//            return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); // 204: No Content
+//        } else {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // 404: Not Found
+//        }
+//    }
 
 
 

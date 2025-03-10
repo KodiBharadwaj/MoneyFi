@@ -16,8 +16,10 @@ public interface IncomeService {
 
     public List<Double> getMonthlyIncomes(int userId, int year);
 
+    public Double getTotalIncomeInMonthAndYear(int userId, int month, int year);
+
     public IncomeModel updateBySource(int id, IncomeModel income);
 
-    public void deleteParticularIncomeBySource(int id);
+    public boolean deleteIncomeById(int id);
 
 }

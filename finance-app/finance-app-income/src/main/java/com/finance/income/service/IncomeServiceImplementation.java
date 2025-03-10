@@ -5,6 +5,7 @@ import com.finance.income.repository.IncomeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +25,10 @@ public class IncomeServiceImplementation implements IncomeService {
 
     @Override
     public List<IncomeModel> getAllIncomes(int userId) {
-        return incomeRepository.findIncomesOfUser(userId).stream().filter(i->i.is_deleted()==false).toList();
+        return incomeRepository.findIncomesOfUser(userId)
+                .stream()
+                .filter(i->i.is_deleted()==false)
+                .toList();
     }
 
     @Override
@@ -53,6 +57,11 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
+    public Double getTotalIncomeInMonthAndYear(int userId, int month, int year) {
+        return incomeRepository.getTotalIncomeInMonthAndYear(userId, month, year);
+    }
+
+    @Override
     public IncomeModel updateBySource(int id, IncomeModel income) {
 
         IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
@@ -75,10 +84,17 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public void deleteParticularIncomeBySource(int id) {
-//        incomeRepository.deleteById(id);
-        IncomeModel income = incomeRepository.findById(id).orElse(null);
-        income.set_deleted(true);
-        incomeRepository.save(income);
+    public boolean deleteIncomeById(int id) {
+
+        try {
+            IncomeModel income = incomeRepository.findById(id).orElse(null);
+            income.set_deleted(true);
+            incomeRepository.save(income);
+            return true;
+
+        } catch (HttpClientErrorException.NotFound e) {
+            return false;
+        }
     }
+
 }
