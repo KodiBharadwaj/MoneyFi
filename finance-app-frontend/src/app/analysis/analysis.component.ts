@@ -169,7 +169,7 @@ export class AnalysisComponent {
       next: (userId) => {
         // Add savings to parallel requests
         forkJoin({
-          incomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlyTotalIncomesList/${currentYear}`),
+          incomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/income/${userId}/monthlyTotalIncomesList/${currentYear}`),
           expenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlyTotalExpensesList/${currentYear}`),
           savings: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlySavingsInYear/${currentYear}`)
         }).subscribe({
