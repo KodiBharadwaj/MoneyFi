@@ -52,6 +52,27 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
+    public Double getTotalExpensesUpToPreviousMonth(int userId, int month, int year) {
+        // Adjust month and year to point to the previous month
+        final int adjustedMonth;
+        final int adjustedYear;
+
+        if (month == 1) { // Handle January case
+            adjustedMonth = 13;
+            adjustedYear = year - 1;
+        } else {
+            adjustedMonth = month;
+            adjustedYear = year;
+        }
+        Double value = expenseRepository.getTotalExpensesUpToPreviousMonth(userId, adjustedMonth, adjustedYear);
+        if(value != null){
+            return value;
+        } else {
+            return 0.0;
+        }
+    }
+
+    @Override
     public ExpenseModel updateBySource(int id, ExpenseModel expense) {
         ExpenseModel expenseModel = expenseRepository.findById(id).orElse(null);
 

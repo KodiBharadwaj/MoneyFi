@@ -17,6 +17,8 @@ public interface ExpenseService {
 
     public List<Double> getMonthlyExpenses(int userId, int year);
 
+    public Double getTotalExpensesUpToPreviousMonth(int userId, int month, int year);
+
     public ExpenseModel updateBySource(int id, ExpenseModel expense);
 
     public void deleteExpenseById(int id);

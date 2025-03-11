@@ -41,5 +41,13 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Integer> {
         "@month = :month, @year = :year")
     public Double getTotalIncomeInMonthAndYear(int userId, int month, int year);
 
+    @Query(nativeQuery = true, value = "exec getRemainingIncomeUpToPreviousMonthByMonthAndYear " +
+        "@userID = :userId, @month = :month, @year = :year")
+    public Double getRemainingIncomeUpToPreviousMonthByMonthAndYear(int userId, int month, int year);
+
+    @Query(nativeQuery = true, value = "exec getIncomeBySourceAndCategory @userId = :userId, " +
+        "@source = :source, @category = :category")
+    public IncomeModel getIncomeBySourceAndCategory(int userId, String source, String category);
+
 
 }

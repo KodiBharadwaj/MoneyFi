@@ -80,7 +80,7 @@ export class OverviewComponent implements OnInit {
           }
         })
 
-        this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalIncome/${this.thisMonth}/${this.thisYear}`).subscribe({
+        this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalIncome/${this.thisMonth}/${this.thisYear}`).subscribe({
           next : (totalIncome) => {
             this.summary.income = totalIncome;
 
@@ -110,7 +110,7 @@ export class OverviewComponent implements OnInit {
         })
 
 
-        this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalRemainingIncomeOfPreviousMonth/${this.thisMonth}/${this.thisYear}`).subscribe({
+        this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalRemainingIncomeUpToPreviousMonth/${this.thisMonth}/${this.thisYear}`).subscribe({
           next : (totalRemainingIncome) => {
             // console.log(totalRemainingIncome);
             this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalCurrentGoalIncome`).subscribe({

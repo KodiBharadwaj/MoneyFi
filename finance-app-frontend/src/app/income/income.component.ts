@@ -222,11 +222,11 @@ export class IncomeComponent {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         const token = sessionStorage.getItem('finance.auth');
-        console.log(token);
+        // console.log(token);
   
         this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
           next: (userId) => {
-            console.log(userId);
+            // console.log(userId);
             
             // Send POST request with the income data
             const formattedDate = this.formatDate(result.date);
@@ -235,17 +235,22 @@ export class IncomeComponent {
               date:formattedDate,
               userId: userId, // Add userId if your backend requires it
             };
-            console.log(incomeData);
+            // console.log(incomeData);
             this.httpClient.post<IncomeSource>(`${this.baseUrl}/api/income/${userId}`, incomeData, {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
             }).subscribe({
               next: (newIncome) => {
-                this.incomeSources.push(newIncome);
-                this.calculateTotalIncome();
-                this.updateChartData();
-                this.resetFilters();
+                if(newIncome != null){
+                  this.incomeSources.push(newIncome);
+                  this.calculateTotalIncome();
+                  this.updateChartData();
+                  this.resetFilters();
+                }
+                else{
+                  this.toastr.warning("Same Income category and source can't be added");
+                }
               },
               error: (error) => {
                 console.error('Failed to add income data:', error);

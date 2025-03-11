@@ -18,6 +18,8 @@ public interface IncomeService {
 
     public Double getTotalIncomeInMonthAndYear(int userId, int month, int year);
 
+    public Double getRemainingIncomeUpToPreviousMonthByMonthAndYear(int userId, int month, int year);
+
     public IncomeModel updateBySource(int id, IncomeModel income);
 
     public boolean deleteIncomeById(int id);

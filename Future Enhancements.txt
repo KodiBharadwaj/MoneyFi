@@ -27,6 +27,14 @@ Defects:
 - In budget edit section, profile section, editing an income, even If I didn't do any changes, it is still getting toast with updated.
 - When a service is failed or stopped working, it should show service unavailable, should not throw error.
 - while deleting a transaction, the toast should display source name.
-- same source and same category duplicate transaction should not allowed.
 - if previous date is selected in income and expense, if that is empty and it is asked to add income. There in the dialog box, it should show that date, not current date.
 - category section is not working properly. Try remove or implement other.
+- after having income and expenses, if we delete previous incomes then it will show -ve. which is not possible.
+May be some conditionals are required when deleting an income.
+
+
+
+cleared defects:
+- same source and same category duplicate transaction should not allowed.
+
+

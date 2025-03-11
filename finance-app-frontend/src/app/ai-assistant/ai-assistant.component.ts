@@ -59,7 +59,7 @@ export class AiAssistantComponent implements OnInit {
           // Goals and Net Worth
           totalCurrentGoalIncome: this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalCurrentGoalIncome`),
           totalTargetGoalIncome: this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalTargetGoalIncome`),
-          remainingIncome: this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalRemainingIncomeOfPreviousMonth/${this.currentMonth}/${this.currentYear}`)
+          remainingIncome: this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalRemainingIncomeUpToPreviousMonth/${this.currentMonth}/${this.currentYear}`)
         }).subscribe({
           next: (data) => {
             // Calculate additional metrics
