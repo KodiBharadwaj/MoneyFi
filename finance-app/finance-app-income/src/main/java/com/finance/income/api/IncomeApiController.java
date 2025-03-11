@@ -3,7 +3,6 @@ package com.finance.income.api;
 import com.finance.income.model.IncomeModel;
 import com.finance.income.service.IncomeService;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.ws.rs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +26,7 @@ public class IncomeApiController {
         if (income1 != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(income1); // 201
         } else {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null); // 409
+            return ResponseEntity.status(HttpStatus.OK).body(null); // 200
         }
     }
 
@@ -54,7 +53,7 @@ public class IncomeApiController {
                                                                  @PathVariable("year") int year,
                                                                  @PathVariable("deleteStatus") boolean deleteStatus){
         List<IncomeModel> incomesList = incomeService.getAllIncomesByYear(userId, year, deleteStatus);
-        return ResponseEntity.ok(incomesList);
+        return ResponseEntity.ok(incomesList); // 200
     }
 
     @Operation(summary = "Method to get the total income amount in a particular month and in a particular year")
@@ -69,16 +68,26 @@ public class IncomeApiController {
         return incomeService.getMonthlyIncomes(userId, year);
     }
 
+    @Operation(summary = "Method to get the total savings/remaining amount up to previous month (excludes current month)")
+    @GetMapping("/{userId}/totalRemainingIncomeUpToPreviousMonth/{month}/{year}")
+    public Double getRemainingIncomeUpToPreviousMonthByMonthAndYear(
+            @PathVariable("userId") int userId,
+            @PathVariable("month") int month,
+            @PathVariable("year") int year) {
+
+        return incomeService.getRemainingIncomeUpToPreviousMonthByMonthAndYear(userId, month, year);
+    }
+
     @Operation(summary = "Method to update the income details")
     @PutMapping("/{id}")
     public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") int id, @RequestBody IncomeModel income) {
         IncomeModel updatedIncome = incomeService.updateBySource(id, income);
 
         if(updatedIncome!=null){
-            return ResponseEntity.status(HttpStatus.CREATED).body(updatedIncome);
+            return ResponseEntity.status(HttpStatus.CREATED).body(updatedIncome); // 201
         }
         else{
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null); // 409
         }
     }
 

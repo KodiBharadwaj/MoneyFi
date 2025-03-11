@@ -124,43 +124,43 @@ public class UserApiController {
 //        return incomesList.stream().mapToDouble(i->i.getAmount()).sum();
 //    }
     //get remaining balance of a user upto previous month in a year
-    @GetMapping("/{userId}/totalRemainingIncomeOfPreviousMonth/{month}/{year}")
-    public Integer getTotalRemainingIncomeByMonthAndYear(
-            @PathVariable("userId") int userId,
-            @PathVariable("month") int month,
-            @PathVariable("year") int year) {
-
-        // Adjust month and year to point to the previous month
-        final int adjustedMonth;
-        final int adjustedYear;
-
-        if (month == 1) { // Handle January case
-            adjustedMonth = 12;
-            adjustedYear = year - 1;
-        } else {
-            adjustedMonth = month - 1;
-            adjustedYear = year;
-        }
-
-        // Fetch incomes up to the previous month
-        List<IncomeModel> incomesList = incomeService.getAllIncomes(userId);
-        double totalIncome = incomesList.stream()
-                .filter(i -> (i.getDate().getYear() < adjustedYear) ||
-                        (i.getDate().getYear() == adjustedYear && i.getDate().getMonthValue() <= adjustedMonth))
-                .mapToDouble(i -> i.getAmount())
-                .sum();
-
-        // Fetch expenses up to the previous month
-        List<ExpenseModel> expensesList = expenseService.getAllExpenses(userId);
-        double totalExpenses = expensesList.stream()
-                .filter(e -> (e.getDate().getYear() < adjustedYear) ||
-                        (e.getDate().getYear() == adjustedYear && e.getDate().getMonthValue() <= adjustedMonth))
-                .mapToDouble(e -> e.getAmount())
-                .sum();
-
-        // Return the remaining amount as an integer
-        return (int) (totalIncome - totalExpenses);
-    }
+//    @GetMapping("/{userId}/totalRemainingIncomeOfPreviousMonth/{month}/{year}")
+//    public Integer getTotalRemainingIncomeByMonthAndYear(
+//            @PathVariable("userId") int userId,
+//            @PathVariable("month") int month,
+//            @PathVariable("year") int year) {
+//
+//        // Adjust month and year to point to the previous month
+//        final int adjustedMonth;
+//        final int adjustedYear;
+//
+//        if (month == 1) { // Handle January case
+//            adjustedMonth = 12;
+//            adjustedYear = year - 1;
+//        } else {
+//            adjustedMonth = month - 1;
+//            adjustedYear = year;
+//        }
+//
+//        // Fetch incomes up to the previous month
+//        List<IncomeModel> incomesList = incomeService.getAllIncomes(userId);
+//        double totalIncome = incomesList.stream()
+//                .filter(i -> (i.getDate().getYear() < adjustedYear) ||
+//                        (i.getDate().getYear() == adjustedYear && i.getDate().getMonthValue() <= adjustedMonth))
+//                .mapToDouble(i -> i.getAmount())
+//                .sum();
+//
+//        // Fetch expenses up to the previous month
+//        List<ExpenseModel> expensesList = expenseService.getAllExpenses(userId);
+//        double totalExpenses = expensesList.stream()
+//                .filter(e -> (e.getDate().getYear() < adjustedYear) ||
+//                        (e.getDate().getYear() == adjustedYear && e.getDate().getMonthValue() <= adjustedMonth))
+//                .mapToDouble(e -> e.getAmount())
+//                .sum();
+//
+//        // Return the remaining amount as an integer
+//        return (int) (totalIncome - totalExpenses);
+//    }
     // get list of incomes of a user in a particular month and year
 //    @GetMapping("/incomes/{userId}/{month}/{year}/{deleteStatus}")
 //    public ResponseEntity<List<IncomeModel>> getAllIncomesByDate(@PathVariable("userId") int userId,

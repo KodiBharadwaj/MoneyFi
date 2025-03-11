@@ -4,6 +4,7 @@ import com.finance.expense.dto.ExpenseDto;
 import com.finance.expense.model.ExpenseModel;
 import com.finance.expense.repository.ExpenseRepository;
 import com.finance.expense.service.ExpenseService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -69,6 +70,16 @@ public class ExpenseApiController {
     @GetMapping("/{userId}/monthlyTotalExpensesList/{year}")
     public List<Double> getMonthlyTotals(@PathVariable("userId") int userId, @PathVariable("year") int year) {
         return expenseService.getMonthlyExpenses(userId, year);
+    }
+
+    @Operation(summary = "")
+    @GetMapping("/{userId}/totalExpensesUpToPreviousMonth/{month}/{year}")
+    public Double getTotalExpensesUpToPreviousMonth(
+            @PathVariable("userId") int userId,
+            @PathVariable("month") int month,
+            @PathVariable("year") int year) {
+
+        return expenseService.getTotalExpensesUpToPreviousMonth(userId, month, year);
     }
 
 

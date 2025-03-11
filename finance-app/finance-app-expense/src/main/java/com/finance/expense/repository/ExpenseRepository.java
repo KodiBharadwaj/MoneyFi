@@ -37,6 +37,10 @@ public interface ExpenseRepository extends JpaRepository<ExpenseModel, Integer> 
             "ORDER BY month ASC")
     public List<Object[]> findMonthlyExpenses(int userId, int year, boolean deleteStatus);
 
+    @Query(nativeQuery = true, value = "exec getTotalExpensesUpToPreviousMonth " +
+        "@userId = :userId, @month = :month, @year = :year")
+    public Double getTotalExpensesUpToPreviousMonth(int userId, int month, int year);
+
 
 
 }

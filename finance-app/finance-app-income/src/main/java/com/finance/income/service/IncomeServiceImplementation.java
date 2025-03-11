@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,8 +18,16 @@ public class IncomeServiceImplementation implements IncomeService {
     @Autowired
     private IncomeRepository incomeRepository;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     @Override
     public IncomeModel save(IncomeModel income) {
+        IncomeModel incomeModel = incomeRepository.getIncomeBySourceAndCategory(income.getUserId(), income.getSource(), income.getCategory());
+        if(incomeModel != null){
+            return null;
+        }
+
         income.set_deleted(false);
         return incomeRepository.save(income);
     }
@@ -59,6 +68,32 @@ public class IncomeServiceImplementation implements IncomeService {
     @Override
     public Double getTotalIncomeInMonthAndYear(int userId, int month, int year) {
         return incomeRepository.getTotalIncomeInMonthAndYear(userId, month, year);
+    }
+
+    @Override
+    public Double getRemainingIncomeUpToPreviousMonthByMonthAndYear(int userId, int month, int year) {
+
+        // Adjust month and year to point to the previous month
+        final int adjustedMonth;
+        final int adjustedYear;
+
+        if (month == 1) { // Handle January case
+            adjustedMonth = 13;
+            adjustedYear = year - 1;
+        } else {
+            adjustedMonth = month;
+            adjustedYear = year;
+        }
+
+        Double totalIncome = incomeRepository.getRemainingIncomeUpToPreviousMonthByMonthAndYear(userId, adjustedMonth, adjustedYear);
+        if(totalIncome == null || totalIncome == 0){
+            return 0.0;
+        }
+        Double totalExpense = restTemplate.getForObject("http://FINANCE-APP-EXPENSE/api/expense/" + userId + "/totalExpensesUpToPreviousMonth/" + month +"/" + year, Double.class);
+        if(totalExpense > totalIncome){
+            return 0.0;
+        }
+        return (totalIncome - totalExpense);
     }
 
     @Override
