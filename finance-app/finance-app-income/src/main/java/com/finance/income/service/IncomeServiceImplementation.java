@@ -24,6 +24,7 @@ public class IncomeServiceImplementation implements IncomeService {
     @Override
     public IncomeModel save(IncomeModel income) {
         IncomeModel incomeModel = incomeRepository.getIncomeBySourceAndCategory(income.getUserId(), income.getSource(), income.getCategory());
+
         if(incomeModel != null){
             return null;
         }
