@@ -21,16 +21,23 @@ public class IncomeServiceImplementation implements IncomeService {
     @Autowired
     private RestTemplate restTemplate;
 
+    boolean flag = false;
+
     @Override
     public IncomeModel save(IncomeModel income) {
-        IncomeModel incomeModel = incomeRepository.getIncomeBySourceAndCategory(income.getUserId(), income.getSource(), income.getCategory());
+         if(flag == false){
+             IncomeModel incomeModel = incomeRepository.getIncomeBySourceAndCategory(income.getUserId(), income.getSource(), income.getCategory());
 
-        if(incomeModel != null){
-            return null;
-        }
-
-        income.set_deleted(false);
-        return incomeRepository.save(income);
+             if(incomeModel != null){
+                 return null;
+             }
+             income.set_deleted(false);
+             return incomeRepository.save(income);
+         }
+         else {
+             income.set_deleted(false);
+             return incomeRepository.save(income);
+         }
     }
 
     @Override
@@ -98,8 +105,24 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
+    public boolean incomeUpdateCheckFunction(IncomeModel incomeModel) {
+
+        Double totalIncome = getTotalIncomeInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
+        Double previousUpdatedIncome = incomeRepository.getIncomeByIncomeId(incomeModel.getId());
+        Double updatedIncome = incomeModel.getAmount();
+        Double currentNetIncome = totalIncome - previousUpdatedIncome + updatedIncome;
+        Double totalExpensesInMonth = restTemplate.getForObject("http://FINANCE-APP-USER/api/user/expenses/" + incomeModel.getUserId() + "/totalExpenses/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear(), Double.class);
+
+        if(currentNetIncome > totalExpensesInMonth){
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public IncomeModel updateBySource(int id, IncomeModel income) {
 
+        flag = true;
         IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
 
         if(income.getAmount() > 0){

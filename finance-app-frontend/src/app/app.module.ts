@@ -3,6 +3,9 @@ import { NgModule } from '@angular/core';
 import { NgChartsModule } from 'ng2-charts';
 import { Chart } from 'chart.js';
 import { registerables } from 'chart.js';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { RouterModule } from '@angular/router';
+import { BrowserModule } from '@angular/platform-browser';
 
 @NgModule({
   declarations: [
@@ -11,7 +14,6 @@ import { registerables } from 'chart.js';
   // ... rest of the module configuration
   imports: [
     NgChartsModule,
-    // ... other imports
   ]
 })
 export class AppModule {

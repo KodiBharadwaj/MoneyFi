@@ -20,6 +20,8 @@ public interface IncomeService {
 
     public Double getRemainingIncomeUpToPreviousMonthByMonthAndYear(int userId, int month, int year);
 
+    public boolean incomeUpdateCheckFunction(IncomeModel incomeModel);
+
     public IncomeModel updateBySource(int id, IncomeModel income);
 
     public boolean deleteIncomeById(int id);
