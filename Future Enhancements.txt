@@ -31,6 +31,7 @@ Defects:
 - category section is not working properly. Try remove or implement other.
 - after having income and expenses, if we delete previous incomes then it will show -ve. which is not possible.
 May be some conditionals are required when deleting,updating an income and make one income as primary and the primary income should not possible to delete. and for the editing income, when editing the income, it should check the total expense of that month. if the income is still greater then only able to edit.
+- update charts after deleting a transaction (income, expense)
 
 
 
