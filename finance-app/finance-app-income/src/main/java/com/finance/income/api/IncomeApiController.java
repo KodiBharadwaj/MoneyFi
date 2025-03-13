@@ -78,6 +78,12 @@ public class IncomeApiController {
         return incomeService.getRemainingIncomeUpToPreviousMonthByMonthAndYear(userId, month, year);
     }
 
+    @Operation
+    @PostMapping("/{userId}/incomeUpdateCheck")
+    public boolean incomeUpdateCheckFunction(@RequestBody IncomeModel incomeModel){
+        return incomeService.incomeUpdateCheckFunction(incomeModel);
+    }
+
     @Operation(summary = "Method to update the income details")
     @PutMapping("/{id}")
     public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") int id, @RequestBody IncomeModel income) {

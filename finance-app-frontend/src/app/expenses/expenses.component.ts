@@ -308,6 +308,7 @@ export class ExpensesComponent {
       this.expenses.splice(index, 1); // Remove the item at the found index
     }
     this.calculateTotalExpenses();
+    this.updateChartData();
     this.httpClient.delete<void>(`${this.baseUrl}/api/user/${expenseId}/expense`)
       .subscribe({
         next: () => {

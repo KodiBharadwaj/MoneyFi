@@ -333,6 +333,7 @@ export class IncomeComponent {
       this.incomeSources.splice(index, 1); // Remove the item at the found index
     }
     this.calculateTotalIncome();
+    this.updateChartData();
     this.httpClient.delete<void>(`${this.baseUrl}/api/income/${incomeId}`)
       .subscribe({
         next: () => {

@@ -49,5 +49,6 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Integer> {
         "@source = :source, @category = :category")
     public IncomeModel getIncomeBySourceAndCategory(int userId, String source, String category);
 
-
+    @Query(nativeQuery = true, value = "exec getIncomeByIncomeId @incomeId = :incomeId")
+    public Double getIncomeByIncomeId(int incomeId);
 }
