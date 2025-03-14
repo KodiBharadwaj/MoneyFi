@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
+import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
 
 interface Expense {
   id: number;
@@ -303,20 +304,29 @@ export class ExpensesComponent {
   }
 
   deleteExpense(expenseId: number): void {
-    const index = this.expenses.findIndex(i=>i.id === expenseId);
-    if (index !== -1) {
-      this.expenses.splice(index, 1); // Remove the item at the found index
-    }
-    this.calculateTotalExpenses();
-    this.updateChartData();
-    this.httpClient.delete<void>(`${this.baseUrl}/api/user/${expenseId}/expense`)
-      .subscribe({
-        next: () => {
-          console.log(`Expense with ID ${expenseId} deleted successfully.`);
-          // this.loadExpensesData(); // Reload the data after successful deletion
-        },
-        error: (err) => {
-          console.error('Error deleting expense:', err);
+      const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
+        width: '400px',
+        panelClass: 'custom-dialog-container',
+      });
+  
+      dialogRef.afterClosed().subscribe((result) => {
+        if (result) {
+          const index = this.expenses.findIndex(i=>i.id === expenseId);
+        if (index !== -1) {
+          this.expenses.splice(index, 1); // Remove the item at the found index
+        }
+        this.calculateTotalExpenses();
+        this.updateChartData();
+        this.httpClient.delete<void>(`${this.baseUrl}/api/user/${expenseId}/expense`)
+          .subscribe({
+            next: () => {
+              console.log(`Expense with ID ${expenseId} deleted successfully.`);
+              // this.loadExpensesData(); // Reload the data after successful deletion
+            },
+            error: (err) => {
+              console.error('Error deleting expense:', err);
+            }
+          });
         }
       });
   }

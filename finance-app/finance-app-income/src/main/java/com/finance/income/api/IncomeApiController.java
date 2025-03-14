@@ -84,6 +84,12 @@ public class IncomeApiController {
         return incomeService.incomeUpdateCheckFunction(incomeModel);
     }
 
+    @Operation
+    @PostMapping("/{userId}/incomeDeleteCheck")
+    public boolean incomeDeleteCheckFunction(@RequestBody IncomeModel incomeModel){
+        return incomeService.incomeDeleteCheckFunction(incomeModel);
+    }
+
     @Operation(summary = "Method to update the income details")
     @PutMapping("/{id}")
     public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") int id, @RequestBody IncomeModel income) {

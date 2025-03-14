@@ -22,6 +22,8 @@ public interface IncomeService {
 
     public boolean incomeUpdateCheckFunction(IncomeModel incomeModel);
 
+    public boolean incomeDeleteCheckFunction(IncomeModel incomeModel);
+
     public IncomeModel updateBySource(int id, IncomeModel income);
 
     public boolean deleteIncomeById(int id);

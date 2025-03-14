@@ -12,6 +12,7 @@ import { ChartConfiguration, ChartData, TimeScale } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
 import { MatSelectModule } from '@angular/material/select';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
+import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
 
 
 interface IncomeSource {
@@ -328,24 +329,74 @@ export class IncomeComponent {
 
   deleteIncome(incomeId: number): void {
     // console.log(incomeId);
-    const index = this.incomeSources.findIndex(i=>i.id === incomeId);
-    if (index !== -1) {
-      this.incomeSources.splice(index, 1); // Remove the item at the found index
-    }
-    this.calculateTotalIncome();
-    this.updateChartData();
-    this.httpClient.delete<void>(`${this.baseUrl}/api/income/${incomeId}`)
-      .subscribe({
-        next: () => {
-          // console.log(`Income with ID ${incomeId} deleted successfully.`);
-          // this.loadIncomeData(); // Reload the data after successful deletion
-          this.toastr.warning("Income has been deleted");
-        },
-        error: (err) => {
-          console.error('Error deleting income:', err);
-        }
-      });
+    const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
+      width: '400px',
+      panelClass: 'custom-dialog-container',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const incomeSource = this.incomeSources.find(i => i.id === incomeId);
+        // console.log(incomeSource);
+
+        const token = sessionStorage.getItem('finance.auth');
+  
+        this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+          next: (userId) => {
+
+            this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/income/${userId}/incomeDeleteCheck`, incomeSource).subscribe({
+              next: (result) => {
+                if (result) {
+                  // console.log(result);
+
+                  const index = this.incomeSources.findIndex(i=>i.id === incomeId);
+                  if (index !== -1) {
+                    this.incomeSources.splice(index, 1); // Remove the item at the found index
+                  }
+                  this.calculateTotalIncome();
+                  this.updateChartData();
+                  this.httpClient.delete<void>(`${this.baseUrl}/api/income/${incomeId}`)
+                    .subscribe({
+                      next: () => {
+                        this.toastr.warning("Income has been deleted");
+                      },
+                      error: (err) => {
+                        console.error('Error deleting income:', err);
+                      }
+                    });
+                  
+                } else {
+                  this.toastr.warning("Income can't be deleted");
+                }
+                this.loading = false;
+              },
+              error: (error) => {
+                console.error('Failed to load income data:', error);
+              }
+            });
+          },
+          error: (error) => {
+            console.error('Failed to fetch userId:', error);
+            alert("Session timed out! Please login again");
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['login']);
+            this.loading = false;
+          }
+        });
+
+      }
+    });
   }
+
+
+
+  // checkIncomeCanDeleted(incomeSource:any){
+  //   console.log(incomeSource);
+  //   this.loading = true;
+    
+    
+    
+  // }
   
 
   private updateChartData() {
