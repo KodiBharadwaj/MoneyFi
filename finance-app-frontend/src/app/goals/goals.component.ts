@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { AddAmountGoalComponent } from '../add-amount-goal/add-amount-goal.component';
+import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
 
 interface Goal {
   id: number;
@@ -367,20 +368,29 @@ export class GoalsComponent {
   }
 
 
-  
   deleteGoal(goalId : number){
-    console.log(goalId);
-    this.httpClient.delete<void>(`${this.baseUrl}/api/user/${goalId}/goal`)
-      .subscribe({
-        next: () => {
-          console.log(`Expense with ID ${goalId} deleted successfully.`);
-          this.loadGoals(); // Reload the data after successful deletion
-          this.loadIncomeFunction();
-        },
-        error: (err) => {
-          console.error('Error deleting expense:', err);
-        }
-      });
+    // console.log(goalId);
+    const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
+      width: '400px',
+      panelClass: 'custom-dialog-container',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.httpClient.delete<void>(`${this.baseUrl}/api/user/${goalId}/goal`)
+        .subscribe({
+          next: () => {
+            console.log(`Expense with ID ${goalId} deleted successfully.`);
+            this.loadGoals(); // Reload the data after successful deletion
+            this.loadIncomeFunction();
+          },
+          error: (err) => {
+            console.error('Error deleting goal:', err);
+          }
+        });
+      }
+    });
+
   }
 
   formatCurrency(amount: number): string {

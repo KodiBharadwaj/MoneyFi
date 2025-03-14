@@ -120,6 +120,22 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
+    public boolean incomeDeleteCheckFunction(IncomeModel incomeModel) {
+
+        Double totalIncome = getTotalIncomeInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
+        Double previousUpdatedIncome = incomeRepository.getIncomeByIncomeId(incomeModel.getId());
+        Double updatedIncome = 0.0;
+        Double currentNetIncome = totalIncome - previousUpdatedIncome + updatedIncome;
+        Double totalExpensesInMonth = restTemplate.getForObject("http://FINANCE-APP-USER/api/user/expenses/" + incomeModel.getUserId() + "/totalExpenses/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear(), Double.class);
+
+        if(currentNetIncome > totalExpensesInMonth){
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
     public IncomeModel updateBySource(int id, IncomeModel income) {
 
         flag = true;

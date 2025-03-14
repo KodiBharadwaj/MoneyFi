@@ -1,6 +1,6 @@
 Project MoneyFi:
 
-Major Corrections:
+Major Changes:
 - Implement soft delete and set 30 day expiration for the deleted transactions(Income, Expense).
 - Replace Jpa & Jpql with ms sql queries and stored procedures through repository.
 - Error handling in both backend and frontend.
@@ -12,9 +12,8 @@ Major Corrections:
 
 
 
-Minor Corrections:
+Minor Changes:
 - @operation(summary = "...") replace all comments with this in all controller files.
-- Ask confirmation before deleting a goal/income/expense etc in the frontend.
 - Replace sessionStorage with secureSessionStorage in the frontend.
 - Api calls should come under network section in console.
 - Implement logout issue in the backend too.
@@ -29,8 +28,7 @@ Defects:
 - while deleting a transaction, the toast should display source name.
 - if previous date is selected in income and expense, if that is empty and it is asked to add income. There in the dialog box, it should show that date, not current date.
 - category section is not working properly. Try remove or implement other.
-- after having income and expenses, if we delete previous incomes then it will show -ve. which is not possible.
-May be some conditionals are required when deleting,updating an income and make one income as primary and the primary income should not possible to delete. and for the editing income, when editing the income, it should check the total expense of that month. if the income is still greater then only able to edit.
+- in the confirm delete dialog box, it should show the income/expense/goal source name.
 
 
 
@@ -38,4 +36,11 @@ May be some conditionals are required when deleting,updating an income and make 
 cleared defects:
 - same source and same category duplicate transaction should not allowed.
 - update charts after deleting a transaction (income, expense)
+- after having income and expenses, if we delete previous incomes then it will show -ve. which is not possible.
+May be some conditionals are required when deleting,updating an income and make one income as primary and the primary income should not possible to delete. and for the editing income, when editing the income, it should check the total expense of that month. if the income is still greater then only able to edit.
+
+cleared changes:
+- Ask confirmation before deleting a goal/income/expense etc in the frontend.
+
+
 
