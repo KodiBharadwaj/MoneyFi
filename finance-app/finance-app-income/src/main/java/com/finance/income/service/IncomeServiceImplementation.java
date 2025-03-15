@@ -75,7 +75,12 @@ public class IncomeServiceImplementation implements IncomeService {
 
     @Override
     public Double getTotalIncomeInMonthAndYear(int userId, int month, int year) {
-        return incomeRepository.getTotalIncomeInMonthAndYear(userId, month, year);
+        Double totalIncome = incomeRepository.getTotalIncomeInMonthAndYear(userId, month, year);
+        if(totalIncome == null){
+            return 0.0;
+        }
+
+        return totalIncome;
     }
 
     @Override
@@ -109,9 +114,11 @@ public class IncomeServiceImplementation implements IncomeService {
 
         Double totalIncome = getTotalIncomeInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
         Double previousUpdatedIncome = incomeRepository.getIncomeByIncomeId(incomeModel.getId());
+        if(previousUpdatedIncome == null) previousUpdatedIncome = 0.0;
+
         Double updatedIncome = incomeModel.getAmount();
         Double currentNetIncome = totalIncome - previousUpdatedIncome + updatedIncome;
-        Double totalExpensesInMonth = restTemplate.getForObject("http://FINANCE-APP-USER/api/user/expenses/" + incomeModel.getUserId() + "/totalExpenses/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear(), Double.class);
+        Double totalExpensesInMonth = restTemplate.getForObject("http://FINANCE-APP-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear(), Double.class);
 
         if(currentNetIncome > totalExpensesInMonth){
             return true;
@@ -124,9 +131,11 @@ public class IncomeServiceImplementation implements IncomeService {
 
         Double totalIncome = getTotalIncomeInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
         Double previousUpdatedIncome = incomeRepository.getIncomeByIncomeId(incomeModel.getId());
+        if(previousUpdatedIncome == null) previousUpdatedIncome = 0.0;
+
         Double updatedIncome = 0.0;
         Double currentNetIncome = totalIncome - previousUpdatedIncome + updatedIncome;
-        Double totalExpensesInMonth = restTemplate.getForObject("http://FINANCE-APP-USER/api/user/expenses/" + incomeModel.getUserId() + "/totalExpenses/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear(), Double.class);
+        Double totalExpensesInMonth = restTemplate.getForObject("http://FINANCE-APP-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear(), Double.class);
 
         if(currentNetIncome > totalExpensesInMonth){
             return true;

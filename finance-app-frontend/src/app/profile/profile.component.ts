@@ -58,7 +58,7 @@ export class ProfileComponent implements OnInit {
 
     this.http.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
       next : (userId) => {
-        this.http.get<UserProfile>(`${this.baseUrl}/api/user/profile/${userId}`).subscribe(
+        this.http.get<UserProfile>(`${this.baseUrl}/api/profile/${userId}`).subscribe(
           (data) => {
             this.userProfile = data;
           },
@@ -77,7 +77,7 @@ export class ProfileComponent implements OnInit {
 
     this.http.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
       next : (userId) => {
-        this.http.post<UserProfile>(`${this.baseUrl}/api/user/profile/${userId}`, this.userProfile).subscribe(
+        this.http.post<UserProfile>(`${this.baseUrl}/api/profile/${userId}`, this.userProfile).subscribe(
           (data) => {
             this.userProfile = data;
             this.isEditing = false;

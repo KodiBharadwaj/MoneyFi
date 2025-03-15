@@ -4,14 +4,20 @@ import com.finance.budget.model.BudgetModel;
 import com.finance.budget.repository.BudgetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+
+import static java.util.Arrays.stream;
 
 @Service
 public class BudgetServiceImplementation implements BudgetService{
 
     @Autowired
     private BudgetRepository budgetRepository;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Override
     public BudgetModel save(BudgetModel budget) {
@@ -21,7 +27,23 @@ public class BudgetServiceImplementation implements BudgetService{
     @Override
     public List<BudgetModel> getAllBudgets(int userId) {
 
-        return budgetRepository.getBudgetsByUserId(userId).stream().sorted((a,b)->a.getId()-b.getId()).toList();
+        List<BudgetModel> budgetList = budgetRepository.getBudgetsByUserId(userId);
+        return budgetList.stream()
+                .sorted((a,b)->a.getId()-b.getId()).toList();
+    }
+
+    @Override
+    public Double budgetProgress(int userId, int month, int year) {
+
+        List<BudgetModel> budgetsList = getAllBudgets(userId);
+        double moneyLimit = budgetsList
+                            .stream()
+                            .mapToDouble(i->i.getMoneyLimit())
+                            .sum();
+
+        Double currentSpending = restTemplate.getForObject("http://FINANCE-APP-EXPENSE/api/expense/" + userId + "/totalExpense/" + month + "/" + year, Double.class);
+
+        return currentSpending/moneyLimit;
     }
 
     @Override

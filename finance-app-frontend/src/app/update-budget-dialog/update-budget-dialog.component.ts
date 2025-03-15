@@ -54,8 +54,8 @@ export class UpdateBudgetDialogComponent {
     const currentDate = new Date();
     const month = currentDate.getMonth() + 1; 
     const year = currentDate.getFullYear();
-    console.log(month);
-    console.log(year);
+    // console.log(month);
+    // console.log(year);
   
     if (token) {
       this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({

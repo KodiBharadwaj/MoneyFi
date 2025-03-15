@@ -109,26 +109,29 @@ export class AddIncomeDialogComponent {
       this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
         next: (userId) => {
 
-          const formattedDate = this.formatDate(this.incomeData.date);
           const incomeDataUpdated = {
             userId:userId,
             ...this.incomeData, // This should contain fields like source, amount, date, category, recurring, etc.
-            date:formattedDate,
             amount:this.incomeSource.amount
           };
           // console.log(incomeDataUpdated);
-          this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/income/${userId}/incomeUpdateCheck`, incomeDataUpdated).subscribe({
-            next: (result) => {
-              if (result) {
-                this.dialogRef.close(this.incomeSource);
-              } else {
-                this.toastr.warning("Income can't be reduced too low due to expenses");
+          if(this.flag == false){
+            this.dialogRef.close(this.incomeSource);
+          }
+          else {
+            this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/income/${userId}/incomeUpdateCheck`, incomeDataUpdated).subscribe({
+              next: (result) => {
+                if (result) {
+                  this.dialogRef.close(this.incomeSource);
+                } else {
+                  this.toastr.warning("Income can't be reduced too low due to expenses");
+                }
+              },
+              error: (error) => {
+                console.error('Failed to load income data:', error);
               }
-            },
-            error: (error) => {
-              console.error('Failed to load income data:', error);
-            }
-          });
+            });
+          }
         },
         error: (error) => {
           console.error('Failed to fetch userId:', error);
@@ -138,20 +141,11 @@ export class AddIncomeDialogComponent {
         }
       });
 
-
-      // this.dialogRef.close(this.incomeSource);
     } else {
       alert('Please fill in all required fields before saving.');
     }
   }
 
-  formatDate(date: string): string {
-    const d = new Date(date);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  }
 
   onCancel() {
     this.dialogRef.close();

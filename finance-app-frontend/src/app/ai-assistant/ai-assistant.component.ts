@@ -48,7 +48,7 @@ export class AiAssistantComponent implements OnInit {
           
           // Yearly data
           yearlyIncomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/income/${userId}/monthlyTotalIncomesList/${this.currentYear}`),
-          yearlyExpenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlyTotalExpensesList/${this.currentYear}`),
+          yearlyExpenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/expense/${userId}/monthlyTotalExpensesList/${this.currentYear}`),
           yearlySavings: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlySavingsInYear/${this.currentYear}`),
           cumulativeSavings: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlyCumulativeSavingsInYear/${this.currentYear}`),
           
@@ -57,8 +57,8 @@ export class AiAssistantComponent implements OnInit {
           budgetProgress: this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/budgetProgress/${this.currentMonth}/${this.currentYear}`),
           
           // Goals and Net Worth
-          totalCurrentGoalIncome: this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalCurrentGoalIncome`),
-          totalTargetGoalIncome: this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalTargetGoalIncome`),
+          totalCurrentGoalIncome: this.httpClient.get<number>(`${this.baseUrl}/api/goal/${userId}/totalCurrentGoalIncome`),
+          totalTargetGoalIncome: this.httpClient.get<number>(`${this.baseUrl}/api/goal/${userId}/totalTargetGoalIncome`),
           remainingIncome: this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalRemainingIncomeUpToPreviousMonth/${this.currentMonth}/${this.currentYear}`)
         }).subscribe({
           next: (data) => {

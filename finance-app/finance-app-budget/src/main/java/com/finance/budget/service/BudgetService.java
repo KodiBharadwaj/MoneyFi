@@ -10,6 +10,7 @@ public interface BudgetService {
 
     public List<BudgetModel> getAllBudgets(int userId);
 
-    public BudgetModel update(int id, BudgetModel budget);
+    public Double budgetProgress(int userId, int month, int year);
 
+    public BudgetModel update(int id, BudgetModel budget);
 }

@@ -71,7 +71,7 @@ export class OverviewComponent implements OnInit {
       next : (userId) => {
         // console.log(userId);
 
-        this.httpClient.get(`${this.baseUrl}/api/user/getName/${userId}`, {responseType : 'text'}).subscribe({
+        this.httpClient.get(`${this.baseUrl}/api/profile/getName/${userId}`, {responseType : 'text'}).subscribe({
           next : (userName) => {
             this.summary.username = userName;
           },
@@ -84,7 +84,7 @@ export class OverviewComponent implements OnInit {
           next : (totalIncome) => {
             this.summary.income = totalIncome;
 
-            this.httpClient.get<number>(`${this.baseUrl}/api/user/expenses/${userId}/totalExpenses/${this.thisMonth}/${this.thisYear}`).subscribe({
+            this.httpClient.get<number>(`${this.baseUrl}/api/expense/${userId}/totalExpense/${this.thisMonth}/${this.thisYear}`).subscribe({
               next : (totalExpense) => {
                 this.summary.expenses = totalExpense;
               },
@@ -99,7 +99,7 @@ export class OverviewComponent implements OnInit {
         })
 
 
-        this.httpClient.get<Budget[]>(`${this.baseUrl}/api/user/${userId}/budgets`).subscribe({
+        this.httpClient.get<Budget[]>(`${this.baseUrl}/api/budget/${userId}`).subscribe({
           next : (budgetList) => {
             const totalBudget = budgetList.reduce((acc, budget) => acc + budget.moneyLimit, 0);
             this.summary.budget = totalBudget;
@@ -113,7 +113,7 @@ export class OverviewComponent implements OnInit {
         this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalRemainingIncomeUpToPreviousMonth/${this.thisMonth}/${this.thisYear}`).subscribe({
           next : (totalRemainingIncome) => {
             // console.log(totalRemainingIncome);
-            this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalCurrentGoalIncome`).subscribe({
+            this.httpClient.get<number>(`${this.baseUrl}/api/goal/${userId}/totalCurrentGoalIncome`).subscribe({
               next : (totalGoalIncome) => {
                 // console.log(totalGoalIncome);
                 this.summary.netWorth = totalRemainingIncome + (this.summary.income - this.summary.expenses);
@@ -125,7 +125,7 @@ export class OverviewComponent implements OnInit {
           }
         })
 
-        this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/budgetProgress/${this.thisMonth}/${this.thisYear}`).subscribe({
+        this.httpClient.get<number>(`${this.baseUrl}/api/budget/${userId}/budgetProgress/${this.thisMonth}/${this.thisYear}`).subscribe({
           next : (totalBudgetIncome) => {
             // console.log(totalBudgetIncome);
             this.summary.budgetProgress = parseFloat((totalBudgetIncome * 100).toFixed(2));;
@@ -136,9 +136,9 @@ export class OverviewComponent implements OnInit {
         })
 
 
-        this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalCurrentGoalIncome`).subscribe({
+        this.httpClient.get<number>(`${this.baseUrl}/api/goal/${userId}/totalCurrentGoalIncome`).subscribe({
           next : (totalCurrentGoalIncome) => {
-            this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalTargetGoalIncome`).subscribe({
+            this.httpClient.get<number>(`${this.baseUrl}/api/goal/${userId}/totalTargetGoalIncome`).subscribe({
               next: (totalTargetGoalIncome) => {
                 this.summary.goalsProgress = parseFloat(((totalCurrentGoalIncome/totalTargetGoalIncome)*100).toFixed(2))
               }
