@@ -73,7 +73,7 @@ export class GoalsComponent {
       next: (userId) => {
         // console.log(userId);
   
-        this.httpClient.get<inputGoal[]>(`${this.baseUrl}/api/user/${userId}/goals`).subscribe({
+        this.httpClient.get<inputGoal[]>(`${this.baseUrl}/api/goal/${userId}`).subscribe({
           next: (data) => {
             // console.log(data);
             let amount = 0;
@@ -142,7 +142,7 @@ export class GoalsComponent {
               deadLine:formattedDate,
             };
             if(goalData.currentAmount < this.totalRemainingBalance){
-              this.httpClient.post<inputGoal>(`${this.baseUrl}/api/user/${userId}/goal`, goalData, {
+              this.httpClient.post<inputGoal>(`${this.baseUrl}/api/goal/${userId}`, goalData, {
                 headers: {
                   Authorization: `Bearer ${token}`,
                 },
@@ -181,12 +181,12 @@ export class GoalsComponent {
   addAmount(id: number) {
 
     const token = sessionStorage.getItem('finance.auth');
-    console.log(token);
-    console.log(id);
+    // console.log(token);
+    // console.log(id);
   
     this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
       next: (userId) => {
-        console.log(userId);
+        // console.log(userId);
   
         // Open the dialog to get the amount
         const dialogRef = this.dialog.open(AddAmountGoalComponent, {
@@ -198,10 +198,10 @@ export class GoalsComponent {
         dialogRef.afterClosed().subscribe((amount) => {
           if (amount !== undefined && amount > 0 && amount < this.totalRemainingBalance) {
             this.httpClient
-              .post<inputGoal>(`${this.baseUrl}/api/user/${userId}/addAmount/${id}/${amount}`, null)
+              .post<inputGoal>(`${this.baseUrl}/api/goal/${id}/addAmount/${amount}`, null)
               .subscribe({
                 next: (response) => {
-                  console.log(response);
+                  // console.log(response);
                   this.loadGoals();
                 },
                 error: (error) => {
@@ -223,7 +223,7 @@ export class GoalsComponent {
       panelClass: 'income-dialog',
       data: { ...goal, isUpdate: true }, // Pass the income data to the dialog
     });
-    console.log(goal);
+    // console.log(goal);
     dialogRef.afterClosed().subscribe((result) => {
       if (result && result.currentAmount < this.totalRemainingBalance) {
         const token = sessionStorage.getItem('finance.auth');
@@ -232,7 +232,7 @@ export class GoalsComponent {
             // console.log(userId);
             
             // Send POST request with the income data
-            console.log(result);
+            // console.log(result);
             const formattedDate = this.formatDate(result.deadLine);
             const goalData = {
               ...result, // This should contain fields like source, amount, date, category, recurring, etc.
@@ -240,8 +240,8 @@ export class GoalsComponent {
               userId:userId,
               deadLine:formattedDate,
             };
-            console.log(goalData);
-            this.httpClient.put<inputGoal>(`${this.baseUrl}/api/user/${goal.id}/goal`, goalData, {
+            // console.log(goalData);
+            this.httpClient.put<inputGoal>(`${this.baseUrl}/api/goal/${goal.id}`, goalData, {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
@@ -250,6 +250,7 @@ export class GoalsComponent {
                 const newGoalConverted = this.modelConverterFunction(updatedGoal); // Convert single goal
                 this.goals.push(newGoalConverted); // Add to existing goals array
                 // console.log(this.goals);
+                this.toastr.success("Goal has been updated");
                 this.loadGoals();
               },
               error: (error) => {
@@ -377,10 +378,11 @@ export class GoalsComponent {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.httpClient.delete<void>(`${this.baseUrl}/api/user/${goalId}/goal`)
+        this.httpClient.delete<void>(`${this.baseUrl}/api/goal/${goalId}`)
         .subscribe({
           next: () => {
-            console.log(`Expense with ID ${goalId} deleted successfully.`);
+            // console.log(`Expense with ID ${goalId} deleted successfully.`);
+            this.toastr.warning("Goal has been deleted");
             this.loadGoals(); // Reload the data after successful deletion
             this.loadIncomeFunction();
           },

@@ -105,13 +105,13 @@ onSubmit(signupCredentials: SignupCredentials) {
         this.authClient.get<number>(`${this.baseUrl}/auth/getUserId/${signupCredentials.username}`)
           .subscribe(
             userId => {
-              console.log('User ID:', userId);
+              // console.log('User ID:', userId);
 
               // Use userId in the next API call
               this.authClient.post<UserProfile>(`${this.baseUrl}/api/user/setDetails/${userId}/${signupCredentials.name}/${signupCredentials.username}`, null)
                 .subscribe(
                   userProfile => {
-                    console.log('Profile details:', userProfile);
+                    // console.log('Profile details:', userProfile);
                     this.toastr.success('User registered successfully!', 'Signup success');
                     this.router.navigate(['/login']);
                   },

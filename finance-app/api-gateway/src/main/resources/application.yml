@@ -29,13 +29,32 @@ spring:
             uri:
               lb://finance-app-user
             predicates:
-              - Path=/api/user/**
+              - Path=/api/user/**, /api/profile/**
 
           - id: finance-app-income
             uri:
               lb://finance-app-income
             predicates:
               - Path=/api/income/**
+
+          - id: finance-app-expense
+            uri:
+              lb://finance-app-expense
+            predicates:
+              - Path=/api/expense/**
+
+          - id: finance-app-budget
+            uri:
+              lb://finance-app-budget
+            predicates:
+              - Path=/api/budget/**
+
+          - id: finance-app-goal
+            uri:
+              lb://finance-app-goal
+            predicates:
+              - Path=/api/goal/**
+
 #
 #
 #          - id: trainer-service

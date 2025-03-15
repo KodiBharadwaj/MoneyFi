@@ -4,8 +4,11 @@ import com.finance.expense.model.ExpenseModel;
 import com.finance.expense.repository.ExpenseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,6 +17,9 @@ public class ExpenseServiceImplementation implements ExpenseService{
 
     @Autowired
     private ExpenseRepository expenseRepository;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Override
     public ExpenseModel save(ExpenseModel expense) {
@@ -73,6 +79,61 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
+    public Double getTotalExpenseInMonthAndYear(int userId, int month, int year) {
+        Double totalExpense = expenseRepository.getTotalExpenseInMonthAndYear(userId, month, year);
+        if(totalExpense == null) return 0.0;
+
+        return totalExpense;
+    }
+
+    @Override
+    public Double getTotalSavingsByMonthAndDate(int userId, int month, int year) {
+        Double totalIncome = restTemplate.getForObject("http://FINANCE-APP-INCOME/api/income/" + userId + "/totalIncome/" + month + "/" + year, Double.class);
+        Double totalExpenses = getTotalExpenseInMonthAndYear(userId, month, year);
+        if(totalIncome > totalExpenses){
+            return (totalIncome - totalExpenses);
+        }
+
+        return 0.0;
+    }
+
+    @Override
+    public List<Double> getCumulativeMonthlySavings(int userId, int year) {
+
+        Double[] incomes = restTemplate.getForObject("http://FINANCE-APP-INCOME/api/income/"+userId+"/monthlyTotalIncomesList/"+year,Double[].class);
+        Double[] expenses = getMonthlyExpenses(userId, year).toArray(new Double[0]);
+        LocalDate currentDate = LocalDate.now();
+        int currentYear = currentDate.getYear();
+        int currentMonth = currentDate.getMonthValue();
+
+        if(year > currentYear) return Arrays.asList(new Double[12]);
+
+        int lastMonth = (year < currentYear) ? 12 : currentMonth;
+
+        List<Double> savings = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            if(i < lastMonth){
+                savings.add(incomes[i] - expenses[i]);
+            }
+            else{
+                savings.add(0.0);
+            }
+        }
+
+        List<Double> cumulativeSavings = new ArrayList<>();
+        cumulativeSavings.add(savings.get(0));
+        for(int i=1; i<12; i++){
+            if(i < lastMonth){
+                cumulativeSavings.add(cumulativeSavings.get(i-1)+savings.get(i));
+            }
+            else {
+                cumulativeSavings.add(0.0);
+            }
+        }
+        return cumulativeSavings;
+    }
+
+    @Override
     public ExpenseModel updateBySource(int id, ExpenseModel expense) {
         ExpenseModel expenseModel = expenseRepository.findById(id).orElse(null);
 
@@ -96,10 +157,16 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public void deleteExpenseById(int id) {
-//        expenseRepository.deleteById(id);
-        ExpenseModel expense = expenseRepository.findById(id).orElse(null);
-        expense.set_deleted(true);
-        expenseRepository.save(expense);
+    public boolean deleteExpenseById(int id) {
+
+        try {
+            ExpenseModel expense = expenseRepository.findById(id).orElse(null);
+            expense.set_deleted(true);
+            expenseRepository.save(expense);
+            return true;
+        } catch (HttpClientErrorException.NotFound e) {
+            return false;
+        }
+
     }
 }

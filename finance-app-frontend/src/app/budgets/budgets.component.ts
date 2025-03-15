@@ -95,9 +95,9 @@ export class BudgetsComponent {
       next: (userId) => {
         let url: string;
         if (this.selectedMonth === 0) {
-          url = `${this.baseUrl}/api/user/expenses/${userId}/${this.selectedYear}/false`;
+          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedYear}/false`;
         } else {
-          url = `${this.baseUrl}/api/user/expenses/${userId}/${this.selectedMonth}/${this.selectedYear}/false`;
+          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/false`;
         }
   
         this.httpClient.get<Expense[]>(url).subscribe({
@@ -161,7 +161,7 @@ export class BudgetsComponent {
   
     this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
       next: (userId) => {
-        this.httpClient.get<Budget[]>(`${this.baseUrl}/api/user/${userId}/budgets`).subscribe({
+        this.httpClient.get<Budget[]>(`${this.baseUrl}/api/budget/${userId}`).subscribe({
           next: (budgets) => {
             this.budgets = budgets;
             // console.log(this.budgets);
@@ -170,7 +170,7 @@ export class BudgetsComponent {
             this.loadExpensesData();
           },
           error: (error) => {
-            console.error('Failed to load Budget data:', error);
+            // console.error('Failed to load Budget data:', error);
             this.toastr.error('Failed to load budgets', 'Error');
           },
           complete: () => {
@@ -238,7 +238,7 @@ export class BudgetsComponent {
                 };
   
                 // Send individual POST request for each category
-                return this.httpClient.post(`${this.baseUrl}/api/user/${userId}/budget`, categoryData, {
+                return this.httpClient.post(`${this.baseUrl}/api/budget/${userId}`, categoryData, {
                   headers: {
                     Authorization: `Bearer ${token}`,
                   },
@@ -276,7 +276,7 @@ export class BudgetsComponent {
   
     dialogRef.afterClosed().subscribe((updatedBudgets) => {
       if (updatedBudgets) {
-        console.log(updatedBudgets);
+        // console.log(updatedBudgets);
         this.saveUpdatedBudgets(updatedBudgets);
       }
     });
@@ -289,7 +289,7 @@ export class BudgetsComponent {
   
     updatedBudgets.forEach((budget) => {
       this.httpClient
-        .put(`${this.baseUrl}/api/user/${budget.id}/budgets`, budget, {
+        .put(`${this.baseUrl}/api/budget/${budget.id}`, budget, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .subscribe({
@@ -311,15 +311,6 @@ export class BudgetsComponent {
   }
   
   
-  
-
-  editBudget(budget : Budget){
-
-  }
-  viewDetails(budget:Budget){
-
-  }
-
   updateUniqueCategories() {
     // Ensure "All Categories" is an option
     this.uniqueCategories = ['', ...new Set(this.expenses.map(expense => expense.category))];

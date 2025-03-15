@@ -4,6 +4,7 @@ import com.finance.goal.model.GoalModel;
 import com.finance.goal.repository.GoalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 
@@ -19,8 +20,35 @@ public class GoalServiceImplementation implements GoalService{
     }
 
     @Override
+    public GoalModel addAmount(int id, double amount) {
+        GoalModel goalModel = goalRepository.findById(id).orElse(null);
+        goalModel.setCurrentAmount(goalModel.getCurrentAmount() + amount);
+        return save(goalModel);
+    }
+
+    @Override
     public List<GoalModel> getAllGoals(int userId) {
         return goalRepository.findByUserId(userId).stream().sorted((a,b)->a.getId()-b.getId()).toList();
+    }
+
+    @Override
+    public Double getCurrentTotalGoalIncome(int userId) {
+        Double totalGoalIncome = goalRepository.getCurrentTotalGoalIncome(userId);
+        if(totalGoalIncome == null){
+            return 0.0;
+        }
+
+        return totalGoalIncome;
+    }
+
+    @Override
+    public Double getTargetTotalGoalIncome(int userId) {
+        Double totalGoalTargetIncome = goalRepository.getTargetTotalGoalIncome(userId);
+        if(totalGoalTargetIncome == null){
+            return 0.0;
+        }
+
+        return totalGoalTargetIncome;
     }
 
     @Override
@@ -49,7 +77,13 @@ public class GoalServiceImplementation implements GoalService{
     }
 
     @Override
-    public void deleteGoalById(int id) {
-        goalRepository.deleteById(id);
+    public boolean deleteGoalById(int id) {
+
+        try {
+            goalRepository.deleteById(id);
+            return true;
+        } catch (HttpClientErrorException.NotFound e) {
+            return false;
+        }
     }
 }

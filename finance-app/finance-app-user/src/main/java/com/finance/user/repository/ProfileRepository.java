@@ -10,5 +10,5 @@ public interface ProfileRepository extends JpaRepository<ProfileModel,Integer> {
 
     @Query("select p.name from ProfileModel p where p.userId = :userId")
     public String getNameFromUserId(int userId);
-}
 
+}

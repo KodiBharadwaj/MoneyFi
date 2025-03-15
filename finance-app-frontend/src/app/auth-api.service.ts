@@ -17,7 +17,7 @@ export class AuthApiService {
   
   loginApiFunction(loginCredentials:LoginCredentials):Observable<JwtToken>{
     const token = this.authClient.post<JwtToken>(this.baseUrl+"/login", loginCredentials);
-    console.log(token);
+    // console.log(token);
     return token;
   }
 

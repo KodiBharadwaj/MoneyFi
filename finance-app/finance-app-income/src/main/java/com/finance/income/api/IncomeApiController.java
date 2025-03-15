@@ -78,13 +78,13 @@ public class IncomeApiController {
         return incomeService.getRemainingIncomeUpToPreviousMonthByMonthAndYear(userId, month, year);
     }
 
-    @Operation
+    @Operation(summary = "Method to check the particular income can be editable")
     @PostMapping("/{userId}/incomeUpdateCheck")
     public boolean incomeUpdateCheckFunction(@RequestBody IncomeModel incomeModel){
         return incomeService.incomeUpdateCheckFunction(incomeModel);
     }
 
-    @Operation
+    @Operation(summary = "Method to check the particular income can be deleted")
     @PostMapping("/{userId}/incomeDeleteCheck")
     public boolean incomeDeleteCheckFunction(@RequestBody IncomeModel incomeModel){
         return incomeService.incomeDeleteCheckFunction(incomeModel);

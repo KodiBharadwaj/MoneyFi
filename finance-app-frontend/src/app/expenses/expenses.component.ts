@@ -94,10 +94,7 @@ export class ExpensesComponent {
 
   baseUrl = "http://localhost:8765";
 
-  // ngOnInit() {
-  //   this.initializeFilters();
-  //   this.loadExpensesData();
-  // }
+
   ngOnInit() {
     this.initializeFilters();
     
@@ -124,10 +121,10 @@ export class ExpensesComponent {
         let url: string;
         if (this.selectedMonth === 0) {
           // Fetch all expenses for the selected year
-          url = `${this.baseUrl}/api/user/expenses/${userId}/${this.selectedYear}/false`;
+          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedYear}/false`;
         } else {
           // Fetch expenses for the specific month and year
-          url = `${this.baseUrl}/api/user/expenses/${userId}/${this.selectedMonth}/${this.selectedYear}/false`;
+          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/false`;
         }
   
         this.httpClient.get<Expense[]>(url).subscribe({
@@ -212,7 +209,7 @@ export class ExpensesComponent {
               userId: userId,
             };
 
-            this.httpClient.post<Expense>(`${this.baseUrl}/api/user/${userId}/expense`, expenseData, {
+            this.httpClient.post<Expense>(`${this.baseUrl}/api/expense/${userId}`, expenseData, {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
@@ -271,7 +268,7 @@ export class ExpensesComponent {
             };
 
             this.httpClient.put<Expense>(
-              `${this.baseUrl}/api/user/${expense.id}/expense`,
+              `${this.baseUrl}/api/expense/${expense.id}`,
               updatedExpenseData,
               {
                 headers: {
@@ -280,7 +277,7 @@ export class ExpensesComponent {
               }
             ).subscribe({
               next: (updatedExpense) => {
-                console.log('Expense updated successfully:', updatedExpense);
+                // console.log('Expense updated successfully:', updatedExpense);
                 this.loadExpensesData();
                 this.toastr.success('Expense updated successfully');
               },
@@ -317,7 +314,7 @@ export class ExpensesComponent {
         }
         this.calculateTotalExpenses();
         this.updateChartData();
-        this.httpClient.delete<void>(`${this.baseUrl}/api/user/${expenseId}/expense`)
+        this.httpClient.delete<void>(`${this.baseUrl}/api/expense/${expenseId}`)
           .subscribe({
             next: () => {
               console.log(`Expense with ID ${expenseId} deleted successfully.`);
