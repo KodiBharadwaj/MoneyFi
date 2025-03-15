@@ -56,8 +56,8 @@ export class AnalysisComponent {
     this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
       next: (userId) => {
         // Create parallel requests for both expenses and budgets
-        const expensesUrl = `${this.baseUrl}/api/user/expenses/${userId}/${currentMonth}/${currentYear}`;
-        const budgetsUrl = `${this.baseUrl}/api/user/${userId}/budgets`;
+        const expensesUrl = `${this.baseUrl}/api/expense/${userId}/${currentMonth}/${currentYear}/false`;
+        const budgetsUrl = `${this.baseUrl}/api/budget/${userId}`;
 
         // Use forkJoin to make parallel requests
         forkJoin({
@@ -413,7 +413,7 @@ export class AnalysisComponent {
 
     this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
       next: (userId) => {
-        this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlyCumulativeSavingsInYear/${currentYear}`)
+        this.httpClient.get<number[]>(`${this.baseUrl}/api/expense/${userId}/monthlyCumulativeSavingsInYear/${currentYear}`)
           .subscribe({
             next: (cumulativeData) => {
               this.lineChartData.datasets[0].data = cumulativeData;
