@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+**/application-sqlserver.yml
+**/application-postgres.yml
+
