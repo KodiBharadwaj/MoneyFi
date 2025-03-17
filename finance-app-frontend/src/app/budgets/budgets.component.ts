@@ -288,6 +288,7 @@ export class BudgetsComponent {
     let updateCount = 0;
   
     updatedBudgets.forEach((budget) => {
+      // console.log(budget);
       this.httpClient
         .put(`${this.baseUrl}/api/budget/${budget.id}`, budget, {
           headers: { Authorization: `Bearer ${token}` },

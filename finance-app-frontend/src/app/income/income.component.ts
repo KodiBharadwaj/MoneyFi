@@ -305,10 +305,17 @@ export class IncomeComponent {
             ).subscribe({
               next: (updatedIncome) => {
                 // console.log('Income updated successfully:', updatedIncome);
-                this.toastr.success("Income of " + updatedIncome.source + " updated successfully");
-                this.loadIncomeData(); 
+                if(updatedIncome){
+                  this.toastr.success("Income of " + updatedIncome.source + " updated successfully");
+                  this.loadIncomeData();
+                } else {
+                  this.toastr.warning("No changes to update");
+                }
               },
               error: (error) => {
+                if(error.Status === 204){
+                  this.toastr.warning("No changes to update");
+                }
                 console.error('Failed to update income:', error);
               },
             });

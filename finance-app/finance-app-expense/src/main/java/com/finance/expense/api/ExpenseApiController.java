@@ -103,7 +103,18 @@ public class ExpenseApiController {
 
     @Operation(summary = "Method to update the expense details")
     @PutMapping("/{id}")
-    public ResponseEntity<ExpenseModel> updateExpense(@PathVariable("id") int id, @RequestBody ExpenseModel expense) {
+    public ResponseEntity<ExpenseModel> updateExpense(@PathVariable("id") int id,
+                                                      @RequestBody ExpenseModel expense) {
+        ExpenseModel expenseModel = expenseRepository.findById(id).orElse(null);
+        if(expenseModel != null){
+            if(expenseModel.getAmount() == expense.getAmount() &&
+                    expenseModel.getCategory().equals(expense.getCategory()) &&
+                    expenseModel.getDescription().equals(expense.getDescription()) &&
+                    expenseModel.getDate().equals(expense.getDate()) &&
+                    expenseModel.isRecurring() == expense.isRecurring()){
+                return ResponseEntity.noContent().build(); // 204
+            }
+        }
         ExpenseModel updatedExpense = expenseService.updateBySource(id, expense);
         if(updatedExpense!=null){
             return ResponseEntity.status(HttpStatus.CREATED).body(updatedExpense);

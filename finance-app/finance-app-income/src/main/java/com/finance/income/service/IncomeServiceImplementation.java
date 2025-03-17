@@ -150,6 +150,12 @@ public class IncomeServiceImplementation implements IncomeService {
         flag = true;
         IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
 
+        if(incomeModel.getAmount() == income.getAmount() &&
+                    incomeModel.getSource() == income.getSource() &&
+                    incomeModel.getCategory() == income.getCategory() &&
+                    incomeModel.getDate() == income.getDate() &&
+                    incomeModel.isRecurring() == income.isRecurring()){
+        }
         if(income.getAmount() > 0){
             incomeModel.setAmount(income.getAmount());
         }

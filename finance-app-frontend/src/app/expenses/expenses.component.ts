@@ -278,8 +278,12 @@ export class ExpensesComponent {
             ).subscribe({
               next: (updatedExpense) => {
                 // console.log('Expense updated successfully:', updatedExpense);
-                this.loadExpensesData();
-                this.toastr.success('Expense updated successfully');
+                if(updatedExpense){
+                  this.loadExpensesData();
+                  this.toastr.success('Expense updated successfully');
+                } else {
+                  this.toastr.warning('No changes to update');
+                }
               },
               error: (error) => {
                 console.error('Failed to update Expense:', error);
