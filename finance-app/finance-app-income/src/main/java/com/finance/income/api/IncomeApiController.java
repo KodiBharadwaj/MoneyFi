@@ -1,6 +1,7 @@
 package com.finance.income.api;
 
 import com.finance.income.model.IncomeModel;
+import com.finance.income.repository.IncomeRepository;
 import com.finance.income.service.IncomeService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,9 @@ public class IncomeApiController {
 
     @Autowired
     private IncomeService incomeService;
+
+    @Autowired
+    private IncomeRepository incomeRepository;
 
     @Operation(summary = "Method to save the income details")
     @PostMapping("/{userId}")
@@ -93,8 +97,20 @@ public class IncomeApiController {
     @Operation(summary = "Method to update the income details")
     @PutMapping("/{id}")
     public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") int id, @RequestBody IncomeModel income) {
-        IncomeModel updatedIncome = incomeService.updateBySource(id, income);
 
+        IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
+        if(incomeModel != null){
+            if(incomeModel.getAmount() == income.getAmount() &&
+                    incomeModel.getSource().equals(income.getSource()) &&
+                    incomeModel.getCategory().equals(income.getCategory()) &&
+                    incomeModel.getDate().equals(income.getDate()) &&
+                    incomeModel.isRecurring() == income.isRecurring()){
+                return ResponseEntity.noContent().build(); // HTTP 204
+
+            }
+        }
+
+        IncomeModel updatedIncome = incomeService.updateBySource(id, income);
         if(updatedIncome!=null){
             return ResponseEntity.status(HttpStatus.CREATED).body(updatedIncome); // 201
         }

@@ -26,7 +26,7 @@ cleared changes:
 
 
 Defects:
-- In budget edit section, profile section, editing an income, even If I didn't do any changes, it is still getting toast with updated.
+- In budget edit section, profile section, even If I didn't do any changes, it is still getting toast with updated.
 - When a service is failed or stopped working, it should show service unavailable, should not throw error.
 - while deleting a transaction, the toast should display source name.
 - in the confirm delete dialog box, it should show the income/expense/goal source name.
@@ -39,7 +39,9 @@ cleared defects:
 - same source and same category duplicate transaction should not allowed.
 - update charts after deleting a transaction (income, expense)
 - after having income and expenses, if we delete previous incomes then it will show -ve. which is not possible.
-May be some conditionals are required when deleting,updating an income and make one income as primary and for the editing income, when editing the income, it should check the total expense of that month. if the income is still greater then only able to edit.
+-May be some conditionals are required when deleting,updating an income when editing the income, it should check the total expense of that month. if the income is still greater then only able to edit.
+- Editing an income and expense, even If I didn't do any changes, it is still getting toast with updated.
+
 
 
 

@@ -3,7 +3,7 @@ spring:
     name:
       finance-app-user
   datasource:
-    url: jdbc:sqlserver://${RDS_HOSTNAME:localhost}:${RDS_PORT:1433};databaseName=${RDS_DB_NAME:moneyfi_goal};encrypt=true;trustServerCertificate=true
+    url: jdbc:sqlserver://${RDS_HOSTNAME:localhost}:${RDS_PORT:1433};databaseName=${RDS_DB_NAME:moneyfi_user_details};encrypt=true;trustServerCertificate=true
     username: ${RDS_USERNAME:sa}
     password: ${RDS_PASSWORD:admin@123}
 
