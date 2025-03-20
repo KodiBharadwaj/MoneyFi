@@ -39,7 +39,7 @@ public class BudgetApiController {
         if (!list.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(list); // 200
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // 404
+            return ResponseEntity.noContent().build(); // 204
         }
     }
 
