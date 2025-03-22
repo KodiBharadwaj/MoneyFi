@@ -1,4 +1,4 @@
-package com.example.apigateway.dao;
+package com.example.apigateway.repository;
 
 import com.example.apigateway.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;

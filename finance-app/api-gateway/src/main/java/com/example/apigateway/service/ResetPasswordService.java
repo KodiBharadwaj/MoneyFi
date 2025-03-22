@@ -1,7 +1,7 @@
 package com.example.apigateway.service;
 
 
-import com.example.apigateway.dao.UserRepo;
+import com.example.apigateway.repository.UserRepo;
 import com.example.apigateway.model.User;
 import com.example.apigateway.util.EmailFilter;
 import org.springframework.beans.factory.annotation.Autowired;

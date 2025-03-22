@@ -10,6 +10,7 @@ import { ConfirmLogoutDialogComponent } from '../confirm-logout-dialog/confirm-l
 import { MatDialog } from '@angular/material/dialog';
 import { ProfileComponent } from '../profile/profile.component';
 import { AnalysisComponent } from '../analysis/analysis.component';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-dashboard',
@@ -31,7 +32,7 @@ import { AnalysisComponent } from '../analysis/analysis.component';
 })
 export class DashboardComponent {
 
-  constructor(private router:Router, private dialog: MatDialog, private route: ActivatedRoute){};
+  constructor(private router:Router, private dialog: MatDialog, private route: ActivatedRoute, private httpClient:HttpClient){};
 
   isLoading = false;
 
@@ -40,14 +41,24 @@ export class DashboardComponent {
       width: '400px',
       panelClass: 'custom-dialog-container',
     });
-
+  
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['']);
+        const token = sessionStorage.getItem('finance.auth');
+        this.httpClient.post('http://localhost:8765/auth/logout', {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).subscribe({
+          next: () => {
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['']);
+          },
+          error: (error) => console.log(error)
+        });
       }
     });
   }
+  
+  
 
   
 }

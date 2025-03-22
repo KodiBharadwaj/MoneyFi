@@ -1,11 +1,13 @@
 package com.example.apigateway.controller;
 
-import com.example.apigateway.dao.UserRepo;
+import com.example.apigateway.model.BlackListedToken;
+import com.example.apigateway.repository.UserRepo;
 import com.example.apigateway.dto.JwtToken;
 import com.example.apigateway.dto.UserProfile;
 import com.example.apigateway.model.User;
 import com.example.apigateway.service.JwtService;
 import com.example.apigateway.service.ResetPasswordService;
+import com.example.apigateway.service.TokenBlacklistService;
 import com.example.apigateway.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @CrossOrigin("http://localhost:4200")
@@ -38,6 +42,10 @@ public class UserController {
 
     @Autowired
     private ResetPasswordService passwordResetService;
+
+    @Autowired
+    private TokenBlacklistService blacklistService;
+
 
     @Operation(summary = "Method to get the user id from user's email")
     @GetMapping("/getUserId/{email}")
@@ -132,5 +140,24 @@ public class UserController {
     public String updatePassword(@RequestParam String email,@RequestParam String password)
     {
         return passwordResetService.UpdatePassword(email,password);
+    }
+
+
+    @Operation(summary = "Method to logout/making the token blacklist")
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader("Authorization") String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        Date expiryDate = new Date(System.currentTimeMillis() + 3600000); // Expiry 1 hour later
+        BlackListedToken blackListedToken = new BlackListedToken();
+        blackListedToken.setToken(token);
+        blackListedToken.setExpiry(expiryDate);
+        blacklistService.blacklistToken(blackListedToken);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Logged out successfully");
+
+        return ResponseEntity.ok(response);
     }
 }

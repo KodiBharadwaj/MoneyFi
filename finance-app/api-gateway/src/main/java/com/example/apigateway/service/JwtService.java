@@ -23,29 +23,8 @@ import java.util.Map;
 @Service
 public class JwtService {
 
-//    private static final String SECRET = "TmV3U2VjcmV0S2V5Rm9ySldUU2lnbmluZ1B1cnBvc2VzMTIzNDU2Nzg=\r\n";
-//    private static final String SECRET1 = "0000000000000000000000000000000000000000000"; //43 Characters min
-
-//    private String secretKey;
-
     @Value("${jwt.secret}")
     private String secret;
-
-//    public JwtService() {
-//        secretKey = generateSecretKey();
-//    }
-
-//    public String generateSecretKey() {
-//        try {
-//
-//            KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
-//            SecretKey secretKey = keyGen.generateKey();
-//            System.out.println("Secret Key : " + secretKey.toString());
-//            return Base64.getEncoder().encodeToString(secretKey.getEncoded());
-//        } catch (NoSuchAlgorithmException e) {
-//            throw new RuntimeException("Error generating secret key", e);
-//        }
-//    }
 
     public JwtToken generateToken(String username) {
 
@@ -61,11 +40,6 @@ public class JwtService {
         return new JwtToken(token);
 
     }
-
-//    private Key getKey() {
-//        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-//        return Keys.hmacShaKeyFor(keyBytes);
-//    }
 
     public String extractUserName(String token) {
         // extract the username from jwt token
