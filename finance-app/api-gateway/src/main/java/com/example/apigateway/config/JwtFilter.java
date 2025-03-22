@@ -36,6 +36,7 @@ import java.io.IOException;
 //            token = authHeader.substring(7);
 //            username = jwtService.extractUserName(token);
 //        }
+
 //        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 //
 //            UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
