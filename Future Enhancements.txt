@@ -12,7 +12,6 @@ Major Changes:
 Minor Changes:
 - Replace sessionStorage with secureSessionStorage in the frontend.
 - Api calls should come under network section in console.
-- Implement logout issue in the backend too.
 - Put change password in profile section.
 - put contact us section. and feedback section.
 
@@ -23,6 +22,8 @@ cleared changes:
 - Add api's through api gateway not through user service. Remove all.
 - Replace Jpa & Jpql with ms sql queries and stored procedures through repository.
 - add err0r codes to all controllers
+- Implement logout issue in the backend too.
+
 
 
 Defects:

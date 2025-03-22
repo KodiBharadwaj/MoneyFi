@@ -36,6 +36,28 @@ export class DashboardComponent {
 
   isLoading = false;
 
+  // logoutUser(): void {
+  //   const dialogRef = this.dialog.open(ConfirmLogoutDialogComponent, {
+  //     width: '400px',
+  //     panelClass: 'custom-dialog-container',
+  //   });
+  
+  //   dialogRef.afterClosed().subscribe((result) => {
+  //     if (result) {
+  //       const token = sessionStorage.getItem('finance.auth');
+  //       this.httpClient.post('http://localhost:8765/auth/logout', {}, {
+  //         headers: { Authorization: `Bearer ${token}` }
+  //       }).subscribe({
+  //         next: () => {
+  //           sessionStorage.removeItem('finance.auth');
+  //           this.router.navigate(['']);
+  //         },
+  //         error: (error) => console.log(error)
+  //       });
+  //     }
+  //   });
+  // }
+
   logoutUser(): void {
     const dialogRef = this.dialog.open(ConfirmLogoutDialogComponent, {
       width: '400px',
@@ -45,18 +67,20 @@ export class DashboardComponent {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         const token = sessionStorage.getItem('finance.auth');
-        this.httpClient.post('http://localhost:8765/auth/logout', {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).subscribe({
-          next: () => {
+        this.httpClient.post('http://localhost:8765/auth/logout', {}, { responseType: 'text' }).subscribe({
+          next: (response) => {
+            console.log(response); // Should print "Logged out successfully"
             sessionStorage.removeItem('finance.auth');
             this.router.navigate(['']);
           },
-          error: (error) => console.log(error)
+          error: (error) => {
+            console.error(error);
+          }
         });
       }
     });
   }
+  
   
   
 
