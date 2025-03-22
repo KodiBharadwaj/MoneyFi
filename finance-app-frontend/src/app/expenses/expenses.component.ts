@@ -305,9 +305,11 @@ export class ExpensesComponent {
   }
 
   deleteExpense(expenseId: number): void {
+    const expenseDataFetch = this.expenses.find(i=>i.id === expenseId);
       const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
         width: '400px',
         panelClass: 'custom-dialog-container',
+        data:{...expenseDataFetch, isExpense:true}
       });
   
       dialogRef.afterClosed().subscribe((result) => {
@@ -321,8 +323,9 @@ export class ExpensesComponent {
         this.httpClient.delete<void>(`${this.baseUrl}/api/expense/${expenseId}`)
           .subscribe({
             next: () => {
-              console.log(`Expense with ID ${expenseId} deleted successfully.`);
+              // console.log(`Expense with ID ${expenseId} deleted successfully.`);
               // this.loadExpensesData(); // Reload the data after successful deletion
+              this.toastr.warning("Expense " + expenseDataFetch?.description + " has been deleted");
             },
             error: (err) => {
               console.error('Error deleting expense:', err);

@@ -78,7 +78,7 @@ export class BudgetsComponent {
     this.selectedMonth = new Date().getMonth() + 1; // Current month in 1-based index
     this.selectedYear = new Date().getFullYear(); // Current year
   
-    this.loadBudgetData();
+    // this.loadBudgetData();
     this.filterExpenses();
   }
   initializeFilters() {
@@ -163,14 +163,22 @@ export class BudgetsComponent {
       next: (userId) => {
         this.httpClient.get<Budget[]>(`${this.baseUrl}/api/budget/${userId}`).subscribe({
           next: (budgets) => {
-            this.budgets = budgets;
-            // console.log(this.budgets);
-            this.calculateTotals();
-            // Load expenses after fetching budgets to update categories
-            this.loadExpensesData();
+            if(budgets === null){
+              this.toastr.warning('You dont have budget', 'Please add Budget plan');
+            }
+            else {
+              this.budgets = budgets;
+              // console.log(this.budgets);
+              this.calculateTotals();
+              // Load expenses after fetching budgets to update categories
+              this.loadExpensesData();
+            }
           },
           error: (error) => {
             // console.error('Failed to load Budget data:', error);
+            // if(error.status === 204){
+            //   this.toastr.warning('You dont have budget', 'Please add Budget plan')
+            // }
             this.toastr.error('Failed to load budgets', 'Error');
           },
           complete: () => {

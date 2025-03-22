@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ConfirmLogoutDialogComponent } from '../confirm-logout-dialog/confirm-logout-dialog.component';
 
 @Component({
@@ -11,7 +11,22 @@ import { ConfirmLogoutDialogComponent } from '../confirm-logout-dialog/confirm-l
 })
 export class ConfirmDeleteDialogComponent {
 
-  constructor(private dialogRef: MatDialogRef<ConfirmLogoutDialogComponent>) {}
+  name : String = "";
+
+  constructor(private dialogRef: MatDialogRef<ConfirmLogoutDialogComponent>, @Inject(MAT_DIALOG_DATA) public data: any) {
+    if(data.isIncome){
+      this.name = data.source;
+    }
+    else if(data.isExpense){
+      this.name = data.description + " (" + data.category + ")";
+    }
+    else if(data.isGoal){
+      this.name = data.goalName + " (" + data.category + ")";
+    }
+    else {
+      this.name = "";
+    }
+  }
 
   confirmDelete(): void {
     this.dialogRef.close(true);

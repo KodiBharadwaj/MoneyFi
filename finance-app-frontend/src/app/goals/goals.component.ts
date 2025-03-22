@@ -129,51 +129,54 @@ export class GoalsComponent {
       if (result) {
         const token = sessionStorage.getItem('finance.auth');
         // console.log(token);
-  
-        this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
-          next: (userId) => {
-            // console.log(userId);
-            
-            // Send POST request with the income data
-            const formattedDate = this.formatDate(result.deadLine);
-            const goalData = {
-              ...result, // This should contain fields like source, amount, date, category, recurring, etc.
-              // userId: userId, // Add userId if your backend requires it
-              deadLine:formattedDate,
-            };
-            if(goalData.currentAmount < this.totalRemainingBalance){
-              this.httpClient.post<inputGoal>(`${this.baseUrl}/api/goal/${userId}`, goalData, {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }).subscribe({
-                next: (newGoal) => {
-                  // console.log(newGoal);
-                  // this.goals = newGoal.map(goal => this.modelConverterFunction(goal));
-                  const newGoalConverted = this.modelConverterFunction(newGoal); // Convert single goal
-                  this.goals.push(newGoalConverted); // Add to existing goals array
-                  // console.log(this.goals);
-                  this.loadGoals();
-                },
-                error: (error) => {
-                  console.error('Failed to add goal data:', error);
-                },
-                complete: () => {
-                  this.loading = false;
-                },
-              });
-            }else{
-              alert("Cannot add the goal! Entered amount is greater than the remaining amount")
-            }
-          },
-          error: (error) => {
-            console.error('Failed to fetch userId:', error);
-            alert("Session timed out! Please login again");
-            sessionStorage.removeItem('finance.auth');
-            this.router.navigate(['login']);
-            this.loading = false;
-          },
-        });
+        if(result.targetAmount > result.currentAmount){
+          this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+            next: (userId) => {
+              // console.log(userId);
+              
+              // Send POST request with the income data
+              const formattedDate = this.formatDate(result.deadLine);
+              const goalData = {
+                ...result, // This should contain fields like source, amount, date, category, recurring, etc.
+                // userId: userId, // Add userId if your backend requires it
+                deadLine:formattedDate,
+              };
+              if(goalData.currentAmount < this.totalRemainingBalance){
+                this.httpClient.post<inputGoal>(`${this.baseUrl}/api/goal/${userId}`, goalData, {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }).subscribe({
+                  next: (newGoal) => {
+                    // console.log(newGoal);
+                    // this.goals = newGoal.map(goal => this.modelConverterFunction(goal));
+                    const newGoalConverted = this.modelConverterFunction(newGoal); // Convert single goal
+                    this.goals.push(newGoalConverted); // Add to existing goals array
+                    // console.log(this.goals);
+                    this.loadGoals();
+                  },
+                  error: (error) => {
+                    console.error('Failed to add goal data:', error);
+                  },
+                  complete: () => {
+                    this.loading = false;
+                  },
+                });
+              }else{
+                alert("Cannot add the goal! Entered amount is greater than the remaining amount")
+              }
+            },
+            error: (error) => {
+              console.error('Failed to fetch userId:', error);
+              alert("Session timed out! Please login again");
+              sessionStorage.removeItem('finance.auth');
+              this.router.navigate(['login']);
+              this.loading = false;
+            },
+          });
+        } else {
+          this.toastr.warning("Target Amount is less than Initial amount");
+        }
       }
     });
   }
@@ -371,9 +374,11 @@ export class GoalsComponent {
 
   deleteGoal(goalId : number){
     // console.log(goalId);
+    const goalDataFetch = this.goals.find(i => i.id === goalId);
     const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
       width: '400px',
       panelClass: 'custom-dialog-container',
+      data: {...goalDataFetch, isGoal:true},
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -382,7 +387,7 @@ export class GoalsComponent {
         .subscribe({
           next: () => {
             // console.log(`Expense with ID ${goalId} deleted successfully.`);
-            this.toastr.warning("Goal has been deleted");
+            this.toastr.warning("Goal " + goalDataFetch?.goalName +" has been deleted");
             this.loadGoals(); // Reload the data after successful deletion
             this.loadIncomeFunction();
           },
