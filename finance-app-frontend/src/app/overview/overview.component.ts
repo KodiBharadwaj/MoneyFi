@@ -39,7 +39,7 @@ interface Budget {
     CountUpDirective
   ],
   templateUrl: './overview.component.html',
-  styleUrl: './overview.component.css'
+  styleUrls: ['./overview.component.css']
 })
 export class OverviewComponent implements OnInit {
   // financialQuote = "Wealth is not about having a lot of money, it's about having a lot of options. – Chris Rock";
