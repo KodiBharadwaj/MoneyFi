@@ -22,7 +22,8 @@ cleared changes:
 - Add api's through api gateway not through user service. Remove all.
 - Replace Jpa & Jpql with ms sql queries and stored procedures through repository.
 - add err0r codes to all controllers
-- Implement logout issue in the backend too.
+- Implemented logout issue in the backend too by storing expired tokens in separate table.
+- Implemented scheduled method to delete expired tokens for every 1 hour.
 
 
 
