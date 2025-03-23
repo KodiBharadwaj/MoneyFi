@@ -1,5 +1,6 @@
 package com.example.apigateway.controller;
 
+import com.example.apigateway.dto.ChangePasswordDto;
 import com.example.apigateway.model.BlackListedToken;
 import com.example.apigateway.repository.UserRepo;
 import com.example.apigateway.dto.JwtToken;
@@ -159,5 +160,10 @@ public class UserController {
         response.put("message", "Logged out successfully");
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/change-password")
+    public boolean changePassword(@RequestBody ChangePasswordDto changePasswordDto) {
+        return userService.changePassword(changePasswordDto);
     }
 }
