@@ -10,7 +10,6 @@ Major Changes:
 
 
 Minor Changes:
-- Replace sessionStorage with secureSessionStorage in the frontend.
 - Api calls should come under network section in console.
 - Put change password in profile section.
 - put contact us section. and feedback section.
