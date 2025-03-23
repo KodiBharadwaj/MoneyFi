@@ -33,6 +33,7 @@ public class TokenBlacklistService {
         LocalDateTime now = LocalDateTime.now();
         System.out.println("Checking for expired tokens at: " + now);
         tokenBlacklistRepository.deleteByExpiryBefore(now);  // Deletes expired tokens
+        System.out.println("Kodi");
     }
 }
 
