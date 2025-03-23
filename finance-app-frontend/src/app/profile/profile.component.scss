@@ -249,6 +249,44 @@
     }
   }
   
+  .button-container {
+    margin-top: 20px;
+    display: inline-block
+  }
+  
+  .change-password-btn {
+    background-color: #3f51b5; // Primary Material color
+    color: white;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+    &:hover {
+      background-color: #303f9f; // Darker shade on hover
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transform: translateY(-1px);
+    }
+  
+    &:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  
+    mat-icon {
+      font-size: 18px;
+      height: 18px;
+      width: 18px;
+    }
+  }
+  
   @media (max-width: 768px) {
     .profile-container {
       padding: 1rem;

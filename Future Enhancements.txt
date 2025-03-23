@@ -10,7 +10,6 @@ Major Changes:
 
 
 Minor Changes:
-- Put change password in profile section.
 - put contact us section. and feedback section.
 
 
@@ -22,6 +21,8 @@ cleared changes:
 - add err0r codes to all controllers
 - Implemented logout issue in the backend too by storing expired tokens in separate table.
 - Implemented scheduled method to delete expired tokens for every 1 hour.
+- Put change password in profile section.
+
 
 
 

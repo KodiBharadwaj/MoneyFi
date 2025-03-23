@@ -8,6 +8,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { ToastrService } from 'ngx-toastr';
+import { ChangePasswordDialogComponent } from '../change-password-dialog/change-password-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 interface UserProfile {
   name: string;
@@ -44,7 +46,7 @@ export class ProfileComponent implements OnInit {
   isEditing = false;
   // userId = 1; // Assuming the user ID is 1, you can get it dynamically if needed
 
-  constructor(private http: HttpClient, private toastr:ToastrService) { }
+  constructor(private http: HttpClient, private toastr:ToastrService, private dialog:MatDialog) { }
 
   baseUrl = "http://localhost:8765";
   ngOnInit(): void {
@@ -118,5 +120,18 @@ export class ProfileComponent implements OnInit {
     } else {
       alert('Please select a valid image file (JPEG, PNG, or GIF).');
     }
+  }
+
+  changePassword() {
+    const dialogRef = this.dialog.open(ChangePasswordDialogComponent, {
+      width: '400px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Handle successful password change
+        this.toastr.success('Password changed successfully!');
+      }
+    });
   }
 }

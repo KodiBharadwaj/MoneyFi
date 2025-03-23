@@ -66,11 +66,11 @@ export class OverviewComponent implements OnInit {
 
   private loadFinancialData() {
     const token = sessionStorage.getItem('finance.auth');
-    console.log(token)
+    // console.log(token)
 
     this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
       next : (userId) => {
-        console.log(userId);
+        // console.log(userId);
 
       this.httpClient.get(`${this.baseUrl}/api/profile/getName/${userId}`, {responseType : 'text'}).subscribe({
         next : (userName) => {
