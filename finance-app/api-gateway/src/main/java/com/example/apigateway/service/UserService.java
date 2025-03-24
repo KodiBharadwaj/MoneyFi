@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class UserService {
 
@@ -36,5 +38,20 @@ public class UserService {
         }
 
         return true;
+    }
+
+    public boolean checkOtpActiveMethod(String email){
+        User user = userRepo.findByUsername(email);
+        if(user == null) return false;
+
+        if(user.getVerificationCodeExpiration() == null){
+            return true;
+        }
+
+        if(user.getVerificationCodeExpiration().isBefore(LocalDateTime.now())){
+            return true;
+        }
+
+        return false;
     }
 }

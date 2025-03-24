@@ -162,8 +162,15 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Method to change the password for the logged in user in the profile section")
     @PostMapping("/change-password")
     public boolean changePassword(@RequestBody ChangePasswordDto changePasswordDto) {
         return userService.changePassword(changePasswordDto);
+    }
+
+    @Operation(summary = "Method to check the eligibity for next otp")
+    @GetMapping("/checkOtpActive/{email}")
+    public boolean checkOtpActiveMethod(@PathVariable("email") String email){
+        return userService.checkOtpActiveMethod(email);
     }
 }

@@ -32,7 +32,7 @@ public class ResetPasswordService {
 
 
         user.setVerificationCode(verificationCode);
-        user.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(10));
+        user.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(5));
         userRepository.save(user);
 
 
@@ -43,7 +43,7 @@ public class ResetPasswordService {
                 + "<p style='font-size: 16px;'>Hello,</p>"
                 + "<p style='font-size: 16px;'>You have requested to reset your password. Please use the following verification code:</p>"
                 + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'>" + verificationCode + "</p>"
-                + "<p style='font-size: 16px;'>This code is valid for short duration only. If you did not raise, please ignore this email.</p>"
+                + "<p style='font-size: 16px;'>This code is valid for 5 minutes only. If you did not raise, please ignore this email.</p>"
                 + "<hr>"
                 + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at bharadwajkodi2003@gmail.com</p>"
                 + "<br>"
