@@ -11,7 +11,7 @@ Major Changes:
 
 Minor Changes:
 - Put contact us section. and feedback section.
-- Put Loading effect for send otp section at forgot password.
+- Add remaining time for further otp and make only 3 otp's in a day.
 
 cleared changes:
 - Ask confirmation before deleting a goal/income/expense etc in the frontend.
@@ -22,6 +22,7 @@ cleared changes:
 - Implemented logout issue in the backend too by storing expired tokens in separate table.
 - Implemented scheduled method to delete expired tokens for every 1 hour.
 - Put change password in profile section.
+- Put Loading effect for send otp section at forgot password.
 
 
 
