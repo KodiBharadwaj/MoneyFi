@@ -10,8 +10,8 @@ Major Changes:
 
 
 Minor Changes:
-- put contact us section. and feedback section.
-
+- Put contact us section. and feedback section.
+- Put Loading effect for send otp section at forgot password.
 
 cleared changes:
 - Ask confirmation before deleting a goal/income/expense etc in the frontend.
