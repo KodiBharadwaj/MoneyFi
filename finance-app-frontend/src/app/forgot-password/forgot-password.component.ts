@@ -83,35 +83,51 @@ export class ForgotPasswordComponent {
     }
   };
 
+  isLoading: boolean = false; // Add this in your component
 
-  // Email submission stage
   sendVerificationCode() {
     // Reset previous messages
     this.clearMessages();
-
-    // Validate email format (basic client-side validation)
+  
+    // Validate email format
     if (!this.isValidEmail(this.email)) {
       this.errorMessage = 'Please enter a valid email address';
       return;
     }
+  
+    this.isLoading = true; // Start loading
 
-    // Make API call to send verification code
-    this.http.post(`http://localhost:8765/auth/forgot-password`, null, { 
-      params: { email: this.email },
-      responseType: 'text'
-    }).subscribe({
-      next: (response) => {
-        this.successMessage = response;
-        this.stage = 'verification';
-      },
-      error: (error: HttpErrorResponse) => {
-        // this.successMessage='Successfully sent';
-        // this.stage='verification';
-        alert('cant send email');
+
+    this.http.get<boolean>(`http://localhost:8765/auth/checkOtpActive/${this.email}`).subscribe({
+      next : (result) => {
+        if(result){
+
+          this.http.post(`http://localhost:8765/auth/forgot-password`, null, { 
+            params: { email: this.email },
+            responseType: 'text'
+          }).subscribe({
+            next: (response) => {
+              this.successMessage = response;
+              this.stage = 'verification';
+              this.isLoading = false; // Stop loading
+            },
+            error: (error: HttpErrorResponse) => {
+              alert('Cannot send email');
+              this.isLoading = false; // Stop loading on error
+            }
+          });
+
+        } else {
+          alert('Too many attempts. Please try again later');
+          // this.verifyCode();
+          this.isLoading = false;
+          this.stage = 'verification';
+        }
       }
-    });
+    })
+    
   }
-
+  
   // Verification code stage
   verifyCode() {
     // Reset previous messages
