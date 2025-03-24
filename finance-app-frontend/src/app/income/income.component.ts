@@ -336,9 +336,11 @@ export class IncomeComponent {
 
   deleteIncome(incomeId: number): void {
     // console.log(incomeId);
+    const incomedataFetch = this.incomeSources.find(i => i.id === incomeId);
     const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
       width: '400px',
       panelClass: 'custom-dialog-container',
+      data: {...incomedataFetch, isIncome:true},
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -365,7 +367,7 @@ export class IncomeComponent {
                   this.httpClient.delete<void>(`${this.baseUrl}/api/income/${incomeId}`)
                     .subscribe({
                       next: () => {
-                        this.toastr.warning("Income has been deleted");
+                        this.toastr.warning("Income " +incomeSource?.source+ " has been deleted");
                       },
                       error: (err) => {
                         console.error('Error deleting income:', err);
@@ -395,16 +397,6 @@ export class IncomeComponent {
     });
   }
 
-
-
-  // checkIncomeCanDeleted(incomeSource:any){
-  //   console.log(incomeSource);
-  //   this.loading = true;
-    
-    
-    
-  // }
-  
 
   private updateChartData() {
     // Group income sources by category and sum their amounts
