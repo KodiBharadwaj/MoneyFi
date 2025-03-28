@@ -55,8 +55,11 @@ export class ChangePasswordDialogComponent {
 
   baseUrl = "http://localhost:8765";
 
+  isLoading: boolean = false;
+
   onSubmit() {
     if (this.passwordForm.valid) {
+      this.isLoading = true;
     
       const token = sessionStorage.getItem('finance.auth');
 
@@ -79,19 +82,22 @@ export class ChangePasswordDialogComponent {
                 } else {
                   this.toastr.warning('Please enter correct old Password');
                 }
-                
+                this.isLoading = false;
               },
               error: (error) => {
                 console.error('Error changing password:', error);
+                this.isLoading = false;
               }
             });
 
           } else {
             this.toastr.warning('Please enter new password');
+            this.isLoading = false;
           }
   
         },
         error: (error) => {
+          this.isLoading = false;
           console.error('Failed to fetch userId:', error);
           alert("Session timed out! Please login again");
           sessionStorage.removeItem('finance.auth');
