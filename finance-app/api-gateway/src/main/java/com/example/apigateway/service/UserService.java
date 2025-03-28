@@ -67,13 +67,11 @@ public class UserService {
 
     public boolean checkOtpActiveMethod(String email){
         User user = userRepo.findByUsername(email);
-        if(user == null) return false;
-
-        if(user.getVerificationCodeExpiration() == null){
-            return true;
+        if(user == null || user.getOtpCount() > 3){
+            return false;
         }
 
-        if(user.getVerificationCodeExpiration().isBefore(LocalDateTime.now())){
+        if(user.getVerificationCodeExpiration() == null || user.getVerificationCodeExpiration().isBefore(LocalDateTime.now())){
             return true;
         }
 
