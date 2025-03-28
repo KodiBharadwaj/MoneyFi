@@ -12,6 +12,7 @@ Major Changes:
 Minor Changes:
 - Put contact us section. and feedback section.
 - Add remaining time for further otp and make only 3 otp's in a day.
+- When user updates the password, he should get a mail regarding password change alert. If he didn't change the password, make a page to inform the team.
 
 cleared changes:
 - Ask confirmation before deleting a goal/income/expense etc in the frontend.
