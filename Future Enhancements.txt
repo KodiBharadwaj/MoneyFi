@@ -1,7 +1,7 @@
 Project MoneyFi:
 
 Major Changes:
-- Implement soft delete and set 30 day expiration for the deleted transactions(Income, Expense).
+- Implement soft delete and set 30 day expiration for the deleted transactions(Income, Expense). (ongoing)
 - Error handling in both backend and frontend.
 - Pdf/Excel export of the data of the user (If possible any uploads)
 - otp verification during signup
@@ -11,8 +11,18 @@ Major Changes:
 
 Minor Changes:
 - Put contact us section. and feedback section.
-- Add remaining time for further otp and make only 3 otp's in a day.
-- When user updates the password, he should get a mail regarding password change alert. If he didn't change the password, make a page to inform the team.
+- Add remaining time for further otp and make only 3 otp's in a day. (ongoing)
+- Write junit test cases for income service (ongoing)
+
+Defects:
+- When a service is failed or stopped working, it should show service unavailable, should not throw error.
+- If previous date is selected in income and expense, if that is empty and it is asked to add income. There in the dialog box, it should show that date, not  
+  current date.
+- category section is not working properly. Try remove or implement other.
+- In two browsers, if i open the same account, both are working.
+
+
+
 
 cleared changes:
 - Ask confirmation before deleting a goal/income/expense etc in the frontend.
@@ -24,16 +34,8 @@ cleared changes:
 - Implemented scheduled method to delete expired tokens for every 1 hour.
 - Put change password in profile section.
 - Put Loading effect for send otp section at forgot password.
+- When user updates the password, he should get a mail regarding password change alert.
 
-
-
-
-Defects:
-- When a service is failed or stopped working, it should show service unavailable, should not throw error.
-- If previous date is selected in income and expense, if that is empty and it is asked to add income. There in the dialog box, it should show that date, not  
-  current date.
-- category section is not working properly. Try remove or implement other.
-- In two browsers, if i open the same account, both are working.
 
 
 cleared defects:
