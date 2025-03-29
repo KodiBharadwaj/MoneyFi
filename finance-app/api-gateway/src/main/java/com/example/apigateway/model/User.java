@@ -19,5 +19,6 @@ public class User {
 
     private String verificationCode;
     private LocalDateTime verificationCodeExpiration;
+    private int otpCount;
 
 }

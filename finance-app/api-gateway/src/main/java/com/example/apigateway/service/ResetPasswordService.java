@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 
@@ -18,6 +19,9 @@ public class ResetPasswordService {
 
     @Autowired
     private EmailFilter emailUtil;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
 
     public String forgotPassword(String email) {
@@ -33,14 +37,16 @@ public class ResetPasswordService {
 
         user.setVerificationCode(verificationCode);
         user.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(5));
+        user.setOtpCount(user.getOtpCount() + 1);
         userRepository.save(user);
 
+        String userName = restTemplate.getForObject("http://FINANCE-APP-USER/api/profile/getName/" + user.getId(), String.class);
 
-        String subject = "Password Reset Verification Code";
+        String subject = "MoneyFi's Password Reset Verification Code";
         String body = "<html>"
                 + "<body>"
                 + "<h2 style='color: #333;'>Password Reset Verification</h2>"
-                + "<p style='font-size: 16px;'>Hello,</p>"
+                + "<p style='font-size: 16px;'>Hello " + userName + ",</p>"
                 + "<p style='font-size: 16px;'>You have requested to reset your password. Please use the following verification code:</p>"
                 + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'>" + verificationCode + "</p>"
                 + "<p style='font-size: 16px;'>This code is valid for 5 minutes only. If you did not raise, please ignore this email.</p>"
