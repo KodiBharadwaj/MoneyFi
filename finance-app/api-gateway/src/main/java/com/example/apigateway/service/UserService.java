@@ -1,14 +1,19 @@
 package com.example.apigateway.service;
 
 import com.example.apigateway.dto.ChangePasswordDto;
+import com.example.apigateway.dto.RemainingTimeCountDto;
 import com.example.apigateway.repository.UserRepo;
 import com.example.apigateway.model.User;
 import com.example.apigateway.util.EmailFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -65,16 +70,46 @@ public class UserService {
         emailFilter.sendEmail(email, subject, body);
     }
 
-    public boolean checkOtpActiveMethod(String email){
+    public RemainingTimeCountDto checkOtpActiveMethod(String email){
+        RemainingTimeCountDto remainingTimeCountDto = new RemainingTimeCountDto();
+
         User user = userRepo.findByUsername(email);
-        if(user == null || user.getOtpCount() > 3){
-            return false;
+        if(user == null){
+            remainingTimeCountDto.setComment("User not exist");
+            remainingTimeCountDto.setResult(false);
+            return remainingTimeCountDto;
+        }
+
+        if(user.getOtpCount() >= 3){
+            remainingTimeCountDto.setResult(false);
+            remainingTimeCountDto.setComment("Otp limit crossed");
+            return remainingTimeCountDto;
         }
 
         if(user.getVerificationCodeExpiration() == null || user.getVerificationCodeExpiration().isBefore(LocalDateTime.now())){
-            return true;
+            remainingTimeCountDto.setResult(true);
+            return remainingTimeCountDto;
         }
 
-        return false;
+        LocalDateTime time1 = LocalDateTime.now();
+        LocalDateTime time2 = user.getVerificationCodeExpiration();
+        long minutesDifference = ChronoUnit.MINUTES.between(time1, time2);
+        remainingTimeCountDto.setRemainingMinutes((int) minutesDifference);
+        remainingTimeCountDto.setResult(false);
+        return remainingTimeCountDto;
+    }
+
+
+    @Scheduled(fixedRate = 3600000) // Runs every 1 hour
+    public void removeOtpCountOfPreviousDay() {
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        List<User> userList = userRepo.getUserListWhoseOtpCountGreaterThanThree();
+
+        for (User user : userList) {
+            if (user.getOtpCount() >= 3 && user.getVerificationCodeExpiration().isBefore(startOfToday)) {
+                user.setOtpCount(0);
+                userRepo.save(user);
+            }
+        }
     }
 }

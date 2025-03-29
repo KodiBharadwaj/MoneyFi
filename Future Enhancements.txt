@@ -11,7 +11,6 @@ Major Changes:
 
 Minor Changes:
 - Put contact us section. and feedback section.
-- Add remaining time for further otp and make only 3 otp's in a day. (ongoing) and if 3 otp's crossed, user should get the message in frontend.
 - Write junit test cases for income service (ongoing)
 
 Defects:
@@ -35,6 +34,7 @@ cleared changes:
 - Put change password in profile section.
 - Put Loading effect for send otp section at forgot password.
 - When user updates the password, he should get a mail regarding password change alert.
+- Add remaining time for further otp and make only 3 otp's in a day. (ongoing) and if 3 otp's crossed, user should get the message in frontend.
 
 
 

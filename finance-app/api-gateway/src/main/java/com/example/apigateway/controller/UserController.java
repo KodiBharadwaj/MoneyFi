@@ -1,6 +1,7 @@
 package com.example.apigateway.controller;
 
 import com.example.apigateway.dto.ChangePasswordDto;
+import com.example.apigateway.dto.RemainingTimeCountDto;
 import com.example.apigateway.model.BlackListedToken;
 import com.example.apigateway.repository.UserRepo;
 import com.example.apigateway.dto.JwtToken;
@@ -170,7 +171,7 @@ public class UserController {
 
     @Operation(summary = "Method to check the eligibity for next otp")
     @GetMapping("/checkOtpActive/{email}")
-    public boolean checkOtpActiveMethod(@PathVariable("email") String email){
+    public RemainingTimeCountDto checkOtpActiveMethod(@PathVariable("email") String email){
         return userService.checkOtpActiveMethod(email);
     }
 }
