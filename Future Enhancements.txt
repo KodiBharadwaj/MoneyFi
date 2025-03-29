@@ -11,6 +11,7 @@ Major Changes:
 Minor Changes:
 - Put contact us section. and feedback section.
 - Write junit test cases for income service (ongoing)
+- Landing page, so may buttons are there in the footer. Add the necessary info.
 
 Defects:
 - When a service is failed or stopped working, it should show service unavailable, should not throw error.
@@ -51,6 +52,8 @@ cleared defects:
 - Editing an income and expense, even If I didn't do any changes, it is still getting toast with updated.
 - It's allowing to create a goal with target amount less than current amount
 - If there are no budgets, it showing error in console . But income and expense are not showing.
+- Correct MoneFi name in landing page.
+
 
 
 

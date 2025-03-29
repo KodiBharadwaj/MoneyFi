@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,6 +28,9 @@ public class UserService {
 
     @Autowired
     private EmailFilter emailFilter;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
 
     public User saveUser(User user) {
@@ -47,16 +51,18 @@ public class UserService {
         }
 
 //        sendPasswordAlertMail(user.getUsername());
-        new Thread(() -> sendPasswordAlertMail(user.getUsername())).start();
+        new Thread(() -> sendPasswordAlertMail(user.getId(), user.getUsername())).start();
         return true;
     }
 
-    public void sendPasswordAlertMail(String email){
+    public void sendPasswordAlertMail(int userId, String email){
+
+        String userName = restTemplate.getForObject("http://FINANCE-APP-USER/api/profile/getName/" + userId, String.class);
 
         String subject = "Password Change Alert!!";
         String body = "<html>"
                 + "<body>"
-                + "<p style='font-size: 16px;'>Hello,</p>"
+                + "<p style='font-size: 16px;'>Hello " + userName +",</p>"
                 + "<p style='font-size: 16px;'>You have changed the password for your account with username: " + email + "</p>"
                 + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
                 + "<p style='font-size: 16px;'>Kindly Ignore if it by you. If not, reply to this mail immediately to secure account.</p>"
