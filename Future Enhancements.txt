@@ -6,19 +6,20 @@ Major Changes:
 - Pdf/Excel export of the data of the user (If possible any uploads)
 - otp verification during signup
 - Google authentication
-- try adding reports
 
 
 Minor Changes:
 - Put contact us section. and feedback section.
 - Write junit test cases for income service (ongoing)
+- Landing page, so may buttons are there in the footer. Add the necessary info.
 
 Defects:
 - When a service is failed or stopped working, it should show service unavailable, should not throw error.
 - If previous date is selected in income and expense, if that is empty and it is asked to add income. There in the dialog box, it should show that date, not  
   current date.
 - category section is not working properly. Try remove or implement other.
-- In two browsers, if i open the same account, both are working.
+- In two browsers, if i open the same account, both are working with two different tokens.
+- If otp verification isn't there during signup, if user creates with unexisting email, then forgot password, email service wont work for him.
 
 
 
@@ -35,6 +36,10 @@ cleared changes:
 - Put Loading effect for send otp section at forgot password.
 - When user updates the password, he should get a mail regarding password change alert.
 - Add remaining time for further otp and make only 3 otp's in a day. (ongoing) and if 3 otp's crossed, user should get the message in frontend.
+- In the confirm delete dialog box, it should show the income/expense/goal source name.
+- while deleting a transaction(income/expense/goal), the toast should display source name.
+
+
 
 
 
@@ -45,10 +50,10 @@ cleared defects:
 - May be some conditionals are required when deleting updating an income when editing the income, it should check the total expense of that month. if the      
   income is still greater then only able to edit.
 - Editing an income and expense, even If I didn't do any changes, it is still getting toast with updated.
-- In the confirm delete dialog box, it should show the income/expense/goal source name.
 - It's allowing to create a goal with target amount less than current amount
-- while deleting a transaction(income/expense/goal), the toast should display source name.
 - If there are no budgets, it showing error in console . But income and expense are not showing.
+- Correct MoneFi name in landing page.
+
 
 
 
