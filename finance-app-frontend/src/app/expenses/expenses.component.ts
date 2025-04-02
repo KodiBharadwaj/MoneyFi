@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
+import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
 
 interface Expense {
   id: number;
@@ -93,10 +94,7 @@ export class ExpensesComponent {
 
   baseUrl = "http://localhost:8765";
 
-  // ngOnInit() {
-  //   this.initializeFilters();
-  //   this.loadExpensesData();
-  // }
+
   ngOnInit() {
     this.initializeFilters();
     
@@ -123,10 +121,10 @@ export class ExpensesComponent {
         let url: string;
         if (this.selectedMonth === 0) {
           // Fetch all expenses for the selected year
-          url = `${this.baseUrl}/api/user/expenses/${userId}/${this.selectedYear}/false`;
+          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedYear}/false`;
         } else {
           // Fetch expenses for the specific month and year
-          url = `${this.baseUrl}/api/user/expenses/${userId}/${this.selectedMonth}/${this.selectedYear}/false`;
+          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/false`;
         }
   
         this.httpClient.get<Expense[]>(url).subscribe({
@@ -151,7 +149,7 @@ export class ExpensesComponent {
           }
         });
 
-        this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalIncome/${this.selectedMonth}/${this.selectedYear}`).subscribe({
+        this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalIncome/${this.selectedMonth}/${this.selectedYear}`).subscribe({
           next: (totalIncome) => {
             this.totalIncome = totalIncome;
             this.calculateSpentPercentage();
@@ -211,7 +209,7 @@ export class ExpensesComponent {
               userId: userId,
             };
 
-            this.httpClient.post<Expense>(`${this.baseUrl}/api/user/${userId}/expense`, expenseData, {
+            this.httpClient.post<Expense>(`${this.baseUrl}/api/expense/${userId}`, expenseData, {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
@@ -270,7 +268,7 @@ export class ExpensesComponent {
             };
 
             this.httpClient.put<Expense>(
-              `${this.baseUrl}/api/user/${expense.id}/expense`,
+              `${this.baseUrl}/api/expense/${expense.id}`,
               updatedExpenseData,
               {
                 headers: {
@@ -279,9 +277,13 @@ export class ExpensesComponent {
               }
             ).subscribe({
               next: (updatedExpense) => {
-                console.log('Expense updated successfully:', updatedExpense);
-                this.loadExpensesData();
-                this.toastr.success('Expense updated successfully');
+                // console.log('Expense updated successfully:', updatedExpense);
+                if(updatedExpense){
+                  this.loadExpensesData();
+                  this.toastr.success('Expense updated successfully');
+                } else {
+                  this.toastr.warning('No changes to update');
+                }
               },
               error: (error) => {
                 console.error('Failed to update Expense:', error);
@@ -303,19 +305,32 @@ export class ExpensesComponent {
   }
 
   deleteExpense(expenseId: number): void {
-    const index = this.expenses.findIndex(i=>i.id === expenseId);
-    if (index !== -1) {
-      this.expenses.splice(index, 1); // Remove the item at the found index
-    }
-    this.calculateTotalExpenses();
-    this.httpClient.delete<void>(`${this.baseUrl}/api/user/${expenseId}/expense`)
-      .subscribe({
-        next: () => {
-          console.log(`Expense with ID ${expenseId} deleted successfully.`);
-          // this.loadExpensesData(); // Reload the data after successful deletion
-        },
-        error: (err) => {
-          console.error('Error deleting expense:', err);
+    const expenseDataFetch = this.expenses.find(i=>i.id === expenseId);
+      const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
+        width: '400px',
+        panelClass: 'custom-dialog-container',
+        data:{...expenseDataFetch, isExpense:true}
+      });
+  
+      dialogRef.afterClosed().subscribe((result) => {
+        if (result) {
+          const index = this.expenses.findIndex(i=>i.id === expenseId);
+        if (index !== -1) {
+          this.expenses.splice(index, 1); // Remove the item at the found index
+        }
+        this.calculateTotalExpenses();
+        this.updateChartData();
+        this.httpClient.delete<void>(`${this.baseUrl}/api/expense/${expenseId}`)
+          .subscribe({
+            next: () => {
+              // console.log(`Expense with ID ${expenseId} deleted successfully.`);
+              // this.loadExpensesData(); // Reload the data after successful deletion
+              this.toastr.warning("Expense " + expenseDataFetch?.description + " has been deleted");
+            },
+            error: (err) => {
+              console.error('Error deleting expense:', err);
+            }
+          });
         }
       });
   }

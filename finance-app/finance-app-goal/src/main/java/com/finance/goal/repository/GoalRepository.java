@@ -20,4 +20,12 @@ public interface GoalRepository extends JpaRepository<GoalModel, Integer> {
     @Transactional
     @Query("Delete from GoalModel g where g.userId=:userId and g.goalName=:goalName")
     public void deleteParticularGoalByGoalName(int userId, String goalName);
+
+    @Query("select sum(g.currentAmount) from GoalModel g where g.userId = :userId")
+//    @Query(nativeQuery = true, value = "exec getCurrentTotalGoalIncome @userId = :userId")
+    public Double getCurrentTotalGoalIncome(int userId);
+
+    @Query("select sum(g.targetAmount) from GoalModel g where g.userId = :userId")
+//    @Query(nativeQuery = true, value = "exec getTargetTotalGoalIncome @userId = :userId")
+    public Double getTargetTotalGoalIncome(int userId);
 }

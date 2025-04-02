@@ -16,6 +16,12 @@
       <div class="profile-title">
         <h1>{{ userProfile.name }}</h1>
         <p>{{ userProfile.email }}</p>
+        <div class="button-container">
+          <button mat-raised-button color="primary" class="change-password-btn" (click)="changePassword()">
+            <mat-icon>lock</mat-icon>
+            Change Password
+          </button>
+        </div>
       </div>
       <button class="edit-profile-btn" (click)="toggleEdit()">
         <i class="fas" [ngClass]="isEditing ? 'fa-times' : 'fa-edit'"></i>

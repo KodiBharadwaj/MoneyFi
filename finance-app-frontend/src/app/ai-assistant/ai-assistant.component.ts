@@ -43,12 +43,12 @@ export class AiAssistantComponent implements OnInit {
         // Create parallel requests for all financial data
         forkJoin({
           // Monthly data
-          monthlyIncome: this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalIncome/${this.currentMonth}/${this.currentYear}`),
+          monthlyIncome: this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalIncome/${this.currentMonth}/${this.currentYear}`),
           monthlyExpenses: this.httpClient.get<number>(`${this.baseUrl}/api/user/expenses/${userId}/totalExpenses/${this.currentMonth}/${this.currentYear}`),
           
           // Yearly data
-          yearlyIncomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlyTotalIncomesList/${this.currentYear}`),
-          yearlyExpenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlyTotalExpensesList/${this.currentYear}`),
+          yearlyIncomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/income/${userId}/monthlyTotalIncomesList/${this.currentYear}`),
+          yearlyExpenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/expense/${userId}/monthlyTotalExpensesList/${this.currentYear}`),
           yearlySavings: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlySavingsInYear/${this.currentYear}`),
           cumulativeSavings: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlyCumulativeSavingsInYear/${this.currentYear}`),
           
@@ -57,9 +57,9 @@ export class AiAssistantComponent implements OnInit {
           budgetProgress: this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/budgetProgress/${this.currentMonth}/${this.currentYear}`),
           
           // Goals and Net Worth
-          totalCurrentGoalIncome: this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalCurrentGoalIncome`),
-          totalTargetGoalIncome: this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalTargetGoalIncome`),
-          remainingIncome: this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalRemainingIncomeOfPreviousMonth/${this.currentMonth}/${this.currentYear}`)
+          totalCurrentGoalIncome: this.httpClient.get<number>(`${this.baseUrl}/api/goal/${userId}/totalCurrentGoalIncome`),
+          totalTargetGoalIncome: this.httpClient.get<number>(`${this.baseUrl}/api/goal/${userId}/totalTargetGoalIncome`),
+          remainingIncome: this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalRemainingIncomeUpToPreviousMonth/${this.currentMonth}/${this.currentYear}`)
         }).subscribe({
           next: (data) => {
             // Calculate additional metrics

@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { AddAmountGoalComponent } from '../add-amount-goal/add-amount-goal.component';
+import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
 
 interface Goal {
   id: number;
@@ -72,7 +73,7 @@ export class GoalsComponent {
       next: (userId) => {
         // console.log(userId);
   
-        this.httpClient.get<inputGoal[]>(`${this.baseUrl}/api/user/${userId}/goals`).subscribe({
+        this.httpClient.get<inputGoal[]>(`${this.baseUrl}/api/goal/${userId}`).subscribe({
           next: (data) => {
             // console.log(data);
             let amount = 0;
@@ -90,7 +91,7 @@ export class GoalsComponent {
               this.loading = false;
             }
             this.totalGoalSavings = amount;
-            this.httpClient.get<number>(`${this.baseUrl}/api/user/${userId}/totalRemainingIncomeOfPreviousMonth/${this.month}/${this.year}`).subscribe({
+            this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalRemainingIncomeUpToPreviousMonth/${this.month}/${this.year}`).subscribe({
               next: (totalIncome) => {
                 // console.log(totalIncome);
                 // console.log(amount);
@@ -128,51 +129,54 @@ export class GoalsComponent {
       if (result) {
         const token = sessionStorage.getItem('finance.auth');
         // console.log(token);
-  
-        this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
-          next: (userId) => {
-            // console.log(userId);
-            
-            // Send POST request with the income data
-            const formattedDate = this.formatDate(result.deadLine);
-            const goalData = {
-              ...result, // This should contain fields like source, amount, date, category, recurring, etc.
-              // userId: userId, // Add userId if your backend requires it
-              deadLine:formattedDate,
-            };
-            if(goalData.currentAmount < this.totalRemainingBalance){
-              this.httpClient.post<inputGoal>(`${this.baseUrl}/api/user/${userId}/goal`, goalData, {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }).subscribe({
-                next: (newGoal) => {
-                  // console.log(newGoal);
-                  // this.goals = newGoal.map(goal => this.modelConverterFunction(goal));
-                  const newGoalConverted = this.modelConverterFunction(newGoal); // Convert single goal
-                  this.goals.push(newGoalConverted); // Add to existing goals array
-                  // console.log(this.goals);
-                  this.loadGoals();
-                },
-                error: (error) => {
-                  console.error('Failed to add goal data:', error);
-                },
-                complete: () => {
-                  this.loading = false;
-                },
-              });
-            }else{
-              alert("Cannot add the goal! Entered amount is greater than the remaining amount")
-            }
-          },
-          error: (error) => {
-            console.error('Failed to fetch userId:', error);
-            alert("Session timed out! Please login again");
-            sessionStorage.removeItem('finance.auth');
-            this.router.navigate(['login']);
-            this.loading = false;
-          },
-        });
+        if(result.targetAmount > result.currentAmount){
+          this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+            next: (userId) => {
+              // console.log(userId);
+              
+              // Send POST request with the income data
+              const formattedDate = this.formatDate(result.deadLine);
+              const goalData = {
+                ...result, // This should contain fields like source, amount, date, category, recurring, etc.
+                // userId: userId, // Add userId if your backend requires it
+                deadLine:formattedDate,
+              };
+              if(goalData.currentAmount < this.totalRemainingBalance){
+                this.httpClient.post<inputGoal>(`${this.baseUrl}/api/goal/${userId}`, goalData, {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }).subscribe({
+                  next: (newGoal) => {
+                    // console.log(newGoal);
+                    // this.goals = newGoal.map(goal => this.modelConverterFunction(goal));
+                    const newGoalConverted = this.modelConverterFunction(newGoal); // Convert single goal
+                    this.goals.push(newGoalConverted); // Add to existing goals array
+                    // console.log(this.goals);
+                    this.loadGoals();
+                  },
+                  error: (error) => {
+                    console.error('Failed to add goal data:', error);
+                  },
+                  complete: () => {
+                    this.loading = false;
+                  },
+                });
+              }else{
+                alert("Cannot add the goal! Entered amount is greater than the remaining amount")
+              }
+            },
+            error: (error) => {
+              console.error('Failed to fetch userId:', error);
+              alert("Session timed out! Please login again");
+              sessionStorage.removeItem('finance.auth');
+              this.router.navigate(['login']);
+              this.loading = false;
+            },
+          });
+        } else {
+          this.toastr.warning("Target Amount is less than Initial amount");
+        }
       }
     });
   }
@@ -180,12 +184,12 @@ export class GoalsComponent {
   addAmount(id: number) {
 
     const token = sessionStorage.getItem('finance.auth');
-    console.log(token);
-    console.log(id);
+    // console.log(token);
+    // console.log(id);
   
     this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
       next: (userId) => {
-        console.log(userId);
+        // console.log(userId);
   
         // Open the dialog to get the amount
         const dialogRef = this.dialog.open(AddAmountGoalComponent, {
@@ -197,10 +201,10 @@ export class GoalsComponent {
         dialogRef.afterClosed().subscribe((amount) => {
           if (amount !== undefined && amount > 0 && amount < this.totalRemainingBalance) {
             this.httpClient
-              .post<inputGoal>(`${this.baseUrl}/api/user/${userId}/addAmount/${id}/${amount}`, null)
+              .post<inputGoal>(`${this.baseUrl}/api/goal/${id}/addAmount/${amount}`, null)
               .subscribe({
                 next: (response) => {
-                  console.log(response);
+                  // console.log(response);
                   this.loadGoals();
                 },
                 error: (error) => {
@@ -222,7 +226,7 @@ export class GoalsComponent {
       panelClass: 'income-dialog',
       data: { ...goal, isUpdate: true }, // Pass the income data to the dialog
     });
-    console.log(goal);
+    // console.log(goal);
     dialogRef.afterClosed().subscribe((result) => {
       if (result && result.currentAmount < this.totalRemainingBalance) {
         const token = sessionStorage.getItem('finance.auth');
@@ -231,7 +235,7 @@ export class GoalsComponent {
             // console.log(userId);
             
             // Send POST request with the income data
-            console.log(result);
+            // console.log(result);
             const formattedDate = this.formatDate(result.deadLine);
             const goalData = {
               ...result, // This should contain fields like source, amount, date, category, recurring, etc.
@@ -239,8 +243,8 @@ export class GoalsComponent {
               userId:userId,
               deadLine:formattedDate,
             };
-            console.log(goalData);
-            this.httpClient.put<inputGoal>(`${this.baseUrl}/api/user/${goal.id}/goal`, goalData, {
+            // console.log(goalData);
+            this.httpClient.put<inputGoal>(`${this.baseUrl}/api/goal/${goal.id}`, goalData, {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
@@ -249,6 +253,7 @@ export class GoalsComponent {
                 const newGoalConverted = this.modelConverterFunction(updatedGoal); // Convert single goal
                 this.goals.push(newGoalConverted); // Add to existing goals array
                 // console.log(this.goals);
+                this.toastr.success("Goal has been updated");
                 this.loadGoals();
               },
               error: (error) => {
@@ -367,20 +372,32 @@ export class GoalsComponent {
   }
 
 
-  
   deleteGoal(goalId : number){
-    console.log(goalId);
-    this.httpClient.delete<void>(`${this.baseUrl}/api/user/${goalId}/goal`)
-      .subscribe({
-        next: () => {
-          console.log(`Expense with ID ${goalId} deleted successfully.`);
-          this.loadGoals(); // Reload the data after successful deletion
-          this.loadIncomeFunction();
-        },
-        error: (err) => {
-          console.error('Error deleting expense:', err);
-        }
-      });
+    // console.log(goalId);
+    const goalDataFetch = this.goals.find(i => i.id === goalId);
+    const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
+      width: '400px',
+      panelClass: 'custom-dialog-container',
+      data: {...goalDataFetch, isGoal:true},
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.httpClient.delete<void>(`${this.baseUrl}/api/goal/${goalId}`)
+        .subscribe({
+          next: () => {
+            // console.log(`Expense with ID ${goalId} deleted successfully.`);
+            this.toastr.warning("Goal " + goalDataFetch?.goalName +" has been deleted");
+            this.loadGoals(); // Reload the data after successful deletion
+            this.loadIncomeFunction();
+          },
+          error: (err) => {
+            console.error('Error deleting goal:', err);
+          }
+        });
+      }
+    });
+
   }
 
   formatCurrency(amount: number): string {

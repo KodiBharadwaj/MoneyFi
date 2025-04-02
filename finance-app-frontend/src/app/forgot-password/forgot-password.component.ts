@@ -7,6 +7,7 @@ import { Router, RouterModule } from '@angular/router';
 import { Component } from '@angular/core';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
+import { remainingTimeCount } from '../model/remainingTimeCount';
 
 
 @Component({
@@ -83,35 +84,61 @@ export class ForgotPasswordComponent {
     }
   };
 
+  isLoading: boolean = false; // Add this in your component
 
-  // Email submission stage
   sendVerificationCode() {
     // Reset previous messages
     this.clearMessages();
-
-    // Validate email format (basic client-side validation)
+  
+    // Validate email format
     if (!this.isValidEmail(this.email)) {
       this.errorMessage = 'Please enter a valid email address';
       return;
     }
+  
+    this.isLoading = true; // Start loading
 
-    // Make API call to send verification code
-    this.http.post(`http://localhost:8765/auth/forgot-password`, null, { 
-      params: { email: this.email },
-      responseType: 'text'
-    }).subscribe({
-      next: (response) => {
-        this.successMessage = response;
-        this.stage = 'verification';
-      },
-      error: (error: HttpErrorResponse) => {
-        // this.successMessage='Successfully sent';
-        // this.stage='verification';
-        alert('cant send email');
+
+    this.http.get<remainingTimeCount>(`http://localhost:8765/auth/checkOtpActive/${this.email}`).subscribe({
+      next : (outputDto) => {
+        if(outputDto.result){
+
+          this.http.post(`http://localhost:8765/auth/forgot-password`, null, { 
+            params: { email: this.email },
+            responseType: 'text'
+          }).subscribe({
+            next: (response) => {
+              this.successMessage = response;
+              this.stage = 'verification';
+              this.isLoading = false; // Stop loading
+            },
+            error: (error: HttpErrorResponse) => {
+              alert('Cant send email now. Try later');
+              this.isLoading = false; // Stop loading on error
+            }
+          });
+
+        } else if(outputDto.result === false && outputDto.comment === 'User not exist') {
+          alert("User doesn't exist! Please enter correct username");
+          this.isLoading = false;
+        } else if(outputDto.result === false && outputDto.comment === 'Otp limit crossed') {
+          alert("Otp limit crossed for today. Please try tomorrow");
+          this.isLoading = false;
+        } 
+        else {
+          if(outputDto.remainingMinutes <= 1)
+          alert('Otp sent! For new otp, Please try again after ' + outputDto.remainingMinutes + ' minute');
+          else 
+          alert('Otp sent! For new otp, Please try again after ' + outputDto.remainingMinutes + ' minutes');
+          // this.verifyCode();
+          this.isLoading = false;
+          this.stage = 'verification';
+        }
       }
-    });
+    })
+    
   }
-
+  
   // Verification code stage
   verifyCode() {
     // Reset previous messages

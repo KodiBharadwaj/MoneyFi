@@ -17,8 +17,16 @@ public interface ExpenseService {
 
     public List<Double> getMonthlyExpenses(int userId, int year);
 
+    public Double getTotalExpensesUpToPreviousMonth(int userId, int month, int year);
+
+    public Double getTotalExpenseInMonthAndYear(int userId, int month, int year);
+
+    public Double getTotalSavingsByMonthAndDate(int userId, int month, int year);
+
+    public List<Double> getCumulativeMonthlySavings(int userId, int year);
+
     public ExpenseModel updateBySource(int id, ExpenseModel expense);
 
-    public void deleteExpenseById(int id);
+    public boolean deleteExpenseById(int id);
 
 }
