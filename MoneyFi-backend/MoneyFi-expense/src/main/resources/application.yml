@@ -1,0 +1,6 @@
+spring:
+  profiles:
+    active: ${PROFILE:postgres}
+  application:
+    name:
+      MoneyFi-expense
