@@ -1,6 +1,0 @@
-spring:
-  profiles:
-    active: ${PROFILE:postgres}
-  application:
-    name:
-      finance-app-income
