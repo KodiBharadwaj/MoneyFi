@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: ${PROFILE:sqlserver}
+    active: ${PROFILE:postgres}
   application:
     name:
       finance-app-expense

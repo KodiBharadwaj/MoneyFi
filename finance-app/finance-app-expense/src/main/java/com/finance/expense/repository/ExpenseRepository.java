@@ -30,21 +30,27 @@ public interface ExpenseRepository extends JpaRepository<ExpenseModel, Integer> 
             "AND EXTRACT(YEAR FROM e.date) = :year")
     public List<ExpenseModel> getAllexpensesByYear(int userId, int year, boolean deleteStatus);
 
-//    @Query("SELECT MONTH(e.date) AS month, SUM(e.amount) AS total " +
-//            "FROM ExpenseModel e " +
-//            "where e.userId = :userId AND YEAR(e.date)=:year AND e.is_deleted = :deleteStatus " +
-//            "GROUP BY MONTH(e.date) " +
-//            "ORDER BY month ASC")
-    @Query(nativeQuery = true, value = "exec findMonthlyExpensesListInAYear @userId = :userId, " +
-            "@year = :year, @deleteStatus = :deleteStatus")
+    @Query("SELECT MONTH(e.date) AS month, SUM(e.amount) AS total " +
+            "FROM ExpenseModel e " +
+            "where e.userId = :userId AND YEAR(e.date)=:year AND e.is_deleted = :deleteStatus " +
+            "GROUP BY MONTH(e.date) " +
+            "ORDER BY month ASC")
+//    @Query(nativeQuery = true, value = "exec findMonthlyExpensesListInAYear @userId = :userId, " +
+//            "@year = :year, @deleteStatus = :deleteStatus")
     public List<Object[]> findMonthlyExpenses(int userId, int year, boolean deleteStatus);
 
-    @Query(nativeQuery = true, value = "exec getTotalExpensesUpToPreviousMonth " +
-        "@userId = :userId, @month = :month, @year = :year")
+    @Query("select sum(e.amount) from ExpenseModel e where e.userId = :userId " +
+            "and EXTRACT(YEAR FROM e.date) = :year and EXTRACT(MONTH FROM e.date) < :month " +
+            "and e.is_deleted = false")
+    //    @Query(nativeQuery = true, value = "exec getTotalExpensesUpToPreviousMonth " +
+//        "@userId = :userId, @month = :month, @year = :year")
     public Double getTotalExpensesUpToPreviousMonth(int userId, int month, int year);
 
-    @Query(nativeQuery = true, value = "exec getTotalExpenseInMonthAndYear @userId = :userId, " +
-            "@month = :month, @year = :year")
+    @Query("select sum(e.amount) from ExpenseModel e where e.userId = :userId " +
+            "and EXTRACT(YEAR FROM e.date) = :year and EXTRACT(MONTH FROM e.date) = :month " +
+            "and e.is_deleted = false")
+    //    @Query(nativeQuery = true, value = "exec getTotalExpenseInMonthAndYear @userId = :userId, " +
+//            "@month = :month, @year = :year")
     public Double getTotalExpenseInMonthAndYear(int userId, int month, int year);
 
 

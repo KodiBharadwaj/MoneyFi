@@ -29,7 +29,10 @@ public class IncomeServiceImplementation implements IncomeService {
              IncomeModel incomeModel = incomeRepository.getIncomeBySourceAndCategory(income.getUserId(), income.getSource(), income.getCategory());
 
              if(incomeModel != null){
-                 return null;
+                 if(incomeModel.getDate().getYear() == income.getDate().getYear() &&
+                        incomeModel.getDate().getMonthValue() == income.getDate().getMonthValue()){
+                     return null;
+                 }
              }
              income.set_deleted(false);
              return incomeRepository.save(income);
