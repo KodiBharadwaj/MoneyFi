@@ -11,6 +11,7 @@ Minor Changes:
 - Put contact us section. and feedback section.
 - Write junit test cases for income service (ongoing)
 - Landing page, so may buttons are there in the footer. Add the necessary info.
+- Add some more fields in profile, Also it should show for a user ex: member since nov, 2024.
 
 
 Defects:
