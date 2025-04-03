@@ -11,7 +11,7 @@ Minor Changes:
 - Put contact us section. and feedback section.
 - Write junit test cases for income service (ongoing)
 - Landing page, so may buttons are there in the footer. Add the necessary info.
-- Add some more fields in profile, Also it should show for a user ex: member since nov, 2024.
+
 
 
 Defects:
@@ -42,7 +42,7 @@ cleared changes:
 - while deleting a transaction(income/expense/goal), the toast should display source name.
 - Change all Autowired to constructor based while calling
 - Excel export generation of income and expenses of a user.
-
+- Add some more fields in profile, Also it should show for a user ex: member since nov, 2024.
 
 
 
