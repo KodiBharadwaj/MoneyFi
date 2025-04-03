@@ -3,7 +3,6 @@ Project MoneyFi:
 Major Changes:
 - Implement soft delete and set 30 day expiration for the deleted transactions(Income, Expense). (ongoing)
 - Error handling in both backend and frontend.
-- Pdf/Excel export of the data of the user (If possible any uploads)
 - otp verification during signup
 - Google authentication
 
@@ -41,6 +40,7 @@ cleared changes:
 - In the confirm delete dialog box, it should show the income/expense/goal source name.
 - while deleting a transaction(income/expense/goal), the toast should display source name.
 - Change all Autowired to constructor based while calling
+- Excel export generation of income and expenses of a user.
 
 
 
