@@ -6,7 +6,10 @@ import com.moneyfi.user.repository.ProfileRepository;
 import com.moneyfi.user.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/user")
@@ -22,15 +25,17 @@ public class UserApiController {
     }
 
     @Operation(summary = "Method which adds the user details in user and profile table")
-    @PostMapping("/setDetails/{userId}/{name}/{email}")
+    @PostMapping("/setDetails/{userId}/{name}/{email}/{date}")
     public UserModel setUserDetails(@PathVariable("userId") int userId,
                                     @PathVariable("name") String name,
-                                    @PathVariable("email") String email){
+                                    @PathVariable("email") String email,
+                                    @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
         UserModel userModel = new UserModel();
 
         userModel.setUserId(userId);
         userModel.setName(name);
         userModel.setEmail(email);
+        userModel.setCreatedDate(date);
 
         ProfileModel profile = new ProfileModel();
         profile.setUserId(userId);
@@ -39,6 +44,13 @@ public class UserApiController {
         ProfileModel addedProfile = profileRepository.save(profile);
 
         return userService.save(userModel);
+    }
+
+
+    @Operation(summary = "Method to get the user details of a user")
+    @GetMapping("/{userId}")
+    public UserModel getUserDetailsByUserId(@PathVariable("userId") Long userId){
+        return userService.getUserDetailsByUserId(userId);
     }
 
 

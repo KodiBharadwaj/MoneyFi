@@ -6,4 +6,5 @@ public interface UserService {
 
     public UserModel save(UserModel user);
 
+    public UserModel getUserDetailsByUserId(Long userId);
 }

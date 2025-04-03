@@ -10,14 +10,22 @@ import { MatIconModule } from '@angular/material/icon';
 import { ToastrService } from 'ngx-toastr';
 import { ChangePasswordDialogComponent } from '../change-password-dialog/change-password-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { UserProfile } from '../model/UserProfile';
 
-interface UserProfile {
+interface UserProfileDetails {
   name: string;
   email: string;
   phone: string;
+  gender: string;
+  dateOfBirth: Date;
+  maritalStatus : string;
   address: string;
   incomeRange:number;
   profileImage: string;
+}
+
+interface ProfileDetails {
+  createdDate : Date;
 }
 
 @Component({
@@ -34,13 +42,20 @@ interface UserProfile {
     MatIconModule],
 })
 export class ProfileComponent implements OnInit {
-  userProfile: UserProfile = {
+  userProfileDetails: UserProfileDetails = {
     name: '',
     email: '',
     phone: '',
+    gender: '',
+    dateOfBirth: new Date,
+    maritalStatus: '',
     address: '',
     incomeRange:0,
     profileImage: ''
+  };
+
+  profileDetails : ProfileDetails = {
+    createdDate : new Date
   };
   
   isEditing = false;
@@ -60,14 +75,20 @@ export class ProfileComponent implements OnInit {
 
     this.http.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
       next : (userId) => {
-        this.http.get<UserProfile>(`${this.baseUrl}/api/profile/${userId}`).subscribe(
+        this.http.get<UserProfileDetails>(`${this.baseUrl}/api/profile/${userId}`).subscribe(
           (data) => {
-            this.userProfile = data;
+            this.userProfileDetails = data;
           },
           (error) => {
             console.error('Error fetching profile:', error);
           }
         );
+
+        this.http.get<UserProfile>(`${this.baseUrl}/api/user/${userId}`).subscribe({
+          next: (userProfileModel) => {
+            this.profileDetails.createdDate = userProfileModel.createdDate;
+          }
+        })
       }
     })
   }
@@ -79,9 +100,9 @@ export class ProfileComponent implements OnInit {
 
     this.http.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
       next : (userId) => {
-        this.http.post<UserProfile>(`${this.baseUrl}/api/profile/${userId}`, this.userProfile).subscribe(
+        this.http.post<UserProfileDetails>(`${this.baseUrl}/api/profile/${userId}`, this.userProfileDetails).subscribe(
           (data) => {
-            this.userProfile = data;
+            this.userProfileDetails = data;
             this.isEditing = false;
             this.toastr.success('Profle updated successfully!');
           },
@@ -111,7 +132,7 @@ export class ProfileComponent implements OnInit {
       if (file.size <= maxSize) {
         const reader = new FileReader();
         reader.onload = (e: any) => {
-          this.userProfile.profileImage = e.target.result;
+          this.userProfileDetails.profileImage = e.target.result;
         };
         reader.readAsDataURL(file);
       } else {
