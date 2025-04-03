@@ -12,6 +12,7 @@ Minor Changes:
 - Put contact us section. and feedback section.
 - Write junit test cases for income service (ongoing)
 - Landing page, so may buttons are there in the footer. Add the necessary info.
+- Change all Autowired to constructor based while calling
 
 Defects:
 - When a service is failed or stopped working, it should show service unavailable, should not throw error.
