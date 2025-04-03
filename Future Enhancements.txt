@@ -1,7 +1,5 @@
 Project MoneyFi:
 
-Please check the file details in testing-v1 branch for defects/features.
-=======
 Major Changes:
 - Implement soft delete and set 30 day expiration for the deleted transactions(Income, Expense). (ongoing)
 - Error handling in both backend and frontend.
@@ -22,7 +20,6 @@ Defects:
 - category section is not working properly. Try remove or implement other.
 - In two browsers, if i open the same account, both are working with two different tokens.
 - If otp verification isn't there during signup, if user creates with unexisting email, then forgot password, email service wont work for him.
-- User should not be able to add the future transactions in income, expense, goal.
 
 
 
@@ -56,6 +53,14 @@ cleared defects:
 - It's allowing to create a goal with target amount less than current amount
 - If there are no budgets, it showing error in console . But income and expense are not showing.
 - Correct MoneFi name in landing page.
+
+
+
+
+
+
+
+
 
 
 
