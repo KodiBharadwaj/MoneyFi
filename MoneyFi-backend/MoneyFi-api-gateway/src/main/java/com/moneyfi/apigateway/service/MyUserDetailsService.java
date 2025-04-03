@@ -1,6 +1,6 @@
 package com.moneyfi.apigateway.service;
 
-import com.moneyfi.apigateway.repository.UserRepo;
+import com.moneyfi.apigateway.repository.UserRepository;
 import com.moneyfi.apigateway.model.User;
 import com.moneyfi.apigateway.model.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 public class MyUserDetailsService implements UserDetailsService {
 
     @Autowired
-    private UserRepo repo;
+    private UserRepository repo;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

@@ -4,22 +4,27 @@ import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.repository.IncomeRepository;
 import com.moneyfi.income.service.IncomeService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/income")
 public class IncomeApiController {
 
-    @Autowired
-    private IncomeService incomeService;
+    private final IncomeService incomeService;
+    private final IncomeRepository incomeRepository;
 
-    @Autowired
-    private IncomeRepository incomeRepository;
+    public IncomeApiController(IncomeService incomeService,
+                               IncomeRepository incomeRepository){
+        this.incomeService = incomeService;
+        this.incomeRepository = incomeRepository;
+    }
 
     @Operation(summary = "Method to save the income details")
     @PostMapping("/{userId}")
@@ -51,6 +56,20 @@ public class IncomeApiController {
         return ResponseEntity.ok(incomesList);
     }
 
+    @Operation(summary = "Method to generate the Excel report for the Monthly incomes of a user")
+    @GetMapping("/{userId}/{month}/{year}/generateMonthlyReport")
+    public ResponseEntity<byte[]> getMonthlyIncomeReport(@PathVariable("userId") int userId,
+                                                      @PathVariable("month") int month,
+                                                      @PathVariable("year") int year) throws IOException {
+
+        byte[] excelData = incomeService.generateMonthlyExcelReport(userId, month, year);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Monthly income report.xlsx")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(excelData);
+    }
+
     @Operation(summary = "Method to get all the income details in a particular year")
     @GetMapping("/{userId}/{year}/{deleteStatus}")
     public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") int userId,
@@ -58,6 +77,19 @@ public class IncomeApiController {
                                                                  @PathVariable("deleteStatus") boolean deleteStatus){
         List<IncomeModel> incomesList = incomeService.getAllIncomesByYear(userId, year, deleteStatus);
         return ResponseEntity.ok(incomesList); // 200
+    }
+
+    @Operation(summary = "Method to generate the Excel report for the Yearly incomes of a user")
+    @GetMapping("/{userId}/{year}/generateYearlyReport")
+    public ResponseEntity<byte[]> getYearlyIncomeReport(@PathVariable("userId") int userId,
+                                                      @PathVariable("year") int year) throws IOException {
+
+        byte[] excelData = incomeService.generateYearlyExcelReport(userId, year);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Yearly income report.xlsx")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(excelData);
     }
 
     @Operation(summary = "Method to get the total income amount in a particular month and in a particular year")

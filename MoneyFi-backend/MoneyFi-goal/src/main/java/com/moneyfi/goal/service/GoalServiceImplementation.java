@@ -11,8 +11,11 @@ import java.util.List;
 @Service
 public class GoalServiceImplementation implements GoalService{
 
-    @Autowired
-    private GoalRepository goalRepository;
+    private final GoalRepository goalRepository;
+
+    public GoalServiceImplementation(GoalRepository goalRepository){
+        this.goalRepository = goalRepository;
+    }
 
     @Override
     public GoalModel save(GoalModel goal) {

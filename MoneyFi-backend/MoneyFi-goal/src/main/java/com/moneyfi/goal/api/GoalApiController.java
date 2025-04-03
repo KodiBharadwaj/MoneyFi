@@ -15,11 +15,14 @@ import java.util.List;
 @RequestMapping("/api/goal")
 public class GoalApiController {
 
-    @Autowired
-    private GoalService goalService;
+    private final GoalService goalService;
+    private final GoalRepository goalRepository;
 
-    @Autowired
-    private GoalRepository goalRepository;
+    public GoalApiController(GoalService goalService,
+                             GoalRepository goalRepository){
+        this.goalService = goalService;
+        this.goalRepository = goalRepository;
+    }
 
     @Operation(summary = "Method to add a goal")
     @PostMapping("/{userId}")

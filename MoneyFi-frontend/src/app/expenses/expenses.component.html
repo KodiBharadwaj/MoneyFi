@@ -108,7 +108,10 @@
 
   <!-- Expenses Table -->
   <div class="table-container">
-    <h2>Expenses</h2>
+    <div class="header">
+      <h2>Expenses</h2>
+      <button class="report-btn" (click)="generateReport()">📊 Generate Report</button>
+    </div>
     <table *ngIf="!loading && expenses.length > 0">
       <thead>
         <tr>

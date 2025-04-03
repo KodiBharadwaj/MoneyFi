@@ -12,7 +12,11 @@ public interface ExpenseService {
 
     public List<ExpenseModel> getAllexpensesByDate(int userId, int month, int year, boolean deleteStatus);
 
+    public byte[] generateMonthlyExcelReport(int userId, int month, int year);
+
     public List<ExpenseModel> getAllexpensesByYear(int userId, int year, boolean deleteStatus);
+
+    public byte[] generateYearlyExcelReport(int userId, int year);
 
     public List<Double> getMonthlyExpenses(int userId, int year);
 

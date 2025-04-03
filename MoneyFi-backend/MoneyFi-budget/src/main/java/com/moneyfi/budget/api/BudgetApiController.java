@@ -14,8 +14,11 @@ import java.util.List;
 @RequestMapping("/api/budget")
 public class BudgetApiController {
 
-    @Autowired
-    private BudgetService budgetService;
+    private final BudgetService budgetService;
+
+    public BudgetApiController(BudgetService budgetService){
+        this.budgetService = budgetService;
+    }
 
     @Operation(summary = "Method to add the budget")
     @PostMapping("/{userId}")

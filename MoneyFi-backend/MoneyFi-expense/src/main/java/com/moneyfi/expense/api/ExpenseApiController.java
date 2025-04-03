@@ -5,21 +5,27 @@ import com.moneyfi.expense.repository.ExpenseRepository;
 import com.moneyfi.expense.service.ExpenseService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/expense")
 public class ExpenseApiController {
 
-    @Autowired
-    private ExpenseService expenseService;
+    private final ExpenseService expenseService;
+    private final ExpenseRepository expenseRepository;
 
-    @Autowired
-    private ExpenseRepository expenseRepository;
+    public ExpenseApiController(ExpenseService expenseService,
+                                ExpenseRepository expenseRepository){
+        this.expenseService = expenseService;
+        this.expenseRepository = expenseRepository;
+    }
 
     @Operation(summary = "Method to add the expense transaction")
     @PostMapping("/{userId}")
@@ -50,6 +56,20 @@ public class ExpenseApiController {
         return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllexpensesByDate(userId, month, year, deleteStatus));
     }
 
+    @Operation(summary = "Method to generate the Excel report for the Monthly expenses of a user")
+    @GetMapping("/{userId}/{month}/{year}/generateMonthlyReport")
+    public ResponseEntity<byte[]> getMonthlyExpenseReport(@PathVariable("userId") int userId,
+                                                         @PathVariable("month") int month,
+                                                         @PathVariable("year") int year) throws IOException {
+
+        byte[] excelData = expenseService.generateMonthlyExcelReport(userId, month, year);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Monthly expense report.xlsx")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(excelData);
+    }
+
     @Operation(summary = "Method to get all the expense details in a particular year")
     @GetMapping("/{userId}/{year}/{deleteStatus}")
     public ResponseEntity<List<ExpenseModel>> getAllExpensesByYear(@PathVariable("userId") int userId,
@@ -57,6 +77,20 @@ public class ExpenseApiController {
                                                                    @PathVariable("deleteStatus") boolean deleteStatus){
         return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllexpensesByYear(userId, year, deleteStatus));
     }
+
+    @Operation(summary = "Method to generate the Excel report for the Yearly Expenses of a user")
+    @GetMapping("/{userId}/{year}/generateYearlyReport")
+    public ResponseEntity<byte[]> getYearlyExpenseReport(@PathVariable("userId") int userId,
+                                                        @PathVariable("year") int year) throws IOException {
+
+        byte[] excelData = expenseService.generateYearlyExcelReport(userId, year);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Yearly expense report.xlsx")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(excelData);
+    }
+
     @Operation(summary = "Method to get the total expense amount in a particular month and in a particular year")
     @GetMapping("/{userId}/totalExpense/{month}/{year}")
     public Double getTotalExpenseByMonthAndYear(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year){

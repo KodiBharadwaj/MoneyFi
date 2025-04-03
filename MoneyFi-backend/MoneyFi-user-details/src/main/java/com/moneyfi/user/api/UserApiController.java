@@ -12,11 +12,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/user")
 public class UserApiController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final ProfileRepository profileRepository;
 
-    @Autowired
-    private ProfileRepository profileRepository;
+    public UserApiController(UserService userService,
+                             ProfileRepository profileRepository){
+        this.userService = userService;
+        this.profileRepository = profileRepository;
+    }
 
     @Operation(summary = "Method which adds the user details in user and profile table")
     @PostMapping("/setDetails/{userId}/{name}/{email}")

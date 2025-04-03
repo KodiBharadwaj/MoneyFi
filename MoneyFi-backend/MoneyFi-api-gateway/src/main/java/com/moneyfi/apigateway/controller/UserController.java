@@ -3,14 +3,14 @@ package com.moneyfi.apigateway.controller;
 import com.moneyfi.apigateway.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.dto.RemainingTimeCountDto;
 import com.moneyfi.apigateway.model.BlackListedToken;
-import com.moneyfi.apigateway.repository.UserRepo;
+import com.moneyfi.apigateway.repository.UserRepository;
 import com.moneyfi.apigateway.dto.JwtToken;
 import com.moneyfi.apigateway.dto.UserProfile;
 import com.moneyfi.apigateway.model.User;
-import com.moneyfi.apigateway.service.JwtService;
-import com.moneyfi.apigateway.service.ResetPasswordService;
-import com.moneyfi.apigateway.service.TokenBlacklistService;
-import com.moneyfi.apigateway.service.UserService;
+import com.moneyfi.apigateway.service.*;
+import com.moneyfi.apigateway.service.jwtservice.JwtService;
+import com.moneyfi.apigateway.service.resetpassword.ResetPassword;
+import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,28 +31,31 @@ import java.util.Map;
 public class UserController {
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private JwtService jwtService;
+    private final UserService userService;
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
+    private final ResetPassword passwordResetService;
+    private final TokenBlacklistService blacklistService;
 
-    @Autowired
-    private UserRepo userRepo;
-
-    @Autowired
-    private ResetPasswordService passwordResetService;
-
-    @Autowired
-    private TokenBlacklistService blacklistService;
+    public UserController(UserService userService,
+                          JwtService jwtService,
+                          UserRepository userRepository,
+                          ResetPassword resetPassword,
+                          TokenBlacklistService blacklistService){
+        this.userService = userService;
+        this.jwtService = jwtService;
+        this.userRepository = userRepository;
+        this.passwordResetService = resetPassword;
+        this.blacklistService = blacklistService;
+    }
 
 
     @Operation(summary = "Method to get the user id from user's email")
     @GetMapping("/getUserId/{email}")
     public Integer getUserId(@PathVariable("email") String email){
-        User user = userRepo.findByUsername(email);
+        User user = userRepository.findByUsername(email);
         return user.getId();
     }
 
@@ -63,7 +66,7 @@ public class UserController {
         user.setUsername(userProfile.getUsername());
         user.setPassword(userProfile.getPassword());
 
-        User getUser = userRepo.findByUsername(user.getUsername());
+        User getUser = userRepository.findByUsername(user.getUsername());
         if (getUser != null) {
             // Return a conflict status code with a custom message when user already exists
             return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists");
@@ -79,12 +82,16 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody User user) {
         try {
             // Validate user input (username and password should not be empty)
-            if (user.getUsername() == null || user.getUsername().isEmpty() || user.getPassword() == null || user.getPassword().isEmpty()) {
+            if (user.getUsername() == null ||
+                    user.getUsername().isEmpty() ||
+                    user.getPassword() == null ||
+                    user.getPassword().isEmpty()) {
+
                 return ResponseEntity.badRequest().body("Username and password are required");
             }
 
             // Check if the user exists in the database
-            User existingUser = userRepo.findByUsername(user.getUsername());
+            User existingUser = userRepository.findByUsername(user.getUsername());
             if (existingUser == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found. Please sign up.");
             }
@@ -117,7 +124,7 @@ public class UserController {
     @GetMapping("/token/{token}")
     public Integer getUserIdFromToken(@PathVariable("token") String token){
         String username = jwtService.extractUserName(token);
-        return userRepo.findByUsername(username).getId();
+        return userRepository.findByUsername(username).getId();
     }
 
     @Operation(summary = "Method for password forgot")

@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.service;
+package com.moneyfi.apigateway.service.jwtservice;
 
 import com.moneyfi.apigateway.dto.JwtToken;
 import io.jsonwebtoken.Claims;
@@ -14,11 +14,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class JwtService {
+public class JwtServiceImplementation implements JwtService{
 
     @Value("${jwt.secret}")
     private String secret;
 
+    @Override
     public JwtToken generateToken(String username) {
 
         Map<String, Object> claims = new HashMap<>();
@@ -34,6 +35,7 @@ public class JwtService {
 
     }
 
+    @Override
     public String extractUserName(String token) {
         // extract the username from jwt token
         return extractClaim(token, Claims::getSubject);
@@ -50,7 +52,7 @@ public class JwtService {
                 .build().parseClaimsJws(token).getBody();
     }
 
-
+    @Override
     public boolean validateToken(String token, UserDetails userDetails) {
         final String userName = extractUserName(token);
         return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));

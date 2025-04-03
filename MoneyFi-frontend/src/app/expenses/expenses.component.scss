@@ -402,3 +402,36 @@
   }
 }
 
+
+
+
+
+
+
+// for generating report
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+h2 {
+  color: #333;
+}
+
+.report-btn {
+  background: #2b8df5;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  font-size: 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.report-btn:hover {
+  background: #0056b3;
+}

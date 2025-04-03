@@ -1,7 +1,7 @@
-package com.moneyfi.apigateway.service;
+package com.moneyfi.apigateway.service.resetpassword;
 
 
-import com.moneyfi.apigateway.repository.UserRepo;
+import com.moneyfi.apigateway.repository.UserRepository;
 import com.moneyfi.apigateway.model.User;
 import com.moneyfi.apigateway.util.EmailFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,24 +13,28 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 
 @Service
-public class ResetPasswordService {
-    @Autowired
-    private UserRepo userRepository;
+public class ResetPasswordImplementation implements ResetPassword {
 
-    @Autowired
-    private EmailFilter emailUtil;
+    private final UserRepository userRepository;
+    private final EmailFilter emailUtil;
 
     @Autowired
     private RestTemplate restTemplate;
 
+    public ResetPasswordImplementation(EmailFilter emailFilter,
+                                       UserRepository userRepository){
+        this.emailUtil = emailFilter;
+        this.userRepository = userRepository;
+    }
 
+
+    @Override
     public String forgotPassword(String email) {
 
         User user = userRepository.findByUsername(email);
         if(user==null){
             throw new RuntimeException("No user Found");
         }
-
 
         String verificationCode = emailUtil.generateVerificationCode();
 
@@ -62,7 +66,7 @@ public class ResetPasswordService {
         return "Verification code sent to your email!";
     }
 
-
+    @Override
     public boolean verifyCode(String email, String code) {
         User user = userRepository.findByUsername(email);
 
@@ -70,19 +74,20 @@ public class ResetPasswordService {
              throw  new RuntimeException("User not found");
         }
 
-
         if (user.getVerificationCode().equals(code) && LocalDateTime.now().isBefore(user.getVerificationCodeExpiration())) {
             return true;
         }
 
         return false;
     }
+
+    @Override
     public String UpdatePassword(String email,String password){
         User user = userRepository.findByUsername(email);
-        if(user==null)
-        {
+        if(user==null){
             return "user not found for given email...";
         }
+
         PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
         user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);

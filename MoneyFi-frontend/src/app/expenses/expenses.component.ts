@@ -411,4 +411,51 @@ export class ExpensesComponent {
       return 'Great job! Your spending is well under control.';
     }
   }
+
+
+
+
+
+  generateReport() {
+    const token = sessionStorage.getItem('finance.auth');
+  
+    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+      next: (userId) => {
+
+        let url: string;
+        if (this.selectedMonth === 0) {
+          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedYear}/generateYearlyReport`;
+        } else {
+          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/generateMonthlyReport`;
+        }
+
+        this.httpClient.get(url, { responseType: 'blob' })
+          .subscribe({
+            next: (response) => {
+              // Trigger File Download
+              const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `Monthly_Report_04_2025.xlsx`;
+              document.body.appendChild(a);
+              a.click();
+              window.URL.revokeObjectURL(url);
+              document.body.removeChild(a);
+            },
+            error: (error) => {
+              console.error('Failed to generate report:', error);
+              alert("Failed to generate the report. Please try again.");
+            }
+          });
+      },
+      error: (error) => {
+        console.error('Failed to fetch userId:', error);
+        alert("Session timed out! Please login again");
+        sessionStorage.removeItem('finance.auth');
+        this.router.navigate(['login']);
+      }
+    });
+  }
+
 }

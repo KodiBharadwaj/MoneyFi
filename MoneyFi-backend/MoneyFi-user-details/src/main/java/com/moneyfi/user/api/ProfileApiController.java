@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/profile")
 public class ProfileApiController {
 
-    @Autowired
-    private ProfileService profileService;
+    private final ProfileService profileService;
+
+    public ProfileApiController(ProfileService profileService){
+        this.profileService = profileService;
+    }
 
     @Operation(summary = "Method to save the profile details of a user")
     @PostMapping("/{userId}")

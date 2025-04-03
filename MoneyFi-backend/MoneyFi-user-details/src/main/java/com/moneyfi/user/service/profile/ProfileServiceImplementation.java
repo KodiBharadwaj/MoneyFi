@@ -8,8 +8,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProfileServiceImplementation implements ProfileService{
 
-    @Autowired
-    private ProfileRepository profileRepository;
+    private final ProfileRepository profileRepository;
+
+    public ProfileServiceImplementation(ProfileRepository profileRepository){
+        this.profileRepository = profileRepository;
+    }
 
     @Override
     public ProfileModel save(int userId, ProfileModel profile) {

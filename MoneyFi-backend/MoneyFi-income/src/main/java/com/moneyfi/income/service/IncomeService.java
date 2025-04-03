@@ -12,7 +12,11 @@ public interface IncomeService {
 
     public List<IncomeModel> getAllIncomesByDate(int userId, int month, int year, boolean deleteStatus);
 
+    public byte[] generateMonthlyExcelReport(int userId, int month, int year);
+
     public List<IncomeModel> getAllIncomesByYear(int userId, int year, boolean deleteStatus);
+
+    public byte[] generateYearlyExcelReport(int userId, int year);
 
     public List<Double> getMonthlyIncomes(int userId, int year);
 

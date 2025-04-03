@@ -101,7 +101,10 @@
 
   <!-- Income Sources Table -->
   <div class="table-container">
-    <h2>Income Sources</h2>
+    <div class="header">
+      <h2>Income Sources</h2>
+      <button class="report-btn" (click)="generateReport()">📊 Generate Report</button>
+    </div>
     <table *ngIf="!loading && incomeSources.length > 0">
       <thead>
         <tr>

@@ -1,6 +1,6 @@
 package com.moneyfi.apigateway.config;
 
-import com.moneyfi.apigateway.service.JwtService;
+import com.moneyfi.apigateway.service.jwtservice.JwtServiceImplementation;
 import com.moneyfi.apigateway.service.MyUserDetailsService;
 import com.moneyfi.apigateway.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
@@ -21,7 +21,7 @@ import java.io.IOException;
 //public class JwtFilter extends OncePerRequestFilter {
 //
 //    @Autowired
-//    JwtService jwtService;
+//    JwtServiceImplementation jwtService;
 //    @Autowired
 //    ApplicationContext context;
 //
@@ -55,7 +55,7 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
 
     @Autowired
-    JwtService jwtService;
+    JwtServiceImplementation jwtService;
 
     @Autowired
     TokenBlacklistService tokenBlacklistService; // Injecting the blacklist service

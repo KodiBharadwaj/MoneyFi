@@ -2,11 +2,15 @@ package com.moneyfi.expense.service;
 
 import com.moneyfi.expense.model.ExpenseModel;
 import com.moneyfi.expense.repository.ExpenseRepository;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,10 +20,13 @@ import java.util.List;
 public class ExpenseServiceImplementation implements ExpenseService{
 
     @Autowired
-    private ExpenseRepository expenseRepository;
-
-    @Autowired
     private RestTemplate restTemplate;
+
+    private final ExpenseRepository expenseRepository;
+
+    public ExpenseServiceImplementation(ExpenseRepository expenseRepository){
+        this.expenseRepository = expenseRepository;
+    }
 
     @Override
     public ExpenseModel save(ExpenseModel expense) {
@@ -38,8 +45,94 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
+    public byte[] generateMonthlyExcelReport(int userId, int month, int year) {
+        List<ExpenseModel> monthlyExpenseList = expenseRepository.getAllexpensesByDate(userId, month, year, false);
+
+        return generateExcelReport(monthlyExpenseList);
+    }
+
+    private byte[] generateExcelReport(List<ExpenseModel> expenseList){
+        try(Workbook workbook = new XSSFWorkbook()){
+            Sheet sheet = workbook.createSheet("Monthly Expense Report");
+
+            // Create Header Row
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"Category", "Description", "Amount", "Date", "Recurring"};
+            for(int i=0; i< headers.length; i++){
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(createHeaderStyle(workbook));
+            }
+
+            // Create a Date Style
+            CellStyle dateStyle = createDateStyle(workbook);
+
+            // Populate Data Rows
+            int rowIndex = 1;
+            for (ExpenseModel data : expenseList) {
+                Row row = sheet.createRow(rowIndex++);
+                row.createCell(0).setCellValue(data.getCategory());
+                row.createCell(1).setCellValue(data.getDescription());
+                row.createCell(2).setCellValue(data.getAmount());
+                // Format Date Properly
+                Cell dateCell = row.createCell(3);
+                dateCell.setCellValue(data.getDate()); // Assuming data.getDate() is `java.util.Date`
+                dateCell.setCellStyle(dateStyle); // Apply formatting
+
+                row.createCell(4).setCellValue(data.isRecurring()?"Yes":"No");
+            }
+
+            // Auto-size columns
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            // Convert to byte array
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            return outputStream.toByteArray();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private CellStyle createDateStyle(Workbook workbook) {
+        CellStyle dateStyle = workbook.createCellStyle();
+        CreationHelper createHelper = workbook.getCreationHelper();
+        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy")); // Change format as needed
+        return dateStyle;
+    }
+    private CellStyle createHeaderStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+
+        font.setBold(true);
+        style.setFont(font);
+
+        // Set Background Color
+        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex()); // Yellow background
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND); // Apply solid fill
+
+        // Set Border (Optional)
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+
+        return style;
+    }
+
+    @Override
     public List<ExpenseModel> getAllexpensesByYear(int userId, int year, boolean deleteStatus) {
         return expenseRepository.getAllexpensesByYear(userId, year, deleteStatus);
+    }
+
+    @Override
+    public byte[] generateYearlyExcelReport(int userId, int year) {
+        List<ExpenseModel> yearlyIncomeList = expenseRepository.getAllexpensesByYear(userId, year, false);
+
+        return generateExcelReport(yearlyIncomeList);
     }
 
     @Override

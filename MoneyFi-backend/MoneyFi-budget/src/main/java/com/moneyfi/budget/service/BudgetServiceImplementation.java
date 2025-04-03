@@ -14,10 +14,13 @@ import static java.util.Arrays.stream;
 public class BudgetServiceImplementation implements BudgetService{
 
     @Autowired
-    private BudgetRepository budgetRepository;
-
-    @Autowired
     private RestTemplate restTemplate;
+
+    private final BudgetRepository budgetRepository;
+
+    public BudgetServiceImplementation(BudgetRepository budgetRepository){
+        this.budgetRepository = budgetRepository;
+    }
 
     @Override
     public BudgetModel save(BudgetModel budget) {

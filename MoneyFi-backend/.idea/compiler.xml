@@ -3,6 +3,29 @@
   <component name="CompilerConfiguration">
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="MoneyFi-api-gateway" />
+        <module name="MoneyFi-user-details" />
+        <module name="MoneyFi-expense" />
+        <module name="MoneyFi-income" />
+        <module name="eureka-server" />
+        <module name="MoneyFi-goal" />
+        <module name="MoneyFi-budget" />
+      </profile>
     </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="MoneyFi-api-gateway" options="-parameters" />
+      <module name="MoneyFi-budget" options="-parameters" />
+      <module name="MoneyFi-expense" options="-parameters" />
+      <module name="MoneyFi-goal" options="-parameters" />
+      <module name="MoneyFi-income" options="-parameters" />
+      <module name="MoneyFi-user-details" options="-parameters" />
+      <module name="eureka-server" options="-parameters" />
+    </option>
   </component>
 </project>

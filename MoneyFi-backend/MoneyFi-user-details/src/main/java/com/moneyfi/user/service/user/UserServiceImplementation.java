@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserServiceImplementation implements UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private ProfileRepository profileRepository;
+    public UserServiceImplementation(UserRepository userRepository){
+        this.userRepository = userRepository;
+    }
 
     @Override
     public UserModel save(UserModel user) {

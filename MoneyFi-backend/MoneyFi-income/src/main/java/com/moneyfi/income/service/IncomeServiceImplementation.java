@@ -3,13 +3,18 @@ package com.moneyfi.income.service;
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.repository.IncomeRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+
 
 @Slf4j
 @Service
@@ -57,8 +62,96 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
+    public byte[] generateMonthlyExcelReport(int userId, int month, int year) {
+
+        List<IncomeModel> monthlyIncomeList = incomeRepository.getAllIncomesByDate(userId, month, year, false);
+
+        return generateExcelReport(monthlyIncomeList);
+    }
+
+    private byte[] generateExcelReport(List<IncomeModel> incomeList){
+        try(Workbook workbook = new XSSFWorkbook()){
+            Sheet sheet = workbook.createSheet("Monthly Income Report");
+
+            // Create Header Row
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"Category", "Source", "Amount", "Date", "Recurring"};
+            for(int i=0; i< headers.length; i++){
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(createHeaderStyle(workbook));
+            }
+
+            // Create a Date Style
+            CellStyle dateStyle = createDateStyle(workbook);
+
+            // Populate Data Rows
+            int rowIndex = 1;
+            for (IncomeModel data : incomeList) {
+                Row row = sheet.createRow(rowIndex++);
+                row.createCell(0).setCellValue(data.getCategory());
+                row.createCell(1).setCellValue(data.getSource());
+                row.createCell(2).setCellValue(data.getAmount());
+                // Format Date Properly
+                Cell dateCell = row.createCell(3);
+                dateCell.setCellValue(data.getDate()); // Assuming data.getDate() is `java.util.Date`
+                dateCell.setCellStyle(dateStyle); // Apply formatting
+
+                row.createCell(4).setCellValue(data.isRecurring()?"Yes":"No");
+            }
+
+            // Auto-size columns
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            // Convert to byte array
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            return outputStream.toByteArray();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private CellStyle createDateStyle(Workbook workbook) {
+        CellStyle dateStyle = workbook.createCellStyle();
+        CreationHelper createHelper = workbook.getCreationHelper();
+        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy")); // Change format as needed
+        return dateStyle;
+    }
+    private CellStyle createHeaderStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+
+        font.setBold(true);
+        style.setFont(font);
+
+        // Set Background Color
+        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex()); // Yellow background
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND); // Apply solid fill
+
+        // Set Border (Optional)
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+
+        return style;
+    }
+
+    @Override
     public List<IncomeModel> getAllIncomesByYear(int userId, int year, boolean deleteStatus) {
         return incomeRepository.getAllIncomesByYear(userId, year, deleteStatus);
+    }
+
+    @Override
+    public byte[] generateYearlyExcelReport(int userId, int year) {
+
+        List<IncomeModel> yearlyIncomeList = incomeRepository.getAllIncomesByYear(userId, year, false);
+
+        return generateExcelReport(yearlyIncomeList);
     }
 
     @Override

@@ -1,8 +1,8 @@
-package com.moneyfi.apigateway.service;
+package com.moneyfi.apigateway.service.userservice;
 
 import com.moneyfi.apigateway.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.dto.RemainingTimeCountDto;
-import com.moneyfi.apigateway.repository.UserRepo;
+import com.moneyfi.apigateway.repository.UserRepository;
 import com.moneyfi.apigateway.model.User;
 import com.moneyfi.apigateway.util.EmailFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,37 +17,37 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
-public class UserService {
+public class UserServiceImplementation implements UserService {
 
-    @Autowired
-    private UserRepo repo;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
-
-    @Autowired
-    private UserRepo userRepo;
-
-    @Autowired
-    private EmailFilter emailFilter;
+    private final UserRepository userRepository;
+    private final EmailFilter emailFilter;
 
     @Autowired
     private RestTemplate restTemplate;
 
-
-    public User saveUser(User user) {
-        user.setPassword(encoder.encode(user.getPassword()));
-        System.out.println(user.getPassword());
-        return repo.save(user);
+    public UserServiceImplementation(UserRepository userRepository,
+                                     EmailFilter emailFilter){
+        this.userRepository = userRepository;
+        this.emailFilter = emailFilter;
     }
 
+    @Override
+    public User saveUser(User user) {
+        user.setPassword(encoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
+
+    @Override
     public boolean changePassword(ChangePasswordDto changePasswordDto){
-        User user = userRepo.findById(changePasswordDto.getUserId()).orElse(null);
+        User user = userRepository.findById(changePasswordDto.getUserId()).orElse(null);
         if(user == null) return false;
 
         if(!encoder.matches(changePasswordDto.getCurrentPassword(), user.getPassword())){
             return false;
         } else {
             user.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
-            userRepo.save(user);
+            userRepository.save(user);
         }
 
 //        sendPasswordAlertMail(user.getUsername());
@@ -55,9 +55,9 @@ public class UserService {
         return true;
     }
 
-    public void sendPasswordAlertMail(int userId, String email){
+    private void sendPasswordAlertMail(int userId, String email){
 
-        String userName = restTemplate.getForObject("http://MONEYFI-USER-DETAILS/api/profile/getName/" + userId, String.class);
+        String userName = restTemplate.getForObject("http://MONEYFI-USER/api/profile/getName/" + userId, String.class);
 
         String subject = "Password Change Alert!!";
         String body = "<html>"
@@ -76,10 +76,11 @@ public class UserService {
         emailFilter.sendEmail(email, subject, body);
     }
 
+    @Override
     public RemainingTimeCountDto checkOtpActiveMethod(String email){
         RemainingTimeCountDto remainingTimeCountDto = new RemainingTimeCountDto();
 
-        User user = userRepo.findByUsername(email);
+        User user = userRepository.findByUsername(email);
         if(user == null){
             remainingTimeCountDto.setComment("User not exist");
             remainingTimeCountDto.setResult(false);
@@ -109,12 +110,12 @@ public class UserService {
     @Scheduled(fixedRate = 3600000) // Runs every 1 hour
     public void removeOtpCountOfPreviousDay() {
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
-        List<User> userList = userRepo.getUserListWhoseOtpCountGreaterThanThree();
+        List<User> userList = userRepository.getUserListWhoseOtpCountGreaterThanThree();
 
         for (User user : userList) {
             if (user.getOtpCount() >= 3 && user.getVerificationCodeExpiration().isBefore(startOfToday)) {
                 user.setOtpCount(0);
-                userRepo.save(user);
+                userRepository.save(user);
             }
         }
     }
