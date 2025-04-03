@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.util.Date;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -13,11 +16,14 @@ public class ProfileModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
     private int userId;
     private String name;
     private String email;
     private String phone;
+    private String gender;
+    private LocalDate dateOfBirth;
+    private String maritalStatus;
     private String address;
     private double incomeRange;
     @Column(columnDefinition = "TEXT")

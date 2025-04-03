@@ -22,6 +22,7 @@ export class SignupComponent {
   signupForm: FormGroup;
   showPassword = false;
   showConfirmPassword = false;
+  currentDate: string = new Date().toISOString().split('T')[0];
 
   public mixedChartData: ChartData<'bar' | 'line'> = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -108,7 +109,7 @@ onSubmit(signupCredentials: SignupCredentials) {
               // console.log('User ID:', userId);
 
               // Use userId in the next API call
-              this.authClient.post<UserProfile>(`${this.baseUrl}/api/user/setDetails/${userId}/${signupCredentials.name}/${signupCredentials.username}`, null)
+              this.authClient.post<UserProfile>(`${this.baseUrl}/api/user/setDetails/${userId}/${signupCredentials.name}/${signupCredentials.username}/${this.currentDate}`, null)
                 .subscribe(
                   userProfile => {
                     // console.log('Profile details:', userProfile);

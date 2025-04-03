@@ -4,7 +4,7 @@ import com.moneyfi.user.model.ProfileModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface ProfileRepository extends JpaRepository<ProfileModel,Integer> {
+public interface ProfileRepository extends JpaRepository<ProfileModel,Long> {
 
     public ProfileModel findByUserId(int userId);
 

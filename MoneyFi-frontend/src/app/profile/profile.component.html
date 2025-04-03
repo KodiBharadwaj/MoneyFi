@@ -4,7 +4,7 @@
       <div class="cover-photo"></div>
       <div class="profile-image-wrapper">
         <div class="profile-image">
-          <img [src]="userProfile.profileImage" alt="Profile Picture">
+          <img [src]="userProfileDetails.profileImage" alt="Profile Picture">
           <div class="image-upload" *ngIf="isEditing">
             <label for="file-input">
               <i class="fas fa-camera"></i>
@@ -14,8 +14,9 @@
         </div>
       </div>
       <div class="profile-title">
-        <h1>{{ userProfile.name }}</h1>
-        <p>{{ userProfile.email }}</p>
+        <h1>{{ userProfileDetails.name }}</h1>
+        <h4> - since {{ profileDetails.createdDate }}</h4>
+        <p>{{ userProfileDetails.email }}</p>
         <div class="button-container">
           <button mat-raised-button color="primary" class="change-password-btn" (click)="changePassword()">
             <mat-icon>lock</mat-icon>
@@ -35,23 +36,48 @@
         <div class="info-grid">
           <div class="info-item">
             <label>Full Name</label>
-            <input type="text" [(ngModel)]="userProfile.name" [readonly]="!isEditing" [class.editable]="isEditing">
+            <input type="text" [(ngModel)]="userProfileDetails.name" [readonly]="!isEditing" [class.editable]="isEditing">
           </div>
 
           <div class="info-item">
             <label>Email Address</label>
-            <input type="email" [(ngModel)]="userProfile.email" [readonly]="true" [class.editable]="isEditing">
+            <input type="email" [(ngModel)]="userProfileDetails.email" [readonly]="true" [class.editable]="isEditing">
           </div>
 
           <div class="info-item">
             <label>Phone Number</label>
-            <input type="tel" [(ngModel)]="userProfile.phone" [readonly]="!isEditing" [class.editable]="isEditing">
-          </div>         
-          
+            <input type="tel" [(ngModel)]="userProfileDetails.phone" [readonly]="!isEditing" [class.editable]="isEditing">
+          </div>
+
+          <div class="info-item">
+            <label>Gender</label>
+            <select [(ngModel)]="userProfileDetails.gender" [disabled]="!isEditing" [class.editable]="isEditing">
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="info-item">
+            <label>Date of Birth</label>
+            <input type="date" [(ngModel)]="userProfileDetails.dateOfBirth" [readonly]="!isEditing" [class.editable]="isEditing">
+          </div>
+
+          <div class="info-item">
+            <label>Marital Status</label>
+            <select [(ngModel)]="userProfileDetails.maritalStatus" [disabled]="!isEditing" [class.editable]="isEditing">
+              <option value="">Select Status</option>
+              <option value="Single">Single</option>
+              <option value="Married">Married</option>
+              <option value="Divorced">Divorced</option>
+              <option value="Widowed">Widowed</option>
+            </select>
+          </div>
 
           <div class="info-item">
             <label>Income Range</label>
-            <input type="tel" [(ngModel)]="userProfile.incomeRange" [readonly]="!isEditing" [class.editable]="isEditing">
+            <input type="tel" [(ngModel)]="userProfileDetails.incomeRange" [readonly]="!isEditing" [class.editable]="isEditing">
           </div>
 
         </div>
@@ -60,7 +86,7 @@
       <div class="info-section">
         <h2>Address</h2>
         <div class="info-item full-width">
-          <textarea [(ngModel)]="userProfile.address" [readonly]="!isEditing" [class.editable]="isEditing"></textarea>
+          <textarea [(ngModel)]="userProfileDetails.address" [readonly]="!isEditing" [class.editable]="isEditing"></textarea>
         </div>
       </div>
 
