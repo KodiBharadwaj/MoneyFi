@@ -10,7 +10,6 @@ Major Changes:
 Minor Changes:
 - Write junit test cases for income service (ongoing)
 - Landing page, so may buttons are there in the footer. Add the necessary info.
-- Put change password 3 time limit in profile section
 - Replace double with BigDecimal in amount.
 
 
@@ -44,7 +43,7 @@ cleared changes:
 - Excel export generation of income and expenses of a user.
 - Add some more fields in profile, Also it should show for a user ex: member since nov, 2024.
 - Put contact us section. and feedback section.
-
+- Put change password 3 time limit in profile section
 
 
 
