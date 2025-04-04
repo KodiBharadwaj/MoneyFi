@@ -10,6 +10,7 @@ import { ChangePassword } from '../model/ChangePassword';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
+import { ProfileChangePassword } from '../model/ProfileChangePassword';
 
 @Component({
   selector: 'app-change-password-dialog',
@@ -73,13 +74,18 @@ export class ChangePasswordDialogComponent {
           };
     
           if(changePasswordDto.currentPassword !== changePasswordDto.newPassword){
-            this.http.post(`${this.baseUrl}/auth/change-password`, changePasswordDto)
+            this.http.post<ProfileChangePassword>(`${this.baseUrl}/auth/change-password`, changePasswordDto)
             .subscribe({
-              next: (output) => {
-                
-                if(output){
+              next: (profileChangeDto) => {
+
+                if(profileChangeDto.flag === true){
                   this.dialogRef.close(true);
-                } else {
+                } 
+                else if(profileChangeDto.flag === false && profileChangeDto.otpCount >= 3){
+                  alert('Your Password change limit reached for today, Try tomorrow');
+                  this.dialogRef.close();
+                }
+                else {
                   this.toastr.warning('Please enter correct old Password');
                 }
                 this.isLoading = false;
