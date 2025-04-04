@@ -35,17 +35,17 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public List<ExpenseModel> getAllexpenses(int userId) {
+    public List<ExpenseModel> getAllexpenses(Long userId) {
         return expenseRepository.findExpensesByUserId(userId).stream().filter(i->i.is_deleted() == false).toList();
     }
 
     @Override
-    public List<ExpenseModel> getAllexpensesByDate(int userId, int month, int year, boolean deleteStatus) {
+    public List<ExpenseModel> getAllexpensesByDate(Long userId, int month, int year, boolean deleteStatus) {
         return expenseRepository.getAllexpensesByDate(userId, month, year, deleteStatus);
     }
 
     @Override
-    public byte[] generateMonthlyExcelReport(int userId, int month, int year) {
+    public byte[] generateMonthlyExcelReport(Long userId, int month, int year) {
         List<ExpenseModel> monthlyExpenseList = expenseRepository.getAllexpensesByDate(userId, month, year, false);
 
         return generateExcelReport(monthlyExpenseList);
@@ -124,19 +124,19 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public List<ExpenseModel> getAllexpensesByYear(int userId, int year, boolean deleteStatus) {
+    public List<ExpenseModel> getAllexpensesByYear(Long userId, int year, boolean deleteStatus) {
         return expenseRepository.getAllexpensesByYear(userId, year, deleteStatus);
     }
 
     @Override
-    public byte[] generateYearlyExcelReport(int userId, int year) {
+    public byte[] generateYearlyExcelReport(Long userId, int year) {
         List<ExpenseModel> yearlyIncomeList = expenseRepository.getAllexpensesByYear(userId, year, false);
 
         return generateExcelReport(yearlyIncomeList);
     }
 
     @Override
-    public List<Double> getMonthlyExpenses(int userId, int year) {
+    public List<Double> getMonthlyExpenses(Long userId, int year) {
         List<Object[]> rawExpenses = expenseRepository.findMonthlyExpenses(userId, year, false);
         Double[] monthlyTotals = new Double[12];
         Arrays.fill(monthlyTotals, 0.0); // Initialize all months to 0
@@ -151,7 +151,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public Double getTotalExpensesUpToPreviousMonth(int userId, int month, int year) {
+    public Double getTotalExpensesUpToPreviousMonth(Long userId, int month, int year) {
         // Adjust month and year to point to the previous month
         final int adjustedMonth;
         final int adjustedYear;
@@ -172,7 +172,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public Double getTotalExpenseInMonthAndYear(int userId, int month, int year) {
+    public Double getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
         Double totalExpense = expenseRepository.getTotalExpenseInMonthAndYear(userId, month, year);
         if(totalExpense == null) return 0.0;
 
@@ -180,7 +180,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public Double getTotalSavingsByMonthAndDate(int userId, int month, int year) {
+    public Double getTotalSavingsByMonthAndDate(Long userId, int month, int year) {
         Double totalIncome = restTemplate.getForObject("http://MONEYFI-INCOME/api/income/" + userId + "/totalIncome/" + month + "/" + year, Double.class);
         Double totalExpenses = getTotalExpenseInMonthAndYear(userId, month, year);
         if(totalIncome > totalExpenses){
@@ -191,7 +191,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public List<Double> getCumulativeMonthlySavings(int userId, int year) {
+    public List<Double> getCumulativeMonthlySavings(Long userId, int year) {
 
         Double[] incomes = restTemplate.getForObject("http://MONEYFI-INCOME/api/income/"+userId+"/monthlyTotalIncomesList/"+year,Double[].class);
         Double[] expenses = getMonthlyExpenses(userId, year).toArray(new Double[0]);
@@ -227,7 +227,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public ExpenseModel updateBySource(int id, ExpenseModel expense) {
+    public ExpenseModel updateBySource(Long id, ExpenseModel expense) {
         ExpenseModel expenseModel = expenseRepository.findById(id).orElse(null);
 
         if(expense.getCategory() != null){
@@ -250,7 +250,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public boolean deleteExpenseById(int id) {
+    public boolean deleteExpenseById(Long id) {
 
         try {
             ExpenseModel expense = expenseRepository.findById(id).orElse(null);

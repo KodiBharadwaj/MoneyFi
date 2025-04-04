@@ -56,7 +56,7 @@ public class UserController {
     @GetMapping("/getUserId/{email}")
     public Integer getUserId(@PathVariable("email") String email){
         User user = userRepository.findByUsername(email);
-        return user.getId();
+        return Math.toIntExact(user.getId());
     }
 
     @Operation(summary = "Method for the user registration/signup")
@@ -124,7 +124,8 @@ public class UserController {
     @GetMapping("/token/{token}")
     public Integer getUserIdFromToken(@PathVariable("token") String token){
         String username = jwtService.extractUserName(token);
-        return userRepository.findByUsername(username).getId();
+        Long id = userRepository.findByUsername(username).getId();
+        return Math.toIntExact(id);
     }
 
     @Operation(summary = "Method for password forgot")

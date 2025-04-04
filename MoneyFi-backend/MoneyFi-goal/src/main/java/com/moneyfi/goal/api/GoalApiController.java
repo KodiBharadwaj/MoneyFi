@@ -27,8 +27,8 @@ public class GoalApiController {
     @Operation(summary = "Method to add a goal")
     @PostMapping("/{userId}")
     public ResponseEntity<GoalModel> saveGoal(@RequestBody GoalModel goal,
-                                              @PathVariable("userId") int userId) {
-        goal.setUserId(userId);
+                                              @PathVariable("userId") Long userId) {
+        goal.setUserId((long) userId);
         GoalModel createdGoal = goalService.save(goal);
         if (createdGoal != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdGoal); // 201
@@ -39,7 +39,7 @@ public class GoalApiController {
 
     @Operation(summary = "Method to add amount to a particular goal")
     @PostMapping("/{id}/addAmount/{amount}")
-    public GoalModel addAmount(@PathVariable("id") int id,
+    public GoalModel addAmount(@PathVariable("id") Long id,
                                @PathVariable("amount") double amount){
 
         return goalService.addAmount(id, amount);
@@ -47,26 +47,26 @@ public class GoalApiController {
 
     @Operation(summary = "Method to get a goal")
     @GetMapping("/{userId}")
-    public ResponseEntity<List<GoalModel>> getAllGoals(@PathVariable("userId") int userId) {
+    public ResponseEntity<List<GoalModel>> getAllGoals(@PathVariable("userId") Long userId) {
         List<GoalModel> list = goalService.getAllGoals(userId);
         return ResponseEntity.status(HttpStatus.OK).body(list); // 200
     }
 
     @Operation(summary = "Method to get the total current amount of a particular goal")
     @GetMapping("/{userId}/totalCurrentGoalIncome")
-    public Double getCurrentTotalGoalIncome(@PathVariable("userId") int userId){
+    public Double getCurrentTotalGoalIncome(@PathVariable("userId") Long userId){
         return goalService.getCurrentTotalGoalIncome(userId);
     }
 
     @Operation(summary = "Method to get the total target amount of a particular goal")
     @GetMapping("/{userId}/totalTargetGoalIncome")
-    public Double getTargetTotalGoalIncome(@PathVariable("userId") int userId){
+    public Double getTargetTotalGoalIncome(@PathVariable("userId") Long userId){
         return goalService.getTargetTotalGoalIncome(userId);
     }
 
     @Operation(summary = "Method to update the goal details")
     @PutMapping("/{id}")
-    public ResponseEntity<GoalModel> updateGoal(@PathVariable("id") int id,
+    public ResponseEntity<GoalModel> updateGoal(@PathVariable("id") Long id,
                                                 @RequestBody GoalModel goal) {
         GoalModel updatedGoal = goalService.updateByGoalName(id, goal);
 
@@ -80,7 +80,7 @@ public class GoalApiController {
 
     @Operation(summary = "Method to delete the goal by goal id")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteById(@PathVariable("id") int id) {
+    public ResponseEntity<Void> deleteById(@PathVariable("id") Long id) {
         boolean isDeleted = goalService.deleteGoalById(id);
         if (isDeleted) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); // 204: No Content

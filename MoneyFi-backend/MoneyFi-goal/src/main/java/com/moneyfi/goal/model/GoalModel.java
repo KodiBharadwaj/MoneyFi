@@ -15,9 +15,9 @@ import java.time.LocalDate;
 public class GoalModel {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
-    private int userId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Long userId;
     private String goalName;
     private double currentAmount;
     private double targetAmount;

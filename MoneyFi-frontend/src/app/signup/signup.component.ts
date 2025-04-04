@@ -109,7 +109,13 @@ onSubmit(signupCredentials: SignupCredentials) {
               // console.log('User ID:', userId);
 
               // Use userId in the next API call
-              this.authClient.post<UserProfile>(`${this.baseUrl}/api/user/setDetails/${userId}/${signupCredentials.name}/${signupCredentials.username}/${this.currentDate}`, null)
+              const userprofile = {
+                userId : userId,
+                name : signupCredentials.name,
+                email : signupCredentials.username,
+                createdDate : this.currentDate
+              }
+              this.authClient.post<UserProfile>(`${this.baseUrl}/api/user/setDetails`, userprofile)
                 .subscribe(
                   userProfile => {
                     // console.log('Profile details:', userProfile);

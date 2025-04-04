@@ -8,15 +8,15 @@ public interface GoalService {
 
     public GoalModel save(GoalModel goal);
 
-    public GoalModel addAmount(int id, double amount);
+    public GoalModel addAmount(Long id, double amount);
 
-    public List<GoalModel> getAllGoals(int userId);
+    public List<GoalModel> getAllGoals(Long userId);
 
-    public Double getCurrentTotalGoalIncome(int userId);
+    public Double getCurrentTotalGoalIncome(Long userId);
 
-    public Double getTargetTotalGoalIncome(int userId);
+    public Double getTargetTotalGoalIncome(Long userId);
 
-    public GoalModel updateByGoalName(int id, GoalModel goal);
+    public GoalModel updateByGoalName(Long id, GoalModel goal);
 
-    public boolean deleteGoalById(int id);
+    public boolean deleteGoalById(Long id);
 }

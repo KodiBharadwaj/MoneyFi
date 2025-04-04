@@ -18,19 +18,19 @@ public class ProfileApiController {
 
     @Operation(summary = "Method to save the profile details of a user")
     @PostMapping("/{userId}")
-    public ProfileModel saveProfile(@PathVariable("userId") int userId, @RequestBody ProfileModel profile){
+    public ProfileModel saveProfile(@PathVariable("userId") Long userId, @RequestBody ProfileModel profile){
         return profileService.save(userId, profile);
     }
 
     @Operation(summary = "Method to get the profile details of a user")
     @GetMapping("/{userId}")
-    public ProfileModel getProfile(@PathVariable("userId") int userId){
+    public ProfileModel getProfile(@PathVariable("userId") Long userId){
         return profileService.findByUserId(userId);
     }
 
     @Operation(summary = "Method to get the name of a user")
     @GetMapping("/getName/{userId}")
-    public String getNameFromUserId(@PathVariable("userId") int userId){
+    public String getNameFromUserId(@PathVariable("userId") Long userId){
         return profileService.getNameByUserId(userId);
     }
 }

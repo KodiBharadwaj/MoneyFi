@@ -23,7 +23,7 @@ public class BudgetApiController {
     @Operation(summary = "Method to add the budget")
     @PostMapping("/{userId}")
     public ResponseEntity<BudgetModel> saveBudget(@RequestBody BudgetModel budget,
-                                                  @PathVariable("userId") int userId) {
+                                                  @PathVariable("userId") Long userId) {
         budget.setUserId(userId);
         BudgetModel createdBudget = budgetService.save(budget);
         if (createdBudget != null) {
@@ -35,7 +35,7 @@ public class BudgetApiController {
 
     @Operation(summary = "Method to get budget of a user")
     @GetMapping("/{userId}")
-    public ResponseEntity<List<BudgetModel>> getAllBudgets(@PathVariable("userId") int userId) {
+    public ResponseEntity<List<BudgetModel>> getAllBudgets(@PathVariable("userId") Long userId) {
         List<BudgetModel> list = budgetService.getAllBudgets(userId);
         if (!list.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(list); // 200
@@ -46,7 +46,7 @@ public class BudgetApiController {
 
     @Operation(summary = "Method to get the budget status/progress")
     @GetMapping("/{userId}/budgetProgress/{month}/{year}")
-    public Double budgetProgress(@PathVariable("userId") int userId,
+    public Double budgetProgress(@PathVariable("userId") Long userId,
                                  @PathVariable("month") int month,
                                  @PathVariable("year") int year){
         return budgetService.budgetProgress(userId, month, year);
@@ -54,7 +54,7 @@ public class BudgetApiController {
 
     @Operation(summary = "Method to update the budget")
     @PutMapping("/{id}")
-    public ResponseEntity<BudgetModel> updateBudget(@PathVariable("id") int id, @RequestBody BudgetModel budget) {
+    public ResponseEntity<BudgetModel> updateBudget(@PathVariable("id") Long id, @RequestBody BudgetModel budget) {
         BudgetModel updatedBudget = budgetService.update(id, budget);
         System.out.println(updatedBudget);
         if (updatedBudget != null) {

@@ -17,7 +17,7 @@ public class ProfileModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private int userId;
+    private Long userId;
     private String name;
     private String email;
     private String phone;

@@ -15,9 +15,9 @@ import java.time.LocalDate;
 public class ExpenseModel {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
-    private int userId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Long userId;
     private String category;
     private double amount;
     private LocalDate date;
