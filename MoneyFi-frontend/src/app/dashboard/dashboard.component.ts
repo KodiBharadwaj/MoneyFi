@@ -11,6 +11,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ProfileComponent } from '../profile/profile.component';
 import { AnalysisComponent } from '../analysis/analysis.component';
 import { HttpClient } from '@angular/common/http';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-dashboard',
@@ -32,9 +33,12 @@ import { HttpClient } from '@angular/common/http';
 })
 export class DashboardComponent {
 
-  constructor(private router:Router, private dialog: MatDialog, private route: ActivatedRoute, private httpClient:HttpClient){};
+  constructor(private router:Router, private dialog: MatDialog, 
+    private route: ActivatedRoute, private httpClient:HttpClient,
+  private toastr: ToastrService){};
 
   isLoading = false;
+  baseUrl = "http://localhost:8765";
 
 
   logoutUser(): void {
@@ -46,16 +50,30 @@ export class DashboardComponent {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         const token = sessionStorage.getItem('finance.auth');
-        this.httpClient.post('http://localhost:8765/auth/logout', {}, { responseType: 'text' }).subscribe({
-          next: (response) => {
-            console.log(response); // Should print "Logged out successfully"
-            sessionStorage.removeItem('finance.auth');
-            this.router.navigate(['']);
+        
+        this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+          next : (userId) => {
+            this.httpClient.post('http://localhost:8765/auth/logout', {}, { responseType: 'text' }).subscribe({
+              next: (response) => {
+                // console.log(response); // Should print "Logged out successfully"
+                const jsonResponse = JSON.parse(response);
+                this.toastr.success(jsonResponse.message);
+                sessionStorage.removeItem('finance.auth');
+                this.router.navigate(['']);
+              },
+              error: (error) => {
+                console.error(error);
+                this.toastr.error('Failed to logout')
+              }
+            });
           },
           error: (error) => {
-            console.error(error);
+            console.error('Failed to fetch userId:', error);
+            alert("Session timed out! Please login again");
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['login']);
           }
-        });
+        })
       }
     });
   }

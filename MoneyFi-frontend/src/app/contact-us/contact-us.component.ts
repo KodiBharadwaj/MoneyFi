@@ -22,8 +22,14 @@ export class ContactUsComponent {
   ];
 
   // Sets the selected form
-  selectForm(value: string) {
-    this.selectedForm = value;
+  // selectForm(value: string) {
+  //   this.selectedForm = value;
+  // }
+
+  selectForm(event: Event) {
+    const target = event.target as HTMLSelectElement; // Explicitly cast to HTMLSelectElement
+    this.selectedForm = target.value; // Now TypeScript knows that 'value' exists
   }
+  
 }
 
