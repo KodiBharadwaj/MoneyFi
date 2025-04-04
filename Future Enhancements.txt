@@ -22,6 +22,7 @@ Defects:
 - In two browsers, if i open the same account, both are working with two different tokens.
 - If otp verification isn't there during signup, if user creates with unexisting email, then forgot password, email service wont work for him.
 - User should not be able to add the future transactions in income, expense, goal.
+- int to Long was changed for all the microservices
 
 
 
