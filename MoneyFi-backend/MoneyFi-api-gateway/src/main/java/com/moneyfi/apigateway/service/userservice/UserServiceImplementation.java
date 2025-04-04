@@ -1,6 +1,7 @@
 package com.moneyfi.apigateway.service.userservice;
 
 import com.moneyfi.apigateway.dto.ChangePasswordDto;
+import com.moneyfi.apigateway.dto.ProfileChangePassword;
 import com.moneyfi.apigateway.dto.RemainingTimeCountDto;
 import com.moneyfi.apigateway.repository.UserRepository;
 import com.moneyfi.apigateway.model.User;
@@ -39,20 +40,33 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public boolean changePassword(ChangePasswordDto changePasswordDto){
+    public ProfileChangePassword changePassword(ChangePasswordDto changePasswordDto){
         User user = userRepository.findById(Long.valueOf(changePasswordDto.getUserId())).orElse(null);
-        if(user == null) return false;
 
-        if(!encoder.matches(changePasswordDto.getCurrentPassword(), user.getPassword())){
-            return false;
-        } else {
-            user.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
-            userRepository.save(user);
+        ProfileChangePassword dto = new ProfileChangePassword();
+        if(user == null) {
+            dto.setFlag(false);
+            return dto;
         }
 
-//        sendPasswordAlertMail(user.getUsername());
+        if(!encoder.matches(changePasswordDto.getCurrentPassword(), user.getPassword())){
+            dto.setFlag(false);
+            return dto;
+        }
+        else if(user.getOtpCount() >= 3){
+            dto.setOtpCount(user.getOtpCount());
+            dto.setFlag(false);
+            return dto;
+        }
+
         new Thread(() -> sendPasswordAlertMail(Math.toIntExact(user.getId()), user.getUsername())).start();
-        return true;
+
+        user.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
+        user.setOtpCount(user.getOtpCount()+1);
+        userRepository.save(user);
+
+        dto.setFlag(true);
+        return dto;
     }
 
     private void sendPasswordAlertMail(int userId, String email){

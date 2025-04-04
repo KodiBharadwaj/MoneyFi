@@ -1,11 +1,8 @@
 package com.moneyfi.apigateway.controller;
 
-import com.moneyfi.apigateway.dto.ChangePasswordDto;
-import com.moneyfi.apigateway.dto.RemainingTimeCountDto;
+import com.moneyfi.apigateway.dto.*;
 import com.moneyfi.apigateway.model.BlackListedToken;
 import com.moneyfi.apigateway.repository.UserRepository;
-import com.moneyfi.apigateway.dto.JwtToken;
-import com.moneyfi.apigateway.dto.UserProfile;
 import com.moneyfi.apigateway.model.User;
 import com.moneyfi.apigateway.service.*;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
@@ -173,7 +170,7 @@ public class UserController {
 
     @Operation(summary = "Method to change the password for the logged in user in the profile section")
     @PostMapping("/change-password")
-    public boolean changePassword(@RequestBody ChangePasswordDto changePasswordDto) {
+    public ProfileChangePassword changePassword(@RequestBody ChangePasswordDto changePasswordDto) {
         return userService.changePassword(changePasswordDto);
     }
 
