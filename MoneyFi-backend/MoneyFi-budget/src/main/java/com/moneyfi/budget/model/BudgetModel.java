@@ -14,9 +14,9 @@ import lombok.NoArgsConstructor;
 public class BudgetModel {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
-    private int userId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Long userId;
     private String category;
     private double currentSpending;
     private double moneyLimit;

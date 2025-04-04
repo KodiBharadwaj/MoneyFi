@@ -25,22 +25,13 @@ public class UserApiController {
     }
 
     @Operation(summary = "Method which adds the user details in user and profile table")
-    @PostMapping("/setDetails/{userId}/{name}/{email}/{date}")
-    public UserModel setUserDetails(@PathVariable("userId") int userId,
-                                    @PathVariable("name") String name,
-                                    @PathVariable("email") String email,
-                                    @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
-        UserModel userModel = new UserModel();
-
-        userModel.setUserId(userId);
-        userModel.setName(name);
-        userModel.setEmail(email);
-        userModel.setCreatedDate(date);
-
+    @PostMapping("/setDetails")
+    public UserModel setUserDetails(@RequestBody UserModel userModel){
+        System.out.println(userModel);
         ProfileModel profile = new ProfileModel();
-        profile.setUserId(userId);
-        profile.setName(name);
-        profile.setEmail(email);
+        profile.setUserId(userModel.getUserId());
+        profile.setName(userModel.getName());
+        profile.setEmail(userModel.getEmail());
         ProfileModel addedProfile = profileRepository.save(profile);
 
         return userService.save(userModel);

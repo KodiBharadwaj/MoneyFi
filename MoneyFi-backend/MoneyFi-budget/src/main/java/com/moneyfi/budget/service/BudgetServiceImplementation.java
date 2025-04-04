@@ -28,15 +28,15 @@ public class BudgetServiceImplementation implements BudgetService{
     }
 
     @Override
-    public List<BudgetModel> getAllBudgets(int userId) {
+    public List<BudgetModel> getAllBudgets(Long userId) {
 
         List<BudgetModel> budgetList = budgetRepository.getBudgetsByUserId(userId);
         return budgetList.stream()
-                .sorted((a,b)->a.getId()-b.getId()).toList();
+                .sorted((a,b)-> Math.toIntExact(a.getId() - b.getId())).toList();
     }
 
     @Override
-    public Double budgetProgress(int userId, int month, int year) {
+    public Double budgetProgress(Long userId, int month, int year) {
 
         List<BudgetModel> budgetsList = getAllBudgets(userId);
         double moneyLimit = budgetsList
@@ -50,7 +50,7 @@ public class BudgetServiceImplementation implements BudgetService{
     }
 
     @Override
-    public BudgetModel update(int id, BudgetModel budget) {
+    public BudgetModel update(Long id, BudgetModel budget) {
         System.out.println(budget);
         BudgetModel budgetModel = budgetRepository.findById(id).orElse(null);
 

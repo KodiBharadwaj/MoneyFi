@@ -49,7 +49,7 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public List<IncomeModel> getAllIncomes(int userId) {
+    public List<IncomeModel> getAllIncomes(Long userId) {
         return incomeRepository.findIncomesOfUser(userId)
                 .stream()
                 .filter(i->i.is_deleted()==false)
@@ -57,12 +57,12 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public List<IncomeModel> getAllIncomesByDate(int userId, int month, int year, boolean deleteStatus) {
+    public List<IncomeModel> getAllIncomesByDate(Long userId, int month, int year, boolean deleteStatus) {
         return incomeRepository.getAllIncomesByDate(userId, month, year, deleteStatus);
     }
 
     @Override
-    public byte[] generateMonthlyExcelReport(int userId, int month, int year) {
+    public byte[] generateMonthlyExcelReport(Long userId, int month, int year) {
 
         List<IncomeModel> monthlyIncomeList = incomeRepository.getAllIncomesByDate(userId, month, year, false);
 
@@ -142,12 +142,12 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public List<IncomeModel> getAllIncomesByYear(int userId, int year, boolean deleteStatus) {
+    public List<IncomeModel> getAllIncomesByYear(Long userId, int year, boolean deleteStatus) {
         return incomeRepository.getAllIncomesByYear(userId, year, deleteStatus);
     }
 
     @Override
-    public byte[] generateYearlyExcelReport(int userId, int year) {
+    public byte[] generateYearlyExcelReport(Long userId, int year) {
 
         List<IncomeModel> yearlyIncomeList = incomeRepository.getAllIncomesByYear(userId, year, false);
 
@@ -155,7 +155,7 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public List<Double> getMonthlyIncomes(int userId, int year) {
+    public List<Double> getMonthlyIncomes(Long userId, int year) {
         List<Object[]> rawIncomes = incomeRepository.findMonthlyIncomes(userId, year, false);
         Double[] monthlyTotals = new Double[12];
         Arrays.fill(monthlyTotals, 0.0); // Initialize all months to 0
@@ -170,7 +170,7 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public Double getTotalIncomeInMonthAndYear(int userId, int month, int year) {
+    public Double getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
         Double totalIncome = incomeRepository.getTotalIncomeInMonthAndYear(userId, month, year);
         if(totalIncome == null){
             return 0.0;
@@ -180,7 +180,7 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public Double getRemainingIncomeUpToPreviousMonthByMonthAndYear(int userId, int month, int year) {
+    public Double getRemainingIncomeUpToPreviousMonthByMonthAndYear(Long userId, int month, int year) {
 
         // Adjust month and year to point to the previous month
         final int adjustedMonth;
@@ -241,7 +241,7 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public IncomeModel updateBySource(int id, IncomeModel income) {
+    public IncomeModel updateBySource(Long id, IncomeModel income) {
 
         flag = true;
         IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
@@ -270,7 +270,7 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public boolean deleteIncomeById(int id) {
+    public boolean deleteIncomeById(Long id) {
 
         try {
             IncomeModel income = incomeRepository.findById(id).orElse(null);

@@ -29,7 +29,7 @@ public class IncomeApiController {
     @Operation(summary = "Method to save the income details")
     @PostMapping("/{userId}")
     public ResponseEntity<IncomeModel> saveIncome(@RequestBody IncomeModel income,
-                                                  @PathVariable("userId") int userId) {
+                                                  @PathVariable("userId") Long userId) {
         income.setUserId(userId);
         IncomeModel income1 = incomeService.save(income);
         if (income1 != null) {
@@ -41,14 +41,14 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to get all the income details of a user")
     @GetMapping("/{userId}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomes(@PathVariable("userId") int userId) {
+    public ResponseEntity<List<IncomeModel>> getAllIncomes(@PathVariable("userId") Long userId) {
         List<IncomeModel> list = incomeService.getAllIncomes(userId);
             return ResponseEntity.status(HttpStatus.OK).body(list); // 200
     }
 
     @Operation(summary = "Method to get all the income details in a particular month and in a particular year")
     @GetMapping("/{userId}/{month}/{year}/{deleteStatus}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomesByDate(@PathVariable("userId") int userId,
+    public ResponseEntity<List<IncomeModel>> getAllIncomesByDate(@PathVariable("userId") Long userId,
                                                                  @PathVariable("month") int month,
                                                                  @PathVariable("year") int year,
                                                                  @PathVariable("deleteStatus") boolean deleteStatus){
@@ -58,7 +58,7 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to generate the Excel report for the Monthly incomes of a user")
     @GetMapping("/{userId}/{month}/{year}/generateMonthlyReport")
-    public ResponseEntity<byte[]> getMonthlyIncomeReport(@PathVariable("userId") int userId,
+    public ResponseEntity<byte[]> getMonthlyIncomeReport(@PathVariable("userId") Long userId,
                                                       @PathVariable("month") int month,
                                                       @PathVariable("year") int year) throws IOException {
 
@@ -72,7 +72,7 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to get all the income details in a particular year")
     @GetMapping("/{userId}/{year}/{deleteStatus}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") int userId,
+    public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") Long userId,
                                                                  @PathVariable("year") int year,
                                                                  @PathVariable("deleteStatus") boolean deleteStatus){
         List<IncomeModel> incomesList = incomeService.getAllIncomesByYear(userId, year, deleteStatus);
@@ -81,7 +81,7 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to generate the Excel report for the Yearly incomes of a user")
     @GetMapping("/{userId}/{year}/generateYearlyReport")
-    public ResponseEntity<byte[]> getYearlyIncomeReport(@PathVariable("userId") int userId,
+    public ResponseEntity<byte[]> getYearlyIncomeReport(@PathVariable("userId") Long userId,
                                                       @PathVariable("year") int year) throws IOException {
 
         byte[] excelData = incomeService.generateYearlyExcelReport(userId, year);
@@ -94,20 +94,23 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to get the total income amount in a particular month and in a particular year")
     @GetMapping("/{userId}/totalIncome/{month}/{year}")
-    public Double getTotalIncomeByMonthAndYear(@PathVariable("userId") int userId, @PathVariable("month") int month, @PathVariable("year") int year){
+    public Double getTotalIncomeByMonthAndYear(@PathVariable("userId") Long userId,
+                                               @PathVariable("month") int month,
+                                               @PathVariable("year") int year){
         return incomeService.getTotalIncomeInMonthAndYear(userId, month, year);
     }
 
     @Operation(summary = "Method to get the list of total income amount of all months in a particular year")
     @GetMapping("/{userId}/monthlyTotalIncomesList/{year}")
-    public List<Double> getMonthlyTotals(@PathVariable("userId") int userId, @PathVariable("year") int year) {
+    public List<Double> getMonthlyTotals(@PathVariable("userId") Long userId,
+                                         @PathVariable("year") int year) {
         return incomeService.getMonthlyIncomes(userId, year);
     }
 
     @Operation(summary = "Method to get the total savings/remaining amount up to previous month (excludes current month)")
     @GetMapping("/{userId}/totalRemainingIncomeUpToPreviousMonth/{month}/{year}")
     public Double getRemainingIncomeUpToPreviousMonthByMonthAndYear(
-            @PathVariable("userId") int userId,
+            @PathVariable("userId") Long userId,
             @PathVariable("month") int month,
             @PathVariable("year") int year) {
 
@@ -128,7 +131,7 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to update the income details")
     @PutMapping("/{id}")
-    public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") int id, @RequestBody IncomeModel income) {
+    public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") Long id, @RequestBody IncomeModel income) {
 
         IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
         if(incomeModel != null){
@@ -153,7 +156,7 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to delete the particular income. Here which is typically soft delete only")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteIncomeById(@PathVariable("id") int id) {
+    public ResponseEntity<Void> deleteIncomeById(@PathVariable("id") Long id) {
         boolean isDeleted = incomeService.deleteIncomeById(id);
         if (isDeleted) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); // 204: No Content

@@ -8,9 +8,9 @@ public interface BudgetService {
 
     public BudgetModel save(BudgetModel budget);
 
-    public List<BudgetModel> getAllBudgets(int userId);
+    public List<BudgetModel> getAllBudgets(Long userId);
 
-    public Double budgetProgress(int userId, int month, int year);
+    public Double budgetProgress(Long userId, int month, int year);
 
-    public BudgetModel update(int id, BudgetModel budget);
+    public BudgetModel update(Long id, BudgetModel budget);
 }

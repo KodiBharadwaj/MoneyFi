@@ -16,9 +16,9 @@ import java.time.LocalDate;
 public class IncomeModel {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
-    private int userId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Long userId;
     private double amount;
     private String source;
     private LocalDate date;

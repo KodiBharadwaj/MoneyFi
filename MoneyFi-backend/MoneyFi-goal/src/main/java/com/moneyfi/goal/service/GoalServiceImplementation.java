@@ -23,19 +23,19 @@ public class GoalServiceImplementation implements GoalService{
     }
 
     @Override
-    public GoalModel addAmount(int id, double amount) {
+    public GoalModel addAmount(Long id, double amount) {
         GoalModel goalModel = goalRepository.findById(id).orElse(null);
         goalModel.setCurrentAmount(goalModel.getCurrentAmount() + amount);
         return save(goalModel);
     }
 
     @Override
-    public List<GoalModel> getAllGoals(int userId) {
-        return goalRepository.findByUserId(userId).stream().sorted((a,b)->a.getId()-b.getId()).toList();
+    public List<GoalModel> getAllGoals(Long userId) {
+        return goalRepository.findByUserId(userId).stream().sorted((a,b)-> Math.toIntExact(a.getId() - b.getId())).toList();
     }
 
     @Override
-    public Double getCurrentTotalGoalIncome(int userId) {
+    public Double getCurrentTotalGoalIncome(Long userId) {
         Double totalGoalIncome = goalRepository.getCurrentTotalGoalIncome(userId);
         if(totalGoalIncome == null){
             return 0.0;
@@ -45,7 +45,7 @@ public class GoalServiceImplementation implements GoalService{
     }
 
     @Override
-    public Double getTargetTotalGoalIncome(int userId) {
+    public Double getTargetTotalGoalIncome(Long userId) {
         Double totalGoalTargetIncome = goalRepository.getTargetTotalGoalIncome(userId);
         if(totalGoalTargetIncome == null){
             return 0.0;
@@ -55,7 +55,7 @@ public class GoalServiceImplementation implements GoalService{
     }
 
     @Override
-    public GoalModel updateByGoalName(int id, GoalModel goal) {
+    public GoalModel updateByGoalName(Long id, GoalModel goal) {
         GoalModel goalModel = goalRepository.findById(id).orElse(null);
 
         goal.setUserId(goal.getUserId());
@@ -80,7 +80,7 @@ public class GoalServiceImplementation implements GoalService{
     }
 
     @Override
-    public boolean deleteGoalById(int id) {
+    public boolean deleteGoalById(Long id) {
 
         try {
             goalRepository.deleteById(id);

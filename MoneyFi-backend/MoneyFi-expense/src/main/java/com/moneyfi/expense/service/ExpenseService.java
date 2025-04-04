@@ -8,28 +8,28 @@ public interface ExpenseService {
 
     public ExpenseModel save(ExpenseModel expense);
 
-    public List<ExpenseModel> getAllexpenses(int userId);
+    public List<ExpenseModel> getAllexpenses(Long userId);
 
-    public List<ExpenseModel> getAllexpensesByDate(int userId, int month, int year, boolean deleteStatus);
+    public List<ExpenseModel> getAllexpensesByDate(Long userId, int month, int year, boolean deleteStatus);
 
-    public byte[] generateMonthlyExcelReport(int userId, int month, int year);
+    public byte[] generateMonthlyExcelReport(Long userId, int month, int year);
 
-    public List<ExpenseModel> getAllexpensesByYear(int userId, int year, boolean deleteStatus);
+    public List<ExpenseModel> getAllexpensesByYear(Long userId, int year, boolean deleteStatus);
 
-    public byte[] generateYearlyExcelReport(int userId, int year);
+    public byte[] generateYearlyExcelReport(Long userId, int year);
 
-    public List<Double> getMonthlyExpenses(int userId, int year);
+    public List<Double> getMonthlyExpenses(Long userId, int year);
 
-    public Double getTotalExpensesUpToPreviousMonth(int userId, int month, int year);
+    public Double getTotalExpensesUpToPreviousMonth(Long userId, int month, int year);
 
-    public Double getTotalExpenseInMonthAndYear(int userId, int month, int year);
+    public Double getTotalExpenseInMonthAndYear(Long userId, int month, int year);
 
-    public Double getTotalSavingsByMonthAndDate(int userId, int month, int year);
+    public Double getTotalSavingsByMonthAndDate(Long userId, int month, int year);
 
-    public List<Double> getCumulativeMonthlySavings(int userId, int year);
+    public List<Double> getCumulativeMonthlySavings(Long userId, int year);
 
-    public ExpenseModel updateBySource(int id, ExpenseModel expense);
+    public ExpenseModel updateBySource(Long id, ExpenseModel expense);
 
-    public boolean deleteExpenseById(int id);
+    public boolean deleteExpenseById(Long id);
 
 }

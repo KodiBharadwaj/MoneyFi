@@ -15,7 +15,7 @@ public class ProfileServiceImplementation implements ProfileService{
     }
 
     @Override
-    public ProfileModel save(int userId, ProfileModel profile) {
+    public ProfileModel save(Long userId, ProfileModel profile) {
 
         ProfileModel fetchProfile = profileRepository.findByUserId(userId);
         fetchProfile.setName(profile.getName());
@@ -32,12 +32,12 @@ public class ProfileServiceImplementation implements ProfileService{
     }
 
     @Override
-    public ProfileModel findByUserId(int userId) {
+    public ProfileModel findByUserId(Long userId) {
         return profileRepository.findByUserId(userId);
     }
 
     @Override
-    public String getNameByUserId(int userId) {
+    public String getNameByUserId(Long userId) {
         return profileRepository.getNameFromUserId(userId);
     }
 }

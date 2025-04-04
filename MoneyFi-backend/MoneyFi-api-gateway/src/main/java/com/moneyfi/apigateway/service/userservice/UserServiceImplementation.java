@@ -40,7 +40,7 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public boolean changePassword(ChangePasswordDto changePasswordDto){
-        User user = userRepository.findById(changePasswordDto.getUserId()).orElse(null);
+        User user = userRepository.findById(Long.valueOf(changePasswordDto.getUserId())).orElse(null);
         if(user == null) return false;
 
         if(!encoder.matches(changePasswordDto.getCurrentPassword(), user.getPassword())){
@@ -51,7 +51,7 @@ public class UserServiceImplementation implements UserService {
         }
 
 //        sendPasswordAlertMail(user.getUsername());
-        new Thread(() -> sendPasswordAlertMail(user.getId(), user.getUsername())).start();
+        new Thread(() -> sendPasswordAlertMail(Math.toIntExact(user.getId()), user.getUsername())).start();
         return true;
     }
 

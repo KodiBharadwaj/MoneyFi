@@ -18,7 +18,7 @@ public class BlackListedToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @Column(nullable = false, unique = true) // Ensure unique tokens
     private String token;
