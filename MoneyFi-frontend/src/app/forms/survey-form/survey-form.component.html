@@ -1,0 +1,53 @@
+<div class="survey-card">
+    <h2 class="survey-title">Customer Satisfaction Survey</h2>
+  
+    <form (ngSubmit)="submitSurvey()" #surveyForm="ngForm">
+      
+      <!-- Name Field -->
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" [(ngModel)]="survey.name" name="name" required placeholder="Enter your name">
+      </div>
+  
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" [(ngModel)]="survey.email" name="email" required placeholder="Enter your email">
+      </div>
+  
+      <!-- Satisfaction Rating -->
+      <div class="form-group">
+        <label>How satisfied are you with our service?</label>
+        <div class="radio-group">
+          <label *ngFor="let option of satisfactionOptions" class="radio-label">
+            <input type="radio" name="satisfaction" [(ngModel)]="survey.satisfaction" [value]="option" required>
+            <span class="radio-custom"></span> {{ option }}
+          </label>
+        </div>
+      </div>
+  
+      <!-- Feature Usage -->
+      <div class="form-group">
+        <label>Which features do you use most?</label>
+        <div class="checkbox-group">
+          <label *ngFor="let feature of featureOptions" class="checkbox-label">
+            <input type="checkbox" [value]="feature" (change)="toggleFeature(feature)">
+            <span class="checkbox-custom"></span> {{ feature }}
+          </label>
+        </div>
+      </div>
+  
+      <!-- Comments -->
+      <div class="form-group">
+        <label for="comments">Additional Comments</label>
+        <textarea id="comments" [(ngModel)]="survey.comments" name="comments" rows="4" placeholder="Your thoughts..."></textarea>
+      </div>
+  
+      <!-- Submit Button -->
+      <button type="submit" [disabled]="!surveyForm.valid" class="submit-btn">
+        Submit Feedback
+      </button>
+  
+    </form>
+  </div>
+  

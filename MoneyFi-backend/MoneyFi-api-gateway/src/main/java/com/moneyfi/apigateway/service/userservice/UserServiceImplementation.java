@@ -106,6 +106,48 @@ public class UserServiceImplementation implements UserService {
         return remainingTimeCountDto;
     }
 
+    @Override
+    public boolean sendContactUsEmailOfUser(String message, String base64Image) {
+
+        String subject = "MoneyFi's Report Alert!!";
+
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello Admin,</p>"
+                + "<p style='font-size: 16px;'>You received the Report/defect by a user: </p>"
+                + "<br>"
+                + "<p style='font-size: 16px;'>" + message + "</p>"
+                + "<br>";
+
+        // If an image is provided, embed it in the email
+        if (base64Image != null && !base64Image.isEmpty()) {
+            body += "<p><b>Attached Image:</b></p>"
+                    + "<img src='data:image/png;base64," + base64Image + "' width='500px' height='auto'/>";
+        }
+
+        body += "</body></html>";
+
+        emailFilter.sendEmail("bharadwajkodi2003@gmail.com", subject, body);
+        return true;
+    }
+
+    @Override
+    public boolean sendUserFeedBackEmail(int rating, String comment) {
+        String subject = "MoneyFi's User Feedback";
+
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello Admin,</p>"
+                + "<p style='font-size: 16px;'>You received feedback of a user: </p>"
+                + "<br>"
+                + "<p style='font-size: 16px;'>" + rating + "</p>"
+                + "<br>"
+                + "<p style='font-size: 16px;'>" + comment + "</p>";
+
+        emailFilter.sendEmail("bharadwajkodi2003@gmail.com", subject, body);
+        return true;
+    }
+
 
     @Scheduled(fixedRate = 3600000) // Runs every 1 hour
     public void removeOtpCountOfPreviousDay() {

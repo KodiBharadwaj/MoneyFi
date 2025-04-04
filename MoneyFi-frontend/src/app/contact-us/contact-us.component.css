@@ -1,0 +1,69 @@
+.contact-container {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 20px;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.contact-container h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+label {
+  font-weight: 600;
+  font-size: 16px;
+  display: block;
+  margin-bottom: 5px;
+  color: #555;
+}
+
+select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  background: #fff;
+  cursor: pointer;
+  transition: 0.3s ease-in-out;
+}
+
+select:hover {
+  border-color: #007bff;
+}
+
+.form-container {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f8f9fa;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0px 0px 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Smooth fade-in effect */
+.form-container > * {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

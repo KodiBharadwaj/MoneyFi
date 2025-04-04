@@ -29,7 +29,7 @@ spring:
             uri:
               lb://MoneyFi-user
             predicates:
-              - Path=/api/user/**, /api/profile/**
+              - Path=/api/user/**, /api/profile/**, /api/contact/**
 
           - id: MoneyFi-income
             uri:

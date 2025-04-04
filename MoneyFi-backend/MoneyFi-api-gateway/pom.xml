@@ -11,7 +11,7 @@
     <groupId>com.example</groupId>
     <artifactId>MoneyFi-api-gateway</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>api-gateway</name>
+    <name>MoneyFi-api-gateway</name>
     <description>Demo project for Spring Boot</description>
     <url/>
     <licenses>
