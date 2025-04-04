@@ -177,9 +177,21 @@ public class UserController {
         return userService.changePassword(changePasswordDto);
     }
 
-    @Operation(summary = "Method to check the eligibity for next otp")
+    @Operation(summary = "Method to check the eligibility for next otp")
     @GetMapping("/checkOtpActive/{email}")
     public RemainingTimeCountDto checkOtpActiveMethod(@PathVariable("email") String email){
         return userService.checkOtpActiveMethod(email);
+    }
+
+    @GetMapping("/contactUsEmail/{message}/{images}")
+    public boolean sendContactUsEmailOfUser(@PathVariable("message") String message,
+                                            @PathVariable("images") String images){
+        return userService.sendContactUsEmailOfUser(message, images);
+    }
+
+    @GetMapping("/feedbackEmail/{rating}/{comment}")
+    public boolean sendUserFeedBackEmail(@PathVariable("rating") int rating,
+                                         @PathVariable("comment") String comment){
+        return userService.sendUserFeedBackEmail(rating, comment);
     }
 }
