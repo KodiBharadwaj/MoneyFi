@@ -62,6 +62,7 @@ public class UserServiceImplementation implements UserService {
         new Thread(() -> sendPasswordAlertMail(Math.toIntExact(user.getId()), user.getUsername())).start();
 
         user.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
+        user.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(5));
         user.setOtpCount(user.getOtpCount()+1);
         userRepository.save(user);
 

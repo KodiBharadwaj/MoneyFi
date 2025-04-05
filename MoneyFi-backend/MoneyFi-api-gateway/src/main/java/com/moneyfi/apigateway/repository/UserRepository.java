@@ -10,6 +10,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     public User findByUsername(String username);
 
-    @Query("select u from User u where u.otpCount > 3")
+    @Query("select u from User u where u.otpCount > 2")
     public List<User> getUserListWhoseOtpCountGreaterThanThree();
 }
