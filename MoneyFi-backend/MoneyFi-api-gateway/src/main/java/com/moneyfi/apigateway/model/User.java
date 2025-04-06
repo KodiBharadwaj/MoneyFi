@@ -16,7 +16,6 @@ public class User {
     private Long id;
     private String username;
     private String password;
-
     private String verificationCode;
     private LocalDateTime verificationCodeExpiration;
     private int otpCount;
