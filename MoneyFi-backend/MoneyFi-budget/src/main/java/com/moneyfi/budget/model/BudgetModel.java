@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,7 +20,9 @@ public class BudgetModel {
     private Long id;
     private Long userId;
     private String category;
-    private double currentSpending;
-    private double moneyLimit;
+    @Column(precision = 38, scale = 5)
+    private BigDecimal currentSpending;
+    @Column(precision = 38, scale = 5)
+    private BigDecimal moneyLimit;
 
 }

@@ -1,4 +1,4 @@
-package com.moneyfi.income.api;
+package com.moneyfi.income.controller;
 
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.repository.IncomeRepository;
@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -94,7 +95,7 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to get the total income amount in a particular month and in a particular year")
     @GetMapping("/{userId}/totalIncome/{month}/{year}")
-    public Double getTotalIncomeByMonthAndYear(@PathVariable("userId") Long userId,
+    public BigDecimal getTotalIncomeByMonthAndYear(@PathVariable("userId") Long userId,
                                                @PathVariable("month") int month,
                                                @PathVariable("year") int year){
         return incomeService.getTotalIncomeInMonthAndYear(userId, month, year);
@@ -102,14 +103,14 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to get the list of total income amount of all months in a particular year")
     @GetMapping("/{userId}/monthlyTotalIncomesList/{year}")
-    public List<Double> getMonthlyTotals(@PathVariable("userId") Long userId,
+    public List<BigDecimal> getMonthlyTotals(@PathVariable("userId") Long userId,
                                          @PathVariable("year") int year) {
         return incomeService.getMonthlyIncomes(userId, year);
     }
 
     @Operation(summary = "Method to get the total savings/remaining amount up to previous month (excludes current month)")
     @GetMapping("/{userId}/totalRemainingIncomeUpToPreviousMonth/{month}/{year}")
-    public Double getRemainingIncomeUpToPreviousMonthByMonthAndYear(
+    public BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(
             @PathVariable("userId") Long userId,
             @PathVariable("month") int month,
             @PathVariable("year") int year) {

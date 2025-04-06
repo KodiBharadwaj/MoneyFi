@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
@@ -91,7 +92,7 @@ public class IncomeServiceImplementation implements IncomeService {
                 Row row = sheet.createRow(rowIndex++);
                 row.createCell(0).setCellValue(data.getCategory());
                 row.createCell(1).setCellValue(data.getSource());
-                row.createCell(2).setCellValue(data.getAmount());
+                row.createCell(2).setCellValue(data.getAmount().doubleValue());
                 // Format Date Properly
                 Cell dateCell = row.createCell(3);
                 dateCell.setCellValue(data.getDate()); // Assuming data.getDate() is `java.util.Date`
@@ -155,14 +156,14 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public List<Double> getMonthlyIncomes(Long userId, int year) {
+    public List<BigDecimal> getMonthlyIncomes(Long userId, int year) {
         List<Object[]> rawIncomes = incomeRepository.findMonthlyIncomes(userId, year, false);
-        Double[] monthlyTotals = new Double[12];
-        Arrays.fill(monthlyTotals, 0.0); // Initialize all months to 0
+        BigDecimal[] monthlyTotals = new BigDecimal[12];
+        Arrays.fill(monthlyTotals, BigDecimal.ZERO); // Initialize all months to 0
 
         for (Object[] raw : rawIncomes) {
             int month = ((Integer) raw[0]) - 1; // Months are 1-based, array is 0-based
-            double total = (Double) raw[1];
+            BigDecimal total = (BigDecimal) raw[1];
             monthlyTotals[month] = total;
         }
 
@@ -170,17 +171,17 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public Double getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
-        Double totalIncome = incomeRepository.getTotalIncomeInMonthAndYear(userId, month, year);
+    public BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
+        BigDecimal totalIncome = incomeRepository.getTotalIncomeInMonthAndYear(userId, month, year);
         if(totalIncome == null){
-            return 0.0;
+            return BigDecimal.ZERO;
         }
 
         return totalIncome;
     }
 
     @Override
-    public Double getRemainingIncomeUpToPreviousMonthByMonthAndYear(Long userId, int month, int year) {
+    public BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(Long userId, int month, int year) {
 
         // Adjust month and year to point to the previous month
         final int adjustedMonth;
@@ -194,29 +195,33 @@ public class IncomeServiceImplementation implements IncomeService {
             adjustedYear = year;
         }
 
-        Double totalIncome = incomeRepository.getRemainingIncomeUpToPreviousMonthByMonthAndYear(userId, adjustedMonth, adjustedYear);
-        if(totalIncome == null || totalIncome == 0){
-            return 0.0;
+        BigDecimal totalIncome = incomeRepository.getRemainingIncomeUpToPreviousMonthByMonthAndYear(userId, adjustedMonth, adjustedYear);
+        if(totalIncome == null || totalIncome == BigDecimal.ZERO){
+            return BigDecimal.ZERO;
         }
-        Double totalExpense = restTemplate.getForObject("http://MONEYFI-EXPENSE/api/expense/" + userId + "/totalExpensesUpToPreviousMonth/" + month +"/" + year, Double.class);
-        if(totalExpense > totalIncome){
-            return 0.0;
+
+        BigDecimal totalExpense = restTemplate.getForObject("http://MONEYFI-EXPENSE/api/expense/" + userId + "/totalExpensesUpToPreviousMonth/" + month +"/" + year, BigDecimal.class);
+        if(totalExpense.compareTo(totalIncome) > 0){
+            return BigDecimal.ZERO;
         }
-        return (totalIncome - totalExpense);
+
+        return totalIncome.subtract(totalExpense);
     }
 
     @Override
     public boolean incomeUpdateCheckFunction(IncomeModel incomeModel) {
 
-        Double totalIncome = getTotalIncomeInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
-        Double previousUpdatedIncome = incomeRepository.getIncomeByIncomeId(incomeModel.getId());
-        if(previousUpdatedIncome == null) previousUpdatedIncome = 0.0;
+        BigDecimal totalIncome = getTotalIncomeInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
+        BigDecimal previousUpdatedIncome = incomeRepository.getIncomeByIncomeId(incomeModel.getId());
+        if(previousUpdatedIncome == null){
+            previousUpdatedIncome = BigDecimal.ZERO;
+        }
 
-        Double updatedIncome = incomeModel.getAmount();
-        Double currentNetIncome = totalIncome - previousUpdatedIncome + updatedIncome;
-        Double totalExpensesInMonth = restTemplate.getForObject("http://MONEYFI-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear(), Double.class);
+        BigDecimal updatedIncome = incomeModel.getAmount();
+        BigDecimal currentNetIncome = totalIncome.subtract(previousUpdatedIncome).add(updatedIncome);
+        BigDecimal totalExpensesInMonth = restTemplate.getForObject("http://MONEYFI-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear(), BigDecimal.class);
 
-        if(currentNetIncome > totalExpensesInMonth){
+        if(currentNetIncome.compareTo(totalExpensesInMonth) > 0){
             return true;
         }
         return false;
@@ -225,15 +230,17 @@ public class IncomeServiceImplementation implements IncomeService {
     @Override
     public boolean incomeDeleteCheckFunction(IncomeModel incomeModel) {
 
-        Double totalIncome = getTotalIncomeInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
-        Double previousUpdatedIncome = incomeRepository.getIncomeByIncomeId(incomeModel.getId());
-        if(previousUpdatedIncome == null) previousUpdatedIncome = 0.0;
+        BigDecimal totalIncome = getTotalIncomeInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
+        BigDecimal previousUpdatedIncome = incomeRepository.getIncomeByIncomeId(incomeModel.getId());
+        if(previousUpdatedIncome == null){
+            previousUpdatedIncome = BigDecimal.ZERO;
+        }
 
-        Double updatedIncome = 0.0;
-        Double currentNetIncome = totalIncome - previousUpdatedIncome + updatedIncome;
-        Double totalExpensesInMonth = restTemplate.getForObject("http://MONEYFI-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear(), Double.class);
+        BigDecimal updatedIncome = BigDecimal.ZERO;
+        BigDecimal currentNetIncome = totalIncome.subtract(previousUpdatedIncome).add(updatedIncome);
+        BigDecimal totalExpensesInMonth = restTemplate.getForObject("http://MONEYFI-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear(), BigDecimal.class);
 
-        if(currentNetIncome > totalExpensesInMonth){
+        if(currentNetIncome.compareTo(totalExpensesInMonth) > 0){
             return true;
         }
 
@@ -252,7 +259,7 @@ public class IncomeServiceImplementation implements IncomeService {
                     incomeModel.getDate() == income.getDate() &&
                     incomeModel.isRecurring() == income.isRecurring()){
         }
-        if(income.getAmount() > 0){
+        if(income.getAmount().compareTo(BigDecimal.ZERO) > 0){
             incomeModel.setAmount(income.getAmount());
         }
         if(income.getSource() != null){

@@ -1,9 +1,8 @@
-package com.moneyfi.user.api;
+package com.moneyfi.user.controller;
 
 import com.moneyfi.user.model.ProfileModel;
 import com.moneyfi.user.service.profile.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

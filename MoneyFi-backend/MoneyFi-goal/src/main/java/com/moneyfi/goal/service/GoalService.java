@@ -2,21 +2,22 @@ package com.moneyfi.goal.service;
 
 import com.moneyfi.goal.model.GoalModel;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface GoalService {
 
-    public GoalModel save(GoalModel goal);
+    GoalModel save(GoalModel goal);
 
-    public GoalModel addAmount(Long id, double amount);
+    GoalModel addAmount(Long id, BigDecimal amount);
 
-    public List<GoalModel> getAllGoals(Long userId);
+    List<GoalModel> getAllGoals(Long userId);
 
-    public Double getCurrentTotalGoalIncome(Long userId);
+    BigDecimal getCurrentTotalGoalIncome(Long userId);
 
-    public Double getTargetTotalGoalIncome(Long userId);
+    BigDecimal getTargetTotalGoalIncome(Long userId);
 
-    public GoalModel updateByGoalName(Long id, GoalModel goal);
+    GoalModel updateByGoalName(Long id, GoalModel goal);
 
-    public boolean deleteGoalById(Long id);
+    boolean deleteGoalById(Long id);
 }

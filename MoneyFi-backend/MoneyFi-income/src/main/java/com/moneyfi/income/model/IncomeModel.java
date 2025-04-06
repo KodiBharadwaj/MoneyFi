@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -19,7 +20,8 @@ public class IncomeModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long userId;
-    private double amount;
+    @Column(precision = 38, scale = 10)
+    private BigDecimal amount;
     private String source;
     private LocalDate date;
     private String category;

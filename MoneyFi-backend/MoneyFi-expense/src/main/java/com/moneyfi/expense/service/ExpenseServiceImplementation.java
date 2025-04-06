@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +37,10 @@ public class ExpenseServiceImplementation implements ExpenseService{
 
     @Override
     public List<ExpenseModel> getAllexpenses(Long userId) {
-        return expenseRepository.findExpensesByUserId(userId).stream().filter(i->i.is_deleted() == false).toList();
+        return expenseRepository.findExpensesByUserId(userId)
+                .stream()
+                .filter(i->i.is_deleted() == false)
+                .toList();
     }
 
     @Override
@@ -73,7 +77,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
                 Row row = sheet.createRow(rowIndex++);
                 row.createCell(0).setCellValue(data.getCategory());
                 row.createCell(1).setCellValue(data.getDescription());
-                row.createCell(2).setCellValue(data.getAmount());
+                row.createCell(2).setCellValue(data.getAmount().doubleValue());
                 // Format Date Properly
                 Cell dateCell = row.createCell(3);
                 dateCell.setCellValue(data.getDate()); // Assuming data.getDate() is `java.util.Date`
@@ -136,14 +140,14 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public List<Double> getMonthlyExpenses(Long userId, int year) {
+    public List<BigDecimal> getMonthlyExpenses(Long userId, int year) {
         List<Object[]> rawExpenses = expenseRepository.findMonthlyExpenses(userId, year, false);
-        Double[] monthlyTotals = new Double[12];
-        Arrays.fill(monthlyTotals, 0.0); // Initialize all months to 0
+        BigDecimal[] monthlyTotals = new BigDecimal[12];
+        Arrays.fill(monthlyTotals, BigDecimal.ZERO); // Initialize all months to 0
 
         for (Object[] raw : rawExpenses) {
             int month = ((Integer) raw[0]) - 1; // Months are 1-based, array is 0-based
-            double total = (Double) raw[1];
+            BigDecimal total = (BigDecimal) raw[1];
             monthlyTotals[month] = total;
         }
 
@@ -151,7 +155,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public Double getTotalExpensesUpToPreviousMonth(Long userId, int month, int year) {
+    public BigDecimal getTotalExpensesUpToPreviousMonth(Long userId, int month, int year) {
         // Adjust month and year to point to the previous month
         final int adjustedMonth;
         final int adjustedYear;
@@ -163,64 +167,66 @@ public class ExpenseServiceImplementation implements ExpenseService{
             adjustedMonth = month;
             adjustedYear = year;
         }
-        Double value = expenseRepository.getTotalExpensesUpToPreviousMonth(userId, adjustedMonth, adjustedYear);
+        BigDecimal value = expenseRepository.getTotalExpensesUpToPreviousMonth(userId, adjustedMonth, adjustedYear);
         if(value != null){
             return value;
         } else {
-            return 0.0;
+            return BigDecimal.ZERO;
         }
     }
 
     @Override
-    public Double getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
-        Double totalExpense = expenseRepository.getTotalExpenseInMonthAndYear(userId, month, year);
-        if(totalExpense == null) return 0.0;
+    public BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
+        BigDecimal totalExpense = expenseRepository.getTotalExpenseInMonthAndYear(userId, month, year);
+        if(totalExpense == null){
+            return BigDecimal.ZERO;
+        }
 
         return totalExpense;
     }
 
     @Override
-    public Double getTotalSavingsByMonthAndDate(Long userId, int month, int year) {
-        Double totalIncome = restTemplate.getForObject("http://MONEYFI-INCOME/api/income/" + userId + "/totalIncome/" + month + "/" + year, Double.class);
-        Double totalExpenses = getTotalExpenseInMonthAndYear(userId, month, year);
-        if(totalIncome > totalExpenses){
-            return (totalIncome - totalExpenses);
+    public BigDecimal getTotalSavingsByMonthAndDate(Long userId, int month, int year) {
+        BigDecimal totalIncome = restTemplate.getForObject("http://MONEYFI-INCOME/api/income/" + userId + "/totalIncome/" + month + "/" + year, BigDecimal.class);
+        BigDecimal totalExpenses = getTotalExpenseInMonthAndYear(userId, month, year);
+        if(totalIncome.compareTo(totalExpenses) > 0){
+            return totalIncome.subtract(totalExpenses);
         }
 
-        return 0.0;
+        return BigDecimal.ZERO;
     }
 
     @Override
-    public List<Double> getCumulativeMonthlySavings(Long userId, int year) {
+    public List<BigDecimal> getCumulativeMonthlySavings(Long userId, int year) {
 
-        Double[] incomes = restTemplate.getForObject("http://MONEYFI-INCOME/api/income/"+userId+"/monthlyTotalIncomesList/"+year,Double[].class);
-        Double[] expenses = getMonthlyExpenses(userId, year).toArray(new Double[0]);
+        BigDecimal[] incomes = restTemplate.getForObject("http://MONEYFI-INCOME/api/income/"+userId+"/monthlyTotalIncomesList/"+year,BigDecimal[].class);
+        BigDecimal[] expenses = getMonthlyExpenses(userId, year).toArray(new BigDecimal[0]);
         LocalDate currentDate = LocalDate.now();
         int currentYear = currentDate.getYear();
         int currentMonth = currentDate.getMonthValue();
 
-        if(year > currentYear) return Arrays.asList(new Double[12]);
+        if(year > currentYear) return Arrays.asList(new BigDecimal[12]);
 
         int lastMonth = (year < currentYear) ? 12 : currentMonth;
 
-        List<Double> savings = new ArrayList<>();
+        List<BigDecimal> savings = new ArrayList<>();
         for (int i = 0; i < 12; i++) {
             if(i < lastMonth){
-                savings.add(incomes[i] - expenses[i]);
+                savings.add(incomes[i].subtract(expenses[i]));
             }
             else{
-                savings.add(0.0);
+                savings.add(BigDecimal.ZERO);
             }
         }
 
-        List<Double> cumulativeSavings = new ArrayList<>();
+        List<BigDecimal> cumulativeSavings = new ArrayList<>();
         cumulativeSavings.add(savings.get(0));
         for(int i=1; i<12; i++){
             if(i < lastMonth){
-                cumulativeSavings.add(cumulativeSavings.get(i-1)+savings.get(i));
+                cumulativeSavings.add(cumulativeSavings.get(i-1).add(savings.get(i)));
             }
             else {
-                cumulativeSavings.add(0.0);
+                cumulativeSavings.add(BigDecimal.ZERO);
             }
         }
         return cumulativeSavings;
@@ -233,7 +239,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
         if(expense.getCategory() != null){
             expenseModel.setCategory(expense.getCategory());
         }
-        if(expense.getAmount() > 0){
+        if(expense.getAmount().compareTo(BigDecimal.ZERO) > 0){
             expenseModel.setAmount(expense.getAmount());
         }
         if(expense.getDate() != null){

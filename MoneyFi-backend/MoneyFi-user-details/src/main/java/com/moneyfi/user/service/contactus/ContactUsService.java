@@ -5,7 +5,7 @@ import com.moneyfi.user.model.Feedback;
 
 public interface ContactUsService {
 
-    public ContactUs saveContactUsDetails(ContactUs contactUsDetails);
+    ContactUs saveContactUsDetails(ContactUs contactUsDetails);
 
-    public Feedback saveFeedback(Feedback feedback);
+    Feedback saveFeedback(Feedback feedback);
 }

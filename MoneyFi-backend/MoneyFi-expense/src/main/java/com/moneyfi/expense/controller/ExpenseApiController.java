@@ -1,10 +1,9 @@
-package com.moneyfi.expense.api;
+package com.moneyfi.expense.controller;
 
 import com.moneyfi.expense.model.ExpenseModel;
 import com.moneyfi.expense.repository.ExpenseRepository;
 import com.moneyfi.expense.service.ExpenseService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -93,20 +93,22 @@ public class ExpenseApiController {
 
     @Operation(summary = "Method to get the total expense amount in a particular month and in a particular year")
     @GetMapping("/{userId}/totalExpense/{month}/{year}")
-    public Double getTotalExpenseByMonthAndYear(@PathVariable("userId") Long userId, @PathVariable("month") int month, @PathVariable("year") int year){
+    public BigDecimal getTotalExpenseByMonthAndYear(@PathVariable("userId") Long userId,
+                                                    @PathVariable("month") int month,
+                                                    @PathVariable("year") int year){
         return expenseService.getTotalExpenseInMonthAndYear(userId, month, year);
     }
 
     @Operation(summary = "Method to get the list of total expense amount of all months in a particular year")
     @GetMapping("/{userId}/monthlyTotalExpensesList/{year}")
-    public List<Double> getMonthlyTotals(@PathVariable("userId") Long userId,
+    public List<BigDecimal> getMonthlyTotals(@PathVariable("userId") Long userId,
                                          @PathVariable("year") int year) {
         return expenseService.getMonthlyExpenses(userId, year);
     }
 
     @Operation(summary = "Method to get the total expense amount up to previous month (excludes current month)")
     @GetMapping("/{userId}/totalExpensesUpToPreviousMonth/{month}/{year}")
-    public Double getTotalExpensesUpToPreviousMonth(
+    public BigDecimal getTotalExpensesUpToPreviousMonth(
             @PathVariable("userId") Long userId,
             @PathVariable("month") int month,
             @PathVariable("year") int year) {
@@ -116,7 +118,7 @@ public class ExpenseApiController {
 
     @Operation(summary = "Method to find the total savings/ remaining amount in a month")
     @GetMapping("/{userId}/totalSavings/{month}/{year}")
-    public Double getTotalSavingsByMonthAndDate(@PathVariable("userId") Long userId,
+    public BigDecimal getTotalSavingsByMonthAndDate(@PathVariable("userId") Long userId,
                                                 @PathVariable("month") int month,
                                                 @PathVariable("year") int year){
 
@@ -125,7 +127,7 @@ public class ExpenseApiController {
 
     @Operation(summary = "Method to get the list of cumulative savings monthly wise in a year")
     @GetMapping("/{userId}/monthlyCumulativeSavingsInYear/{year}")
-    public List<Double> getCumulativeMonthlySavings(@PathVariable("userId") Long userId, @PathVariable("year") int year){
+    public List<BigDecimal> getCumulativeMonthlySavings(@PathVariable("userId") Long userId, @PathVariable("year") int year){
 
         return expenseService.getCumulativeMonthlySavings(userId, year);
     }

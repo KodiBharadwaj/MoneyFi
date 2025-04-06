@@ -6,9 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
-import static java.util.Arrays.stream;
 
 @Service
 public class BudgetServiceImplementation implements BudgetService{
@@ -32,21 +33,22 @@ public class BudgetServiceImplementation implements BudgetService{
 
         List<BudgetModel> budgetList = budgetRepository.getBudgetsByUserId(userId);
         return budgetList.stream()
-                .sorted((a,b)-> Math.toIntExact(a.getId() - b.getId())).toList();
+                .sorted((a,b)-> Math.toIntExact(a.getId() - b.getId()))
+                .toList();
     }
 
     @Override
-    public Double budgetProgress(Long userId, int month, int year) {
+    public BigDecimal budgetProgress(Long userId, int month, int year) {
 
         List<BudgetModel> budgetsList = getAllBudgets(userId);
-        double moneyLimit = budgetsList
+        BigDecimal moneyLimit = budgetsList
                             .stream()
-                            .mapToDouble(i->i.getMoneyLimit())
-                            .sum();
+                            .map(i->i.getMoneyLimit())
+                            .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
-        Double currentSpending = restTemplate.getForObject("http://MONEYFI-EXPENSE/api/expense/" + userId + "/totalExpense/" + month + "/" + year, Double.class);
+        BigDecimal currentSpending = restTemplate.getForObject("http://MONEYFI-EXPENSE/api/expense/" + userId + "/totalExpense/" + month + "/" + year, BigDecimal.class);
 
-        return currentSpending/moneyLimit;
+        return currentSpending.divide(moneyLimit, 5, RoundingMode.HALF_UP);
     }
 
     @Override
@@ -57,10 +59,10 @@ public class BudgetServiceImplementation implements BudgetService{
         if(budget.getCategory() != null){
             budgetModel.setCategory(budget.getCategory());
         }
-        if(budget.getCurrentSpending() > 0){
+        if(budget.getCurrentSpending().compareTo(BigDecimal.ZERO) > 0){
             budgetModel.setCurrentSpending(budget.getCurrentSpending());
         }
-        if(budget.getMoneyLimit() > 0){
+        if(budget.getMoneyLimit().compareTo(BigDecimal.ZERO) > 0){
             budgetModel.setMoneyLimit(budget.getMoneyLimit());
         }
 

@@ -8,8 +8,8 @@ import java.util.List;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    public User findByUsername(String username);
+    User findByUsername(String username);
 
     @Query("select u from User u where u.otpCount > 2")
-    public List<User> getUserListWhoseOtpCountGreaterThanThree();
+    List<User> getUserListWhoseOtpCountGreaterThanThree();
 }

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -19,8 +20,10 @@ public class GoalModel {
     private Long id;
     private Long userId;
     private String goalName;
-    private double currentAmount;
-    private double targetAmount;
+    @Column(precision = 38, scale = 5)
+    private BigDecimal currentAmount;
+    @Column(precision = 38, scale = 5)
+    private BigDecimal targetAmount;
     private LocalDate deadLine;
     private String category;
 }

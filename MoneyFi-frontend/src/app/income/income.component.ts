@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -55,6 +55,7 @@ export class IncomeComponent {
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
+  
   
 
   availableYears: number[] = [];
@@ -135,6 +136,7 @@ export class IncomeComponent {
         this.httpClient.get<IncomeSource[]>(url).subscribe({
           next: (data) => {
             if (data && data.length > 0) {
+              // console.log(data);
               this.incomeSources = data;
               this.applyFilters();
               this.calculateTotalIncome();
@@ -269,10 +271,12 @@ export class IncomeComponent {
       }
     });
   }
+  
 
   calculateTotalIncome() {
     this.totalIncome = this.incomeSources.reduce((sum, source) => sum + source.amount, 0);
   }
+
 
   updateIncome(income: IncomeSource) {
     const dialogRef = this.dialog.open(AddIncomeDialogComponent, {

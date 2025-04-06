@@ -1,13 +1,13 @@
-package com.moneyfi.budget.api;
+package com.moneyfi.budget.controller;
 
 import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.service.BudgetService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -46,9 +46,9 @@ public class BudgetApiController {
 
     @Operation(summary = "Method to get the budget status/progress")
     @GetMapping("/{userId}/budgetProgress/{month}/{year}")
-    public Double budgetProgress(@PathVariable("userId") Long userId,
-                                 @PathVariable("month") int month,
-                                 @PathVariable("year") int year){
+    public BigDecimal budgetProgress(@PathVariable("userId") Long userId,
+                                     @PathVariable("month") int month,
+                                     @PathVariable("year") int year){
         return budgetService.budgetProgress(userId, month, year);
     }
 

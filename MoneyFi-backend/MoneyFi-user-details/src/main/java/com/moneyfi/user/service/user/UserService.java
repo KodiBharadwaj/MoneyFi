@@ -4,7 +4,7 @@ import com.moneyfi.user.model.UserModel;
 
 public interface UserService {
 
-    public UserModel save(UserModel user);
+    UserModel save(UserModel user);
 
-    public UserModel getUserDetailsByUserId(Long userId);
+    UserModel getUserDetailsByUserId(Long userId);
 }
