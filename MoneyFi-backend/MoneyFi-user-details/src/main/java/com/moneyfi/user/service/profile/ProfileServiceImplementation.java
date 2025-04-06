@@ -2,7 +2,6 @@ package com.moneyfi.user.service.profile;
 
 import com.moneyfi.user.model.ProfileModel;
 import com.moneyfi.user.repository.ProfileRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service

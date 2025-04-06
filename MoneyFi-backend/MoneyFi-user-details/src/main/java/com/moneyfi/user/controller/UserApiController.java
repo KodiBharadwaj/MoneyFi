@@ -1,15 +1,11 @@
-package com.moneyfi.user.api;
+package com.moneyfi.user.controller;
 
 import com.moneyfi.user.model.ProfileModel;
 import com.moneyfi.user.model.UserModel;
 import com.moneyfi.user.repository.ProfileRepository;
 import com.moneyfi.user.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/user")

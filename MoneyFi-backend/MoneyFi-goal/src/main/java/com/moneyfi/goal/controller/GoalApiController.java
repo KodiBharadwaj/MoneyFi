@@ -1,14 +1,14 @@
-package com.moneyfi.goal.api;
+package com.moneyfi.goal.controller;
 
 import com.moneyfi.goal.model.GoalModel;
 import com.moneyfi.goal.repository.GoalRepository;
 import com.moneyfi.goal.service.GoalService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -40,7 +40,7 @@ public class GoalApiController {
     @Operation(summary = "Method to add amount to a particular goal")
     @PostMapping("/{id}/addAmount/{amount}")
     public GoalModel addAmount(@PathVariable("id") Long id,
-                               @PathVariable("amount") double amount){
+                               @PathVariable("amount") BigDecimal amount){
 
         return goalService.addAmount(id, amount);
     }
@@ -54,13 +54,13 @@ public class GoalApiController {
 
     @Operation(summary = "Method to get the total current amount of a particular goal")
     @GetMapping("/{userId}/totalCurrentGoalIncome")
-    public Double getCurrentTotalGoalIncome(@PathVariable("userId") Long userId){
+    public BigDecimal getCurrentTotalGoalIncome(@PathVariable("userId") Long userId){
         return goalService.getCurrentTotalGoalIncome(userId);
     }
 
     @Operation(summary = "Method to get the total target amount of a particular goal")
     @GetMapping("/{userId}/totalTargetGoalIncome")
-    public Double getTargetTotalGoalIncome(@PathVariable("userId") Long userId){
+    public BigDecimal getTargetTotalGoalIncome(@PathVariable("userId") Long userId){
         return goalService.getTargetTotalGoalIncome(userId);
     }
 

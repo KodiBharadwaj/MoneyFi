@@ -7,13 +7,13 @@ import com.moneyfi.apigateway.model.User;
 
 public interface UserService {
 
-    public User saveUser(User user);
+    User saveUser(User user);
 
-    public ProfileChangePassword changePassword(ChangePasswordDto changePasswordDto);
+    ProfileChangePassword changePassword(ChangePasswordDto changePasswordDto);
 
-    public RemainingTimeCountDto checkOtpActiveMethod(String email);
+    RemainingTimeCountDto checkOtpActiveMethod(String email);
 
-    public boolean sendContactUsEmailOfUser(String message, String images);
+    boolean sendContactUsEmailOfUser(String message, String images);
 
-    public boolean sendUserFeedBackEmail(int rating, String comment);
+    boolean sendUserFeedBackEmail(int rating, String comment);
 }

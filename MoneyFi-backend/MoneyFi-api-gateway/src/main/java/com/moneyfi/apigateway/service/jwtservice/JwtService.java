@@ -5,9 +5,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 public interface JwtService {
 
-    public JwtToken generateToken(String username);
+    JwtToken generateToken(String username);
 
-    public String extractUserName(String token);
+    String extractUserName(String token);
 
-    public boolean validateToken(String token, UserDetails userDetails);
+    boolean validateToken(String token, UserDetails userDetails);
 }

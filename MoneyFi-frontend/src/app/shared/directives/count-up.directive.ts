@@ -8,6 +8,7 @@ import { CountUp } from 'countup.js';
 export class CountUpDirective implements OnChanges {
   @Input('appCountUp') endVal: number = 0;
   private countUp: CountUp;
+  @Input() options: any
 
   constructor(private el: ElementRef) {
     this.countUp = new CountUp(this.el.nativeElement, 0, {

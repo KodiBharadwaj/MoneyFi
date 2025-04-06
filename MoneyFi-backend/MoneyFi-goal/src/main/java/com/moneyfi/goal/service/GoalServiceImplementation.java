@@ -2,10 +2,10 @@ package com.moneyfi.goal.service;
 
 import com.moneyfi.goal.model.GoalModel;
 import com.moneyfi.goal.repository.GoalRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -23,32 +23,35 @@ public class GoalServiceImplementation implements GoalService{
     }
 
     @Override
-    public GoalModel addAmount(Long id, double amount) {
+    public GoalModel addAmount(Long id, BigDecimal amount) {
         GoalModel goalModel = goalRepository.findById(id).orElse(null);
-        goalModel.setCurrentAmount(goalModel.getCurrentAmount() + amount);
+        goalModel.setCurrentAmount(goalModel.getCurrentAmount().add(amount));
         return save(goalModel);
     }
 
     @Override
     public List<GoalModel> getAllGoals(Long userId) {
-        return goalRepository.findByUserId(userId).stream().sorted((a,b)-> Math.toIntExact(a.getId() - b.getId())).toList();
+        return goalRepository.findByUserId(userId)
+                .stream()
+                .sorted((a,b)-> Math.toIntExact(a.getId() - b.getId()))
+                .toList();
     }
 
     @Override
-    public Double getCurrentTotalGoalIncome(Long userId) {
-        Double totalGoalIncome = goalRepository.getCurrentTotalGoalIncome(userId);
+    public BigDecimal getCurrentTotalGoalIncome(Long userId) {
+        BigDecimal totalGoalIncome = goalRepository.getCurrentTotalGoalIncome(userId);
         if(totalGoalIncome == null){
-            return 0.0;
+            return BigDecimal.ZERO;
         }
 
         return totalGoalIncome;
     }
 
     @Override
-    public Double getTargetTotalGoalIncome(Long userId) {
-        Double totalGoalTargetIncome = goalRepository.getTargetTotalGoalIncome(userId);
+    public BigDecimal getTargetTotalGoalIncome(Long userId) {
+        BigDecimal totalGoalTargetIncome = goalRepository.getTargetTotalGoalIncome(userId);
         if(totalGoalTargetIncome == null){
-            return 0.0;
+            return BigDecimal.ZERO;
         }
 
         return totalGoalTargetIncome;
@@ -63,10 +66,10 @@ public class GoalServiceImplementation implements GoalService{
         if(goal.getGoalName() != null){
             goalModel.setGoalName(goal.getGoalName());
         }
-        if(goal.getCurrentAmount() > 0){
+        if(goal.getCurrentAmount().compareTo(BigDecimal.ZERO) > 0){
             goalModel.setCurrentAmount(goal.getCurrentAmount());
         }
-        if(goal.getTargetAmount() > 0){
+        if(goal.getTargetAmount().compareTo(BigDecimal.ZERO) > 0){
             goalModel.setTargetAmount(goal.getTargetAmount());
         }
         if(goal.getDeadLine() != null){

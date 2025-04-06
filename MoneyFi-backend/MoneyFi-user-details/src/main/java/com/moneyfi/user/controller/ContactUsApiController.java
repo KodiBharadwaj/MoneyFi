@@ -1,4 +1,4 @@
-package com.moneyfi.user.api;
+package com.moneyfi.user.controller;
 
 import com.moneyfi.user.model.ContactUs;
 import com.moneyfi.user.model.Feedback;

@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public interface TokenBlackListRepository extends JpaRepository<BlackListedToken, Long> {
 
-    public BlackListedToken findByToken(String token);
+    BlackListedToken findByToken(String token);
 
     void deleteByExpiryBefore(LocalDateTime now);
 }
