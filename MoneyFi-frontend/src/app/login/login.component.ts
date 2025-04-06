@@ -7,6 +7,7 @@ import { LoginCredentials } from '../model/LoginCredentials';
 import { ToastrService } from 'ngx-toastr';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
+import { timeout } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -102,7 +103,10 @@ export class LoginComponent {
         response => {
           this.isLoading = false; // Hide loading spinner
           sessionStorage.setItem('finance.auth', response.jwtToken);
-          this.toastr.success('Login successful', 'Success');
+          this.toastr.success('Login successful', 'Success', {
+            timeOut: 1500  // 
+          });
+          
           this.router.navigate(['dashboard']);
         },
         error => {

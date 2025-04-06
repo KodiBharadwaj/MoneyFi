@@ -2,11 +2,13 @@ package com.moneyfi.apigateway.controller;
 
 import com.moneyfi.apigateway.dto.*;
 import com.moneyfi.apigateway.model.BlackListedToken;
+import com.moneyfi.apigateway.model.SessionTokenModel;
 import com.moneyfi.apigateway.repository.UserRepository;
 import com.moneyfi.apigateway.model.User;
 import com.moneyfi.apigateway.service.*;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.resetpassword.ResetPassword;
+import com.moneyfi.apigateway.service.sessiontokens.SessionToken;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,17 +38,21 @@ public class UserController {
     private final UserRepository userRepository;
     private final ResetPassword passwordResetService;
     private final TokenBlacklistService blacklistService;
+    private final SessionToken sessionTokenService;
+
 
     public UserController(UserService userService,
                           JwtService jwtService,
                           UserRepository userRepository,
                           ResetPassword resetPassword,
-                          TokenBlacklistService blacklistService){
+                          TokenBlacklistService blacklistService,
+                          SessionToken sessionToken){
         this.userService = userService;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.passwordResetService = resetPassword;
         this.blacklistService = blacklistService;
+        this.sessionTokenService = sessionToken;
     }
 
 
@@ -65,7 +72,6 @@ public class UserController {
 
         User getUser = userRepository.findByUsername(user.getUsername());
         if (getUser != null) {
-            // Return a conflict status code with a custom message when user already exists
             return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists");
         }
 
@@ -77,6 +83,18 @@ public class UserController {
     @Operation(summary = "Method for the user login")
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User user) {
+        SessionTokenModel sessionTokenUser = sessionTokenService.getUserByUsername(user.getUsername());
+        if(sessionTokenUser != null){
+            if(sessionTokenUser.getIsActive()){
+                String oldToken = sessionTokenUser.getToken();
+
+                BlackListedToken blackListedToken = new BlackListedToken();
+                blackListedToken.setToken(oldToken);
+                Date expiryDate = new Date(System.currentTimeMillis() + 3600000);
+                blackListedToken.setExpiry(expiryDate);
+                blacklistService.blacklistToken(blackListedToken);
+            }
+        }
         try {
             // Validate user input (username and password should not be empty)
             if (user.getUsername() == null ||
@@ -101,6 +119,24 @@ public class UserController {
                 // If authentication is successful
                 if (authentication.isAuthenticated()) {
                     JwtToken token = jwtService.generateToken(user.getUsername());
+
+                    // Conditions to store the jwt token to prevent multiple logins of same account in different browsers
+                    if(sessionTokenService.getUserByUsername(user.getUsername()) != null){
+                        SessionTokenModel sessionTokens = sessionTokenService.getUserByUsername(user.getUsername());
+                        sessionTokens.setUsername(user.getUsername());
+                        sessionTokens.setCreatedTime(LocalDateTime.now());
+                        sessionTokens.setToken(token.getJwtToken());
+                        sessionTokens.setIsActive(true);
+                        sessionTokenService.save(sessionTokens);
+                    } else {
+                        SessionTokenModel sessionTokens = new SessionTokenModel();
+                        sessionTokens.setUsername(user.getUsername());
+                        sessionTokens.setCreatedTime(LocalDateTime.now());
+                        sessionTokens.setToken(token.getJwtToken());
+                        sessionTokens.setIsActive(true);
+                        sessionTokenService.save(sessionTokens);
+                    }
+
                     return ResponseEntity.ok(token);
                 }
             } catch (BadCredentialsException ex) {
@@ -161,6 +197,10 @@ public class UserController {
         blackListedToken.setToken(token);
         blackListedToken.setExpiry(expiryDate);
         blacklistService.blacklistToken(blackListedToken);
+
+        SessionTokenModel sessionTokens = sessionTokenService.getSessionDetailsByToken(token);
+        sessionTokens.setIsActive(false);
+        sessionTokenService.save(sessionTokens);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Logged out successfully");

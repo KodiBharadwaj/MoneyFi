@@ -55,9 +55,10 @@ export class DashboardComponent {
           next : (userId) => {
             this.httpClient.post('http://localhost:8765/auth/logout', {}, { responseType: 'text' }).subscribe({
               next: (response) => {
-                // console.log(response); // Should print "Logged out successfully"
                 const jsonResponse = JSON.parse(response);
-                this.toastr.success(jsonResponse.message);
+                this.toastr.success(jsonResponse.message, '', {
+                  timeOut: 1500  // time in milliseconds (3 seconds)
+                });
                 sessionStorage.removeItem('finance.auth');
                 this.router.navigate(['']);
               },

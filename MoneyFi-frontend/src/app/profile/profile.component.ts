@@ -11,6 +11,7 @@ import { ToastrService } from 'ngx-toastr';
 import { ChangePasswordDialogComponent } from '../change-password-dialog/change-password-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { UserProfile } from '../model/UserProfile';
+import { Router } from '@angular/router';
 
 interface UserProfileDetails {
   name: string;
@@ -61,7 +62,7 @@ export class ProfileComponent implements OnInit {
   isEditing = false;
   // userId = 1; // Assuming the user ID is 1, you can get it dynamically if needed
 
-  constructor(private http: HttpClient, private toastr:ToastrService, private dialog:MatDialog) { }
+  constructor(private http: HttpClient, private toastr:ToastrService, private dialog:MatDialog, private router: Router) { }
 
   baseUrl = "http://localhost:8765";
   ngOnInit(): void {
@@ -89,6 +90,12 @@ export class ProfileComponent implements OnInit {
             this.profileDetails.createdDate = userProfileModel.createdDate;
           }
         })
+      },
+      error: (error) => {
+        console.error('Failed to fetch userId:', error);
+        alert("Session timed out! Please login again");
+        sessionStorage.removeItem('finance.auth');
+        this.router.navigate(['login']);
       }
     })
   }
@@ -104,7 +111,9 @@ export class ProfileComponent implements OnInit {
           (data) => {
             this.userProfileDetails = data;
             this.isEditing = false;
-            this.toastr.success('Profle updated successfully!');
+            this.toastr.success('Profle updated successfully!', '', {
+              timeOut:1500
+            });
           },
           (error) => {
             console.error('Error saving profile:', error);
@@ -151,7 +160,9 @@ export class ProfileComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         // Handle successful password change
-        this.toastr.success('Password changed successfully!');
+        this.toastr.success('Password changed successfully!', '', {
+          timeOut:1500
+        });
       }
     });
   }
