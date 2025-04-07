@@ -170,8 +170,8 @@ export class OverviewComponent implements OnInit {
     this.router.navigate(['dashboard/budgets']);
   }
 
-  viewReports() {
-    this.router.navigate(['dashboard/ai-assistant']);
+  viewAnalysis() {
+    this.router.navigate(['dashboard/analysis']);
   }
 
 }
