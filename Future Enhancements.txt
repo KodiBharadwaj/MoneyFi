@@ -14,8 +14,6 @@ Minor Changes:
 
 
 Defects:
-- If previous date is selected in income and expense, if that is empty and it is asked to add income. There in the dialog box, it should show that date, not  
-  current date.
 - category section is not working properly. Try remove or implement other.
 - If otp verification isn't there during signup, if user creates with unexisting email, then forgot password, email service wont work for him.
 - User should not be able to add the future transactions in income, expense, goal.
