@@ -14,7 +14,6 @@ Minor Changes:
 
 
 Defects:
-- When a service is failed or stopped working, it should show service unavailable, should not throw error.
 - If previous date is selected in income and expense, if that is empty and it is asked to add income. There in the dialog box, it should show that date, not  
   current date.
 - category section is not working properly. Try remove or implement other.
@@ -58,7 +57,7 @@ cleared defects:
 - int to Long was changed for all the microservices
 - In two browsers, if i open the same account, both are working with two different tokens.
 - Implemented logout issue in the backend since the token is still active even after logout.
-
+- When a service is failed or stopped working, it should show service unavailable, should not throw error.
 
 
 
