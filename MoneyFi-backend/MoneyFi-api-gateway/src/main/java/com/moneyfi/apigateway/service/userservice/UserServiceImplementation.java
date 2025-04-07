@@ -3,8 +3,8 @@ package com.moneyfi.apigateway.service.userservice;
 import com.moneyfi.apigateway.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.dto.ProfileChangePassword;
 import com.moneyfi.apigateway.dto.RemainingTimeCountDto;
+import com.moneyfi.apigateway.model.UserAuthModel;
 import com.moneyfi.apigateway.repository.UserRepository;
-import com.moneyfi.apigateway.model.User;
 import com.moneyfi.apigateway.util.EmailFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -34,37 +34,37 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public User saveUser(User user) {
-        user.setPassword(encoder.encode(user.getPassword()));
-        return userRepository.save(user);
+    public UserAuthModel saveUser(UserAuthModel userAuthModel) {
+        userAuthModel.setPassword(encoder.encode(userAuthModel.getPassword()));
+        return userRepository.save(userAuthModel);
     }
 
     @Override
     public ProfileChangePassword changePassword(ChangePasswordDto changePasswordDto){
-        User user = userRepository.findById(Long.valueOf(changePasswordDto.getUserId())).orElse(null);
+        UserAuthModel userAuthModel = userRepository.findById(Long.valueOf(changePasswordDto.getUserId())).orElse(null);
 
         ProfileChangePassword dto = new ProfileChangePassword();
-        if(user == null) {
+        if(userAuthModel == null) {
             dto.setFlag(false);
             return dto;
         }
 
-        if(!encoder.matches(changePasswordDto.getCurrentPassword(), user.getPassword())){
+        if(!encoder.matches(changePasswordDto.getCurrentPassword(), userAuthModel.getPassword())){
             dto.setFlag(false);
             return dto;
         }
-        else if(user.getOtpCount() >= 3){
-            dto.setOtpCount(user.getOtpCount());
+        else if(userAuthModel.getOtpCount() >= 3){
+            dto.setOtpCount(userAuthModel.getOtpCount());
             dto.setFlag(false);
             return dto;
         }
 
-        new Thread(() -> sendPasswordAlertMail(Math.toIntExact(user.getId()), user.getUsername())).start();
+        new Thread(() -> sendPasswordAlertMail(Math.toIntExact(userAuthModel.getId()), userAuthModel.getUsername())).start();
 
-        user.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
-        user.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(5));
-        user.setOtpCount(user.getOtpCount()+1);
-        userRepository.save(user);
+        userAuthModel.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
+        userAuthModel.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(5));
+        userAuthModel.setOtpCount(userAuthModel.getOtpCount()+1);
+        userRepository.save(userAuthModel);
 
         dto.setFlag(true);
         return dto;
@@ -95,26 +95,26 @@ public class UserServiceImplementation implements UserService {
     public RemainingTimeCountDto checkOtpActiveMethod(String email){
         RemainingTimeCountDto remainingTimeCountDto = new RemainingTimeCountDto();
 
-        User user = userRepository.findByUsername(email);
-        if(user == null){
-            remainingTimeCountDto.setComment("User not exist");
+        UserAuthModel userAuthModel = userRepository.findByUsername(email);
+        if(userAuthModel == null){
+            remainingTimeCountDto.setComment("UserAuthModel not exist");
             remainingTimeCountDto.setResult(false);
             return remainingTimeCountDto;
         }
 
-        if(user.getOtpCount() >= 3){
+        if(userAuthModel.getOtpCount() >= 3){
             remainingTimeCountDto.setResult(false);
             remainingTimeCountDto.setComment("Otp limit crossed");
             return remainingTimeCountDto;
         }
 
-        if(user.getVerificationCodeExpiration() == null || user.getVerificationCodeExpiration().isBefore(LocalDateTime.now())){
+        if(userAuthModel.getVerificationCodeExpiration() == null || userAuthModel.getVerificationCodeExpiration().isBefore(LocalDateTime.now())){
             remainingTimeCountDto.setResult(true);
             return remainingTimeCountDto;
         }
 
         LocalDateTime time1 = LocalDateTime.now();
-        LocalDateTime time2 = user.getVerificationCodeExpiration();
+        LocalDateTime time2 = userAuthModel.getVerificationCodeExpiration();
         long minutesDifference = ChronoUnit.MINUTES.between(time1, time2);
         remainingTimeCountDto.setRemainingMinutes((int) minutesDifference);
         remainingTimeCountDto.setResult(false);
@@ -148,7 +148,7 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public boolean sendUserFeedBackEmail(int rating, String comment) {
-        String subject = "MoneyFi's User Feedback";
+        String subject = "MoneyFi's UserAuthModel Feedback";
 
         String body = "<html>"
                 + "<body>"
@@ -167,12 +167,12 @@ public class UserServiceImplementation implements UserService {
     @Scheduled(fixedRate = 3600000) // Runs every 1 hour
     public void removeOtpCountOfPreviousDay() {
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
-        List<User> userList = userRepository.getUserListWhoseOtpCountGreaterThanThree();
+        List<UserAuthModel> userAuthModelList = userRepository.getUserListWhoseOtpCountGreaterThanThree();
 
-        for (User user : userList) {
-            if (user.getOtpCount() >= 3 && user.getVerificationCodeExpiration().isBefore(startOfToday)) {
-                user.setOtpCount(0);
-                userRepository.save(user);
+        for (UserAuthModel userAuthModel : userAuthModelList) {
+            if (userAuthModel.getOtpCount() >= 3 && userAuthModel.getVerificationCodeExpiration().isBefore(startOfToday)) {
+                userAuthModel.setOtpCount(0);
+                userRepository.save(userAuthModel);
             }
         }
     }

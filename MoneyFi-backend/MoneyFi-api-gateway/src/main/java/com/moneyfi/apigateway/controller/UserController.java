@@ -3,8 +3,8 @@ package com.moneyfi.apigateway.controller;
 import com.moneyfi.apigateway.dto.*;
 import com.moneyfi.apigateway.model.BlackListedToken;
 import com.moneyfi.apigateway.model.SessionTokenModel;
+import com.moneyfi.apigateway.model.UserAuthModel;
 import com.moneyfi.apigateway.repository.UserRepository;
-import com.moneyfi.apigateway.model.User;
 import com.moneyfi.apigateway.service.*;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.resetpassword.ResetPassword;
@@ -58,32 +58,32 @@ public class UserController {
 
     @Operation(summary = "Method to get the user id from user's email")
     @GetMapping("/getUserId/{email}")
-    public Integer getUserId(@PathVariable("email") String email){
-        User user = userRepository.findByUsername(email);
-        return Math.toIntExact(user.getId());
+    public Long getUserId(@PathVariable("email") String email){
+        UserAuthModel userAuthModel = userRepository.findByUsername(email);
+        return userAuthModel.getId();
     }
 
     @Operation(summary = "Method for the user registration/signup")
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserProfile userProfile) {
-        User user = new User();
-        user.setUsername(userProfile.getUsername());
-        user.setPassword(userProfile.getPassword());
+        UserAuthModel userAuthModel = new UserAuthModel();
+        userAuthModel.setUsername(userProfile.getUsername());
+        userAuthModel.setPassword(userProfile.getPassword());
 
-        User getUser = userRepository.findByUsername(user.getUsername());
-        if (getUser != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists");
+        UserAuthModel getUserAuthModel = userRepository.findByUsername(userAuthModel.getUsername());
+        if (getUserAuthModel != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("UserAuthModel already exists");
         }
 
-        // If user doesn't exist, proceed with saving the user
-        User savedUser = userService.saveUser(user);
-        return ResponseEntity.ok(jwtService.generateToken(user.getUsername()));
+        // If userAuthModel doesn't exist, proceed with saving the userAuthModel
+        UserAuthModel savedUserAuthModel = userService.saveUser(userAuthModel);
+        return ResponseEntity.ok(jwtService.generateToken(userAuthModel.getUsername()));
     }
 
-    @Operation(summary = "Method for the user login")
+    @Operation(summary = "Method for the userAuthModel login")
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User user) {
-        SessionTokenModel sessionTokenUser = sessionTokenService.getUserByUsername(user.getUsername());
+    public ResponseEntity<?> login(@RequestBody UserAuthModel userAuthModel) {
+        SessionTokenModel sessionTokenUser = sessionTokenService.getUserByUsername(userAuthModel.getUsername());
         if(sessionTokenUser != null){
             if(sessionTokenUser.getIsActive()){
                 String oldToken = sessionTokenUser.getToken();
@@ -96,41 +96,41 @@ public class UserController {
             }
         }
         try {
-            // Validate user input (username and password should not be empty)
-            if (user.getUsername() == null ||
-                    user.getUsername().isEmpty() ||
-                    user.getPassword() == null ||
-                    user.getPassword().isEmpty()) {
+            // Validate userAuthModel input (username and password should not be empty)
+            if (userAuthModel.getUsername() == null ||
+                    userAuthModel.getUsername().isEmpty() ||
+                    userAuthModel.getPassword() == null ||
+                    userAuthModel.getPassword().isEmpty()) {
 
                 return ResponseEntity.badRequest().body("Username and password are required");
             }
 
-            // Check if the user exists in the database
-            User existingUser = userRepository.findByUsername(user.getUsername());
-            if (existingUser == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found. Please sign up.");
+            // Check if the userAuthModel exists in the database
+            UserAuthModel existingUserAuthModel = userRepository.findByUsername(userAuthModel.getUsername());
+            if (existingUserAuthModel == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UserAuthModel not found. Please sign up.");
             }
 
             try {
-                // Authenticate the user with the provided password
+                // Authenticate the userAuthModel with the provided password
                 Authentication authentication = authenticationManager
-                        .authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+                        .authenticate(new UsernamePasswordAuthenticationToken(userAuthModel.getUsername(), userAuthModel.getPassword()));
 
                 // If authentication is successful
                 if (authentication.isAuthenticated()) {
-                    JwtToken token = jwtService.generateToken(user.getUsername());
+                    JwtToken token = jwtService.generateToken(userAuthModel.getUsername());
 
                     // Conditions to store the jwt token to prevent multiple logins of same account in different browsers
-                    if(sessionTokenService.getUserByUsername(user.getUsername()) != null){
-                        SessionTokenModel sessionTokens = sessionTokenService.getUserByUsername(user.getUsername());
-                        sessionTokens.setUsername(user.getUsername());
+                    if(sessionTokenService.getUserByUsername(userAuthModel.getUsername()) != null){
+                        SessionTokenModel sessionTokens = sessionTokenService.getUserByUsername(userAuthModel.getUsername());
+                        sessionTokens.setUsername(userAuthModel.getUsername());
                         sessionTokens.setCreatedTime(LocalDateTime.now());
                         sessionTokens.setToken(token.getJwtToken());
                         sessionTokens.setIsActive(true);
                         sessionTokenService.save(sessionTokens);
                     } else {
                         SessionTokenModel sessionTokens = new SessionTokenModel();
-                        sessionTokens.setUsername(user.getUsername());
+                        sessionTokens.setUsername(userAuthModel.getUsername());
                         sessionTokens.setCreatedTime(LocalDateTime.now());
                         sessionTokens.setToken(token.getJwtToken());
                         sessionTokens.setIsActive(true);

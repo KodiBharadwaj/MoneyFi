@@ -54,18 +54,22 @@ public class IncomeServiceImplementation implements IncomeService {
         return incomeRepository.findIncomesOfUser(userId)
                 .stream()
                 .filter(i->i.is_deleted()==false)
+                .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
                 .toList();
     }
 
     @Override
     public List<IncomeModel> getAllIncomesByDate(Long userId, int month, int year, boolean deleteStatus) {
-        return incomeRepository.getAllIncomesByDate(userId, month, year, deleteStatus);
+        return incomeRepository.getAllIncomesByDate(userId, month, year, deleteStatus)
+                .stream()
+                .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
+                .toList();
     }
 
     @Override
     public byte[] generateMonthlyExcelReport(Long userId, int month, int year) {
 
-        List<IncomeModel> monthlyIncomeList = incomeRepository.getAllIncomesByDate(userId, month, year, false);
+        List<IncomeModel> monthlyIncomeList = getAllIncomesByDate(userId, month, year, false);
 
         return generateExcelReport(monthlyIncomeList);
     }
@@ -144,13 +148,16 @@ public class IncomeServiceImplementation implements IncomeService {
 
     @Override
     public List<IncomeModel> getAllIncomesByYear(Long userId, int year, boolean deleteStatus) {
-        return incomeRepository.getAllIncomesByYear(userId, year, deleteStatus);
+        return incomeRepository.getAllIncomesByYear(userId, year, deleteStatus)
+                .stream()
+                .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
+                .toList();
     }
 
     @Override
     public byte[] generateYearlyExcelReport(Long userId, int year) {
 
-        List<IncomeModel> yearlyIncomeList = incomeRepository.getAllIncomesByYear(userId, year, false);
+        List<IncomeModel> yearlyIncomeList = getAllIncomesByYear(userId, year, false);
 
         return generateExcelReport(yearlyIncomeList);
     }
@@ -200,7 +207,9 @@ public class IncomeServiceImplementation implements IncomeService {
             return BigDecimal.ZERO;
         }
 
-        BigDecimal totalExpense = restTemplate.getForObject("http://MONEYFI-EXPENSE/api/expense/" + userId + "/totalExpensesUpToPreviousMonth/" + month +"/" + year, BigDecimal.class);
+        String url = "http://MONEYFI-EXPENSE/api/expense/" + userId + "/totalExpensesUpToPreviousMonth/" + month +"/" + year;
+
+        BigDecimal totalExpense = restTemplate.getForObject(url, BigDecimal.class);
         if(totalExpense.compareTo(totalIncome) > 0){
             return BigDecimal.ZERO;
         }
@@ -219,7 +228,9 @@ public class IncomeServiceImplementation implements IncomeService {
 
         BigDecimal updatedIncome = incomeModel.getAmount();
         BigDecimal currentNetIncome = totalIncome.subtract(previousUpdatedIncome).add(updatedIncome);
-        BigDecimal totalExpensesInMonth = restTemplate.getForObject("http://MONEYFI-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear(), BigDecimal.class);
+
+        String url = "http://MONEYFI-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear();
+        BigDecimal totalExpensesInMonth = restTemplate.getForObject(url, BigDecimal.class);
 
         if(currentNetIncome.compareTo(totalExpensesInMonth) > 0){
             return true;
@@ -238,7 +249,8 @@ public class IncomeServiceImplementation implements IncomeService {
 
         BigDecimal updatedIncome = BigDecimal.ZERO;
         BigDecimal currentNetIncome = totalIncome.subtract(previousUpdatedIncome).add(updatedIncome);
-        BigDecimal totalExpensesInMonth = restTemplate.getForObject("http://MONEYFI-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear(), BigDecimal.class);
+        String url = "http://MONEYFI-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear();
+        BigDecimal totalExpensesInMonth = restTemplate.getForObject(url, BigDecimal.class);
 
         if(currentNetIncome.compareTo(totalExpensesInMonth) > 0){
             return true;

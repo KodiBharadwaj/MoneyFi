@@ -1,6 +1,6 @@
 package com.moneyfi.user.service.user;
 
-import com.moneyfi.user.model.UserModel;
+import com.moneyfi.user.model.UserDetails;
 import com.moneyfi.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -14,12 +14,12 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public UserModel save(UserModel user) {
+    public UserDetails save(UserDetails user) {
         return userRepository.save(user);
     }
 
     @Override
-    public UserModel getUserDetailsByUserId(Long userId) {
+    public UserDetails getUserDetailsByUserId(Long userId) {
         return userRepository.findByUserId(userId);
     }
 

@@ -142,7 +142,10 @@ export class ExpensesComponent {
           },
           error: (error) => {
             console.error('Failed to load Expense data:', error);
-            this.toastr.error('Failed to load expenses', 'Error');
+            // this.toastr.error('Failed to load expenses', 'Error');
+            if(error.status === 401){
+              alert('Service Unavailable!! Please try later')
+            }
           },
           complete: () => {
             this.loading = false;

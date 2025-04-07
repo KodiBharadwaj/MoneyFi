@@ -26,7 +26,7 @@ interface UserProfileDetails {
 }
 
 interface ProfileDetails {
-  createdDate : Date;
+  createdDate: Date | null;
 }
 
 @Component({
@@ -69,6 +69,11 @@ export class ProfileComponent implements OnInit {
     this.getProfile();
   }
 
+  isImageLoading: boolean = true;
+  onImageLoad() {
+    this.isImageLoading = false;
+  }
+
   // Fetch profile data from backend
   getProfile(): void {
     const token = sessionStorage.getItem('finance.auth');
@@ -79,15 +84,23 @@ export class ProfileComponent implements OnInit {
         this.http.get<UserProfileDetails>(`${this.baseUrl}/api/profile/${userId}`).subscribe(
           (data) => {
             this.userProfileDetails = data;
+            this.isImageLoading = false;
           },
           (error) => {
-            console.error('Error fetching profile:', error);
+            if(error.status === 401){
+              alert('Service Unavailable!! Please try later')
+            }
+            this.isImageLoading = false;
+            // console.error('Error fetching profile:', error);
           }
         );
 
         this.http.get<UserProfile>(`${this.baseUrl}/api/user/${userId}`).subscribe({
           next: (userProfileModel) => {
             this.profileDetails.createdDate = userProfileModel.createdDate;
+          },
+          error: (error) => {
+            this.profileDetails.createdDate = null;
           }
         })
       },
@@ -117,6 +130,9 @@ export class ProfileComponent implements OnInit {
           },
           (error) => {
             console.error('Error saving profile:', error);
+            if(error.status === 401){
+              alert('Service Unavailable!! Please try later')
+            }
           }
         );
       }

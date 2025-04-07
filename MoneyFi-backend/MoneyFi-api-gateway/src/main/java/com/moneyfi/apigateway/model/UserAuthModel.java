@@ -7,9 +7,9 @@ import java.time.LocalDateTime;
 
 
 @Data
-@Table(name = "users")
+@Table(name = "user_auth_table")
 @Entity
-public class User {
+public class UserAuthModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

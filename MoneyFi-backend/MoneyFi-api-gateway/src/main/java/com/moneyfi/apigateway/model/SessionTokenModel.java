@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "session_tokens_table")
+@Table(name = "session_token_table")
 public class SessionTokenModel {
 
     @Id

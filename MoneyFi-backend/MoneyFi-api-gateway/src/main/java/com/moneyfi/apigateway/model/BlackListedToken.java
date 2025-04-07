@@ -13,7 +13,7 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "blacklisted_tokens", uniqueConstraints = @UniqueConstraint(columnNames = "token"))
+@Table(name = "blacklist_token_table", uniqueConstraints = @UniqueConstraint(columnNames = "token"))
 public class BlackListedToken {
 
     @Id

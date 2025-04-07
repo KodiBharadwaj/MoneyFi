@@ -123,7 +123,10 @@ export class BudgetsComponent {
         });
       },
       error: (error) => {
-        console.error('Failed to fetch userId:', error);
+        // console.error('Failed to fetch userId:', error);
+        alert("Session timed out! Please login again");
+        sessionStorage.removeItem('finance.auth');
+        this.router.navigate(['login']);
         this.loading = false;
       }
     });
@@ -179,7 +182,11 @@ export class BudgetsComponent {
             // if(error.status === 204){
             //   this.toastr.warning('You dont have budget', 'Please add Budget plan')
             // }
-            this.toastr.error('Failed to load budgets', 'Error');
+            // this.toastr.error('Failed to load budgets', 'Error');
+            if(error.status === 401){
+              alert('Service Unavailable!! Please try later');
+            }
+            this.loading = false;
           },
           complete: () => {
             this.loading = false;
@@ -187,7 +194,7 @@ export class BudgetsComponent {
         });
       },
       error: (error) => {
-        console.error('Failed to fetch userId:', error);
+        // console.error('Failed to fetch userId:', error);
         alert("Session timed out! Please login again");
         sessionStorage.removeItem('finance.auth');
         this.router.navigate(['login']);
@@ -327,7 +334,7 @@ export class BudgetsComponent {
 
   filterExpenses() {
     this.loadBudgetData();
-    this.loadExpensesData();
+    // this.loadExpensesData();
   }
 
   resetFilters() {

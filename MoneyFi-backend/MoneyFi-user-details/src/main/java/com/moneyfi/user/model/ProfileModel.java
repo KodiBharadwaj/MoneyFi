@@ -12,6 +12,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "user_profile_details_table")
 public class ProfileModel {
 
     @Id
