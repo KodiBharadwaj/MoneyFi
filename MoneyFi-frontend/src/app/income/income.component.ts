@@ -149,7 +149,10 @@ export class IncomeComponent {
             this.loading = false;
           },
           error: (error) => {
-            console.error('Failed to load income data:', error);
+            // console.error('Failed to load income data:', error);
+            if(error.status === 401){
+              alert('Service Unavailable!! Please try later')
+            }
           },
           complete: () => {
             this.loading = false;
@@ -157,7 +160,7 @@ export class IncomeComponent {
         });
       },
       error: (error) => {
-        console.error('Failed to fetch userId:', error);
+        // console.error('Failed to fetch userId:', error);
         alert("Session timed out! Please login again");
         sessionStorage.removeItem('finance.auth');
         this.router.navigate(['login']);

@@ -138,7 +138,7 @@ public class ExpenseApiController {
                                                       @RequestBody ExpenseModel expense) {
         ExpenseModel expenseModel = expenseRepository.findById(id).orElse(null);
         if(expenseModel != null){
-            if(expenseModel.getAmount() == expense.getAmount() &&
+            if(expenseModel.getAmount().compareTo(expense.getAmount()) == 0 &&
                     expenseModel.getCategory().equals(expense.getCategory()) &&
                     expenseModel.getDescription().equals(expense.getDescription()) &&
                     expenseModel.getDate().equals(expense.getDate()) &&

@@ -136,7 +136,7 @@ public class IncomeApiController {
 
         IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
         if(incomeModel != null){
-            if(incomeModel.getAmount() == income.getAmount() &&
+            if(incomeModel.getAmount().compareTo(income.getAmount()) == 0 &&
                     incomeModel.getSource().equals(income.getSource()) &&
                     incomeModel.getCategory().equals(income.getCategory()) &&
                     incomeModel.getDate().equals(income.getDate()) &&

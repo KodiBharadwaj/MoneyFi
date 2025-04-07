@@ -1,7 +1,7 @@
 package com.moneyfi.apigateway.service;
 
+import com.moneyfi.apigateway.model.UserAuthModel;
 import com.moneyfi.apigateway.repository.UserRepository;
-import com.moneyfi.apigateway.model.User;
 import com.moneyfi.apigateway.model.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,13 +18,13 @@ public class MyUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        User user = repo.findByUsername(username);
+        UserAuthModel userAuthModel = repo.findByUsername(username);
 
-        if (user == null) {
-            System.out.println("No user with this User Name: " + username);
-            throw new UsernameNotFoundException("User Not Found");
+        if (userAuthModel == null) {
+            System.out.println("No userAuthModel with this UserAuthModel Name: " + username);
+            throw new UsernameNotFoundException("UserAuthModel Not Found");
         } else {
-            return new UserPrincipal(user);
+            return new UserPrincipal(userAuthModel);
         }
     }
 }

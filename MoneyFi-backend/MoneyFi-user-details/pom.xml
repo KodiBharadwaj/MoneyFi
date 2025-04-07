@@ -8,10 +8,10 @@
         <version>3.3.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.moneyfi.user</groupId>
-    <artifactId>MoneyFi-user-details</artifactId>
+    <groupId>com.moneyfi.userAuthModel</groupId>
+    <artifactId>MoneyFi-userAuthModel-details</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>MoneyFi-user</name>
+    <name>MoneyFi-userAuthModel</name>
     <description>MoneyFi</description>
     <url/>
     <licenses>

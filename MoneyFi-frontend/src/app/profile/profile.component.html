@@ -2,7 +2,7 @@
   <div class="profile-card">
     <div class="profile-header">
       <div class="cover-photo"></div>
-      <div class="profile-image-wrapper">
+      <!-- <div class="profile-image-wrapper">
         <div class="profile-image">
           <img [src]="userProfileDetails.profileImage" alt="Profile Picture">
           <div class="image-upload" *ngIf="isEditing">
@@ -12,10 +12,31 @@
             <input id="file-input" type="file" (change)="onImageUpload($event)" accept="image/*">
           </div>
         </div>
+      </div> -->
+      <div class="profile-image-wrapper">
+        <div class="profile-image">
+          <!-- Spinner -->
+          <div class="spinner" *ngIf="isImageLoading"></div>
+      
+          <!-- Actual Image -->
+          <img [src]="userProfileDetails.profileImage"
+               alt="Profile Picture"
+               (load)="onImageLoad()"
+               [class.hidden]="isImageLoading" />
+      
+          <!-- Image Upload (Edit Mode) -->
+          <div class="image-upload" *ngIf="isEditing">
+            <label for="file-input">
+              <i class="fas fa-camera"></i>
+            </label>
+            <input id="file-input" type="file" (change)="onImageUpload($event)" accept="image/*">
+          </div>
+        </div>
       </div>
+      
       <div class="profile-title">
         <h1>{{ userProfileDetails.name }}</h1>
-        <h4> - since {{ profileDetails.createdDate }}</h4>
+        <h4 *ngIf="profileDetails.createdDate">since {{ profileDetails.createdDate | date: 'longDate' }}</h4>
         <div class="button-container" style="margin-top: auto;">
           <button mat-raised-button color="primary" class="change-password-btn" (click)="changePassword()">
             <mat-icon>lock</mat-icon>

@@ -40,17 +40,21 @@ public class ExpenseServiceImplementation implements ExpenseService{
         return expenseRepository.findExpensesByUserId(userId)
                 .stream()
                 .filter(i->i.is_deleted() == false)
+                .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
                 .toList();
     }
 
     @Override
     public List<ExpenseModel> getAllexpensesByDate(Long userId, int month, int year, boolean deleteStatus) {
-        return expenseRepository.getAllexpensesByDate(userId, month, year, deleteStatus);
+        return expenseRepository.getAllexpensesByDate(userId, month, year, deleteStatus)
+                .stream()
+                .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
+                .toList();
     }
 
     @Override
     public byte[] generateMonthlyExcelReport(Long userId, int month, int year) {
-        List<ExpenseModel> monthlyExpenseList = expenseRepository.getAllexpensesByDate(userId, month, year, false);
+        List<ExpenseModel> monthlyExpenseList = getAllexpensesByDate(userId, month, year, false);
 
         return generateExcelReport(monthlyExpenseList);
     }
@@ -129,12 +133,15 @@ public class ExpenseServiceImplementation implements ExpenseService{
 
     @Override
     public List<ExpenseModel> getAllexpensesByYear(Long userId, int year, boolean deleteStatus) {
-        return expenseRepository.getAllexpensesByYear(userId, year, deleteStatus);
+        return expenseRepository.getAllexpensesByYear(userId, year, deleteStatus)
+                .stream()
+                .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
+                .toList();
     }
 
     @Override
     public byte[] generateYearlyExcelReport(Long userId, int year) {
-        List<ExpenseModel> yearlyIncomeList = expenseRepository.getAllexpensesByYear(userId, year, false);
+        List<ExpenseModel> yearlyIncomeList = getAllexpensesByYear(userId, year, false);
 
         return generateExcelReport(yearlyIncomeList);
     }
@@ -187,7 +194,8 @@ public class ExpenseServiceImplementation implements ExpenseService{
 
     @Override
     public BigDecimal getTotalSavingsByMonthAndDate(Long userId, int month, int year) {
-        BigDecimal totalIncome = restTemplate.getForObject("http://MONEYFI-INCOME/api/income/" + userId + "/totalIncome/" + month + "/" + year, BigDecimal.class);
+        String url = "http://MONEYFI-INCOME/api/income/" + userId + "/totalIncome/" + month + "/" + year;
+        BigDecimal totalIncome = restTemplate.getForObject(url, BigDecimal.class);
         BigDecimal totalExpenses = getTotalExpenseInMonthAndYear(userId, month, year);
         if(totalIncome.compareTo(totalExpenses) > 0){
             return totalIncome.subtract(totalExpenses);
@@ -198,8 +206,9 @@ public class ExpenseServiceImplementation implements ExpenseService{
 
     @Override
     public List<BigDecimal> getCumulativeMonthlySavings(Long userId, int year) {
+        String url = "http://MONEYFI-INCOME/api/income/" + userId + "/monthlyTotalIncomesList/" + year;
 
-        BigDecimal[] incomes = restTemplate.getForObject("http://MONEYFI-INCOME/api/income/"+userId+"/monthlyTotalIncomesList/"+year,BigDecimal[].class);
+        BigDecimal[] incomes = restTemplate.getForObject(url,BigDecimal[].class);
         BigDecimal[] expenses = getMonthlyExpenses(userId, year).toArray(new BigDecimal[0]);
         LocalDate currentDate = LocalDate.now();
         int currentYear = currentDate.getYear();

@@ -1,7 +1,7 @@
 package com.moneyfi.user.controller;
 
 import com.moneyfi.user.model.ProfileModel;
-import com.moneyfi.user.model.UserModel;
+import com.moneyfi.user.model.UserDetails;
 import com.moneyfi.user.repository.ProfileRepository;
 import com.moneyfi.user.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,21 +22,21 @@ public class UserApiController {
 
     @Operation(summary = "Method which adds the user details in user and profile table")
     @PostMapping("/setDetails")
-    public UserModel setUserDetails(@RequestBody UserModel userModel){
-        System.out.println(userModel);
+    public UserDetails setUserDetails(@RequestBody UserDetails userDetails){
+        System.out.println(userDetails);
         ProfileModel profile = new ProfileModel();
-        profile.setUserId(userModel.getUserId());
-        profile.setName(userModel.getName());
-        profile.setEmail(userModel.getEmail());
+        profile.setUserId(userDetails.getUserId());
+        profile.setName(userDetails.getName());
+        profile.setEmail(userDetails.getEmail());
         ProfileModel addedProfile = profileRepository.save(profile);
 
-        return userService.save(userModel);
+        return userService.save(userDetails);
     }
 
 
     @Operation(summary = "Method to get the user details of a user")
     @GetMapping("/{userId}")
-    public UserModel getUserDetailsByUserId(@PathVariable("userId") Long userId){
+    public UserDetails getUserDetailsByUserId(@PathVariable("userId") Long userId){
         return userService.getUserDetailsByUserId(userId);
     }
 

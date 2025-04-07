@@ -102,6 +102,10 @@ export class GoalsComponent {
           },
           error: (error) => {
             console.error('Failed to load Goal data:', error);
+            if(error.status === 401){
+              alert('Service Unavailable!! Please try later')
+            }
+            this.loading = false;
           },
           complete: () => {
             this.loading = false;
@@ -110,6 +114,9 @@ export class GoalsComponent {
       },
       error: (error) => {
         console.error('Failed to fetch userId:', error);
+        alert("Session timed out! Please login again");
+        sessionStorage.removeItem('finance.auth');
+        this.router.navigate(['login']);
         this.loading = false;
       }
     });
@@ -228,7 +235,7 @@ export class GoalsComponent {
     });
     // console.log(goal);
     dialogRef.afterClosed().subscribe((result) => {
-      if (result && result.currentAmount < this.totalRemainingBalance) {
+      if (result) {
         const token = sessionStorage.getItem('finance.auth');
         this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
           next: (userId) => {

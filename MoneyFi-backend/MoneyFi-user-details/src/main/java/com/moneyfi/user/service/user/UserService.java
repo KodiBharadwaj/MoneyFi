@@ -1,10 +1,10 @@
 package com.moneyfi.user.service.user;
 
-import com.moneyfi.user.model.UserModel;
+import com.moneyfi.user.model.UserDetails;
 
 public interface UserService {
 
-    UserModel save(UserModel user);
+    UserDetails save(UserDetails user);
 
-    UserModel getUserDetailsByUserId(Long userId);
+    UserDetails getUserDetailsByUserId(Long userId);
 }

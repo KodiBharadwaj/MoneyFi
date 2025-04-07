@@ -1,8 +1,8 @@
 package com.moneyfi.apigateway.service.resetpassword;
 
 
+import com.moneyfi.apigateway.model.UserAuthModel;
 import com.moneyfi.apigateway.repository.UserRepository;
-import com.moneyfi.apigateway.model.User;
 import com.moneyfi.apigateway.util.EmailFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -31,20 +31,20 @@ public class ResetPasswordImplementation implements ResetPassword {
     @Override
     public String forgotPassword(String email) {
 
-        User user = userRepository.findByUsername(email);
-        if(user==null){
-            throw new RuntimeException("No user Found");
+        UserAuthModel userAuthModel = userRepository.findByUsername(email);
+        if(userAuthModel ==null){
+            throw new RuntimeException("No userAuthModel Found");
         }
 
         String verificationCode = emailUtil.generateVerificationCode();
 
 
-        user.setVerificationCode(verificationCode);
-        user.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(5));
-        user.setOtpCount(user.getOtpCount() + 1);
-        userRepository.save(user);
+        userAuthModel.setVerificationCode(verificationCode);
+        userAuthModel.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(5));
+        userAuthModel.setOtpCount(userAuthModel.getOtpCount() + 1);
+        userRepository.save(userAuthModel);
 
-        String userName = restTemplate.getForObject("http://MONEYFI-USER/api/profile/getName/" + user.getId(), String.class);
+        String userName = restTemplate.getForObject("http://MONEYFI-USER/api/profile/getName/" + userAuthModel.getId(), String.class);
 
         String subject = "MoneyFi's Password Reset Verification Code";
         String body = "<html>"
@@ -68,13 +68,13 @@ public class ResetPasswordImplementation implements ResetPassword {
 
     @Override
     public boolean verifyCode(String email, String code) {
-        User user = userRepository.findByUsername(email);
+        UserAuthModel userAuthModel = userRepository.findByUsername(email);
 
-        if(user==null){
-             throw  new RuntimeException("User not found");
+        if(userAuthModel ==null){
+             throw  new RuntimeException("UserAuthModel not found");
         }
 
-        if (user.getVerificationCode().equals(code) && LocalDateTime.now().isBefore(user.getVerificationCodeExpiration())) {
+        if (userAuthModel.getVerificationCode().equals(code) && LocalDateTime.now().isBefore(userAuthModel.getVerificationCodeExpiration())) {
             return true;
         }
 
@@ -83,14 +83,14 @@ public class ResetPasswordImplementation implements ResetPassword {
 
     @Override
     public String UpdatePassword(String email,String password){
-        User user = userRepository.findByUsername(email);
-        if(user==null){
-            return "user not found for given email...";
+        UserAuthModel userAuthModel = userRepository.findByUsername(email);
+        if(userAuthModel ==null){
+            return "userAuthModel not found for given email...";
         }
 
         PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
-        user.setPassword(passwordEncoder.encode(password));
-        userRepository.save(user);
+        userAuthModel.setPassword(passwordEncoder.encode(password));
+        userRepository.save(userAuthModel);
         return "Password updated successfully!...";
     }
 }

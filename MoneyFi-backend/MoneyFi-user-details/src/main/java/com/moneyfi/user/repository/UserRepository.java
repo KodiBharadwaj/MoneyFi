@@ -1,9 +1,9 @@
 package com.moneyfi.user.repository;
 
-import com.moneyfi.user.model.UserModel;
+import com.moneyfi.user.model.UserDetails;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserRepository extends JpaRepository<UserModel, Long> {
+public interface UserRepository extends JpaRepository<UserDetails, Long> {
 
-    UserModel findByUserId(Long userId);
+    UserDetails findByUserId(Long userId);
 }
