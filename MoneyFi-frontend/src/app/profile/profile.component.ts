@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MatNativeDateModule, MatOption } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { ToastrService } from 'ngx-toastr';
@@ -40,6 +40,7 @@ interface ProfileDetails {
     MatDatepickerModule,
     MatNativeDateModule,
     MatInputModule,
+    MatOption,
     MatIconModule],
 })
 export class ProfileComponent implements OnInit {
@@ -59,6 +60,7 @@ export class ProfileComponent implements OnInit {
     createdDate : new Date
   };
   
+  today : Date = new Date();
   isEditing = false;
   // userId = 1; // Assuming the user ID is 1, you can get it dynamically if needed
 

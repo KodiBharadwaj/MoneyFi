@@ -100,15 +100,15 @@ public class IncomeApiController {
     @Operation(summary = "Method to get the total income amount in a particular month and in a particular year")
     @GetMapping("/{userId}/totalIncome/{month}/{year}")
     public BigDecimal getTotalIncomeByMonthAndYear(@PathVariable("userId") Long userId,
-                                               @PathVariable("month") int month,
-                                               @PathVariable("year") int year){
+                                                   @PathVariable("month") int month,
+                                                   @PathVariable("year") int year){
         return incomeService.getTotalIncomeInMonthAndYear(userId, month, year);
     }
 
     @Operation(summary = "Method to get the list of total income amount of all months in a particular year")
     @GetMapping("/{userId}/monthlyTotalIncomesList/{year}")
     public List<BigDecimal> getMonthlyTotals(@PathVariable("userId") Long userId,
-                                         @PathVariable("year") int year) {
+                                             @PathVariable("year") int year) {
         return incomeService.getMonthlyIncomes(userId, year);
     }
 
@@ -136,7 +136,8 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to update the income details")
     @PutMapping("/{id}")
-    public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") Long id, @RequestBody IncomeModel income) {
+    public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") Long id,
+                                                    @RequestBody IncomeModel income) {
 
         IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
         if(incomeModel != null){

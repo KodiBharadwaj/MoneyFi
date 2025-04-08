@@ -106,8 +106,15 @@ public class ExpenseApiController {
     @Operation(summary = "Method to get the list of total expense amount of all months in a particular year")
     @GetMapping("/{userId}/monthlyTotalExpensesList/{year}")
     public List<BigDecimal> getMonthlyTotals(@PathVariable("userId") Long userId,
-                                         @PathVariable("year") int year) {
+                                             @PathVariable("year") int year) {
         return expenseService.getMonthlyExpenses(userId, year);
+    }
+
+    @Operation(summary = "Method to get the list of total saving amount of all months in a particular year")
+    @GetMapping("/{userId}/monthlySavingsInYear/{year}")
+    public List<BigDecimal> getMonthlySavingsList(@PathVariable("userId") Long userId,
+                                                  @PathVariable("year") int year) {
+        return expenseService.getMonthlySavingsList(userId, year);
     }
 
     @Operation(summary = "Method to get the total expense amount up to previous month (excludes current month)")

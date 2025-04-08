@@ -22,31 +22,24 @@ import java.util.List;
 public class IncomeServiceImplementation implements IncomeService {
 
     @Autowired
-    private IncomeRepository incomeRepository;
-
-    @Autowired
     private RestTemplate restTemplate;
 
-    boolean flag = false;
+    private final IncomeRepository incomeRepository;
+
+    public IncomeServiceImplementation(IncomeRepository incomeRepository){
+        this.incomeRepository = incomeRepository;
+    }
 
     @Override
     public IncomeModel save(IncomeModel income) {
-         if(flag == false){
-             IncomeModel incomeModel = incomeRepository.getIncomeBySourceAndCategory(income.getUserId(), income.getSource(), income.getCategory());
+        IncomeModel incomeModel = incomeRepository.getIncomeBySourceAndCategory(income.getUserId(), income.getSource(), income.getCategory(), income.getDate());
 
-             if(incomeModel != null){
-                 if(incomeModel.getDate().getYear() == income.getDate().getYear() &&
-                        incomeModel.getDate().getMonthValue() == income.getDate().getMonthValue()){
-                     return null;
-                 }
-             }
-             income.set_deleted(false);
-             return incomeRepository.save(income);
-         }
-         else {
-             income.set_deleted(false);
-             return incomeRepository.save(income);
-         }
+        if(incomeModel != null){
+            return null;
+        }
+
+        income.set_deleted(false);
+        return incomeRepository.save(income);
     }
 
     @Override
@@ -241,7 +234,8 @@ public class IncomeServiceImplementation implements IncomeService {
         BigDecimal updatedIncome = incomeModel.getAmount();
         BigDecimal currentNetIncome = totalIncome.subtract(previousUpdatedIncome).add(updatedIncome);
 
-        String url = "http://MONEYFI-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear();
+        String url = "http://MONEYFI-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" +
+                                    incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear();
         BigDecimal totalExpensesInMonth = restTemplate.getForObject(url, BigDecimal.class);
 
         if(currentNetIncome.compareTo(totalExpensesInMonth) > 0){
@@ -261,7 +255,9 @@ public class IncomeServiceImplementation implements IncomeService {
 
         BigDecimal updatedIncome = BigDecimal.ZERO;
         BigDecimal currentNetIncome = totalIncome.subtract(previousUpdatedIncome).add(updatedIncome);
-        String url = "http://MONEYFI-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" + incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear();
+        String url = "http://MONEYFI-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" +
+                                    incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear();
+
         BigDecimal totalExpensesInMonth = restTemplate.getForObject(url, BigDecimal.class);
 
         if(currentNetIncome.compareTo(totalExpensesInMonth) > 0){
@@ -274,15 +270,8 @@ public class IncomeServiceImplementation implements IncomeService {
     @Override
     public IncomeModel updateBySource(Long id, IncomeModel income) {
 
-        flag = true;
         IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
 
-        if(incomeModel.getAmount() == income.getAmount() &&
-                    incomeModel.getSource() == income.getSource() &&
-                    incomeModel.getCategory() == income.getCategory() &&
-                    incomeModel.getDate() == income.getDate() &&
-                    incomeModel.isRecurring() == income.isRecurring()){
-        }
         if(income.getAmount().compareTo(BigDecimal.ZERO) > 0){
             incomeModel.setAmount(income.getAmount());
         }
@@ -297,7 +286,8 @@ public class IncomeServiceImplementation implements IncomeService {
         }
         incomeModel.setRecurring(income.isRecurring());
 
-        return save(incomeModel);
+        income.set_deleted(false);
+        return incomeRepository.save(income);
     }
 
     @Override

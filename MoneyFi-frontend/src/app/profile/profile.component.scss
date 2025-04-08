@@ -350,6 +350,20 @@
   
 
 
+  .form-field.full-width {
+    width: 100%;
+  }
+  .readonly-bright {
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important; /* Safari */
+    opacity: 1 !important;
+  }
+  
+  .readonly-dim {
+    color: #aaa !important;
+    -webkit-text-fill-color: #aaa !important;
+    opacity: 0.6 !important;
+  }
   
   
   

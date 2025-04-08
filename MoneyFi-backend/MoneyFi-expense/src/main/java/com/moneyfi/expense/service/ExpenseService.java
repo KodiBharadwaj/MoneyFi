@@ -21,6 +21,8 @@ public interface ExpenseService {
 
     List<BigDecimal> getMonthlyExpenses(Long userId, int year);
 
+    List<BigDecimal> getMonthlySavingsList(Long userId, int year);
+
     BigDecimal getTotalExpensesUpToPreviousMonth(Long userId, int month, int year);
 
     BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year);

@@ -2,17 +2,6 @@
   <div class="profile-card">
     <div class="profile-header">
       <div class="cover-photo"></div>
-      <!-- <div class="profile-image-wrapper">
-        <div class="profile-image">
-          <img [src]="userProfileDetails.profileImage" alt="Profile Picture">
-          <div class="image-upload" *ngIf="isEditing">
-            <label for="file-input">
-              <i class="fas fa-camera"></i>
-            </label>
-            <input id="file-input" type="file" (change)="onImageUpload($event)" accept="image/*">
-          </div>
-        </div>
-      </div> -->
       <div class="profile-image-wrapper">
         <div class="profile-image">
           <!-- Spinner -->
@@ -54,20 +43,66 @@
       <div class="info-section">
         <h2>Personal Information</h2>
         <div class="info-grid">
-          <div class="info-item">
+          <!-- <div class="info-item">
             <label>Full Name</label>
             <input type="text" [(ngModel)]="userProfileDetails.name" [readonly]="true" [class.editable]="isEditing">
-          </div>
+          </div> -->
+          <mat-form-field appearance="outline" class="form-field compact">
+            <mat-label>Full Name</mat-label>
+            <input
+              matInput
+              [(ngModel)]="userProfileDetails.name"
+              [readonly]="true"
+              [class.readonly-bright]="!isEditing"
+              [class.readonly-dim]="isEditing"
+            />
+          </mat-form-field>
+          
+          
 
-          <div class="info-item">
+          <!-- <div class="info-item">
             <label>Email Address</label>
             <input type="email" [(ngModel)]="userProfileDetails.email" [readonly]="true" [class.editable]="isEditing">
-          </div>
+          </div> -->
+          <mat-form-field appearance="outline" class="form-field compact">
+            <mat-label>Email Address</mat-label>
+            <input
+              matInput
+              [(ngModel)]="userProfileDetails.email"
+              [readonly]="true"
+              [class.readonly-bright]="!isEditing"
+              [class.readonly-dim]="isEditing"
+            />
+          </mat-form-field>
+          
 
-          <div class="info-item">
+          <!-- <div class="info-item">
             <label>Phone Number</label>
             <input type="tel" [(ngModel)]="userProfileDetails.phone" [readonly]="!isEditing" [class.editable]="isEditing">
-          </div>
+          </div> -->
+          <mat-form-field appearance="outline" class="form-field compact">
+            <mat-label>Phone Number</mat-label>
+            <input matInput [(ngModel)]="userProfileDetails.phone" [readonly]="!isEditing">
+          </mat-form-field>
+          
+
+          <!-- <div class="info-item">
+            <label>Date of Birth</label>
+            <input type="date" [(ngModel)]="userProfileDetails.dateOfBirth" [readonly]="!isEditing" [class.editable]="isEditing">
+          </div> -->
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Date of Birth</mat-label>
+            <input matInput
+                   [matDatepicker]="dobPicker"
+                   [(ngModel)]="userProfileDetails.dateOfBirth"
+                   [readonly]="!isEditing"
+                   [max] = "today"
+                   name="dateOfBirth">
+          
+            <mat-datepicker-toggle matIconSuffix [for]="dobPicker"></mat-datepicker-toggle>
+            <mat-datepicker #dobPicker></mat-datepicker>
+          </mat-form-field>
+          
 
           <div class="info-item">
             <label>Gender</label>
@@ -77,11 +112,6 @@
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </select>
-          </div>
-
-          <div class="info-item">
-            <label>Date of Birth</label>
-            <input type="date" [(ngModel)]="userProfileDetails.dateOfBirth" [readonly]="!isEditing" [class.editable]="isEditing">
           </div>
 
           <div class="info-item">

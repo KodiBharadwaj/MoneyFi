@@ -174,6 +174,21 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
+    public List<BigDecimal> getMonthlySavingsList(Long userId, int year) {
+        String url = "http://MONEYFI-INCOME/api/income/" + userId + "/monthlyTotalIncomesList/" + year;
+
+        BigDecimal[] incomes = restTemplate.getForObject(url, BigDecimal[].class);
+        List<BigDecimal> expenseList = getMonthlyExpenses(userId, year);
+        BigDecimal[] expenses = expenseList.toArray(new BigDecimal[0]);
+
+        List<BigDecimal> savings = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            savings.add(incomes[i].subtract(expenses[i]));
+        }
+        return savings;
+    }
+
+    @Override
     public BigDecimal getTotalExpensesUpToPreviousMonth(Long userId, int month, int year) {
         // Adjust month and year to point to the previous month
         final int adjustedMonth;
