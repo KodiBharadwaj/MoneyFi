@@ -14,7 +14,6 @@ Minor Changes:
 
 
 Defects:
-- category section is not working properly. Try remove or implement other.
 - If otp verification isn't there during signup, if user creates with unexisting email, then forgot password, email service wont work for him.
 - User should not be able to add the future transactions in income, expense, goal.
 
@@ -56,7 +55,7 @@ cleared defects:
 - In two browsers, if i open the same account, both are working with two different tokens.
 - Implemented logout issue in the backend since the token is still active even after logout.
 - When a service is failed or stopped working, it should show service unavailable, should not throw error.
-
+- category section is not working properly in income, expense and budget services.
 
 
 
