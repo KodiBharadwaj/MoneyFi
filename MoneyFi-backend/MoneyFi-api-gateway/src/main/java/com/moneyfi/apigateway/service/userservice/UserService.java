@@ -12,8 +12,4 @@ public interface UserService {
     ProfileChangePassword changePassword(ChangePasswordDto changePasswordDto);
 
     RemainingTimeCountDto checkOtpActiveMethod(String email);
-
-    boolean sendContactUsEmailOfUser(String message, String images);
-
-    boolean sendUserFeedBackEmail(int rating, String comment);
 }

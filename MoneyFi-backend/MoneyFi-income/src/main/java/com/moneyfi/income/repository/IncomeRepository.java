@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
@@ -43,8 +44,8 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
     BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(Long userId, int month, int year);
 
     @Query("select i from IncomeModel i where i.userId = :userId " +
-            "and i.source = :source and i.category = :category")
-    IncomeModel getIncomeBySourceAndCategory(Long userId, String source, String category);
+            "and i.source = :source and i.category = :category and i.date = :date and i.is_deleted = false")
+    IncomeModel getIncomeBySourceAndCategory(Long userId, String source, String category, LocalDate date);
 
     @Query("select i.amount from IncomeModel i where i.id = :incomeId")
     BigDecimal getIncomeByIncomeId(Long incomeId);

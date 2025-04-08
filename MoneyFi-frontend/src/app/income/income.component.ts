@@ -248,6 +248,7 @@ export class IncomeComponent {
                   this.calculateTotalIncome();
                   this.updateChartData();
                   this.resetFilters();
+                  this.toastr.success("Income " + newIncome.source + " added succesfully");
                 }
                 else{
                   this.toastr.warning("Same Income category and source can't be added");

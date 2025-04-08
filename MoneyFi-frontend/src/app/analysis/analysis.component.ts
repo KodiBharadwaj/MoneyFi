@@ -56,8 +56,8 @@ export class AnalysisComponent {
     this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
       next: (userId) => {
         // Create parallel requests for both expenses and budgets
-        const expensesUrl = `${this.baseUrl}/api/expense/${userId}/${currentMonth}/${currentYear}/false`;
-        const budgetsUrl = `${this.baseUrl}/api/budget/${userId}`;
+        const expensesUrl = `${this.baseUrl}/api/expense/${userId}/${currentMonth}/${currentYear}/all/false`;
+        const budgetsUrl = `${this.baseUrl}/api/budget/${userId}/all`;
 
         // Use forkJoin to make parallel requests
         forkJoin({
@@ -171,7 +171,7 @@ export class AnalysisComponent {
         forkJoin({
           incomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/income/${userId}/monthlyTotalIncomesList/${currentYear}`),
           expenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/expense/${userId}/monthlyTotalExpensesList/${currentYear}`),
-          savings: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlySavingsInYear/${currentYear}`)
+          savings: this.httpClient.get<number[]>(`${this.baseUrl}/api/expense/${userId}/monthlySavingsInYear/${currentYear}`)
         }).subscribe({
           next: ({ incomes, expenses, savings }) => {
             // Update mixed chart data with real values including savings
