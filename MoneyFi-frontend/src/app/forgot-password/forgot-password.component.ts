@@ -121,8 +121,8 @@ export class ForgotPasswordComponent {
         } else if(outputDto.result === false && outputDto.comment === 'User not exist') {
           alert("User doesn't exist! Please enter correct username");
           this.isLoading = false;
-        } else if(outputDto.result === false && outputDto.comment === 'Otp limit crossed') {
-          alert("Otp limit crossed for today. Please try tomorrow");
+        } else if(outputDto.result === false && outputDto.comment === 'Limit crossed for today!! Try tomorrow') {
+          alert("Limit crossed for today!! Try tomorrow");
           this.isLoading = false;
         } 
         else {

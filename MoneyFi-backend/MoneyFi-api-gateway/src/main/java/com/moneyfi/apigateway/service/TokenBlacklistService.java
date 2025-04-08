@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class TokenBlacklistService {
@@ -19,8 +20,8 @@ public class TokenBlacklistService {
     }
 
     public boolean isTokenBlacklisted(String token) {
-        BlackListedToken token1 = tokenBlacklistRepository.findByToken(token);
-        if(token1 == null){
+        List<BlackListedToken> blackListedTokens = tokenBlacklistRepository.findByToken(token);
+        if(blackListedTokens.size() == 0){
             return false;
         }
         return true;
