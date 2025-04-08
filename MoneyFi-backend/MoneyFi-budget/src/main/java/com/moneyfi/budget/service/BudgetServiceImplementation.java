@@ -29,18 +29,25 @@ public class BudgetServiceImplementation implements BudgetService{
     }
 
     @Override
-    public List<BudgetModel> getAllBudgets(Long userId) {
+    public List<BudgetModel> getAllBudgetsByUserIdAndCategory(Long userId, String category) {
 
         List<BudgetModel> budgetList = budgetRepository.getBudgetsByUserId(userId);
+        if(category.equalsIgnoreCase("all")){
+            return budgetList.stream()
+                    .sorted((a,b)-> Long.compare(a.getId(), b.getId()))
+                    .toList();
+        }
+
         return budgetList.stream()
-                .sorted((a,b)-> Math.toIntExact(a.getId() - b.getId()))
+                .filter(i -> i.getCategory().equalsIgnoreCase(category))
+                .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
                 .toList();
     }
 
     @Override
     public BigDecimal budgetProgress(Long userId, int month, int year) {
 
-        List<BudgetModel> budgetsList = getAllBudgets(userId);
+        List<BudgetModel> budgetsList = getAllBudgetsByUserIdAndCategory(userId, "all");
         BigDecimal moneyLimit = budgetsList
                             .stream()
                             .map(i->i.getMoneyLimit())

@@ -9,7 +9,7 @@ public interface BudgetService {
 
     BudgetModel save(BudgetModel budget);
 
-    List<BudgetModel> getAllBudgets(Long userId);
+    List<BudgetModel> getAllBudgetsByUserIdAndCategory(Long userId, String category);
 
     BigDecimal budgetProgress(Long userId, int month, int year);
 

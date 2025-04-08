@@ -36,7 +36,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public List<ExpenseModel> getAllexpenses(Long userId) {
+    public List<ExpenseModel> getAllExpenses(Long userId) {
         return expenseRepository.findExpensesByUserId(userId)
                 .stream()
                 .filter(i->i.is_deleted() == false)
@@ -45,17 +45,23 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public List<ExpenseModel> getAllexpensesByDate(Long userId, int month, int year, boolean deleteStatus) {
-        return expenseRepository.getAllexpensesByDate(userId, month, year, deleteStatus)
-                .stream()
+    public List<ExpenseModel> getAllExpensesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus) {
+        List<ExpenseModel> list = expenseRepository.getAllexpensesByDate(userId, month, year, deleteStatus);
+        if(category.equalsIgnoreCase("all")){
+            return list.stream()
+                    .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
+                    .toList();
+        }
+
+        return list.stream()
+                .filter(i -> i.getCategory().equalsIgnoreCase(category))
                 .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
                 .toList();
     }
 
     @Override
-    public byte[] generateMonthlyExcelReport(Long userId, int month, int year) {
-        List<ExpenseModel> monthlyExpenseList = getAllexpensesByDate(userId, month, year, false);
-
+    public byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category) {
+        List<ExpenseModel> monthlyExpenseList = getAllExpensesByMonthYearAndCategory(userId, month, year, category,false);
         return generateExcelReport(monthlyExpenseList);
     }
 
@@ -132,17 +138,23 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public List<ExpenseModel> getAllexpensesByYear(Long userId, int year, boolean deleteStatus) {
-        return expenseRepository.getAllexpensesByYear(userId, year, deleteStatus)
-                .stream()
+    public List<ExpenseModel> getAllExpensesByYearAndCategory(Long userId, int year, String category, boolean deleteStatus) {
+        List<ExpenseModel> list = expenseRepository.getAllexpensesByYear(userId, year, deleteStatus);
+        if(category.equalsIgnoreCase("all")){
+            return list.stream()
+                    .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
+                    .toList();
+        }
+
+        return list.stream()
+                .filter(i -> i.getCategory().equalsIgnoreCase(category))
                 .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
                 .toList();
     }
 
     @Override
-    public byte[] generateYearlyExcelReport(Long userId, int year) {
-        List<ExpenseModel> yearlyIncomeList = getAllexpensesByYear(userId, year, false);
-
+    public byte[] generateYearlyExcelReport(Long userId, int year, String category) {
+        List<ExpenseModel> yearlyIncomeList = getAllExpensesByYearAndCategory(userId, year, category,false);
         return generateExcelReport(yearlyIncomeList);
     }
 
