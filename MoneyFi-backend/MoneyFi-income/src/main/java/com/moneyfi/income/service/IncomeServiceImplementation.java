@@ -59,18 +59,24 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public List<IncomeModel> getAllIncomesByDate(Long userId, int month, int year, boolean deleteStatus) {
-        return incomeRepository.getAllIncomesByDate(userId, month, year, deleteStatus)
-                .stream()
+    public List<IncomeModel> getAllIncomesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus) {
+        List<IncomeModel> list = incomeRepository.getAllIncomesByDate(userId, month, year, deleteStatus);
+        if(category.equalsIgnoreCase("all")){
+            return list.stream()
+                    .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
+                    .toList();
+        }
+
+        return list.stream()
+                .filter(i -> i.getCategory().equalsIgnoreCase(category))
                 .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
                 .toList();
     }
 
     @Override
-    public byte[] generateMonthlyExcelReport(Long userId, int month, int year) {
+    public byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category) {
 
-        List<IncomeModel> monthlyIncomeList = getAllIncomesByDate(userId, month, year, false);
-
+        List<IncomeModel> monthlyIncomeList = getAllIncomesByMonthYearAndCategory(userId, month, year, category,false);
         return generateExcelReport(monthlyIncomeList);
     }
 
@@ -147,18 +153,24 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public List<IncomeModel> getAllIncomesByYear(Long userId, int year, boolean deleteStatus) {
-        return incomeRepository.getAllIncomesByYear(userId, year, deleteStatus)
-                .stream()
+    public List<IncomeModel> getAllIncomesByYear(Long userId, int year, String category, boolean deleteStatus) {
+        List<IncomeModel> list = incomeRepository.getAllIncomesByYear(userId, year, deleteStatus);
+        if(category.equalsIgnoreCase("all")){
+            return list.stream()
+                    .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
+                    .toList();
+        }
+
+        return list.stream()
+                .filter(i -> i.getCategory().equalsIgnoreCase(category))
                 .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
                 .toList();
     }
 
     @Override
-    public byte[] generateYearlyExcelReport(Long userId, int year) {
+    public byte[] generateYearlyExcelReport(Long userId, int year, String category) {
 
-        List<IncomeModel> yearlyIncomeList = getAllIncomesByYear(userId, year, false);
-
+        List<IncomeModel> yearlyIncomeList = getAllIncomesByYear(userId, year, category, false);
         return generateExcelReport(yearlyIncomeList);
     }
 

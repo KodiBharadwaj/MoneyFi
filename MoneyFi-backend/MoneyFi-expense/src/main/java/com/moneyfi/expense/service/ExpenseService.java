@@ -9,15 +9,15 @@ public interface ExpenseService {
 
     ExpenseModel save(ExpenseModel expense);
 
-    List<ExpenseModel> getAllexpenses(Long userId);
+    List<ExpenseModel> getAllExpenses(Long userId);
 
-    List<ExpenseModel> getAllexpensesByDate(Long userId, int month, int year, boolean deleteStatus);
+    List<ExpenseModel> getAllExpensesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus);
 
-    byte[] generateMonthlyExcelReport(Long userId, int month, int year);
+    byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category);
 
-    List<ExpenseModel> getAllexpensesByYear(Long userId, int year, boolean deleteStatus);
+    List<ExpenseModel> getAllExpensesByYearAndCategory(Long userId, int year, String category, boolean deleteStatus);
 
-    byte[] generateYearlyExcelReport(Long userId, int year);
+    byte[] generateYearlyExcelReport(Long userId, int year, String category);
 
     List<BigDecimal> getMonthlyExpenses(Long userId, int year);
 

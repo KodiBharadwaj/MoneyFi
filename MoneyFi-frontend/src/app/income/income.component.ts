@@ -51,6 +51,9 @@ export class IncomeComponent {
   selectedYear: number = new Date().getFullYear();
   selectedMonth: number = 0; // 0 means all months
   selectedCategory: string = '';
+  categories: string[] = [
+    'Salary', 'Investments', 'Freelance', 'Business', 'Other'
+  ];
   months: string[] = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -90,9 +93,6 @@ export class IncomeComponent {
 
   baseUrl = "http://localhost:8765";
   
-  // ngOnInit() {
-  //   this.loadIncomeData();
-  // }
   ngOnInit() {
     this.initializeFilters();
     
@@ -125,31 +125,30 @@ export class IncomeComponent {
       next: (userId) => {
 
         let url: string;
+        if(this.selectedCategory === '') this.selectedCategory = "all";
         if (this.selectedMonth === 0) {
           // Fetch all expenses for the selected year
-          url = `${this.baseUrl}/api/income/${userId}/${this.selectedYear}/${this.deleted}`;
+          url = `${this.baseUrl}/api/income/${userId}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
         } else {
           // Fetch expenses for the specific month and year
-          url = `${this.baseUrl}/api/income/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.deleted}`;
+          url = `${this.baseUrl}/api/income/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
         }
 
         this.httpClient.get<IncomeSource[]>(url).subscribe({
           next: (data) => {
             if (data && data.length > 0) {
-              // console.log(data);
               this.incomeSources = data;
-              this.applyFilters();
               this.calculateTotalIncome();
               this.updateChartData();
-              this.updateUniqueCategories();
             } else {
               this.incomeSources = [];
+              this.calculateTotalIncome();
               this.toastr.warning('No income data available. Try adding income', 'No Data');
             }
             this.loading = false;
           },
           error: (error) => {
-            // console.error('Failed to load income data:', error);
+            console.error('Failed to load income data:', error);
             if(error.status === 401){
               alert('Service Unavailable!! Please try later')
             }
@@ -160,7 +159,7 @@ export class IncomeComponent {
         });
       },
       error: (error) => {
-        // console.error('Failed to fetch userId:', error);
+        console.error('Failed to fetch userId:', error);
         alert("Session timed out! Please login again");
         sessionStorage.removeItem('finance.auth');
         this.router.navigate(['login']);
@@ -189,14 +188,12 @@ export class IncomeComponent {
         this.httpClient.get<IncomeSource[]>(url).subscribe({
           next: (data) => {
             if (data && data.length > 0) {
-              // console.log(data);
               this.deletedIncomeSources = data;
-              this.applyFilters();
               this.calculateTotalIncome();
               this.updateChartData();
-              this.updateUniqueCategories();
             } else {
               this.deletedIncomeSources = [];
+              this.calculateTotalIncome();
               this.toastr.warning('No deleted income data available in this range', 'No Data');
             }
             this.loading = false;
@@ -219,6 +216,7 @@ export class IncomeComponent {
     });
   }
 
+
   addIncome() {
     const dialogRef = this.dialog.open(AddIncomeDialogComponent, {
       width: '500px',
@@ -228,20 +226,17 @@ export class IncomeComponent {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         const token = sessionStorage.getItem('finance.auth');
-        // console.log(token);
   
         this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
           next: (userId) => {
-            // console.log(userId);
-            
-            // Send POST request with the income data
+
             const formattedDate = this.formatDate(result.date);
             const incomeData = {
               ...result, // This should contain fields like source, amount, date, category, recurring, etc.
               date:formattedDate,
               userId: userId, // Add userId if your backend requires it
             };
-            // console.log(incomeData);
+
             this.httpClient.post<IncomeSource>(`${this.baseUrl}/api/income/${userId}`, incomeData, {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -301,7 +296,6 @@ export class IncomeComponent {
               date: formattedDate,
               userId: userId,
             };
-            // console.log(updatedIncomeData);
 
             this.httpClient.put<IncomeSource>(`${this.baseUrl}/api/income/${income.id}`, updatedIncomeData,
               {
@@ -311,7 +305,6 @@ export class IncomeComponent {
               }
             ).subscribe({
               next: (updatedIncome) => {
-                // console.log('Income updated successfully:', updatedIncome);
                 if(updatedIncome){
                   this.toastr.success("Income of " + updatedIncome.source + " updated successfully");
                   this.loadIncomeData();
@@ -342,7 +335,6 @@ export class IncomeComponent {
   
 
   deleteIncome(incomeId: number): void {
-    // console.log(incomeId);
     const incomedataFetch = this.incomeSources.find(i => i.id === incomeId);
     const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
       width: '400px',
@@ -353,7 +345,6 @@ export class IncomeComponent {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         const incomeSource = this.incomeSources.find(i => i.id === incomeId);
-        // console.log(incomeSource);
 
         const token = sessionStorage.getItem('finance.auth');
   
@@ -363,8 +354,7 @@ export class IncomeComponent {
             this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/income/${userId}/incomeDeleteCheck`, incomeSource).subscribe({
               next: (result) => {
                 if (result) {
-                  // console.log(result);
-
+                
                   const index = this.incomeSources.findIndex(i=>i.id === incomeId);
                   if (index !== -1) {
                     this.incomeSources.splice(index, 1); // Remove the item at the found index
@@ -440,17 +430,6 @@ export class IncomeComponent {
       : 0;
   }
 
-  applyFilters() {
-    // Filter by category if a category is selected
-    if (this.selectedCategory) {
-      this.incomeSources = this.incomeSources.filter(income => income.category === this.selectedCategory);
-    }
-  }
-
-  updateUniqueCategories() {
-    // Ensure "All Categories" is an option
-    this.uniqueCategories = ['', ...new Set(this.incomeSources.map(income => income.category))];
-  }
 
   filterIncome() {
     this.loadIncomeData();
@@ -473,9 +452,9 @@ export class IncomeComponent {
 
         let url: string;
         if (this.selectedMonth === 0) {
-          url = `${this.baseUrl}/api/income/${userId}/${this.selectedYear}/generateYearlyReport`;
+          url = `${this.baseUrl}/api/income/${userId}/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
         } else {
-          url = `${this.baseUrl}/api/income/${userId}/${this.selectedMonth}/${this.selectedYear}/generateMonthlyReport`;
+          url = `${this.baseUrl}/api/income/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
         }
 
         this.httpClient.get(url, { responseType: 'blob' })

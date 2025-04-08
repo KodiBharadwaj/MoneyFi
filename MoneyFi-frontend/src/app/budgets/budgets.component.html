@@ -67,7 +67,7 @@
         <mat-label>Category</mat-label>
         <mat-select [(ngModel)]="selectedCategory" (selectionChange)="filterExpenses()">
           <mat-option [value]="''">All Categories</mat-option>
-          <mat-option *ngFor="let category of uniqueCategories" [value]="category">{{ category }}</mat-option>
+          <mat-option *ngFor="let category of categories" [value]="category">{{ category }}</mat-option>
         </mat-select>
       </mat-form-field>
 
@@ -123,18 +123,6 @@
               <p class="value">₹{{ budget.remaining }}</p>
             </div>
           </div>
-          <!-- budget.remaining.toLocaleString() -->
-          <!-- <div class="actions">
-            <button class="edit-btn">
-              <i class="fas fa-edit"></i>
-              Edit
-            </button>
-            <button class="details-btn">
-              <i class="fas fa-chart-bar"></i>
-              Details
-            </button>
-          </div> -->
-
         </div>
       </div>
     </div>

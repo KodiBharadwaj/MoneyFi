@@ -11,13 +11,13 @@ public interface IncomeService {
 
     List<IncomeModel> getAllIncomes(Long userId);
 
-    List<IncomeModel> getAllIncomesByDate(Long userId, int month, int year, boolean deleteStatus);
+    List<IncomeModel> getAllIncomesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus);
 
-    byte[] generateMonthlyExcelReport(Long userId, int month, int year);
+    byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category);
 
-    List<IncomeModel> getAllIncomesByYear(Long userId, int year, boolean deleteStatus);
+    List<IncomeModel> getAllIncomesByYear(Long userId, int year, String category, boolean deleteStatus);
 
-    byte[] generateYearlyExcelReport(Long userId, int year);
+    byte[] generateYearlyExcelReport(Long userId, int year, String category);
 
     List<BigDecimal> getMonthlyIncomes(Long userId, int year);
 
@@ -32,5 +32,4 @@ public interface IncomeService {
     IncomeModel updateBySource(Long id, IncomeModel income);
 
     boolean deleteIncomeById(Long id);
-
 }

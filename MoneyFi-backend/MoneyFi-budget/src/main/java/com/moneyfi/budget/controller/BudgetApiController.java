@@ -34,9 +34,10 @@ public class BudgetApiController {
     }
 
     @Operation(summary = "Method to get budget of a user")
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<BudgetModel>> getAllBudgets(@PathVariable("userId") Long userId) {
-        List<BudgetModel> list = budgetService.getAllBudgets(userId);
+    @GetMapping("/{userId}/{category}")
+    public ResponseEntity<List<BudgetModel>> getAllBudgetsByUserIdAndCategory(@PathVariable("userId") Long userId,
+                                                                              @PathVariable("category") String category) {
+        List<BudgetModel> list = budgetService.getAllBudgetsByUserIdAndCategory(userId, category);
         if (!list.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(list); // 200
         } else {

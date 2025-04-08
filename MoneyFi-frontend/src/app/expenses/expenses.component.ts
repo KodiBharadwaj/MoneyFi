@@ -53,6 +53,10 @@ export class ExpensesComponent {
   selectedYear: number = new Date().getFullYear();
   selectedMonth: number = 0; // 0 means all months
   selectedCategory: string = '';
+  categories: string[] = [
+    'Food', 'Travelling', 'Entertainment', 'Groceries', 'Shopping', 'Bills & utilities', 
+    'House Rent', 'Emi and loans', 'Health & Medical', 'Miscellaneous'
+  ];
   months: string[] = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -119,24 +123,24 @@ export class ExpensesComponent {
     this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
       next: (userId) => {
         let url: string;
+        if(this.selectedCategory === '') this.selectedCategory = 'all';
         if (this.selectedMonth === 0) {
           // Fetch all expenses for the selected year
-          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedYear}/false`;
+          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedYear}/${this.selectedCategory}/false`;
         } else {
           // Fetch expenses for the specific month and year
-          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/false`;
+          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/false`;
         }
   
         this.httpClient.get<Expense[]>(url).subscribe({
           next: (data) => {
             if (data && data.length > 0) {
               this.expenses = data;
-              this.applyFilters(); // Apply all filters after fetching data
               this.calculateTotalExpenses();
               this.updateChartData();
-              this.updateUniqueCategories();
             } else {
               this.expenses = [];
+              this.calculateTotalExpenses();
               this.toastr.warning('No expenses found for the selected filters.', 'No Data');
             }
           },
@@ -170,14 +174,6 @@ export class ExpensesComponent {
         this.loading = false;
       }
     });
-  }
-
-
-  applyFilters() {
-    // Filter by category if a category is selected
-    if (this.selectedCategory) {
-      this.expenses = this.expenses.filter(expense => expense.category === this.selectedCategory);
-    }
   }
   
 
@@ -234,6 +230,9 @@ export class ExpensesComponent {
           },
           error: (error) => {
             console.error('Failed to fetch userId:', error);
+            alert("Session timed out! Please login again");
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['login']);
             this.loading = false;
           },
         });
@@ -293,7 +292,13 @@ export class ExpensesComponent {
                 this.toastr.error('Failed to update expense', 'Error');
               },
             });
-          }
+          },
+          error: (error) => {
+            console.error('Failed to fetch userId:', error);
+            alert("Session timed out! Please login again");
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['login']);
+          },
         });
       }
     });
@@ -326,8 +331,6 @@ export class ExpensesComponent {
         this.httpClient.delete<void>(`${this.baseUrl}/api/expense/${expenseId}`)
           .subscribe({
             next: () => {
-              // console.log(`Expense with ID ${expenseId} deleted successfully.`);
-              // this.loadExpensesData(); // Reload the data after successful deletion
               this.toastr.warning("Expense " + expenseDataFetch?.description + " has been deleted");
             },
             error: (err) => {
@@ -372,11 +375,6 @@ export class ExpensesComponent {
       : 0;
   }
 
-  updateUniqueCategories() {
-    // Ensure "All Categories" is an option
-    this.uniqueCategories = ['', ...new Set(this.expenses.map(expense => expense.category))];
-  }
-
   filterExpenses() {
     this.loadExpensesData();
   }
@@ -416,9 +414,6 @@ export class ExpensesComponent {
   }
 
 
-
-
-
   generateReport() {
     const token = sessionStorage.getItem('finance.auth');
   
@@ -427,9 +422,9 @@ export class ExpensesComponent {
 
         let url: string;
         if (this.selectedMonth === 0) {
-          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedYear}/generateYearlyReport`;
+          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
         } else {
-          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/generateMonthlyReport`;
+          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
         }
 
         this.httpClient.get(url, { responseType: 'blob' })

@@ -43,26 +43,28 @@ public class ExpenseApiController {
     @Operation(summary = "Method to get all the expenses of a particular user")
     @GetMapping("/{userId}")
     public ResponseEntity<List<ExpenseModel>> getAllExpenses(@PathVariable("userId") Long userId) {
-        List<ExpenseModel> list = expenseService.getAllexpenses(userId);
+        List<ExpenseModel> list = expenseService.getAllExpenses(userId);
         return ResponseEntity.status(HttpStatus.OK).body(list); // 200
     }
 
     @Operation(summary = "Method to get all the expense details in a particular month and in a particular year")
-    @GetMapping("/{userId}/{month}/{year}/{deleteStatus}")
-    public ResponseEntity<List<ExpenseModel>> getAllExpensesByDate(@PathVariable("userId") Long userId,
+    @GetMapping("/{userId}/{month}/{year}/{category}/{deleteStatus}")
+    public ResponseEntity<List<ExpenseModel>> getAllExpensesByMonthYearAndCategory(@PathVariable("userId") Long userId,
                                                                    @PathVariable("month") int month,
                                                                    @PathVariable("year") int year,
+                                                                   @PathVariable("category") String category,
                                                                    @PathVariable("deleteStatus") boolean deleteStatus){
-        return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllexpensesByDate(userId, month, year, deleteStatus));
+        return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllExpensesByMonthYearAndCategory(userId, month, year, category, deleteStatus));
     }
 
     @Operation(summary = "Method to generate the Excel report for the Monthly expenses of a user")
-    @GetMapping("/{userId}/{month}/{year}/generateMonthlyReport")
+    @GetMapping("/{userId}/{month}/{year}/{category}/generateMonthlyReport")
     public ResponseEntity<byte[]> getMonthlyExpenseReport(@PathVariable("userId") Long userId,
                                                           @PathVariable("month") int month,
+                                                          @PathVariable("category") String category,
                                                           @PathVariable("year") int year) throws IOException {
 
-        byte[] excelData = expenseService.generateMonthlyExcelReport(userId, month, year);
+        byte[] excelData = expenseService.generateMonthlyExcelReport(userId, month, year, category);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Monthly expense report.xlsx")
@@ -71,19 +73,21 @@ public class ExpenseApiController {
     }
 
     @Operation(summary = "Method to get all the expense details in a particular year")
-    @GetMapping("/{userId}/{year}/{deleteStatus}")
-    public ResponseEntity<List<ExpenseModel>> getAllExpensesByYear(@PathVariable("userId") Long userId,
+    @GetMapping("/{userId}/{year}/{category}/{deleteStatus}")
+    public ResponseEntity<List<ExpenseModel>> getAllExpensesByYearAndCategory(@PathVariable("userId") Long userId,
                                                                    @PathVariable("year") int year,
+                                                                   @PathVariable("category") String category,
                                                                    @PathVariable("deleteStatus") boolean deleteStatus){
-        return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllexpensesByYear(userId, year, deleteStatus));
+        return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllExpensesByYearAndCategory(userId, year, category, deleteStatus));
     }
 
     @Operation(summary = "Method to generate the Excel report for the Yearly Expenses of a user")
-    @GetMapping("/{userId}/{year}/generateYearlyReport")
+    @GetMapping("/{userId}/{year}/{category}/generateYearlyReport")
     public ResponseEntity<byte[]> getYearlyExpenseReport(@PathVariable("userId") Long userId,
-                                                         @PathVariable("year") int year) throws IOException {
+                                                         @PathVariable("year") int year,
+                                                         @PathVariable("category") String category) throws IOException {
 
-        byte[] excelData = expenseService.generateYearlyExcelReport(userId, year);
+        byte[] excelData = expenseService.generateYearlyExcelReport(userId, year, category);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Yearly expense report.xlsx")

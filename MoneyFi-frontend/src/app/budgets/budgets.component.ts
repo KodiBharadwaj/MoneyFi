@@ -63,6 +63,10 @@ export class BudgetsComponent {
   selectedYear: number = new Date().getFullYear();
   selectedMonth: number = 0; // 0 means all months
   selectedCategory: string = '';
+  categories: string[] = [
+    'Food', 'Travelling', 'Entertainment', 'Groceries', 'Shopping', 'Bills & utilities', 
+    'House Rent', 'Emi and loans', 'Health & Medical', 'Miscellaneous'
+  ];
   months: string[] = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -77,8 +81,7 @@ export class BudgetsComponent {
     // Set the default month to the current month (1-based index)
     this.selectedMonth = new Date().getMonth() + 1; // Current month in 1-based index
     this.selectedYear = new Date().getFullYear(); // Current year
-  
-    // this.loadBudgetData();
+
     this.filterExpenses();
   }
   initializeFilters() {
@@ -95,15 +98,14 @@ export class BudgetsComponent {
       next: (userId) => {
         let url: string;
         if (this.selectedMonth === 0) {
-          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedYear}/false`;
+          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedYear}/all/false`;
         } else {
-          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/false`;
+          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/all/false`;
         }
   
         this.httpClient.get<Expense[]>(url).subscribe({
           next: (expenses) => {
             if (expenses && expenses.length > 0) {
-              // console.log(expenses);
 
               this.expenses = expenses;
               this.filteredExpenses = [...expenses]; // Initialize filteredExpenses with all expenses
@@ -123,7 +125,7 @@ export class BudgetsComponent {
         });
       },
       error: (error) => {
-        // console.error('Failed to fetch userId:', error);
+        console.error('Failed to fetch userId:', error);
         alert("Session timed out! Please login again");
         sessionStorage.removeItem('finance.auth');
         this.router.navigate(['login']);
@@ -151,12 +153,6 @@ export class BudgetsComponent {
     this.calculateTotals();
   }
 
-  applyFilters() {
-    // Filter by category if a category is selected
-    if (this.selectedCategory) {
-      this.expenses = this.expenses.filter(expense => expense.category === this.selectedCategory);
-    }
-  }
   
   loadBudgetData() {
     this.loading = true;
@@ -164,25 +160,23 @@ export class BudgetsComponent {
   
     this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
       next: (userId) => {
-        this.httpClient.get<Budget[]>(`${this.baseUrl}/api/budget/${userId}`).subscribe({
+
+        if(this.selectedCategory === '') this.selectedCategory = 'all';
+
+        this.httpClient.get<Budget[]>(`${this.baseUrl}/api/budget/${userId}/${this.selectedCategory}`).subscribe({
           next: (budgets) => {
             if(budgets === null){
               this.toastr.warning('You dont have budget', 'Please add Budget plan');
             }
             else {
               this.budgets = budgets;
-              // console.log(this.budgets);
               this.calculateTotals();
               // Load expenses after fetching budgets to update categories
               this.loadExpensesData();
             }
           },
           error: (error) => {
-            // console.error('Failed to load Budget data:', error);
-            // if(error.status === 204){
-            //   this.toastr.warning('You dont have budget', 'Please add Budget plan')
-            // }
-            // this.toastr.error('Failed to load budgets', 'Error');
+            console.error('Failed to load Budget data:', error);
             if(error.status === 401){
               alert('Service Unavailable!! Please try later');
             }
@@ -194,7 +188,7 @@ export class BudgetsComponent {
         });
       },
       error: (error) => {
-        // console.error('Failed to fetch userId:', error);
+        console.error('Failed to fetch userId:', error);
         alert("Session timed out! Please login again");
         sessionStorage.removeItem('finance.auth');
         this.router.navigate(['login']);
@@ -227,10 +221,6 @@ export class BudgetsComponent {
     return '#4caf50';  // Green
   }
 
-  // addBudget() {
-  //   // Implement add budget logic
-  //   console.log('Add budget clicked');
-  // }
   addBudget() {
     const dialogRef = this.dialog.open(AddBudgetDialogComponent, {
       width: '500px',
@@ -327,10 +317,6 @@ export class BudgetsComponent {
   }
   
   
-  updateUniqueCategories() {
-    // Ensure "All Categories" is an option
-    this.uniqueCategories = ['', ...new Set(this.expenses.map(expense => expense.category))];
-  }
 
   filterExpenses() {
     this.loadBudgetData();
@@ -344,7 +330,5 @@ export class BudgetsComponent {
     this.selectedCategory = ''; // Reset to all categories
     this.filterExpenses();
   }
- 
-  
 
 }
