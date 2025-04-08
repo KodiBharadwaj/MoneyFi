@@ -62,7 +62,6 @@ public class UserServiceImplementation implements UserService {
         new Thread(() -> sendPasswordAlertMail(Math.toIntExact(userAuthModel.getId()), userAuthModel.getUsername())).start();
 
         userAuthModel.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
-        userAuthModel.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(5));
         userAuthModel.setOtpCount(userAuthModel.getOtpCount()+1);
         userRepository.save(userAuthModel);
 
@@ -97,14 +96,14 @@ public class UserServiceImplementation implements UserService {
 
         UserAuthModel userAuthModel = userRepository.findByUsername(email);
         if(userAuthModel == null){
-            remainingTimeCountDto.setComment("UserAuthModel not exist");
+            remainingTimeCountDto.setComment("User not exist");
             remainingTimeCountDto.setResult(false);
             return remainingTimeCountDto;
         }
 
         if(userAuthModel.getOtpCount() >= 3){
             remainingTimeCountDto.setResult(false);
-            remainingTimeCountDto.setComment("Otp limit crossed");
+            remainingTimeCountDto.setComment("Limit crossed for today!! Try tomorrow");
             return remainingTimeCountDto;
         }
 

@@ -3,29 +3,24 @@ package com.moneyfi.apigateway.model;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Generated;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "blacklist_token_table", uniqueConstraints = @UniqueConstraint(columnNames = "token"))
+@Table(name = "blacklist_token_table")
 public class BlackListedToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true) // Ensure unique tokens
+    @Column(nullable = false)
     private String token;
 
     @Column(nullable = false)
     private Date expiry;
-
-    public BlackListedToken(String token, Date expiry) {
-    }
 }

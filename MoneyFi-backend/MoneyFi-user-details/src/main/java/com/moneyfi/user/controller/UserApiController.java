@@ -28,7 +28,7 @@ public class UserApiController {
         profile.setUserId(userDetails.getUserId());
         profile.setName(userDetails.getName());
         profile.setEmail(userDetails.getEmail());
-        ProfileModel addedProfile = profileRepository.save(profile);
+        profileRepository.save(profile);
 
         return userService.save(userDetails);
     }

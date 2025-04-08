@@ -91,6 +91,7 @@ export class AddIncomeDialogComponent {
   }
 
   baseUrl = "http://localhost:8765";
+  today : Date = new Date();
 
   isValid(): boolean {
     return (

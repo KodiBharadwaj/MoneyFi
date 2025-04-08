@@ -62,6 +62,8 @@ export class AddExpenseDialogComponent {
     }
   }
 
+  today: Date = new Date();
+
   isValid(): boolean {
     return (
       this.expenseSource.amount !== '' &&
