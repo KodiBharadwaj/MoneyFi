@@ -6,7 +6,6 @@ import com.moneyfi.apigateway.dto.RemainingTimeCountDto;
 import com.moneyfi.apigateway.model.UserAuthModel;
 import com.moneyfi.apigateway.repository.UserRepository;
 import com.moneyfi.apigateway.util.EmailFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,14 +22,14 @@ public class UserServiceImplementation implements UserService {
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
     private final UserRepository userRepository;
     private final EmailFilter emailFilter;
-
-    @Autowired
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
 
     public UserServiceImplementation(UserRepository userRepository,
-                                     EmailFilter emailFilter){
+                                     EmailFilter emailFilter,
+                                     RestTemplate restTemplate){
         this.userRepository = userRepository;
         this.emailFilter = emailFilter;
+        this.restTemplate = restTemplate;
     }
 
     @Override
@@ -128,7 +127,11 @@ public class UserServiceImplementation implements UserService {
         List<UserAuthModel> userAuthModelList = userRepository.getUserListWhoseOtpCountGreaterThanThree();
 
         for (UserAuthModel userAuthModel : userAuthModelList) {
-            if (userAuthModel.getOtpCount() >= 3 && userAuthModel.getVerificationCodeExpiration().isBefore(startOfToday)) {
+            if(userAuthModel.getOtpCount() >= 3 && userAuthModel.getVerificationCodeExpiration() == null){
+                userAuthModel.setVerificationCodeExpiration(LocalDateTime.now());
+                userRepository.save(userAuthModel);
+            }
+            else if (userAuthModel.getOtpCount() >= 3 && userAuthModel.getVerificationCodeExpiration().isBefore(startOfToday)) {
                 userAuthModel.setOtpCount(0);
                 userRepository.save(userAuthModel);
             }

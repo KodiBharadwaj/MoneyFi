@@ -3,7 +3,6 @@ package com.moneyfi.apigateway.service;
 import com.moneyfi.apigateway.model.BlackListedToken;
 import com.moneyfi.apigateway.repository.TokenBlackListRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -12,8 +11,12 @@ import java.util.List;
 
 @Service
 public class TokenBlacklistService {
-    @Autowired
-    private TokenBlackListRepository tokenBlacklistRepository;
+
+    private final TokenBlackListRepository tokenBlacklistRepository;
+
+    public TokenBlacklistService(TokenBlackListRepository tokenBlacklistRepository){
+        this.tokenBlacklistRepository = tokenBlacklistRepository;
+    }
 
     public void blacklistToken(BlackListedToken blackListedToken) {
         tokenBlacklistRepository.save(blackListedToken);

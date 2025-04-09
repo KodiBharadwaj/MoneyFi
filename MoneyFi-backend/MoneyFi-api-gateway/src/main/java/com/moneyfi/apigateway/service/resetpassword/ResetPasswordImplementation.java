@@ -4,7 +4,6 @@ package com.moneyfi.apigateway.service.resetpassword;
 import com.moneyfi.apigateway.model.UserAuthModel;
 import com.moneyfi.apigateway.repository.UserRepository;
 import com.moneyfi.apigateway.util.EmailFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,14 +16,14 @@ public class ResetPasswordImplementation implements ResetPassword {
 
     private final UserRepository userRepository;
     private final EmailFilter emailUtil;
-
-    @Autowired
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
 
     public ResetPasswordImplementation(EmailFilter emailFilter,
-                                       UserRepository userRepository){
+                                       UserRepository userRepository,
+                                       RestTemplate restTemplate){
         this.emailUtil = emailFilter;
         this.userRepository = userRepository;
+        this.restTemplate = restTemplate;
     }
 
 

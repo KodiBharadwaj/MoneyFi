@@ -5,15 +5,10 @@ import com.moneyfi.user.model.Feedback;
 import com.moneyfi.user.repository.ContactUsRepository;
 import com.moneyfi.user.repository.FeedbackRepository;
 import com.moneyfi.user.util.EmailFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 public class ContactUsServiceImplementation implements ContactUsService{
-
-    @Autowired
-    private RestTemplate restTemplate;
 
     private final ContactUsRepository contactUsRepository;
     private final FeedbackRepository feedbackRepository;

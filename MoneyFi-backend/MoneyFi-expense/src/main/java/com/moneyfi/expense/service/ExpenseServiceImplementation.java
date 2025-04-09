@@ -4,7 +4,6 @@ import com.moneyfi.expense.model.ExpenseModel;
 import com.moneyfi.expense.repository.ExpenseRepository;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -20,13 +19,13 @@ import java.util.List;
 @Service
 public class ExpenseServiceImplementation implements ExpenseService{
 
-    @Autowired
-    private RestTemplate restTemplate;
-
     private final ExpenseRepository expenseRepository;
+    private final RestTemplate restTemplate;
 
-    public ExpenseServiceImplementation(ExpenseRepository expenseRepository){
+    public ExpenseServiceImplementation(ExpenseRepository expenseRepository,
+                                        RestTemplate restTemplate){
         this.expenseRepository = expenseRepository;
+        this.restTemplate = restTemplate;
     }
 
     @Override
