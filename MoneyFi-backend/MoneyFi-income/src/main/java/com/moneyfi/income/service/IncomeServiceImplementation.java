@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -21,13 +20,13 @@ import java.util.List;
 @Service
 public class IncomeServiceImplementation implements IncomeService {
 
-    @Autowired
-    private RestTemplate restTemplate;
-
     private final IncomeRepository incomeRepository;
+    private final RestTemplate restTemplate;
 
-    public IncomeServiceImplementation(IncomeRepository incomeRepository){
+    public IncomeServiceImplementation(IncomeRepository incomeRepository,
+                                       RestTemplate restTemplate){
         this.incomeRepository = incomeRepository;
+        this.restTemplate = restTemplate;
     }
 
     @Override

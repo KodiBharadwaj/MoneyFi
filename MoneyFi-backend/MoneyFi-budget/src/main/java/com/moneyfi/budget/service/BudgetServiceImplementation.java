@@ -2,7 +2,6 @@ package com.moneyfi.budget.service;
 
 import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.repository.BudgetRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,13 +13,13 @@ import java.util.List;
 @Service
 public class BudgetServiceImplementation implements BudgetService{
 
-    @Autowired
-    private RestTemplate restTemplate;
-
     private final BudgetRepository budgetRepository;
+    private final RestTemplate restTemplate;
 
-    public BudgetServiceImplementation(BudgetRepository budgetRepository){
+    public BudgetServiceImplementation(BudgetRepository budgetRepository,
+                                       RestTemplate restTemplate){
         this.budgetRepository = budgetRepository;
+        this.restTemplate = restTemplate;
     }
 
     @Override
