@@ -58,7 +58,7 @@ public class UserServiceImplementation implements UserService {
             return dto;
         }
 
-        new Thread(() -> sendPasswordAlertMail(Math.toIntExact(userAuthModel.getId()), userAuthModel.getUsername())).start();
+        new Thread(() -> sendPasswordAlertMail(userAuthModel.getId(), userAuthModel.getUsername())).start();
 
         userAuthModel.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
         userAuthModel.setOtpCount(userAuthModel.getOtpCount()+1);
@@ -68,7 +68,7 @@ public class UserServiceImplementation implements UserService {
         return dto;
     }
 
-    private void sendPasswordAlertMail(int userId, String email){
+    private void sendPasswordAlertMail(Long userId, String email){
 
         String userName = restTemplate.getForObject("http://MONEYFI-USER/api/profile/getName/" + userId, String.class);
 

@@ -155,10 +155,9 @@ public class UserController {
 
     @Operation(summary = "Method to get user id from token")
     @GetMapping("/token/{token}")
-    public Integer getUserIdFromToken(@PathVariable("token") String token){
+    public Long getUserIdFromToken(@PathVariable("token") String token){
         String username = jwtService.extractUserName(token);
-        Long id = userRepository.findByUsername(username).getId();
-        return Math.toIntExact(id);
+        return userRepository.findByUsername(username).getId();
     }
 
     @Operation(summary = "Method for password forgot")

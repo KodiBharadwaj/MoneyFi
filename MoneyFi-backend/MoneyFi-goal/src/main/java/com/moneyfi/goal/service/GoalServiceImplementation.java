@@ -33,7 +33,7 @@ public class GoalServiceImplementation implements GoalService{
     public List<GoalModel> getAllGoals(Long userId) {
         return goalRepository.findByUserId(userId)
                 .stream()
-                .sorted((a,b)-> Math.toIntExact(a.getId() - b.getId()))
+                .sorted((a,b)-> Long.compare(a.getId(), b.getId()))
                 .toList();
     }
 
