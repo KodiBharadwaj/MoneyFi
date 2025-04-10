@@ -4,6 +4,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { UserProfile } from '../../model/UserProfile';
 
 @Component({
   selector: 'app-contact-form',
@@ -22,9 +23,37 @@ export class ContactFormComponent {
     message: '',
     images: '',
   };
+  name : string = '';
+  email : string = '';
   selectedFile: File | null = null;
   previewUrl: string | ArrayBuffer | null = null;
   baseUrl = "http://localhost:8765";
+
+  ngOnInit(){
+    const token = sessionStorage.getItem('finance.auth');
+
+    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+      next: (userId) => {
+
+        this.httpClient.get<UserProfile>(`${this.baseUrl}/api/user/${userId}`).subscribe({
+          next: (userProfile) => {
+            this.contactData.name = userProfile.name;
+            this.contactData.email = userProfile.email;
+          },
+          error: (error) => {
+            console.log('Failed to get the user details', error);
+          }
+        });
+
+      },
+      error: (error) => {
+        console.error('Failed to fetch userId:', error);
+        alert("Session timed out! Please login again");
+        sessionStorage.removeItem('finance.auth');
+        this.router.navigate(['login']);
+      }
+    })
+  }
 
 
   onFileSelected(event: any): void {
@@ -70,9 +99,14 @@ export class ContactFormComponent {
 
       this.httpClient.post(`${this.baseUrl}/api/contact/${userId}`, contactDto).subscribe(
       (response) => {
-        // alert('Form submitted successfully!');
-        this.toastr.success('Form submitted successfully!')
         this.resetForm();
+        this.toastr.success('Feedback submitted successfully!', '', {
+          timeOut: 1500  // toast visible for 3 seconds
+        });
+        
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       },
       error => {
         console.error('Error submitting form:', error);
@@ -92,7 +126,7 @@ export class ContactFormComponent {
 
   // Reset form after submission
   resetForm() {
-    this.contactData = { name: '', email: '', message: '', images: '' };
+    this.contactData = { name: this.contactData.name, email: this.contactData.email, message: '', images: '' };
     this.selectedFile = null;
     this.previewUrl = null;
   }
