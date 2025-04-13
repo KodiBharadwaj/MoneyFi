@@ -1,0 +1,21 @@
+<div class="contact-container">
+    <h2>How can we help you?</h2>
+    
+    <!-- Dropdown to select form type -->
+    <label for="formSelector">Choose an option:</label>
+    <!-- <select id="formSelector" (change)="selectForm($event.target.value)"> -->
+        <select id="formSelector" (change)="selectForm($event)">
+      <option value="">-- Select --</option>
+      <option *ngFor="let option of formOptions" [value]="option.value">
+        {{ option.label }}
+      </option>
+    </select>
+  
+    <!-- Dynamically display selected form -->
+    <div class="form-container">
+      <app-contact-form *ngIf="selectedForm === 'contact'"></app-contact-form>
+    <app-feedback-form *ngIf="selectedForm === 'feedback'"></app-feedback-form>
+      <!-- <app-survey-form *ngIf="selectedForm === 'survey'"></app-survey-form> -->
+    </div>
+  </div>
+  

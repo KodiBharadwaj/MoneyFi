@@ -1,0 +1,36 @@
+<div class="feedback-form-container">
+    <h3>Give Your Feedback</h3>
+  
+    <form (ngSubmit)="submitFeedback()" #feedbackForm="ngForm">
+      
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" [(ngModel)]="feedback.name" name="name" readonly required>
+      </div>
+  
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" [(ngModel)]="feedback.email" name="email" readonly required>
+      </div>
+  
+      <div class="form-group">
+        <label for="rating">Rating</label>
+        <div class="rating-stars">
+          <span *ngFor="let star of stars; let i = index" 
+                (click)="selectRating(i + 1)" 
+                [class.filled]="feedback.rating > i">&#9733;</span>
+        </div>
+      </div>
+  
+      <div class="form-group">
+        <label for="comments">Comments</label>
+        <textarea id="comments" [(ngModel)]="feedback.comments" name="comments" rows="4"></textarea>
+      </div>
+  
+      <button type="submit" [disabled]="!feedbackForm.valid" class="submit-btn">
+        Submit Feedback
+      </button>
+  
+    </form>
+  </div>
+  
