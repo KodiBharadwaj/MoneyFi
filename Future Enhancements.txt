@@ -14,6 +14,7 @@ Minor Changes:
 
 
 Defects:
+- User feedback mail images are not sending as images in mail to admin.
 - If otp verification isn't there during signup, if user creates with unexisting email, then forgot password, email service wont work for him.
   Add otp verification at signup stage itself.
 
