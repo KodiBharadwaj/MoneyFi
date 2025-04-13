@@ -57,9 +57,3 @@ cleared defects:
 - category section is not working properly in income, expense and budget services.
 - User should not be able to add the future transactions in income, expense.
 
-
-
-
-
-
-

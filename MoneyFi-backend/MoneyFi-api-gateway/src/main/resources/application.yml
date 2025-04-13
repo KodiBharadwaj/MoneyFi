@@ -1,0 +1,79 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+
+
+spring:
+  datasource:
+    url: jdbc:sqlserver://${RDS_HOSTNAME:localhost}:${RDS_PORT:1433};databaseName=${RDS_DB_NAME:moneyfi_apigateway};encrypt=true;trustServerCertificate=true
+    username: ${RDS_USERNAME:sa}
+    password: ${RDS_PASSWORD:admin@123}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id: MoneyFi-user
+            uri:
+              lb://MoneyFi-user
+            predicates:
+              - Path=/api/user/**, /api/profile/**, /api/contact/**
+
+          - id: MoneyFi-income
+            uri:
+              lb://MoneyFi-income
+            predicates:
+              - Path=/api/income/**
+
+          - id: MoneyFi-expense
+            uri:
+              lb://MoneyFi-expense
+            predicates:
+              - Path=/api/expense/**
+
+          - id: MoneyFi-budget
+            uri:
+              lb://MoneyFi-budget
+            predicates:
+              - Path=/api/budget/**
+
+          - id: MoneyFi-goal
+            uri:
+              lb://MoneyFi-goal
+            predicates:
+              - Path=/api/goal/**
+
+#
+#
+#          - id: trainer-service
+#            uri:
+#              lb://trainer-service
+#            predicates:
+#              - Path=/trainer/**
+#
+#          - id: student-service
+#            uri:
+#              lb://student-service
+#            predicates:
+#              - Path=/student/**
+#
+#
+#          - id: maintainer-service
+#            uri:
+#              lb://maintainer-service
+#            predicates:
+#              - Path=/maintainer/**
+#
+
