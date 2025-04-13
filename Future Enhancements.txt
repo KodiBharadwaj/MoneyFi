@@ -19,6 +19,9 @@ Defects:
 - If otp verification isn't there during signup, if user creates with unexisting email, then forgot password, email service wont work for him.
   Add otp verification at signup stage itself.
 
+sql db changed defects:
+- supporting multiple logins now.
+
 
 
 cleared changes:
