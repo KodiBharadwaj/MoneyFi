@@ -9,9 +9,9 @@ eureka:
 
 spring:
   datasource:
-    url: jdbc:postgresql://${RDS_HOSTNAME:localhost}:${RDS_PORT:5432}/${RDS_DB_NAME:project_ms}
-    username: ${RDS_USERNAME:postgres}
-    password: ${RDS_PASSWORD:postgres}
+    url: jdbc:sqlserver://${RDS_HOSTNAME:localhost}:${RDS_PORT:1433};databaseName=${RDS_DB_NAME:moneyfi_apigateway};encrypt=true;trustServerCertificate=true
+    username: ${RDS_USERNAME:sa}
+    password: ${RDS_PASSWORD:admin@123}
 
   jpa:
     hibernate:

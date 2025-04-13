@@ -45,7 +45,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
 
     @Override
     public List<ExpenseModel> getAllExpensesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus) {
-        List<ExpenseModel> list = expenseRepository.getAllexpensesByDate(userId, month, year, deleteStatus);
+        List<ExpenseModel> list = expenseRepository.getAllExpensesByDate(userId, month, year, deleteStatus);
         if(category.equalsIgnoreCase("all")){
             return list.stream()
                     .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
@@ -138,7 +138,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
 
     @Override
     public List<ExpenseModel> getAllExpensesByYearAndCategory(Long userId, int year, String category, boolean deleteStatus) {
-        List<ExpenseModel> list = expenseRepository.getAllexpensesByYear(userId, year, deleteStatus);
+        List<ExpenseModel> list = expenseRepository.getAllExpensesByYear(userId, year, deleteStatus);
         if(category.equalsIgnoreCase("all")){
             return list.stream()
                     .sorted((a,b) -> Long.compare(a.getId(), b.getId()))

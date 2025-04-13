@@ -8,8 +8,7 @@ import java.util.List;
 
 public interface BudgetRepository extends JpaRepository<BudgetModel, Long> {
 
-    @Query("select b from BudgetModel b where b.userId = :userId")
-//    @Query(nativeQuery = true, value = "exec getAllBudgetsByUserId @userId = :userId")
+    @Query(nativeQuery = true, value = "exec getAllBudgetsByUserId @userId = :userId")
     List<BudgetModel> getBudgetsByUserId(Long userId);
 
 }

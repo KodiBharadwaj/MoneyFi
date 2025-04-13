@@ -5,13 +5,12 @@ import jakarta.mail.internet.*;
 import org.springframework.stereotype.Component;
 
 import java.util.Properties;
-import java.util.Random;
 
 @Component
 public class EmailFilter {
     public static void sendEmail(String toEmail, String subject, String body) {
         String fromEmail = "bharadwajkodi2003@gmail.com";  // Sender's email
-        String password = "xxxx xxxx xxxx xxxx";  // Sender's email password (Make sure it's correct or use App password)
+        String password = "pkiv sayk hirk kwvh";  // Sender's email password (Make sure it's correct or use App password)
         String host = "smtp.gmail.com";  // Gmail SMTP server
         String port = "587";  // SMTP port for Gmail
 

@@ -1,0 +1,6 @@
+spring:
+  profiles:
+    active: ${PROFILE:sqlserver}
+  application:
+    name:
+      finance-app-income

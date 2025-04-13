@@ -22,11 +22,9 @@ public interface GoalRepository extends JpaRepository<GoalModel, Long> {
     @Query("Delete from GoalModel g where g.userId=:userId and g.goalName=:goalName")
     void deleteParticularGoalByGoalName(Long userId, String goalName);
 
-    @Query("select sum(g.currentAmount) from GoalModel g where g.userId = :userId")
-//    @Query(nativeQuery = true, value = "exec getCurrentTotalGoalIncome @userId = :userId")
+    @Query(nativeQuery = true, value = "exec getCurrentTotalGoalIncome @userId = :userId")
     BigDecimal getCurrentTotalGoalIncome(Long userId);
 
-    @Query("select sum(g.targetAmount) from GoalModel g where g.userId = :userId")
-//    @Query(nativeQuery = true, value = "exec getTargetTotalGoalIncome @userId = :userId")
+    @Query(nativeQuery = true, value = "exec getTargetTotalGoalIncome @userId = :userId")
     BigDecimal getTargetTotalGoalIncome(Long userId);
 }

@@ -6,9 +6,10 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface ProfileRepository extends JpaRepository<ProfileModel,Long> {
 
+    @Query(nativeQuery = true, value = "exec findByUserIdFromProfileTable @userId = :userId")
     ProfileModel findByUserId(Long userId);
 
-    @Query("select p.name from ProfileModel p where p.userId = :userId")
+    @Query(nativeQuery = true, value = "exec getNameFromUserId @userId = :userId")
     String getNameFromUserId(Long userId);
 
 }

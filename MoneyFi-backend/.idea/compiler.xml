@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="MoneyFi-api-gateway" />
+        <module name="MoneyFi-userAuthModel-details" />
         <module name="MoneyFi-user-details" />
         <module name="MoneyFi-expense" />
         <module name="MoneyFi-income" />
@@ -25,6 +26,7 @@
       <module name="MoneyFi-goal" options="-parameters" />
       <module name="MoneyFi-income" options="-parameters" />
       <module name="MoneyFi-user-details" options="-parameters" />
+      <module name="MoneyFi-userAuthModel-details" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
     </option>
   </component>

@@ -65,10 +65,10 @@ public class ContactUsServiceImplementation implements ContactUsService{
         String body = "<html>"
                 + "<body>"
                 + "<p style='font-size: 16px;'>Hello Admin,</p>"
-                + "<p style='font-size: 16px;'>You received feedback of a user: </p>"
                 + "<br>"
-                + "<p style='font-size: 16px;'>" + feedback.getRating() + "</p>"
+                + "<p style='font-size: 16px;'> You received feedback: " + feedback.getRating() + "/5 </p>"
                 + "<br>"
+                + "<p style='font-size: 16px;'>Comment: </p>"
                 + "<p style='font-size: 16px;'>" + feedback.getComments() + "</p>";
 
         emailFilter.sendEmail("bharadwajkodi2003@gmail.com", subject, body);
