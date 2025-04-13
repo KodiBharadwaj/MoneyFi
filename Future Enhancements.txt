@@ -11,6 +11,7 @@ Minor Changes:
 - Write junit test cases for income service (ongoing)
 - Landing page, so may buttons are there in the footer. Add the necessary info.
 - Replace double with BigDecimal in amount (frontend pending)
+- Replace all db's with a single db in ms sql.
 
 
 Defects:
