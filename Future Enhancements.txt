@@ -14,6 +14,7 @@ Minor Changes:
 
 
 Defects:
+- User feedback mail images are not sending as images in mail to admin.
 - If otp verification isn't there during signup, if user creates with unexisting email, then forgot password, email service wont work for him.
   Add otp verification at signup stage itself.
 
@@ -56,4 +57,3 @@ cleared defects:
 - When a service is failed or stopped working, it should show service unavailable, should not throw error.
 - category section is not working properly in income, expense and budget services.
 - User should not be able to add the future transactions in income, expense.
-
