@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface ExpenseRepository extends JpaRepository<ExpenseModel, Long> {
 
-    @Query(nativeQuery = true, value = "exec findExpensesByUserId @userId = :userId")
+    @Query(nativeQuery = true, value = "exec getAllExpensesByUserId @userId = :userId")
     List<ExpenseModel> findExpensesByUserId(Long userId);
 
 
@@ -23,7 +23,7 @@ public interface ExpenseRepository extends JpaRepository<ExpenseModel, Long> {
     List<ExpenseModel> getAllExpensesByYear(Long userId, int year, boolean deleteStatus);
 
 
-    @Query(nativeQuery = true, value = "exec findMonthlyExpensesListInAYear @userId = :userId, " +
+    @Query(nativeQuery = true, value = "exec getMonthlyExpensesListInAYear @userId = :userId, " +
             "@year = :year, @deleteStatus = :deleteStatus")
     List<Object[]> findMonthlyExpenses(Long userId, int year, boolean deleteStatus);
 

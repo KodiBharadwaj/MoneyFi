@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface UserRepository extends JpaRepository<UserDetails, Long> {
 
-    @Query(nativeQuery = true, value = "exec findUserDetailsByUserId @userId = :userId")
+    @Query(nativeQuery = true, value = "exec getUserDetailsByUserId @userId = :userId")
     UserDetails findByUserId(Long userId);
 }

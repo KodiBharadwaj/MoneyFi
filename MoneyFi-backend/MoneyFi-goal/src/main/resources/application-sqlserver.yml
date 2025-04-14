@@ -3,7 +3,7 @@ spring:
     name:
       MoneyFi-goal
   datasource:
-    url: jdbc:sqlserver://${RDS_HOSTNAME:localhost}:${RDS_PORT:1433};databaseName=${RDS_DB_NAME:moneyfi_goal};encrypt=true;trustServerCertificate=true
+    url: jdbc:sqlserver://${RDS_HOSTNAME:localhost}:${RDS_PORT:1433};databaseName=${RDS_DB_NAME:moneyfi_db};encrypt=true;trustServerCertificate=true
     username: ${RDS_USERNAME:sa}
     password: ${RDS_PASSWORD:admin@123}
 
