@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
 
-    @Query(nativeQuery = true, value = "exec findByUsernameFromUserAuthTable @username = :username")
+    @Query(nativeQuery = true, value = "exec getUserAuthDetailsByUsername @username = :username")
     UserAuthModel findByUsername(String username);
 
-    @Query(nativeQuery = true, value = "exec getUserListWhoseOtpCountGreaterThanThree")
+    @Query(nativeQuery = true, value = "exec getUserAuthDetailsListWhoseOtpCountGreaterThanThree")
     List<UserAuthModel> getUserListWhoseOtpCountGreaterThanThree();
 }
