@@ -10,5 +10,5 @@ public interface SessionTokenRepository extends JpaRepository<SessionTokenModel,
     SessionTokenModel findByUsername(String username);
 
     @Query(nativeQuery = true, value = "exec getSessionTokenModelByToken @token = :token")
-    SessionTokenModel findByToken(String token);
+    SessionTokenModel getSessionTokenModelByToken(String token);
 }

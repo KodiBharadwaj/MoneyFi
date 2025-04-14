@@ -25,6 +25,6 @@ public class SessionTokenImplementation implements SessionToken{
 
     @Override
     public SessionTokenModel getSessionDetailsByToken(String token) {
-        return sessionTokenRepository.findByToken(token);
+        return sessionTokenRepository.getSessionTokenModelByToken(token);
     }
 }

@@ -44,8 +44,9 @@ public class ContactUsServiceImplementation implements ContactUsService{
         // If an image is provided, embed it in the email
         if (base64Image != null && !base64Image.isEmpty()) {
             body += "<p><b>Attached Image:</b></p>"
-                    + "<img src='data:image/png;base64," + base64Image + "' width='500px' height='auto'/>";
+                    + "<img src='" + base64Image + "' width='500px' height='auto'/>";
         }
+
 
         body += "</body></html>";
 
