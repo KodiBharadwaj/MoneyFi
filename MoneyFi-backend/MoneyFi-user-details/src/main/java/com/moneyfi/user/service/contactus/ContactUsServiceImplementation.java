@@ -24,12 +24,12 @@ public class ContactUsServiceImplementation implements ContactUsService{
 
     @Override
     public ContactUs saveContactUsDetails(ContactUs contactUsDetails) {
-        new Thread(() -> sendContactAlertMail(contactUsDetails)).start();
+        new Thread(() -> sendContactAlertMail(contactUsDetails, contactUsDetails.getImages())).start();
 
         return contactUsRepository.save(contactUsDetails);
     }
 
-    private void sendContactAlertMail(ContactUs contactUsDetails){
+    private void sendContactAlertMail(ContactUs contactUsDetails, String images){
         String subject = "MoneyFi's User Report Alert!!";
 
         String body = "<html>"
@@ -40,18 +40,18 @@ public class ContactUsServiceImplementation implements ContactUsService{
                 + "<p style='font-size: 16px;'>" + contactUsDetails.getMessage() + "</p>"
                 + "<br>";
 
-        String base64Image = contactUsDetails.getImages();
+        String base64Image = images;
         // If an image is provided, embed it in the email
         if (base64Image != null && !base64Image.isEmpty()) {
             body += "<p><b>Attached Image:</b></p>"
                     + "<img src='" + base64Image + "' width='500px' height='auto'/>";
         }
 
-
         body += "</body></html>";
 
         emailFilter.sendEmail("bharadwajkodi2003@gmail.com", subject, body);
     }
+
 
     @Override
     public Feedback saveFeedback(Feedback feedback) {
