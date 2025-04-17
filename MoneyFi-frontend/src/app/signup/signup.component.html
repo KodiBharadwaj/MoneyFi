@@ -101,12 +101,15 @@
           </div>
         </div>
   
-        <button type="submit" [disabled]="!signupForm.valid" class="submit-btn">Sign Up</button>
+        <button type="submit" [disabled]="!signupForm.valid" class="submit-btn" [disabled]="isOtpLoading">Sign Up</button>
   
         <div class="login-link">
           Already have an account? <a href="javascript:void(0)" (click)="goToLogin()">Login</a>
         </div>
       </form>
+
+
+      <app-signup-otp-confirm-dialog *ngIf="showOtp" [email]="tempSignupCredentials.username" (otpValidated)="onOtpValidated($event)"> </app-signup-otp-confirm-dialog>
     </div>
   </div>
 </div>

@@ -12,4 +12,8 @@ public interface UserService {
     ProfileChangePassword changePassword(ChangePasswordDto changePasswordDto);
 
     RemainingTimeCountDto checkOtpActiveMethod(String email);
+
+    boolean sendOtpForSignup(String email, String name);
+
+    boolean checkEnteredOtp(String email, String inputOtp);
 }

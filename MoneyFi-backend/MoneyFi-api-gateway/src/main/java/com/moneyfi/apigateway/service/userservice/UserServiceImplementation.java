@@ -3,7 +3,9 @@ package com.moneyfi.apigateway.service.userservice;
 import com.moneyfi.apigateway.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.dto.ProfileChangePassword;
 import com.moneyfi.apigateway.dto.RemainingTimeCountDto;
+import com.moneyfi.apigateway.model.OtpTempModel;
 import com.moneyfi.apigateway.model.UserAuthModel;
+import com.moneyfi.apigateway.repository.OtpTempRepository;
 import com.moneyfi.apigateway.repository.UserRepository;
 import com.moneyfi.apigateway.util.EmailFilter;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,13 +25,16 @@ public class UserServiceImplementation implements UserService {
     private final UserRepository userRepository;
     private final EmailFilter emailFilter;
     private final RestTemplate restTemplate;
+    private final OtpTempRepository otpTempRepository;
 
     public UserServiceImplementation(UserRepository userRepository,
                                      EmailFilter emailFilter,
-                                     RestTemplate restTemplate){
+                                     RestTemplate restTemplate,
+                                     OtpTempRepository otpTempRepository){
         this.userRepository = userRepository;
         this.emailFilter = emailFilter;
         this.restTemplate = restTemplate;
+        this.otpTempRepository = otpTempRepository;
     }
 
     @Override
@@ -119,6 +124,57 @@ public class UserServiceImplementation implements UserService {
         return remainingTimeCountDto;
     }
 
+    @Override
+    public boolean sendOtpForSignup(String email, String name) {
+
+        String verificationCode = emailFilter.generateVerificationCode();
+
+        OtpTempModel user = otpTempRepository.findByEmail(email);
+        if(user != null){
+            user.setOtp(verificationCode);
+            user.setExpirationTime(LocalDateTime.now().plusMinutes(5));
+            otpTempRepository.save(user);
+        } else {
+            OtpTempModel otpTempModel = new OtpTempModel();
+            otpTempModel.setEmail(email);
+            otpTempModel.setOtp(verificationCode);
+            otpTempModel.setExpirationTime(LocalDateTime.now().plusMinutes(5));
+            otpTempRepository.save(otpTempModel);
+        }
+
+        String subject = "OTP for MoneyFi's account creation";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
+                + "<p style='font-size: 16px;'>You have requested for account creation. Please use the following verification code:</p>"
+                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'>" + verificationCode + "</p>"
+                + "<p style='font-size: 16px;'>This code is valid for 5 minutes only. If you did not raise, please ignore this email.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at bharadwajkodi2003@gmail.com</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>The Support Team</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(email, subject, body);
+
+        return true;
+    }
+
+    @Override
+    public boolean checkEnteredOtp(String email, String inputOtp) {
+        OtpTempModel user = otpTempRepository.findByEmail(email);
+
+        if(user == null){
+            return false;
+        }
+
+        if(!user.getOtp().equals(inputOtp) || user.getExpirationTime().isBefore(LocalDateTime.now())){
+            return false;
+        }
+
+        return true;
+    }
 
 
     @Scheduled(fixedRate = 3600000) // Runs every 1 hour

@@ -219,4 +219,17 @@ public class UserController {
         return userService.checkOtpActiveMethod(email);
     }
 
+    @Operation(summary = "Method to send Otp for user verification during signup")
+    @GetMapping("/sendOtpForSignup/{email}/{name}")
+    public boolean sendOtpForSignup(@PathVariable("email") String email,
+                                    @PathVariable("name") String name){
+        return userService.sendOtpForSignup(email, name);
+    }
+
+    @Operation(summary = "Method to check the otp entered correct or not during user creation")
+    @GetMapping("/checkOtp/{email}/{inputOtp}")
+    public boolean checkEnteredOtp(@PathVariable("email") String email,
+                                   @PathVariable("inputOtp") String inputOtp){
+        return userService.checkEnteredOtp(email, inputOtp);
+    }
 }
