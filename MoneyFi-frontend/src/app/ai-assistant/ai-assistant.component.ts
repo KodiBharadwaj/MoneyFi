@@ -38,7 +38,7 @@ export class AiAssistantComponent implements OnInit {
     this.error = null;
     const token = sessionStorage.getItem('finance.auth');
 
-    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next: (userId) => {
         // Create parallel requests for all financial data
         forkJoin({

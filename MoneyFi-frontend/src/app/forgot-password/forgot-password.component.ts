@@ -99,11 +99,11 @@ export class ForgotPasswordComponent {
     this.isLoading = true; // Start loading
 
 
-    this.http.get<remainingTimeCount>(`http://localhost:8765/auth/checkOtpActive/${this.email}`).subscribe({
+    this.http.get<remainingTimeCount>(`http://localhost:8765/api/auth/checkOtpActive/${this.email}`).subscribe({
       next : (outputDto) => {
         if(outputDto.result){
 
-          this.http.post(`http://localhost:8765/auth/forgot-password`, null, { 
+          this.http.post(`http://localhost:8765/api/auth/forgot-password`, null, { 
             params: { email: this.email },
             responseType: 'text'
           }).subscribe({
@@ -151,7 +151,7 @@ export class ForgotPasswordComponent {
     }
 
     // Make API call to verify code
-    this.http.post(`http://localhost:8765/auth/verify-code`, null, { 
+    this.http.post(`http://localhost:8765/api/auth/verify-code`, null, { 
       params: { 
         email: this.email,
         code: this.verificationCode 
@@ -180,7 +180,7 @@ export class ForgotPasswordComponent {
     }
 
     // Make API call to reset password
-    this.http.put(`http://localhost:8765/auth/update-password`, null, { 
+    this.http.put(`http://localhost:8765/api/auth/update-password`, null, { 
       params: { 
         email: this.email,
         password: this.newPassword 

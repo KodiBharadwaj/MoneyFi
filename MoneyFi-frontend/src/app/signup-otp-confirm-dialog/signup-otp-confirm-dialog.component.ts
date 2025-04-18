@@ -23,9 +23,7 @@ export class SignupOtpConfirmDialogComponent {
 
   validateOtp() {
     // Replace this condition with actual OTP logic
-    console.log(this.otpValue)
-
-    this.httpClient.get<boolean>(`${this.baseUrl}/auth/checkOtp/${this.email}/${this.otpValue}`).subscribe({
+    this.httpClient.get<boolean>(`${this.baseUrl}/api/auth/checkOtp/${this.email}/${this.otpValue}`).subscribe({
       next : (response) => {
         if(response){
           this.otpValidated.emit(true); // ✅ Emit boolean

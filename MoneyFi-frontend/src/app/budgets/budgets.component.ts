@@ -94,7 +94,7 @@ export class BudgetsComponent {
     this.loading = true;
     const token = sessionStorage.getItem('finance.auth');
   
-    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next: (userId) => {
         let url: string;
         if (this.selectedMonth === 0) {
@@ -158,7 +158,7 @@ export class BudgetsComponent {
     this.loading = true;
     const token = sessionStorage.getItem('finance.auth');
   
-    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next: (userId) => {
 
         if(this.selectedCategory === '') this.selectedCategory = 'all';
@@ -231,7 +231,7 @@ export class BudgetsComponent {
       if (result) {
         const token = sessionStorage.getItem('finance.auth');
         if (token) {
-          this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+          this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
             next: (userId) => {
               console.log(userId);
   

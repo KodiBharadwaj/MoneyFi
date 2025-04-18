@@ -120,7 +120,7 @@ export class ExpensesComponent {
     this.loading = true;
     const token = sessionStorage.getItem('finance.auth');
   
-    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next: (userId) => {
         let url: string;
         if(this.selectedCategory === '') this.selectedCategory = 'all';
@@ -198,7 +198,7 @@ export class ExpensesComponent {
 
         const token = sessionStorage.getItem('finance.auth');
         
-        this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+        this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
           next: (userId) => {
             // Send POST request with the expense data
             const formattedDate = this.formatDate(result.date);
@@ -260,7 +260,7 @@ export class ExpensesComponent {
 
         const token = sessionStorage.getItem('finance.auth');
 
-        this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+        this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
           next: (userId) => {
             const formattedDate = this.formatDate(result.date);
             const updatedExpenseData = {
@@ -417,7 +417,7 @@ export class ExpensesComponent {
   generateReport() {
     const token = sessionStorage.getItem('finance.auth');
   
-    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next: (userId) => {
 
         let url: string;

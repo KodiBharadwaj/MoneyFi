@@ -107,7 +107,7 @@ export class AddIncomeDialogComponent {
 
       const token = sessionStorage.getItem('finance.auth');
   
-      this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+      this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
         next: (userId) => {
 
           const incomeDataUpdated = {

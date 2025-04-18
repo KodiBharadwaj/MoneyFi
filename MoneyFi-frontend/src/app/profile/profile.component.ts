@@ -81,7 +81,7 @@ export class ProfileComponent implements OnInit {
     const token = sessionStorage.getItem('finance.auth');
     // console.log(token);
 
-    this.http.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.http.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next : (userId) => {
         this.http.get<UserProfileDetails>(`${this.baseUrl}/api/profile/${userId}`).subscribe(
           (data) => {
@@ -120,7 +120,7 @@ export class ProfileComponent implements OnInit {
     const token = sessionStorage.getItem('finance.auth');
     // console.log(token);
 
-    this.http.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.http.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next : (userId) => {
         this.http.post<UserProfileDetails>(`${this.baseUrl}/api/profile/${userId}`, this.userProfileDetails).subscribe(
           (data) => {

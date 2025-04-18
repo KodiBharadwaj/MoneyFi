@@ -13,7 +13,7 @@ export class AuthApiService {
 
   constructor(private authClient:HttpClient) { }
 
-  baseUrl = "http://localhost:8765/auth"
+  baseUrl = "http://localhost:8765/api/auth"
   
   loginApiFunction(loginCredentials:LoginCredentials):Observable<JwtToken>{
     const token = this.authClient.post<JwtToken>(this.baseUrl+"/login", loginCredentials);

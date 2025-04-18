@@ -9,7 +9,7 @@ import java.util.Random;
 
 @Component
 public class EmailFilter {
-    public static void sendEmail(String toEmail, String subject, String body) {
+    public static boolean sendEmail(String toEmail, String subject, String body) {
         String fromEmail = "bharadwajkodi2003@gmail.com";  // Sender's email
         String password = "pkiv sayk hirk kwvh";  // Sender's email password (Make sure it's correct or use App password)
         String host = "smtp.gmail.com";  // Gmail SMTP server
@@ -50,10 +50,12 @@ public class EmailFilter {
             // Send the email
             Transport.send(message);
             System.out.println("Email sent successfully!");
+            return true;
         } catch (MessagingException e) {
             e.printStackTrace();
             System.out.println("Failed to send email.");
-            throw new RuntimeException("Failed to send email", e);
+//            throw new RuntimeException("Failed to send email", e);
+            return false;
         }
     }
 

@@ -69,7 +69,7 @@ export class GoalsComponent {
     const token = sessionStorage.getItem('finance.auth');
     // console.log(token);
   
-    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next: (userId) => {
         // console.log(userId);
   
@@ -137,7 +137,7 @@ export class GoalsComponent {
         const token = sessionStorage.getItem('finance.auth');
         // console.log(token);
         if(result.targetAmount > result.currentAmount){
-          this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+          this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
             next: (userId) => {
               // console.log(userId);
               
@@ -194,7 +194,7 @@ export class GoalsComponent {
     // console.log(token);
     // console.log(id);
   
-    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next: (userId) => {
         // console.log(userId);
   
@@ -237,7 +237,7 @@ export class GoalsComponent {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         const token = sessionStorage.getItem('finance.auth');
-        this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+        this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
           next: (userId) => {
             // console.log(userId);
             

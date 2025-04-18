@@ -51,9 +51,9 @@ export class DashboardComponent {
       if (result) {
         const token = sessionStorage.getItem('finance.auth');
         
-        this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+        this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
           next : (userId) => {
-            this.httpClient.post('http://localhost:8765/auth/logout', {}, { responseType: 'text' }).subscribe({
+            this.httpClient.post('http://localhost:8765/api/auth/logout', {}, { responseType: 'text' }).subscribe({
               next: (response) => {
                 const jsonResponse = JSON.parse(response);
                 this.toastr.success(jsonResponse.message, '', {

@@ -3,10 +3,12 @@ package com.moneyfi.apigateway.service.userservice;
 import com.moneyfi.apigateway.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.dto.ProfileChangePassword;
 import com.moneyfi.apigateway.dto.RemainingTimeCountDto;
+import com.moneyfi.apigateway.dto.UserProfile;
 import com.moneyfi.apigateway.model.OtpTempModel;
 import com.moneyfi.apigateway.model.UserAuthModel;
 import com.moneyfi.apigateway.repository.OtpTempRepository;
 import com.moneyfi.apigateway.repository.UserRepository;
+import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.util.EmailFilter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,21 +28,53 @@ public class UserServiceImplementation implements UserService {
     private final EmailFilter emailFilter;
     private final RestTemplate restTemplate;
     private final OtpTempRepository otpTempRepository;
+    private final JwtService jwtService;
 
     public UserServiceImplementation(UserRepository userRepository,
                                      EmailFilter emailFilter,
                                      RestTemplate restTemplate,
-                                     OtpTempRepository otpTempRepository){
+                                     OtpTempRepository otpTempRepository,
+                                     JwtService jwtService){
         this.userRepository = userRepository;
         this.emailFilter = emailFilter;
         this.restTemplate = restTemplate;
         this.otpTempRepository = otpTempRepository;
+        this.jwtService = jwtService;
     }
 
     @Override
-    public UserAuthModel saveUser(UserAuthModel userAuthModel) {
-        userAuthModel.setPassword(encoder.encode(userAuthModel.getPassword()));
+    public UserAuthModel registerUser(UserProfile userProfile) {
+        UserAuthModel getUser = userRepository.findByUsername(userProfile.getUsername());
+        if(getUser != null){
+            return null;
+        }
+
+        UserAuthModel userAuthModel = new UserAuthModel();
+        userAuthModel.setUsername(userProfile.getUsername());
+        userAuthModel.setPassword(encoder.encode(userProfile.getPassword()));
         return userRepository.save(userAuthModel);
+    }
+
+    @Override
+    public Long getUserIdByUsername(String email) {
+        UserAuthModel userAuthModel = userRepository.findByUsername(email);
+        if(userAuthModel == null){
+            return null;
+        }
+
+        return userAuthModel.getId();
+    }
+
+    @Override
+    public Long getUserIdFromToken(String token) {
+        String username = jwtService.extractUserName(token);
+
+        UserAuthModel user =  userRepository.findByUsername(username);
+        if(user != null){
+            return user.getId();
+        }
+
+        return null;
     }
 
     @Override
@@ -125,7 +159,12 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public boolean sendOtpForSignup(String email, String name) {
+    public String sendOtpForSignup(String email, String name) {
+
+        UserAuthModel userData = userRepository.findByUsername(email);
+        if(userData != null){
+            return "User already exists!";
+        }
 
         String verificationCode = emailFilter.generateVerificationCode();
 
@@ -156,9 +195,13 @@ public class UserServiceImplementation implements UserService {
                 + "<p style='font-size: 14px;'>The Support Team</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        boolean isMailsent = emailFilter.sendEmail(email, subject, body);
 
-        return true;
+        if(isMailsent){
+            return "Email sent successfully!";
+        } else {
+            return "Cant send email!";
+        }
     }
 
     @Override

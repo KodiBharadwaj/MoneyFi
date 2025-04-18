@@ -104,11 +104,21 @@ onSubmit(signupCredentials: SignupCredentials) {
   this.tempSignupCredentials = signupCredentials;
   this.isOtpLoading = true; // optional: show loading spinner for OTP step
 
-  this.authClient.get<boolean>(`${this.baseUrl}/auth/sendOtpForSignup/${this.tempSignupCredentials.username}/${this.tempSignupCredentials.name}`).subscribe({
-    next: (response) => {
-      if (response === true) {
+  this.authClient.get(`${this.baseUrl}/api/auth/sendOtpForSignup/${this.tempSignupCredentials.username}/${this.tempSignupCredentials.name}`, {
+    responseType: 'text'
+  }).subscribe({
+    next: (response : string) => {
+
+      if (response === 'Email sent successfully!') {
         this.showOtp = true;
-      } else {
+        this.toastr.success('Enter otp below')
+      } else if (response === 'User already exists!') {
+        alert('User already exists! Please Log in to your account');
+        this.router.navigate(['login']);
+      } else if (response === 'Cant send email!'){
+        this.toastr.error('Error in our internal email service! Please come later!');
+      }
+       else {
         // handle case where backend says OTP failed to send
         console.error('OTP not sent');
       }
@@ -133,7 +143,7 @@ onOtpValidated(success: boolean) {
         sessionStorage.setItem('finance.auth', response.jwtToken);
 
         // Get the userId from the API
-        this.authClient.get<number>(`${this.baseUrl}/auth/getUserId/${this.tempSignupCredentials.username}`)
+        this.authClient.get<number>(`${this.baseUrl}/api/auth/getUserId/${this.tempSignupCredentials.username}`)
           .subscribe(
             userId => {
               // console.log('User ID:', userId);
@@ -195,7 +205,7 @@ onOtpValidated(success: boolean) {
 //         sessionStorage.setItem('finance.auth', response.jwtToken);
 
 //         // Get the userId from the API
-//         this.authClient.get<number>(`${this.baseUrl}/auth/getUserId/${signupCredentials.username}`)
+//         this.authClient.get<number>(`${this.baseUrl}/api/auth/getUserId/${signupCredentials.username}`)
 //           .subscribe(
 //             userId => {
 //               // console.log('User ID:', userId);

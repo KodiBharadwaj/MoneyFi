@@ -66,7 +66,7 @@ export class OverviewComponent implements OnInit {
   private loadFinancialData() {
     const token = sessionStorage.getItem('finance.auth');
 
-    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next : (userId) => {
 
       this.httpClient.get(`${this.baseUrl}/api/profile/getName/${userId}`, {responseType : 'text'}).subscribe({

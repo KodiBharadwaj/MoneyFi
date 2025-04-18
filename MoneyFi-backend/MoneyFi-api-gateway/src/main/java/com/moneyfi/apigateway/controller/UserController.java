@@ -27,7 +27,7 @@ import java.util.Map;
 
 @RestController
 @CrossOrigin("http://localhost:4200")
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class UserController {
 
     @Autowired
@@ -56,31 +56,19 @@ public class UserController {
     }
 
 
-    @Operation(summary = "Method to get the user id from user's email")
-    @GetMapping("/getUserId/{email}")
-    public Long getUserId(@PathVariable("email") String email){
-        UserAuthModel userAuthModel = userRepository.findByUsername(email);
-        return userAuthModel.getId();
-    }
-
     @Operation(summary = "Method for the user registration/signup")
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserProfile userProfile) {
-        UserAuthModel userAuthModel = new UserAuthModel();
-        userAuthModel.setUsername(userProfile.getUsername());
-        userAuthModel.setPassword(userProfile.getPassword());
 
-        UserAuthModel getUserAuthModel = userRepository.findByUsername(userAuthModel.getUsername());
-        if (getUserAuthModel != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("UserAuthModel already exists");
+        UserAuthModel user = userService.registerUser(userProfile);
+        if(user == null){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists"); //409
+        } else {
+            return ResponseEntity.ok(jwtService.generateToken(userProfile.getUsername())); // 200
         }
-
-        // If userAuthModel doesn't exist, proceed with saving the userAuthModel
-        UserAuthModel savedUserAuthModel = userService.saveUser(userAuthModel);
-        return ResponseEntity.ok(jwtService.generateToken(userAuthModel.getUsername()));
     }
 
-    @Operation(summary = "Method for the userAuthModel login")
+    @Operation(summary = "Method for the user to login")
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserAuthModel userAuthModel) {
         SessionTokenModel sessionTokenUser = sessionTokenService.getUserByUsername(userAuthModel.getUsername());
@@ -96,7 +84,7 @@ public class UserController {
             }
         }
         try {
-            // Validate userAuthModel input (username and password should not be empty)
+            // Validate user input (username and password should not be empty)
             if (userAuthModel.getUsername() == null ||
                     userAuthModel.getUsername().isEmpty() ||
                     userAuthModel.getPassword() == null ||
@@ -105,14 +93,14 @@ public class UserController {
                 return ResponseEntity.badRequest().body("Username and password are required");
             }
 
-            // Check if the userAuthModel exists in the database
-            UserAuthModel existingUserAuthModel = userRepository.findByUsername(userAuthModel.getUsername());
-            if (existingUserAuthModel == null) {
+            // Check if the user exists in the database
+            UserAuthModel existingUser = userRepository.findByUsername(userAuthModel.getUsername());
+            if (existingUser == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UserAuthModel not found. Please sign up.");
             }
 
             try {
-                // Authenticate the userAuthModel with the provided password
+                // Authenticate the user with the provided password
                 Authentication authentication = authenticationManager
                         .authenticate(new UsernamePasswordAuthenticationToken(userAuthModel.getUsername(), userAuthModel.getPassword()));
 
@@ -152,12 +140,16 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "Method to get the user id from user's email")
+    @GetMapping("/getUserId/{email}")
+    public Long getUserId(@PathVariable("email") String email){
+        return userService.getUserIdByUsername(email);
+    }
 
     @Operation(summary = "Method to get user id from token")
     @GetMapping("/token/{token}")
     public Long getUserIdFromToken(@PathVariable("token") String token){
-        String username = jwtService.extractUserName(token);
-        return userRepository.findByUsername(username).getId();
+        return userService.getUserIdFromToken(token);
     }
 
     @Operation(summary = "Method for password forgot")
@@ -221,9 +213,10 @@ public class UserController {
 
     @Operation(summary = "Method to send Otp for user verification during signup")
     @GetMapping("/sendOtpForSignup/{email}/{name}")
-    public boolean sendOtpForSignup(@PathVariable("email") String email,
+    public ResponseEntity<String> sendOtpForSignup(@PathVariable("email") String email,
                                     @PathVariable("name") String name){
-        return userService.sendOtpForSignup(email, name);
+
+        return ResponseEntity.ok(userService.sendOtpForSignup(email, name));
     }
 
     @Operation(summary = "Method to check the otp entered correct or not during user creation")

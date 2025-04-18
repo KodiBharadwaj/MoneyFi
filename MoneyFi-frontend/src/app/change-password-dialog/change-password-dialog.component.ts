@@ -64,7 +64,7 @@ export class ChangePasswordDialogComponent {
     
       const token = sessionStorage.getItem('finance.auth');
 
-      this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+      this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
         next: (userId) => {
 
           const changePasswordDto: ChangePassword = {
@@ -74,7 +74,7 @@ export class ChangePasswordDialogComponent {
           };
     
           if(changePasswordDto.currentPassword !== changePasswordDto.newPassword){
-            this.http.post<ProfileChangePassword>(`${this.baseUrl}/auth/change-password`, changePasswordDto)
+            this.http.post<ProfileChangePassword>(`${this.baseUrl}/api/auth/change-password`, changePasswordDto)
             .subscribe({
               next: (profileChangeDto) => {
 

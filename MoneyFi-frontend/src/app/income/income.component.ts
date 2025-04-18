@@ -121,7 +121,7 @@ export class IncomeComponent {
     const token = sessionStorage.getItem('finance.auth');
   
     
-    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next: (userId) => {
 
         let url: string;
@@ -173,7 +173,7 @@ export class IncomeComponent {
     const token = sessionStorage.getItem('finance.auth');
   
     
-    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next: (userId) => {
 
         let url: string;
@@ -227,7 +227,7 @@ export class IncomeComponent {
       if (result) {
         const token = sessionStorage.getItem('finance.auth');
   
-        this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+        this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
           next: (userId) => {
 
             const formattedDate = this.formatDate(result.date);
@@ -288,7 +288,7 @@ export class IncomeComponent {
       if (result) {
         const token = sessionStorage.getItem('finance.auth');
 
-        this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+        this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
           next : (userId) => {
 
             const formattedDate = this.formatDate(result.date);
@@ -349,7 +349,7 @@ export class IncomeComponent {
 
         const token = sessionStorage.getItem('finance.auth');
   
-        this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+        this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
           next: (userId) => {
 
             this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/income/${userId}/incomeDeleteCheck`, incomeSource).subscribe({
@@ -448,7 +448,7 @@ export class IncomeComponent {
   generateReport() {
     const token = sessionStorage.getItem('finance.auth');
   
-    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next: (userId) => {
 
         let url: string;

@@ -53,7 +53,7 @@ export class AnalysisComponent {
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
 
-    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next: (userId) => {
         // Create parallel requests for both expenses and budgets
         const expensesUrl = `${this.baseUrl}/api/expense/${userId}/${currentMonth}/${currentYear}/all/false`;
@@ -165,7 +165,7 @@ export class AnalysisComponent {
     const token = sessionStorage.getItem('finance.auth');
     const currentYear = new Date().getFullYear();
 
-    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next: (userId) => {
         // Add savings to parallel requests
         forkJoin({
@@ -411,7 +411,7 @@ export class AnalysisComponent {
     const token = sessionStorage.getItem('finance.auth');
     const currentYear = new Date().getFullYear();
 
-    this.httpClient.get<number>(`${this.baseUrl}/auth/token/${token}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next: (userId) => {
         this.httpClient.get<number[]>(`${this.baseUrl}/api/expense/${userId}/monthlyCumulativeSavingsInYear/${currentYear}`)
           .subscribe({

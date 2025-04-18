@@ -10,14 +10,12 @@ Minor Changes:
 - Write junit test cases for income service (ongoing)
 - Landing page, so may buttons are there in the footer. Add the necessary info.
 - Replace double with BigDecimal in amount (frontend pending)
-- Replace all db's with a single db in ms sql.
 - Make the first letter capital by default while adding a transaction.
 
 
 Defects:
 - User feedback mail images are not sending as images in mail to admin.
-- If otp verification isn't there during signup, if user creates with unexisting email, then forgot password, email service wont work for that user.
-  Add otp verification at signup stage itself.
+
 
 
 cleared changes:
@@ -42,6 +40,8 @@ cleared changes:
 
 
 cleared defects:
+- If otp verification isn't there during signup, if user creates with unexisting email, then forgot password, email service wont work for that user.
+  Add otp verification at signup stage itself.
 - same source and same category duplicate transaction should not allowed.
 - update charts after deleting a transaction (income, expense)
 - after having income and expenses, if we delete previous incomes then it will show -ve. which is not possible.
