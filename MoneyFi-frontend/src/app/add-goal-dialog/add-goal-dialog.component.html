@@ -4,7 +4,7 @@
   <form class="income-form" novalidate>
     <mat-form-field appearance="outline" class="form-field">
       <mat-label>Goal Name</mat-label>
-      <input matInput [(ngModel)]="goalSource.goalName" name="goalName" required>
+      <input matInput [(ngModel)]="goalSource.goalName" name="goalName" (ngModelChange)="capitalizeFirstLetter()" required>
       <mat-error *ngIf="goalSource.goalName.trim() === ''">Goal Name is required</mat-error>
     </mat-form-field>
 

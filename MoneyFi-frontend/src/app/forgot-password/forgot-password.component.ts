@@ -8,6 +8,7 @@ import { Component } from '@angular/core';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { remainingTimeCount } from '../model/remainingTimeCount';
+import { ToastrService } from 'ngx-toastr';
 
 
 @Component({
@@ -30,7 +31,7 @@ export class ForgotPasswordComponent {
   errorMessage: string = '';
   successMessage: string = '';
 
-  constructor(private http: HttpClient,private router:Router) {}
+  constructor(private http: HttpClient,private router:Router, private toastr:ToastrService) {}
 
   public radarChartData: ChartData<'radar'> = {
     labels: ['Budgeting', 'Saving', 'Investing', 'Planning', 'Tracking', 'Goals'],
@@ -107,10 +108,17 @@ export class ForgotPasswordComponent {
             params: { email: this.email },
             responseType: 'text'
           }).subscribe({
-            next: (response) => {
-              this.successMessage = response;
-              this.stage = 'verification';
-              this.isLoading = false; // Stop loading
+            next: (response : string) => {
+              if (response === 'Verification code sent to your email!'){
+                this.successMessage = response;
+                this.stage = 'verification';
+                this.isLoading = false; // Stop loading
+              }
+              else if(response === 'cant send mail!'){
+                this.toastr.error('Error in our internal email service! Please come later!');
+                this.isLoading = false; // Stop loading
+                this.router.navigate(['login']);
+              }
             },
             error: (error: HttpErrorResponse) => {
               alert('Cant send email now. Try later');

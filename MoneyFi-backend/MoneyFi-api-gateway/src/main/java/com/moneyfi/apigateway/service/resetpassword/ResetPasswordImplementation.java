@@ -31,7 +31,7 @@ public class ResetPasswordImplementation implements ResetPassword {
     public String forgotPassword(String email) {
 
         UserAuthModel userAuthModel = userRepository.findByUsername(email);
-        if(userAuthModel ==null){
+        if(userAuthModel == null){
             throw new RuntimeException("No userAuthModel Found");
         }
 
@@ -60,9 +60,14 @@ public class ResetPasswordImplementation implements ResetPassword {
                 + "<p style='font-size: 14px;'>The Support Team</p>"
                 + "</body>"
                 + "</html>";
-        emailUtil.sendEmail(email, subject, body);
+        boolean isMailSent = emailUtil.sendEmail(email, subject, body);
 
-        return "Verification code sent to your email!";
+        if(isMailSent){
+            return "Verification code sent to your email!";
+        }
+
+        return "cant send mail!";
+
     }
 
     @Override

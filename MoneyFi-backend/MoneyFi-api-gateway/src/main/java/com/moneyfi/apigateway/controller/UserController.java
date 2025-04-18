@@ -154,8 +154,8 @@ public class UserController {
 
     @Operation(summary = "Method for password forgot")
     @PostMapping("/forgot-password")
-    public String forgotPassword(@RequestParam String email) {
-        return passwordResetService.forgotPassword(email);
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+        return ResponseEntity.ok(passwordResetService.forgotPassword(email));
     }
 
     @Operation(summary = "Method for verification of code/otp")

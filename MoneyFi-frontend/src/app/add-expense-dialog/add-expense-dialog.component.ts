@@ -73,6 +73,17 @@ export class AddExpenseDialogComponent {
     );
   }
 
+  capitalizeFirstLetter() {
+    if (this.expenseSource.description) {
+      const trimmed = this.expenseSource.description.trim();
+      if (trimmed.length > 0) {
+        this.expenseSource.description = 
+          trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+      }
+    }
+  }
+  
+
   onSave() {
     if (this.isValid()) {
       this.dialogRef.close(this.expenseSource);

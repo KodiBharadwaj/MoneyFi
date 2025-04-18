@@ -72,6 +72,12 @@ export class AddGoalDialogComponent {
     );
   }
 
+  capitalizeFirstLetter() {
+    if (this.goalSource.goalName && this.goalSource.goalName.length > 0) {
+      this.goalSource.goalName = this.goalSource.goalName.charAt(0).toUpperCase() + this.goalSource.goalName.slice(1);
+    }
+  }
+
   onSave() {
     if (this.isValid()) {
       this.dialogRef.close(this.goalSource);

@@ -102,6 +102,13 @@ export class AddIncomeDialogComponent {
     );
   }
 
+  capitalizeFirstLetter() {
+    if (this.incomeSource.source && this.incomeSource.source.length > 0) {
+      this.incomeSource.source = this.incomeSource.source.charAt(0).toUpperCase() + this.incomeSource.source.slice(1);
+    }
+  }
+  
+
   onSave() {
     if (this.isValid()) {
 

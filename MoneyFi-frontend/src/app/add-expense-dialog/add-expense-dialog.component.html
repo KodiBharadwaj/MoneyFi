@@ -36,7 +36,7 @@
 
     <mat-form-field appearance="outline" class="form-field">
       <mat-label>Description</mat-label>
-      <input matInput [(ngModel)]="expenseSource.description" name="description" required>
+      <input matInput [(ngModel)]="expenseSource.description" (ngModelChange)="capitalizeFirstLetter()" name="description" required>
       <mat-error *ngIf="expenseSource.description.trim() === ''">Description is required</mat-error>
     </mat-form-field>
 
