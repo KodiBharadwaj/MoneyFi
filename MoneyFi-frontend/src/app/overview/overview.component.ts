@@ -69,7 +69,7 @@ export class OverviewComponent implements OnInit {
     this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next : (userId) => {
 
-      this.httpClient.get(`${this.baseUrl}/api/profile/getName/${userId}`, {responseType : 'text'}).subscribe({
+      this.httpClient.get(`${this.baseUrl}/api/userProfile/getName/${userId}`, {responseType : 'text'}).subscribe({
         next : (userName) => {
           this.summary.username = userName;
         },

@@ -20,18 +20,18 @@ public class UserApiController {
         this.profileRepository = profileRepository;
     }
 
-    @Operation(summary = "Method which adds the user details in user and profile table")
-    @PostMapping("/setDetails")
-    public UserDetails setUserDetails(@RequestBody UserDetails userDetails){
-        System.out.println(userDetails);
-        ProfileModel profile = new ProfileModel();
-        profile.setUserId(userDetails.getUserId());
-        profile.setName(userDetails.getName());
-        profile.setEmail(userDetails.getEmail());
-        profileRepository.save(profile);
-
-        return userService.save(userDetails);
-    }
+//    @Operation(summary = "Method which adds the user details in user and profile table")
+//    @PostMapping("/setDetails")
+//    public UserDetails setUserDetails(@RequestBody UserDetails userDetails){
+//        System.out.println(userDetails);
+//        ProfileModel profile = new ProfileModel();
+//        profile.setUserId(userDetails.getUserId());
+//        profile.setName(userDetails.getName());
+//        profile.setEmail(userDetails.getEmail());
+//        profileRepository.save(profile);
+//
+//        return userService.save(userDetails);
+//    }
 
 
     @Operation(summary = "Method to get the user details of a user")

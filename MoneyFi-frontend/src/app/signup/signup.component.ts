@@ -141,41 +141,9 @@ onOtpValidated(success: boolean) {
     .subscribe(
       response => {
         sessionStorage.setItem('finance.auth', response.jwtToken);
-
-        // Get the userId from the API
-        this.authClient.get<number>(`${this.baseUrl}/api/auth/getUserId/${this.tempSignupCredentials.username}`)
-          .subscribe(
-            userId => {
-              // console.log('User ID:', userId);
-
-              // Use userId in the next API call
-              const userprofile = {
-                userId : userId,
-                name : this.tempSignupCredentials.name,
-                email : this.tempSignupCredentials.username,
-                createdDate : this.currentDate
-              }
-              this.authClient.post<UserProfile>(`${this.baseUrl}/api/user/setDetails`, userprofile)
-                .subscribe(
-                  userProfile => {
-                    // console.log('Profile details:', userProfile);
-                    this.toastr.success('User registered successfully!', 'Signup success');
-                    this.router.navigate(['/login']);
-                  },
-                  error => {
-                    console.error('Failed to save profile details', error);
-                  }
-                ).add(() => {
-                  this.isLoading = false; // Stop loading after this request
-                });
-
-              sessionStorage.removeItem('finance.auth');
-            },
-            error => {
-              console.error('Failed to fetch User ID', error);
-              this.isLoading = false; // Stop loading
-            }
-          );
+        this.isLoading = false;
+        this.toastr.success('User registered successfully!', 'Signup success');
+        this.router.navigate(['/login']);
       },
       error => {
         console.error('Signup Failed', error);
@@ -188,70 +156,11 @@ onOtpValidated(success: boolean) {
       }
     );
   } else {
-    // handle OTP failure (optional)
     console.log("failed");
   }
 
   this.showOtp = false;
 }
-
-// onSubmit(signupCredentials: SignupCredentials) {
-//   this.isLoading = true; // Start loading
-
-
-//   this.authApiService.signupApiFunction(signupCredentials)
-//     .subscribe(
-//       response => {
-//         sessionStorage.setItem('finance.auth', response.jwtToken);
-
-//         // Get the userId from the API
-//         this.authClient.get<number>(`${this.baseUrl}/api/auth/getUserId/${signupCredentials.username}`)
-//           .subscribe(
-//             userId => {
-//               // console.log('User ID:', userId);
-
-//               // Use userId in the next API call
-//               const userprofile = {
-//                 userId : userId,
-//                 name : signupCredentials.name,
-//                 email : signupCredentials.username,
-//                 createdDate : this.currentDate
-//               }
-//               this.authClient.post<UserProfile>(`${this.baseUrl}/api/user/setDetails`, userprofile)
-//                 .subscribe(
-//                   userProfile => {
-//                     // console.log('Profile details:', userProfile);
-//                     this.toastr.success('User registered successfully!', 'Signup success');
-//                     this.router.navigate(['/login']);
-//                   },
-//                   error => {
-//                     console.error('Failed to save profile details', error);
-//                   }
-//                 ).add(() => {
-//                   this.isLoading = false; // Stop loading after this request
-//                 });
-
-//               sessionStorage.removeItem('finance.auth');
-//             },
-//             error => {
-//               console.error('Failed to fetch User ID', error);
-//               this.isLoading = false; // Stop loading
-//             }
-//           );
-//       },
-//       error => {
-//         console.error('Signup Failed', error);
-//         this.isLoading = false; // Stop loading
-
-//         // Check if the error response indicates user already exists
-//         if (error.status === 409) {
-//           this.toastr.error('User already exists!', 'Signup Error');
-//         }
-//       }
-//     );
-// }
-
-
 
   navigateTo(route: string): void {
     this.router.navigate([route]);

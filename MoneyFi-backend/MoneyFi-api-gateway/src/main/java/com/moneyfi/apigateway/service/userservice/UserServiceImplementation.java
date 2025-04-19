@@ -5,11 +5,14 @@ import com.moneyfi.apigateway.dto.ProfileChangePassword;
 import com.moneyfi.apigateway.dto.RemainingTimeCountDto;
 import com.moneyfi.apigateway.dto.UserProfile;
 import com.moneyfi.apigateway.model.OtpTempModel;
+import com.moneyfi.apigateway.model.ProfileModel;
 import com.moneyfi.apigateway.model.UserAuthModel;
 import com.moneyfi.apigateway.repository.OtpTempRepository;
+import com.moneyfi.apigateway.repository.ProfileRepository;
 import com.moneyfi.apigateway.repository.UserRepository;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.util.EmailFilter;
+import org.apache.catalina.User;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,17 +32,20 @@ public class UserServiceImplementation implements UserService {
     private final RestTemplate restTemplate;
     private final OtpTempRepository otpTempRepository;
     private final JwtService jwtService;
+    private final ProfileRepository profileRepository;
 
     public UserServiceImplementation(UserRepository userRepository,
                                      EmailFilter emailFilter,
                                      RestTemplate restTemplate,
                                      OtpTempRepository otpTempRepository,
-                                     JwtService jwtService){
+                                     JwtService jwtService,
+                                     ProfileRepository profileRepository){
         this.userRepository = userRepository;
         this.emailFilter = emailFilter;
         this.restTemplate = restTemplate;
         this.otpTempRepository = otpTempRepository;
         this.jwtService = jwtService;
+        this.profileRepository = profileRepository;
     }
 
     @Override
@@ -52,7 +58,19 @@ public class UserServiceImplementation implements UserService {
         UserAuthModel userAuthModel = new UserAuthModel();
         userAuthModel.setUsername(userProfile.getUsername());
         userAuthModel.setPassword(encoder.encode(userProfile.getPassword()));
-        return userRepository.save(userAuthModel);
+        UserAuthModel user =  userRepository.save(userAuthModel);
+
+        saveUserProfileDetails(user.getId(), userProfile);
+        return user;
+    }
+
+    private void saveUserProfileDetails(Long userId, UserProfile userProfile){
+        ProfileModel profile = new ProfileModel();
+        profile.setUserId(userId);
+        profile.setName(userProfile.getName());
+        profile.setEmail(userProfile.getUsername());
+        profile.setCreatedDate(LocalDate.now());
+        profileRepository.save(profile);
     }
 
     @Override
@@ -101,6 +119,7 @@ public class UserServiceImplementation implements UserService {
 
         userAuthModel.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
         userAuthModel.setOtpCount(userAuthModel.getOtpCount()+1);
+        userAuthModel.setVerificationCodeExpiration(LocalDateTime.now());
         userRepository.save(userAuthModel);
 
         dto.setFlag(true);
@@ -168,19 +187,6 @@ public class UserServiceImplementation implements UserService {
 
         String verificationCode = emailFilter.generateVerificationCode();
 
-        OtpTempModel user = otpTempRepository.findByEmail(email);
-        if(user != null){
-            user.setOtp(verificationCode);
-            user.setExpirationTime(LocalDateTime.now().plusMinutes(5));
-            otpTempRepository.save(user);
-        } else {
-            OtpTempModel otpTempModel = new OtpTempModel();
-            otpTempModel.setEmail(email);
-            otpTempModel.setOtp(verificationCode);
-            otpTempModel.setExpirationTime(LocalDateTime.now().plusMinutes(5));
-            otpTempRepository.save(otpTempModel);
-        }
-
         String subject = "OTP for MoneyFi's account creation";
         String body = "<html>"
                 + "<body>"
@@ -198,7 +204,21 @@ public class UserServiceImplementation implements UserService {
         boolean isMailsent = emailFilter.sendEmail(email, subject, body);
 
         if(isMailsent){
+            OtpTempModel user = otpTempRepository.findByEmail(email);
+
+            if(user != null){
+                user.setOtp(verificationCode);
+                user.setExpirationTime(LocalDateTime.now().plusMinutes(5));
+                otpTempRepository.save(user);
+            } else {
+                OtpTempModel otpTempModel = new OtpTempModel();
+                otpTempModel.setEmail(email);
+                otpTempModel.setOtp(verificationCode);
+                otpTempModel.setExpirationTime(LocalDateTime.now().plusMinutes(5));
+                otpTempRepository.save(otpTempModel);
+            }
             return "Email sent successfully!";
+
         } else {
             return "Cant send email!";
         }
@@ -220,20 +240,16 @@ public class UserServiceImplementation implements UserService {
     }
 
 
+
     @Scheduled(fixedRate = 3600000) // Runs every 1 hour
-    public void removeOtpCountOfPreviousDay() {
+    public void removeOtpCountOfPreviousDay1(){
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
-        List<UserAuthModel> userAuthModelList = userRepository.getUserListWhoseOtpCountGreaterThanThree();
+        List<UserAuthModel>  userAuthModelList = userRepository.getUserListWhoseOtpCountGreaterThanThree(startOfToday);
 
         for (UserAuthModel userAuthModel : userAuthModelList) {
-            if(userAuthModel.getOtpCount() >= 3 && userAuthModel.getVerificationCodeExpiration() == null){
-                userAuthModel.setVerificationCodeExpiration(LocalDateTime.now());
-                userRepository.save(userAuthModel);
-            }
-            else if (userAuthModel.getOtpCount() >= 3 && userAuthModel.getVerificationCodeExpiration().isBefore(startOfToday)) {
-                userAuthModel.setOtpCount(0);
-                userRepository.save(userAuthModel);
-            }
+            userAuthModel.setOtpCount(0);
+            userRepository.save(userAuthModel);
         }
     }
+
 }

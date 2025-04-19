@@ -25,11 +25,11 @@ spring:
     gateway:
       mvc:
         routes:
-          - id: MoneyFi-user
-            uri:
-              lb://MoneyFi-user
-            predicates:
-              - Path=/api/user/**, /api/profile/**, /api/contact/**
+#          - id: MoneyFi-user
+#            uri:
+#              lb://MoneyFi-user
+#            predicates:
+#              - Path=/api/user/**, /api/profile/**, /api/contact/**
 
           - id: MoneyFi-income
             uri:
@@ -54,26 +54,3 @@ spring:
               lb://MoneyFi-goal
             predicates:
               - Path=/api/goal/**
-
-#
-#
-#          - id: trainer-service
-#            uri:
-#              lb://trainer-service
-#            predicates:
-#              - Path=/trainer/**
-#
-#          - id: student-service
-#            uri:
-#              lb://student-service
-#            predicates:
-#              - Path=/student/**
-#
-#
-#          - id: maintainer-service
-#            uri:
-#              lb://maintainer-service
-#            predicates:
-#              - Path=/maintainer/**
-#
-

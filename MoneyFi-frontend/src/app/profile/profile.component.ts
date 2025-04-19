@@ -23,6 +23,7 @@ interface UserProfileDetails {
   address: string;
   incomeRange:number;
   profileImage: string;
+  createdDate: string;
 }
 
 interface ProfileDetails {
@@ -53,16 +54,12 @@ export class ProfileComponent implements OnInit {
     maritalStatus: '',
     address: '',
     incomeRange:0,
-    profileImage: ''
-  };
-
-  profileDetails : ProfileDetails = {
-    createdDate : new Date
+    profileImage: '',
+    createdDate : '',
   };
   
   today : Date = new Date();
   isEditing = false;
-  // userId = 1; // Assuming the user ID is 1, you can get it dynamically if needed
 
   constructor(private http: HttpClient, private toastr:ToastrService, private dialog:MatDialog, private router: Router) { }
 
@@ -83,7 +80,7 @@ export class ProfileComponent implements OnInit {
 
     this.http.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next : (userId) => {
-        this.http.get<UserProfileDetails>(`${this.baseUrl}/api/profile/${userId}`).subscribe(
+        this.http.get<UserProfileDetails>(`${this.baseUrl}/api/userProfile/${userId}`).subscribe(
           (data) => {
             this.userProfileDetails = data;
             this.isImageLoading = false;
@@ -96,15 +93,6 @@ export class ProfileComponent implements OnInit {
             // console.error('Error fetching profile:', error);
           }
         );
-
-        this.http.get<UserProfile>(`${this.baseUrl}/api/user/${userId}`).subscribe({
-          next: (userProfileModel) => {
-            this.profileDetails.createdDate = userProfileModel.createdDate;
-          },
-          error: (error) => {
-            this.profileDetails.createdDate = null;
-          }
-        })
       },
       error: (error) => {
         console.error('Failed to fetch userId:', error);
@@ -122,7 +110,7 @@ export class ProfileComponent implements OnInit {
 
     this.http.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next : (userId) => {
-        this.http.post<UserProfileDetails>(`${this.baseUrl}/api/profile/${userId}`, this.userProfileDetails).subscribe(
+        this.http.post<UserProfileDetails>(`${this.baseUrl}/api/userProfile/${userId}`, this.userProfileDetails).subscribe(
           (data) => {
             this.userProfileDetails = data;
             this.isEditing = false;
