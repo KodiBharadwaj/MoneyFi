@@ -1,10 +1,10 @@
 package com.moneyfi.apigateway.controller;
 
 import com.moneyfi.apigateway.dto.*;
-import com.moneyfi.apigateway.model.BlackListedToken;
-import com.moneyfi.apigateway.model.SessionTokenModel;
-import com.moneyfi.apigateway.model.UserAuthModel;
-import com.moneyfi.apigateway.repository.UserRepository;
+import com.moneyfi.apigateway.model.auth.BlackListedToken;
+import com.moneyfi.apigateway.model.auth.SessionTokenModel;
+import com.moneyfi.apigateway.model.auth.UserAuthModel;
+import com.moneyfi.apigateway.repository.auth.UserRepository;
 import com.moneyfi.apigateway.service.*;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.resetpassword.ResetPassword;

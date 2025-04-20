@@ -1,7 +1,7 @@
 package com.moneyfi.apigateway.service;
 
-import com.moneyfi.apigateway.model.UserAuthModel;
-import com.moneyfi.apigateway.repository.UserRepository;
+import com.moneyfi.apigateway.model.auth.UserAuthModel;
+import com.moneyfi.apigateway.repository.auth.UserRepository;
 import com.moneyfi.apigateway.model.UserPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

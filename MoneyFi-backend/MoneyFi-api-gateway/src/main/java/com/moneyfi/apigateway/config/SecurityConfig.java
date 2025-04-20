@@ -56,18 +56,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-//    @Bean
-//    public CorsFilter corsFilter() {
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        CorsConfiguration config = new CorsConfiguration();
-//        config.setAllowCredentials(true);
-//        config.addAllowedOrigin("http://localhost:4200"); // Your frontend URL
-//        config.addAllowedHeader("*");
-//        config.addAllowedMethod("*");
-//        config.addExposedHeader("Authorization"); // Include exposed headers if necessary
-//        source.registerCorsConfiguration("/**", config);
-//        return new CorsFilter(source);
-//    }
 
     @Bean
     public CorsFilter corsFilter() {

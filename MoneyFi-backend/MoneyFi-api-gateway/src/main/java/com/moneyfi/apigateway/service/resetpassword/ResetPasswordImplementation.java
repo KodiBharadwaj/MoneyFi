@@ -1,8 +1,8 @@
 package com.moneyfi.apigateway.service.resetpassword;
 
 
-import com.moneyfi.apigateway.model.UserAuthModel;
-import com.moneyfi.apigateway.repository.UserRepository;
+import com.moneyfi.apigateway.model.auth.UserAuthModel;
+import com.moneyfi.apigateway.repository.auth.UserRepository;
 import com.moneyfi.apigateway.util.EmailFilter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;

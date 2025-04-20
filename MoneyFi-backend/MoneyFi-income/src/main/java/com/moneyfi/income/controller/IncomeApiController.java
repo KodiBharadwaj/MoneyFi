@@ -27,6 +27,15 @@ public class IncomeApiController {
         this.incomeRepository = incomeRepository;
     }
 
+//    @GetMapping("/test")
+//    public Object testFunction(Authentication authentication) {
+//        if (authentication == null) {
+//            return "No authentication present.";
+//        }
+//        return authentication.getPrincipal();
+//    }
+
+
     @Operation(summary = "Method to save the income details")
     @PostMapping("/{userId}")
     public ResponseEntity<IncomeModel> saveIncome(@RequestBody IncomeModel income,

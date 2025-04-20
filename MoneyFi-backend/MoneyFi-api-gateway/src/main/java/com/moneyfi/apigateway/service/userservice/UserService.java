@@ -4,7 +4,7 @@ import com.moneyfi.apigateway.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.dto.ProfileChangePassword;
 import com.moneyfi.apigateway.dto.RemainingTimeCountDto;
 import com.moneyfi.apigateway.dto.UserProfile;
-import com.moneyfi.apigateway.model.UserAuthModel;
+import com.moneyfi.apigateway.model.auth.UserAuthModel;
 
 public interface UserService {
 

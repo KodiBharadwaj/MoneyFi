@@ -1,5 +1,6 @@
 package com.moneyfi.apigateway.model;
 
+import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

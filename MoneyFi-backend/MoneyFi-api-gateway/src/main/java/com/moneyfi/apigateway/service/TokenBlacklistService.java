@@ -1,7 +1,7 @@
 package com.moneyfi.apigateway.service;
 
-import com.moneyfi.apigateway.model.BlackListedToken;
-import com.moneyfi.apigateway.repository.TokenBlackListRepository;
+import com.moneyfi.apigateway.model.auth.BlackListedToken;
+import com.moneyfi.apigateway.repository.auth.TokenBlackListRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;

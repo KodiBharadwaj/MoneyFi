@@ -1,7 +1,8 @@
 package com.moneyfi.apigateway.service.profileservice;
 
-import com.moneyfi.apigateway.dto.UserProfile;
-import com.moneyfi.apigateway.model.ProfileModel;
+import com.moneyfi.apigateway.model.common.ContactUs;
+import com.moneyfi.apigateway.model.common.Feedback;
+import com.moneyfi.apigateway.model.common.ProfileModel;
 
 public interface ProfileService {
 
@@ -10,4 +11,8 @@ public interface ProfileService {
     ProfileModel getUserDetailsByUserId(Long userId);
 
     String getNameByUserId(Long userId);
+
+    ContactUs saveContactUsDetails(ContactUs contactUsDetails);
+
+    Feedback saveFeedback(Feedback feedback);
 }

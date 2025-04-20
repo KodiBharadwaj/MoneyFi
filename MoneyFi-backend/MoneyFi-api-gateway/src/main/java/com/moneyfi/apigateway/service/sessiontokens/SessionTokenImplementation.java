@@ -1,7 +1,7 @@
 package com.moneyfi.apigateway.service.sessiontokens;
 
-import com.moneyfi.apigateway.model.SessionTokenModel;
-import com.moneyfi.apigateway.repository.SessionTokenRepository;
+import com.moneyfi.apigateway.model.auth.SessionTokenModel;
+import com.moneyfi.apigateway.repository.auth.SessionTokenRepository;
 import org.springframework.stereotype.Service;
 
 @Service

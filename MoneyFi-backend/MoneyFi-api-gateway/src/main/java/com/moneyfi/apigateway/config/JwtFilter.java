@@ -22,10 +22,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Autowired
     JwtServiceImplementation jwtService;
-
     @Autowired
-    TokenBlacklistService tokenBlacklistService; // Injecting the blacklist service
-
+    TokenBlacklistService tokenBlacklistService;
     @Autowired
     ApplicationContext context;
 
