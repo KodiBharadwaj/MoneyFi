@@ -8,7 +8,6 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="MoneyFi-api-gateway" />
-        <module name="MoneyFi-userAuthModel-details" />
         <module name="MoneyFi-user-details" />
         <module name="MoneyFi-expense" />
         <module name="MoneyFi-income" />
@@ -17,6 +16,9 @@
         <module name="MoneyFi-budget" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="MoneyFi-userAuthModel-details" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">

@@ -1,9 +1,11 @@
 package com.moneyfi.expense.controller;
 
+import com.moneyfi.expense.config.JwtService;
 import com.moneyfi.expense.model.ExpenseModel;
 import com.moneyfi.expense.repository.ExpenseRepository;
 import com.moneyfi.expense.service.ExpenseService;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,6 +20,9 @@ import java.util.List;
 @RequestMapping("/api/expense")
 public class ExpenseApiController {
 
+    @Autowired
+    private JwtService jwtService;
+
     private final ExpenseService expenseService;
     private final ExpenseRepository expenseRepository;
 
@@ -25,6 +30,13 @@ public class ExpenseApiController {
                                 ExpenseRepository expenseRepository){
         this.expenseService = expenseService;
         this.expenseRepository = expenseRepository;
+    }
+
+    @GetMapping("/test")
+    public Object testFn(@RequestHeader("Authorization") String authHeader){
+        String token = authHeader.substring(7); // Remove "Bearer " from the start of the token
+        String username = jwtService.extractUserName(token);
+        return username;
     }
 
     @Operation(summary = "Method to add the expense transaction")

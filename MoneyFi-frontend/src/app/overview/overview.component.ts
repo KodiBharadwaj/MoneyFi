@@ -69,8 +69,8 @@ export class OverviewComponent implements OnInit {
     this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next : (userId) => {
 
-      this.httpClient.get(`${this.baseUrl}/api/userProfile/getName/${userId}`, {responseType : 'text'}).subscribe({
-        next : (userName) => {
+      this.httpClient.get(`${this.baseUrl}/api/userProfile/getName`, {responseType : 'text'}).subscribe({
+        next : (userName : string) => {
           this.summary.username = userName;
         },
         error : (error) => {
@@ -78,7 +78,7 @@ export class OverviewComponent implements OnInit {
         }
       })
 
-      this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalIncome/${this.thisMonth}/${this.thisYear}`).subscribe({
+      this.httpClient.get<number>(`${this.baseUrl}/api/income/totalIncome/${this.thisMonth}/${this.thisYear}`).subscribe({
         next : (totalIncome) => {
           this.summary.income = totalIncome;
 

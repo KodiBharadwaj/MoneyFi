@@ -15,6 +15,7 @@ Minor Changes:
 
 Defects:
 - User feedback mail images are not sending as images in mail to admin.
+- Implement user id authentication level in backend instead of doing in frontend,
 
 
 

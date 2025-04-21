@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { UserProfile } from '../../model/UserProfile';
+import { ProfileDetails } from '../../model/ProfileDetails';
 
 @Component({
   selector: 'app-contact-form',
@@ -30,29 +31,20 @@ export class ContactFormComponent {
   baseUrl = "http://localhost:8765";
 
   ngOnInit(){
-    const token = sessionStorage.getItem('finance.auth');
+    
+    this.getNameAndEmailOfUser();
+  }
 
-    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next: (userId) => {
-
-        this.httpClient.get<UserProfile>(`${this.baseUrl}/api/user/${userId}`).subscribe({
-          next: (userProfile) => {
-            this.contactData.name = userProfile.name;
-            this.contactData.email = userProfile.email;
-          },
-          error: (error) => {
-            console.log('Failed to get the user details', error);
-          }
-        });
-
+  getNameAndEmailOfUser(){
+    this.httpClient.get<ProfileDetails>(`${this.baseUrl}/api/userProfile/getProfile`).subscribe({
+      next: (userProfile) => {
+        this.contactData.name = userProfile.name;
+        this.contactData.email = userProfile.email;
       },
       error: (error) => {
-        console.error('Failed to fetch userId:', error);
-        alert("Session timed out! Please login again");
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['login']);
+        console.log('Failed to get the user details', error);
       }
-    })
+    });
   }
 
 
@@ -92,12 +84,23 @@ export class ContactFormComponent {
     }
   
 
-    const token = sessionStorage.getItem('finance.auth');
+    // const token = sessionStorage.getItem('finance.auth');
   
-    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next: (userId) => {
+    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
+    //   next: (userId) => {
 
-      this.httpClient.post(`${this.baseUrl}/api/contact/${userId}`, contactDto).subscribe(
+      
+    
+    //   },
+    //   error: (error) => {
+    //     console.error('Failed to fetch userId:', error);
+    //     alert("Session timed out! Please login again");
+    //     sessionStorage.removeItem('finance.auth');
+    //     this.router.navigate(['login']);
+    //   }
+    // });
+
+    this.httpClient.post(`${this.baseUrl}/api/userProfile/contactUs`, contactDto).subscribe(
       (response) => {
         this.resetForm();
         this.toastr.success('Feedback submitted successfully!', '', {
@@ -113,15 +116,6 @@ export class ContactFormComponent {
         alert('Failed to submit form. Please try again.');
       }
     );
-    
-      },
-      error: (error) => {
-        console.error('Failed to fetch userId:', error);
-        alert("Session timed out! Please login again");
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['login']);
-      }
-    });
   }
 
   // Reset form after submission

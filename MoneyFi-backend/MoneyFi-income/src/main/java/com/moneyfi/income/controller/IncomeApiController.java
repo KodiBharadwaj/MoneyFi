@@ -1,13 +1,16 @@
 package com.moneyfi.income.controller;
 
+import com.moneyfi.income.model.auth.UserPrincipal;
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.repository.IncomeRepository;
+import com.moneyfi.income.repository.auth.UserRepository;
 import com.moneyfi.income.service.IncomeService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -20,26 +23,32 @@ public class IncomeApiController {
 
     private final IncomeService incomeService;
     private final IncomeRepository incomeRepository;
+    private final UserRepository userRepository;
 
     public IncomeApiController(IncomeService incomeService,
-                               IncomeRepository incomeRepository){
+                               IncomeRepository incomeRepository,
+                               UserRepository userRepository){
         this.incomeService = incomeService;
         this.incomeRepository = incomeRepository;
+        this.userRepository = userRepository;
     }
 
-//    @GetMapping("/test")
-//    public Object testFunction(Authentication authentication) {
-//        if (authentication == null) {
-//            return "No authentication present.";
-//        }
-//        return authentication.getPrincipal();
-//    }
+    @GetMapping("/test")
+    public ResponseEntity<String> testFunction(@RequestHeader("Authorization") String authHeader) {
+
+        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        System.out.println("username check " + user.getUsername());
+
+        return ResponseEntity.ok("Received token: " + authHeader);
+    }
 
 
     @Operation(summary = "Method to save the income details")
-    @PostMapping("/{userId}")
+    @PostMapping("/saveIncome")
     public ResponseEntity<IncomeModel> saveIncome(@RequestBody IncomeModel income,
-                                                  @PathVariable("userId") Long userId) {
+                                                  @RequestHeader("Authorization") String authHeader) {
+        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userRepository.findByUsername(user.getUsername()).getId();
         income.setUserId(userId);
         IncomeModel income1 = incomeService.save(income);
         if (income1 != null) {
@@ -50,32 +59,35 @@ public class IncomeApiController {
     }
 
     @Operation(summary = "Method to get all the income details of a user")
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomes(@PathVariable("userId") Long userId) {
+    @GetMapping("/getIncomeDetails")
+    public ResponseEntity<List<IncomeModel>> getAllIncomes() {
+        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userRepository.findByUsername(user.getUsername()).getId();
         List<IncomeModel> list = incomeService.getAllIncomes(userId);
-            return ResponseEntity.status(HttpStatus.OK).body(list); // 200
+        return ResponseEntity.status(HttpStatus.OK).body(list); // 200
     }
 
     @Operation(summary = "Method to get all the income details in a particular month and in a particular year")
-    @GetMapping("/{userId}/{month}/{year}/{category}/{deleteStatus}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomesByMonthYearAndCategory(@PathVariable("userId") Long userId,
-                                                                 @PathVariable("month") int month,
+    @GetMapping("/getIncomeDetails/{month}/{year}/{category}/{deleteStatus}")
+    public ResponseEntity<List<IncomeModel>> getAllIncomesByMonthYearAndCategory(@PathVariable("month") int month,
                                                                  @PathVariable("year") int year,
                                                                  @PathVariable("category") String category,
                                                                  @PathVariable("deleteStatus") boolean deleteStatus){
+        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userRepository.findByUsername(user.getUsername()).getId();
         List<IncomeModel> incomesList = incomeService.getAllIncomesByMonthYearAndCategory(userId, month, year, category, deleteStatus);
         return ResponseEntity.ok(incomesList);
     }
 
     @Operation(summary = "Method to generate the Excel report for the Monthly incomes of a user")
-    @GetMapping("/{userId}/{month}/{year}/{category}/generateMonthlyReport")
-    public ResponseEntity<byte[]> getMonthlyIncomeReport(@PathVariable("userId") Long userId,
-                                                         @PathVariable("month") int month,
+    @GetMapping("/getIncomeReport/{month}/{year}/{category}/generateMonthlyReport")
+    public ResponseEntity<byte[]> getMonthlyIncomeReport(@PathVariable("month") int month,
                                                          @PathVariable("year") int year,
                                                          @PathVariable("category") String category) throws IOException {
+        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userRepository.findByUsername(user.getUsername()).getId();
 
         byte[] excelData = incomeService.generateMonthlyExcelReport(userId, month, year, category);
-
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Monthly income report.xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -83,23 +95,25 @@ public class IncomeApiController {
     }
 
     @Operation(summary = "Method to get all the income details in a particular year")
-    @GetMapping("/{userId}/{year}/{category}/{deleteStatus}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("userId") Long userId,
-                                                                 @PathVariable("year") int year,
+    @GetMapping("/getIncomeDetails/{year}/{category}/{deleteStatus}")
+    public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@PathVariable("year") int year,
                                                                  @PathVariable("category") String category,
                                                                  @PathVariable("deleteStatus") boolean deleteStatus){
+        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userRepository.findByUsername(user.getUsername()).getId();
         List<IncomeModel> incomesList = incomeService.getAllIncomesByYear(userId, year, category, deleteStatus);
         return ResponseEntity.ok(incomesList); // 200
     }
 
     @Operation(summary = "Method to generate the Excel report for the Yearly incomes of a user")
-    @GetMapping("/{userId}/{year}/{category}/generateYearlyReport")
-    public ResponseEntity<byte[]> getYearlyIncomeReport(@PathVariable("userId") Long userId,
-                                                        @PathVariable("year") int year,
+    @GetMapping("/getIncomeReport/{year}/{category}/generateYearlyReport")
+    public ResponseEntity<byte[]> getYearlyIncomeReport(@PathVariable("year") int year,
                                                         @PathVariable("category") String category) throws IOException {
 
-        byte[] excelData = incomeService.generateYearlyExcelReport(userId, year, category);
+        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userRepository.findByUsername(user.getUsername()).getId();
 
+        byte[] excelData = incomeService.generateYearlyExcelReport(userId, year, category);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Yearly income report.xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -107,39 +121,46 @@ public class IncomeApiController {
     }
 
     @Operation(summary = "Method to get the total income amount in a particular month and in a particular year")
-    @GetMapping("/{userId}/totalIncome/{month}/{year}")
-    public BigDecimal getTotalIncomeByMonthAndYear(@PathVariable("userId") Long userId,
-                                                   @PathVariable("month") int month,
+    @GetMapping("/totalIncome/{month}/{year}")
+    public BigDecimal getTotalIncomeByMonthAndYear(@PathVariable("month") int month,
                                                    @PathVariable("year") int year){
+        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userRepository.findByUsername(user.getUsername()).getId();
         return incomeService.getTotalIncomeInMonthAndYear(userId, month, year);
     }
 
     @Operation(summary = "Method to get the list of total income amount of all months in a particular year")
-    @GetMapping("/{userId}/monthlyTotalIncomesList/{year}")
-    public List<BigDecimal> getMonthlyTotals(@PathVariable("userId") Long userId,
-                                             @PathVariable("year") int year) {
+    @GetMapping("/monthlyTotalIncomesList/{year}")
+    public List<BigDecimal> getMonthlyTotals(@PathVariable("year") int year) {
+        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userRepository.findByUsername(user.getUsername()).getId();
         return incomeService.getMonthlyIncomes(userId, year);
     }
 
     @Operation(summary = "Method to get the total savings/remaining amount up to previous month (excludes current month)")
-    @GetMapping("/{userId}/totalRemainingIncomeUpToPreviousMonth/{month}/{year}")
-    public BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(
-            @PathVariable("userId") Long userId,
-            @PathVariable("month") int month,
-            @PathVariable("year") int year) {
-
+    @GetMapping("/totalRemainingIncomeUpToPreviousMonth/{month}/{year}")
+    public BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(@PathVariable("month") int month,
+                                                                        @PathVariable("year") int year) {
+        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userRepository.findByUsername(user.getUsername()).getId();
         return incomeService.getRemainingIncomeUpToPreviousMonthByMonthAndYear(userId, month, year);
     }
 
     @Operation(summary = "Method to check the particular income can be editable")
-    @PostMapping("/{userId}/incomeUpdateCheck")
+    @PostMapping("/incomeUpdateCheck")
     public boolean incomeUpdateCheckFunction(@RequestBody IncomeModel incomeModel){
+        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userRepository.findByUsername(user.getUsername()).getId();
+        incomeModel.setUserId(userId);
         return incomeService.incomeUpdateCheckFunction(incomeModel);
     }
 
     @Operation(summary = "Method to check the particular income can be deleted")
-    @PostMapping("/{userId}/incomeDeleteCheck")
+    @PostMapping("/incomeDeleteCheck")
     public boolean incomeDeleteCheckFunction(@RequestBody IncomeModel incomeModel){
+        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userRepository.findByUsername(user.getUsername()).getId();
+        incomeModel.setUserId(userId);
         return incomeService.incomeDeleteCheckFunction(incomeModel);
     }
 
@@ -179,5 +200,4 @@ public class IncomeApiController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // 404: Not Found
         }
     }
-
 }

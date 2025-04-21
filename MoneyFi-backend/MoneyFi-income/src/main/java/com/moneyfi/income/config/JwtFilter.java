@@ -1,8 +1,8 @@
-package com.moneyfi.apigateway.config;
+package com.moneyfi.income.config;
 
-import com.moneyfi.apigateway.service.jwtservice.JwtServiceImplementation;
-import com.moneyfi.apigateway.service.MyUserDetailsService;
-import com.moneyfi.apigateway.service.TokenBlacklistService;
+import com.moneyfi.income.service.auth.MyUserDetailsService;
+import com.moneyfi.income.service.auth.TokenBlacklistService;
+import com.moneyfi.income.service.jwtservice.JwtServiceImplementation;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 
 @Component
@@ -23,9 +24,9 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     JwtServiceImplementation jwtService;
     @Autowired
-    TokenBlacklistService tokenBlacklistService;
-    @Autowired
     ApplicationContext context;
+    @Autowired
+    TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

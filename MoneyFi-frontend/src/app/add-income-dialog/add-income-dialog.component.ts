@@ -112,42 +112,28 @@ export class AddIncomeDialogComponent {
   onSave() {
     if (this.isValid()) {
 
-      const token = sessionStorage.getItem('finance.auth');
-  
-      this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-        next: (userId) => {
-
-          const incomeDataUpdated = {
-            userId:userId,
-            ...this.incomeData, // This should contain fields like source, amount, date, category, recurring, etc.
-            amount:this.incomeSource.amount
-          };
-          // console.log(incomeDataUpdated);
-          if(this.flag == false){
-            this.dialogRef.close(this.incomeSource);
+      const incomeDataUpdated = {
+        ...this.incomeData, // This should contain fields like source, amount, date, category, recurring, etc.
+        amount:this.incomeSource.amount
+      };
+      // console.log(incomeDataUpdated);
+      if(this.flag == false){
+        this.dialogRef.close(this.incomeSource);
+      }
+      else {
+        this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/income/incomeUpdateCheck`, incomeDataUpdated).subscribe({
+          next: (result) => {
+            if (result) {
+              this.dialogRef.close(this.incomeSource);
+            } else {
+              this.toastr.warning("Income can't be reduced too low due to expenses");
+            }
+          },
+          error: (error) => {
+            console.error('Failed to load income data:', error);
           }
-          else {
-            this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/income/${userId}/incomeUpdateCheck`, incomeDataUpdated).subscribe({
-              next: (result) => {
-                if (result) {
-                  this.dialogRef.close(this.incomeSource);
-                } else {
-                  this.toastr.warning("Income can't be reduced too low due to expenses");
-                }
-              },
-              error: (error) => {
-                console.error('Failed to load income data:', error);
-              }
-            });
-          }
-        },
-        error: (error) => {
-          console.error('Failed to fetch userId:', error);
-          alert("Session timed out! Please login again");
-          sessionStorage.removeItem('finance.auth');
-          this.router.navigate(['login']);
-        }
-      });
+        });
+      }
 
     } else {
       alert('Please fill in all required fields before saving.');

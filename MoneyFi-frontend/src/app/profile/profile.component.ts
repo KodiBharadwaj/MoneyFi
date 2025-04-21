@@ -73,34 +73,24 @@ export class ProfileComponent implements OnInit {
     this.isImageLoading = false;
   }
 
-  // Fetch profile data from backend
   getProfile(): void {
-    const token = sessionStorage.getItem('finance.auth');
-    // console.log(token);
-
-    this.http.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next : (userId) => {
-        this.http.get<UserProfileDetails>(`${this.baseUrl}/api/userProfile/${userId}`).subscribe(
-          (data) => {
-            this.userProfileDetails = data;
-            this.isImageLoading = false;
-          },
-          (error) => {
-            if(error.status === 401){
-              alert('Service Unavailable!! Please try later')
-            }
-            this.isImageLoading = false;
-            // console.error('Error fetching profile:', error);
-          }
-        );
+    this.http.get<UserProfileDetails>(`${this.baseUrl}/api/userProfile/getProfile`).subscribe({
+      next: (data) => {
+        this.userProfileDetails = data;
+        this.isImageLoading = false;
       },
       error: (error) => {
-        console.error('Failed to fetch userId:', error);
-        alert("Session timed out! Please login again");
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['login']);
+        this.isImageLoading = false;
+        if (error.status === 401) {
+          alert('Session expired! Please log in again.');
+          sessionStorage.removeItem('finance.auth');
+          this.router.navigate(['login']);
+        } else {
+          alert('Failed to load profile. Please try again later.');
+          console.error('Error fetching profile:', error);
+        }
       }
-    })
+    });
   }
 
   // Save the profile to the backend

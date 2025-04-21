@@ -1,6 +1,6 @@
-package com.moneyfi.apigateway.service.jwtservice;
+package com.moneyfi.income.service.jwtservice;
 
-import com.moneyfi.apigateway.dto.JwtToken;
+import com.moneyfi.income.dto.JwtToken;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -27,7 +27,7 @@ public class JwtServiceImplementation implements JwtService{
                 .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date((System.currentTimeMillis() + 1000 * 60)))
+                .setExpiration(new Date((System.currentTimeMillis() + 1000 * 60 * 60)))
                 .signWith(SignatureAlgorithm.HS256, secret)
                 .compact();
 

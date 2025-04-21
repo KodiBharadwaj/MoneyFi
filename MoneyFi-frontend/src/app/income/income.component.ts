@@ -118,51 +118,42 @@ export class IncomeComponent {
 
   loadIncomeData() {
     this.loading = true;
-    const token = sessionStorage.getItem('finance.auth');
-  
-    
-    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next: (userId) => {
 
-        let url: string;
-        if(this.selectedCategory === '') this.selectedCategory = "all";
-        if (this.selectedMonth === 0) {
-          // Fetch all expenses for the selected year
-          url = `${this.baseUrl}/api/income/${userId}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
+    let url: string;
+    if(this.selectedCategory === '') this.selectedCategory = "all";
+    if (this.selectedMonth === 0) {
+      // Fetch all expenses for the selected year
+      url = `${this.baseUrl}/api/income/getIncomeDetails/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
+    } else {
+      // Fetch expenses for the specific month and year
+      url = `${this.baseUrl}/api/income/getIncomeDetails/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
+    }
+
+    this.httpClient.get<IncomeSource[]>(url).subscribe({
+      next: (data) => {
+        if (data && data.length > 0) {
+          this.incomeSources = data;
+          this.calculateTotalIncome();
+          this.updateChartData();
         } else {
-          // Fetch expenses for the specific month and year
-          url = `${this.baseUrl}/api/income/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
+          this.incomeSources = [];
+          this.calculateTotalIncome();
+          this.toastr.warning('No income data available. Try adding income', 'No Data');
         }
-
-        this.httpClient.get<IncomeSource[]>(url).subscribe({
-          next: (data) => {
-            if (data && data.length > 0) {
-              this.incomeSources = data;
-              this.calculateTotalIncome();
-              this.updateChartData();
-            } else {
-              this.incomeSources = [];
-              this.calculateTotalIncome();
-              this.toastr.warning('No income data available. Try adding income', 'No Data');
-            }
-            this.loading = false;
-          },
-          error: (error) => {
-            console.error('Failed to load income data:', error);
-            if(error.status === 401){
-              alert('Service Unavailable!! Please try later')
-            }
-          },
-          complete: () => {
-            this.loading = false;
-          }
-        });
+        this.loading = false;
       },
       error: (error) => {
-        console.error('Failed to fetch userId:', error);
-        alert("Session timed out! Please login again");
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['login']);
+        console.error('Failed to load income data:', error);
+        if(error.status === 401){
+          if (error.error === 'TokenExpired' || error.error === 'InvalidToken') {
+            alert('Your session has expired. Please login again.');
+            // this.router.navigate(['/']); // or your login/landing route
+          } else {
+            alert('Service Unavailable!! Please try later');
+          }
+        }
+      },
+      complete: () => {
         this.loading = false;
       }
     });
@@ -170,47 +161,34 @@ export class IncomeComponent {
 
   loadDeletedIncomeData() {
     this.loading = true;
-    const token = sessionStorage.getItem('finance.auth');
-  
-    
-    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next: (userId) => {
 
-        let url: string;
-        if (this.selectedMonth === 0) {
-          // Fetch all expenses for the selected year
-          url = `${this.baseUrl}/api/income/${userId}/${this.selectedYear}/${this.deleted}`;
+    if(this.selectedCategory === '') this.selectedCategory = "all";
+    let url: string;
+    if (this.selectedMonth === 0) {
+      // Fetch all expenses for the selected year
+      url = `${this.baseUrl}/api/income/getIncomeDetails/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
+    } else {
+      // Fetch expenses for the specific month and year
+      url = `${this.baseUrl}/api/income/getIncomeDetails/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
+    }
+
+    this.httpClient.get<IncomeSource[]>(url).subscribe({
+      next: (data) => {
+        if (data && data.length > 0) {
+          this.deletedIncomeSources = data;
+          this.calculateTotalIncome();
+          this.updateChartData();
         } else {
-          // Fetch expenses for the specific month and year
-          url = `${this.baseUrl}/api/income/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.deleted}`;
+          this.deletedIncomeSources = [];
+          this.calculateTotalIncome();
+          this.toastr.warning('No deleted income data available in this range', 'No Data');
         }
-
-        this.httpClient.get<IncomeSource[]>(url).subscribe({
-          next: (data) => {
-            if (data && data.length > 0) {
-              this.deletedIncomeSources = data;
-              this.calculateTotalIncome();
-              this.updateChartData();
-            } else {
-              this.deletedIncomeSources = [];
-              this.calculateTotalIncome();
-              this.toastr.warning('No deleted income data available in this range', 'No Data');
-            }
-            this.loading = false;
-          },
-          error: (error) => {
-            console.error('Failed to load income data:', error);
-          },
-          complete: () => {
-            this.loading = false;
-          }
-        });
+        this.loading = false;
       },
       error: (error) => {
-        console.error('Failed to fetch userId:', error);
-        alert("Session timed out! Please login again");
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['login']);
+        console.error('Failed to load income data:', error);
+      },
+      complete: () => {
         this.loading = false;
       }
     });
@@ -224,50 +202,33 @@ export class IncomeComponent {
     });
   
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        const token = sessionStorage.getItem('finance.auth');
-  
-        this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-          next: (userId) => {
 
-            const formattedDate = this.formatDate(result.date);
-            const incomeData = {
-              ...result, // This should contain fields like source, amount, date, category, recurring, etc.
-              date:formattedDate,
-              userId: userId, // Add userId if your backend requires it
-            };
+      const formattedDate = this.formatDate(result.date);
+      const incomeData = {
+        ...result, // This should contain fields like source, amount, date, category, recurring, etc.
+        date:formattedDate,
+      };
 
-            this.httpClient.post<IncomeSource>(`${this.baseUrl}/api/income/${userId}`, incomeData, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }).subscribe({
-              next: (newIncome) => {
-                if(newIncome != null){
-                  this.incomeSources.push(newIncome);
-                  this.calculateTotalIncome();
-                  this.updateChartData();
-                  this.resetFilters();
-                  this.toastr.success("Income " + newIncome.source + " added succesfully");
-                }
-                else{
-                  this.toastr.warning("Same Income category and source can't be added");
-                }
-              },
-              error: (error) => {
-                console.error('Failed to add income data:', error);
-              },
-              complete: () => {
-                this.loading = false;
-              },
-            });
-          },
-          error: (error) => {
-            console.error('Failed to fetch userId:', error);
-            this.loading = false;
-          },
-        });
-      }
+      this.httpClient.post<IncomeSource>(`${this.baseUrl}/api/income/saveIncome`, incomeData).subscribe({
+        next: (newIncome) => {
+          if(newIncome != null){
+            this.incomeSources.push(newIncome);
+            this.calculateTotalIncome();
+            this.updateChartData();
+            this.resetFilters();
+            this.toastr.success("Income " + newIncome.source + " added succesfully");
+          }
+          else{
+            this.toastr.warning("Same Income category and source can't be added");
+          }
+        },
+        error: (error) => {
+          console.error('Failed to add income data:', error);
+        },
+        complete: () => {
+          this.loading = false;
+        },
+      });
     });
   }
   
@@ -285,44 +246,28 @@ export class IncomeComponent {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        const token = sessionStorage.getItem('finance.auth');
+      const formattedDate = this.formatDate(result.date);
+      const updatedIncomeData = {
+        ...result, // Updated fields from the dialog form
+        date: formattedDate,
+      };
 
-        this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-          next : (userId) => {
-
-            const formattedDate = this.formatDate(result.date);
-            const updatedIncomeData = {
-              ...result, // Updated fields from the dialog form
-              date: formattedDate,
-              userId: userId,
-            };
-
-            this.httpClient.put<IncomeSource>(`${this.baseUrl}/api/income/${income.id}`, updatedIncomeData,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            ).subscribe({
-              next: (updatedIncome) => {
-                if(updatedIncome){
-                  this.toastr.success("Income of " + updatedIncome.source + " updated successfully");
-                  this.loadIncomeData();
-                } else {
-                  this.toastr.warning("No changes to update");
-                }
-              },
-              error: (error) => {
-                if(error.Status === 204){
-                  this.toastr.warning("No changes to update");
-                }
-                console.error('Failed to update income:', error);
-              },
-            });
+      this.httpClient.put<IncomeSource>(`${this.baseUrl}/api/income/${income.id}`, updatedIncomeData).subscribe({
+        next: (updatedIncome) => {
+          if(updatedIncome){
+            this.toastr.success("Income of " + updatedIncome.source + " updated successfully");
+            this.loadIncomeData();
+          } else {
+            this.toastr.warning("No changes to update");
           }
-        })
-      }
+        },
+        error: (error) => {
+          if(error.Status === 204){
+            this.toastr.warning("No changes to update");
+          }
+          console.error('Failed to update income:', error);
+        },
+      });
     });
   }
 
@@ -347,47 +292,33 @@ export class IncomeComponent {
       if (result) {
         const incomeSource = this.incomeSources.find(i => i.id === incomeId);
 
-        const token = sessionStorage.getItem('finance.auth');
-  
-        this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-          next: (userId) => {
-
-            this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/income/${userId}/incomeDeleteCheck`, incomeSource).subscribe({
-              next: (result) => {
-                if (result) {
-                
-                  const index = this.incomeSources.findIndex(i=>i.id === incomeId);
-                  if (index !== -1) {
-                    this.incomeSources.splice(index, 1); // Remove the item at the found index
-                  }
-                  this.calculateTotalIncome();
-                  this.updateChartData();
-                  this.httpClient.delete<void>(`${this.baseUrl}/api/income/${incomeId}`)
-                    .subscribe({
-                      next: () => {
-                        this.toastr.warning("Income " +incomeSource?.source+ " has been deleted");
-                      },
-                      error: (err) => {
-                        console.error('Error deleting income:', err);
-                      }
-                    });
-                  
-                } else {
-                  this.toastr.warning("Income can't be deleted");
-                }
-                this.loading = false;
-              },
-              error: (error) => {
-                console.error('Failed to load income data:', error);
+        this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/income/incomeDeleteCheck`, incomeSource).subscribe({
+          next: (result) => {
+            if (result) {
+            
+              const index = this.incomeSources.findIndex(i=>i.id === incomeId);
+              if (index !== -1) {
+                this.incomeSources.splice(index, 1); // Remove the item at the found index
               }
-            });
+              this.calculateTotalIncome();
+              this.updateChartData();
+              this.httpClient.delete<void>(`${this.baseUrl}/api/income/${incomeId}`)
+                .subscribe({
+                  next: () => {
+                    this.toastr.warning("Income " +incomeSource?.source+ " has been deleted");
+                  },
+                  error: (err) => {
+                    console.error('Error deleting income:', err);
+                  }
+                });
+              
+            } else {
+              this.toastr.warning("Income can't be deleted");
+            }
+            this.loading = false;
           },
           error: (error) => {
-            console.error('Failed to fetch userId:', error);
-            alert("Session timed out! Please login again");
-            sessionStorage.removeItem('finance.auth');
-            this.router.navigate(['login']);
-            this.loading = false;
+            console.error('Failed to load income data:', error);
           }
         });
 
@@ -446,43 +377,30 @@ export class IncomeComponent {
 
 
   generateReport() {
-    const token = sessionStorage.getItem('finance.auth');
-  
-    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next: (userId) => {
 
-        let url: string;
-        if (this.selectedMonth === 0) {
-          url = `${this.baseUrl}/api/income/${userId}/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
-        } else {
-          url = `${this.baseUrl}/api/income/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
-        }
+    let url: string;
+    if (this.selectedMonth === 0) {
+      url = `${this.baseUrl}/api/income/getIncomeReport/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
+    } else {
+      url = `${this.baseUrl}/api/income/getIncomeReport/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
+    }
 
-        this.httpClient.get(url, { responseType: 'blob' })
-          .subscribe({
-            next: (response) => {
-              // Trigger File Download
-              const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `Monthly_Report_04_2025.xlsx`;
-              document.body.appendChild(a);
-              a.click();
-              window.URL.revokeObjectURL(url);
-              document.body.removeChild(a);
-            },
-            error: (error) => {
-              console.error('Failed to generate report:', error);
-              alert("Failed to generate the report. Please try again.");
-            }
-          });
+    this.httpClient.get(url, { responseType: 'blob' }).subscribe({
+      next: (response) => {
+        // Trigger File Download
+        const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Monthly_Report_04_2025.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
       },
       error: (error) => {
-        console.error('Failed to fetch userId:', error);
-        alert("Session timed out! Please login again");
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['login']);
+        console.error('Failed to generate report:', error);
+        alert("Failed to generate the report. Please try again.");
       }
     });
   }
