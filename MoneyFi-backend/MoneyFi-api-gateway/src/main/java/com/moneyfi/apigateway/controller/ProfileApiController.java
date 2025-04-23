@@ -133,4 +133,10 @@ public class ProfileApiController {
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
+
+    @Operation(summary = "Method to get the user id from user's email")
+    @GetMapping("/getUserId/{email}")
+    public Long getUserId(@PathVariable("email") String email){
+        return userService.getUserIdByUsername(email);
+    }
 }
