@@ -46,4 +46,12 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
 
     @Query(nativeQuery = true, value = "exec getIncomeByIncomeId @incomeId = :incomeId")
     BigDecimal getIncomeByIncomeId(Long incomeId);
+
+    @Query(nativeQuery = true, value = "exec getTotalExpensesUpToPreviousMonth " +
+            "@userId = :userId, @month = :month, @year = :year")
+    BigDecimal getTotalExpensesUpToPreviousMonth(Long userId, int month, int year);
+
+    @Query(nativeQuery = true, value = "exec getTotalExpenseInMonthAndYear @userId = :userId, " +
+            "@month = :month, @year = :year")
+    BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year);
 }

@@ -78,11 +78,11 @@ export class OverviewComponent implements OnInit {
         }
       })
 
-      this.httpClient.get<number>(`${this.baseUrl}/api/income/totalIncome/${this.thisMonth}/${this.thisYear}`).subscribe({
+      this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalIncome/${this.thisMonth}/${this.thisYear}`).subscribe({
         next : (totalIncome) => {
           this.summary.income = totalIncome;
 
-          this.httpClient.get<number>(`${this.baseUrl}/api/expense/${userId}/totalExpense/${this.thisMonth}/${this.thisYear}`).subscribe({
+          this.httpClient.get<number>(`${this.baseUrl}/api/v1/expense/${userId}/totalExpense/${this.thisMonth}/${this.thisYear}`).subscribe({
             next : (totalExpense) => {
               this.summary.expenses = totalExpense;
             },
@@ -97,7 +97,7 @@ export class OverviewComponent implements OnInit {
       })
 
 
-      this.httpClient.get<Budget[]>(`${this.baseUrl}/api/budget/${userId}/all`).subscribe({
+      this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/budget/${userId}/all`).subscribe({
         next : (budgetList) => {
           const totalBudget = budgetList.reduce((acc, budget) => acc + budget.moneyLimit, 0);
           this.summary.budget = totalBudget;
@@ -108,7 +108,7 @@ export class OverviewComponent implements OnInit {
       })
 
 
-      this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalRemainingIncomeUpToPreviousMonth/${this.thisMonth}/${this.thisYear}`).subscribe({
+      this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/${userId}/totalRemainingIncomeUpToPreviousMonth/${this.thisMonth}/${this.thisYear}`).subscribe({
         next : (totalRemainingIncome) => {
           this.httpClient.get<number>(`${this.baseUrl}/api/goal/${userId}/totalCurrentGoalIncome`).subscribe({
             next : (totalGoalIncome) => {
@@ -121,7 +121,7 @@ export class OverviewComponent implements OnInit {
         }
       })
 
-      this.httpClient.get<number>(`${this.baseUrl}/api/budget/${userId}/budgetProgress/${this.thisMonth}/${this.thisYear}`).subscribe({
+      this.httpClient.get<number>(`${this.baseUrl}/api/v1/budget/${userId}/budgetProgress/${this.thisMonth}/${this.thisYear}`).subscribe({
         next : (totalBudgetIncome) => {
           this.summary.budgetProgress = parseFloat((totalBudgetIncome * 100).toFixed(2));;
         },

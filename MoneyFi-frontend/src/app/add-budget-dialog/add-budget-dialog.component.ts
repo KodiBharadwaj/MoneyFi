@@ -72,7 +72,7 @@ export class AddBudgetDialogComponent {
     if (token) {
       this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
         next: (userId) => {
-          this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalIncome/${month}/${year}`).subscribe({
+          this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/${userId}/totalIncome/${month}/${year}`).subscribe({
             next: (totalIncome) => {
               this.totalIncome = totalIncome;
               this.initializeCategories();

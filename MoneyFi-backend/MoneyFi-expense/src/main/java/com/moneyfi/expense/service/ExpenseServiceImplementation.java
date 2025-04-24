@@ -174,9 +174,8 @@ public class ExpenseServiceImplementation implements ExpenseService{
 
     @Override
     public List<BigDecimal> getMonthlySavingsList(Long userId, int year) {
-        String url = "http://MONEYFI-INCOME/api/income/" + userId + "/monthlyTotalIncomesList/" + year;
 
-        BigDecimal[] incomes = restTemplate.getForObject(url, BigDecimal[].class);
+        BigDecimal[] incomes = getMonthlyIncomesListInAYear(userId, year);
         List<BigDecimal> expenseList = getMonthlyExpenses(userId, year);
         BigDecimal[] expenses = expenseList.toArray(new BigDecimal[0]);
 
@@ -187,25 +186,18 @@ public class ExpenseServiceImplementation implements ExpenseService{
         return savings;
     }
 
-    @Override
-    public BigDecimal getTotalExpensesUpToPreviousMonth(Long userId, int month, int year) {
-        // Adjust month and year to point to the previous month
-        final int adjustedMonth;
-        final int adjustedYear;
+    private BigDecimal[] getMonthlyIncomesListInAYear(Long userId, int year) {
+        List<Object[]> rawIncomes = expenseRepository.getMonthlyIncomesListInAYear(userId, year, false);
+        BigDecimal[] monthlyTotals = new BigDecimal[12];
+        Arrays.fill(monthlyTotals, BigDecimal.ZERO); // Initialize all months to 0
 
-        if (month == 1) { // Handle January case
-            adjustedMonth = 13;
-            adjustedYear = year - 1;
-        } else {
-            adjustedMonth = month;
-            adjustedYear = year;
+        for (Object[] raw : rawIncomes) {
+            int month = ((Integer) raw[0]) - 1; // Months are 1-based, array is 0-based
+            BigDecimal total = (BigDecimal) raw[1];
+            monthlyTotals[month] = total;
         }
-        BigDecimal value = expenseRepository.getTotalExpensesUpToPreviousMonth(userId, adjustedMonth, adjustedYear);
-        if(value != null){
-            return value;
-        } else {
-            return BigDecimal.ZERO;
-        }
+
+        return monthlyTotals;
     }
 
     @Override
@@ -220,9 +212,9 @@ public class ExpenseServiceImplementation implements ExpenseService{
 
     @Override
     public BigDecimal getTotalSavingsByMonthAndDate(Long userId, int month, int year) {
-        String url = "http://MONEYFI-INCOME/api/income/" + userId + "/totalIncome/" + month + "/" + year;
-        BigDecimal totalIncome = restTemplate.getForObject(url, BigDecimal.class);
+        BigDecimal totalIncome = getTotalIncomeInMonthAndYear(userId, month, year);
         BigDecimal totalExpenses = getTotalExpenseInMonthAndYear(userId, month, year);
+
         if(totalIncome.compareTo(totalExpenses) > 0){
             return totalIncome.subtract(totalExpenses);
         }
@@ -230,12 +222,21 @@ public class ExpenseServiceImplementation implements ExpenseService{
         return BigDecimal.ZERO;
     }
 
+    private BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
+        BigDecimal totalIncome = expenseRepository.getTotalIncomeInMonthAndYear(userId, month, year);
+        if(totalIncome == null){
+            return BigDecimal.ZERO;
+        }
+
+        return totalIncome;
+    }
+
     @Override
     public List<BigDecimal> getCumulativeMonthlySavings(Long userId, int year) {
-        String url = "http://MONEYFI-INCOME/api/income/" + userId + "/monthlyTotalIncomesList/" + year;
 
-        BigDecimal[] incomes = restTemplate.getForObject(url,BigDecimal[].class);
+        BigDecimal[] incomes = getMonthlyIncomesListInAYear(userId, year);
         BigDecimal[] expenses = getMonthlyExpenses(userId, year).toArray(new BigDecimal[0]);
+
         LocalDate currentDate = LocalDate.now();
         int currentYear = currentDate.getYear();
         int currentMonth = currentDate.getMonthValue();

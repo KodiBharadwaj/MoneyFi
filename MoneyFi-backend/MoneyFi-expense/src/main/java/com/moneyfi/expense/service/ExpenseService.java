@@ -23,8 +23,6 @@ public interface ExpenseService {
 
     List<BigDecimal> getMonthlySavingsList(Long userId, int year);
 
-    BigDecimal getTotalExpensesUpToPreviousMonth(Long userId, int month, int year);
-
     BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year);
 
     BigDecimal getTotalSavingsByMonthAndDate(Long userId, int month, int year);
@@ -34,5 +32,4 @@ public interface ExpenseService {
     ExpenseModel updateBySource(Long id, ExpenseModel expense);
 
     boolean deleteExpenseById(Long id);
-
 }

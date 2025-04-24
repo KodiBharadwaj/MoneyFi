@@ -211,14 +211,33 @@ public class IncomeServiceImplementation implements IncomeService {
             return BigDecimal.ZERO;
         }
 
-        String url = "http://MONEYFI-EXPENSE/api/expense/" + userId + "/totalExpensesUpToPreviousMonth/" + month +"/" + year;
+        BigDecimal totalExpense = getTotalExpensesUpToPreviousMonth(userId, month, year);
 
-        BigDecimal totalExpense = restTemplate.getForObject(url, BigDecimal.class);
         if(totalExpense.compareTo(totalIncome) > 0){
             return BigDecimal.ZERO;
         }
 
         return totalIncome.subtract(totalExpense);
+    }
+
+    private BigDecimal getTotalExpensesUpToPreviousMonth(Long userId, int month, int year) {
+        // Adjust month and year to point to the previous month
+        final int adjustedMonth;
+        final int adjustedYear;
+
+        if (month == 1) { // Handle January case
+            adjustedMonth = 13;
+            adjustedYear = year - 1;
+        } else {
+            adjustedMonth = month;
+            adjustedYear = year;
+        }
+        BigDecimal value = incomeRepository.getTotalExpensesUpToPreviousMonth(userId, adjustedMonth, adjustedYear);
+        if(value != null){
+            return value;
+        } else {
+            return BigDecimal.ZERO;
+        }
     }
 
     @Override
@@ -233,14 +252,22 @@ public class IncomeServiceImplementation implements IncomeService {
         BigDecimal updatedIncome = incomeModel.getAmount();
         BigDecimal currentNetIncome = totalIncome.subtract(previousUpdatedIncome).add(updatedIncome);
 
-        String url = "http://MONEYFI-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" +
-                                    incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear();
-        BigDecimal totalExpensesInMonth = restTemplate.getForObject(url, BigDecimal.class);
+        BigDecimal totalExpensesInMonth =
+                getTotalExpenseInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
 
         if(currentNetIncome.compareTo(totalExpensesInMonth) > 0){
             return true;
         }
         return false;
+    }
+
+    private BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
+        BigDecimal totalExpense = incomeRepository.getTotalExpenseInMonthAndYear(userId, month, year);
+        if(totalExpense == null){
+            return BigDecimal.ZERO;
+        }
+
+        return totalExpense;
     }
 
     @Override
@@ -254,10 +281,9 @@ public class IncomeServiceImplementation implements IncomeService {
 
         BigDecimal updatedIncome = BigDecimal.ZERO;
         BigDecimal currentNetIncome = totalIncome.subtract(previousUpdatedIncome).add(updatedIncome);
-        String url = "http://MONEYFI-EXPENSE/api/expense/" + incomeModel.getUserId() + "/totalExpense/" +
-                                    incomeModel.getDate().getMonthValue() + "/" + incomeModel.getDate().getYear();
 
-        BigDecimal totalExpensesInMonth = restTemplate.getForObject(url, BigDecimal.class);
+        BigDecimal totalExpensesInMonth =
+                getTotalExpenseInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
 
         if(currentNetIncome.compareTo(totalExpensesInMonth) > 0){
             return true;

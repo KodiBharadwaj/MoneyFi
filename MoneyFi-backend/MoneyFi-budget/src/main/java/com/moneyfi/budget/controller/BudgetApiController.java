@@ -1,5 +1,6 @@
 package com.moneyfi.budget.controller;
 
+import com.moneyfi.budget.config.JwtService;
 import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.service.BudgetService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,19 +12,23 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/budget")
+@RequestMapping("/api/v1/budget")
 public class BudgetApiController {
 
     private final BudgetService budgetService;
+    private final JwtService jwtService;
 
-    public BudgetApiController(BudgetService budgetService){
+    public BudgetApiController(BudgetService budgetService,
+                               JwtService jwtService){
         this.budgetService = budgetService;
+        this.jwtService = jwtService;
     }
 
     @Operation(summary = "Method to add the budget")
-    @PostMapping("/{userId}")
+    @PostMapping("/saveBudget")
     public ResponseEntity<BudgetModel> saveBudget(@RequestBody BudgetModel budget,
-                                                  @PathVariable("userId") Long userId) {
+                                                  @RequestHeader("Authorization") String authHeader) {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         budget.setUserId(userId);
         BudgetModel createdBudget = budgetService.save(budget);
         if (createdBudget != null) {
@@ -34,9 +39,10 @@ public class BudgetApiController {
     }
 
     @Operation(summary = "Method to get budget of a user")
-    @GetMapping("/{userId}/{category}")
-    public ResponseEntity<List<BudgetModel>> getAllBudgetsByUserIdAndCategory(@PathVariable("userId") Long userId,
+    @GetMapping("/getBudgetDetails/{category}")
+    public ResponseEntity<List<BudgetModel>> getAllBudgetsByUserIdAndCategory(@RequestHeader("Authorization") String authHeader,
                                                                               @PathVariable("category") String category) {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         List<BudgetModel> list = budgetService.getAllBudgetsByUserIdAndCategory(userId, category);
         if (!list.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(list); // 200
@@ -46,10 +52,11 @@ public class BudgetApiController {
     }
 
     @Operation(summary = "Method to get the budget status/progress")
-    @GetMapping("/{userId}/budgetProgress/{month}/{year}")
-    public BigDecimal budgetProgress(@PathVariable("userId") Long userId,
+    @GetMapping("/budgetProgress/{month}/{year}")
+    public BigDecimal budgetProgress(@RequestHeader("Authorization") String authHeader,
                                      @PathVariable("month") int month,
                                      @PathVariable("year") int year){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return budgetService.budgetProgress(userId, month, year);
     }
 

@@ -123,10 +123,10 @@ export class IncomeComponent {
     if(this.selectedCategory === '') this.selectedCategory = "all";
     if (this.selectedMonth === 0) {
       // Fetch all expenses for the selected year
-      url = `${this.baseUrl}/api/income/getIncomeDetails/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
+      url = `${this.baseUrl}/api/v1/income/getIncomeDetails/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
     } else {
       // Fetch expenses for the specific month and year
-      url = `${this.baseUrl}/api/income/getIncomeDetails/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
+      url = `${this.baseUrl}/api/v1/income/getIncomeDetails/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
     }
 
     this.httpClient.get<IncomeSource[]>(url).subscribe({
@@ -145,10 +145,16 @@ export class IncomeComponent {
       error: (error) => {
         console.error('Failed to load income data:', error);
         if(error.status === 401){
-          if (error.error === 'TokenExpired' || error.error === 'InvalidToken') {
+          if (error.error === 'TokenExpired') {
             alert('Your session has expired. Please login again.');
-            // this.router.navigate(['/']); // or your login/landing route
-          } else {
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['/']); // or your login/landing route
+          } else if (error.error === 'InvalidToken') {
+            alert('Authorization failed! Please login again.');
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['/']); // or your login/landing route
+          }
+          else {
             alert('Service Unavailable!! Please try later');
           }
         }
@@ -166,10 +172,10 @@ export class IncomeComponent {
     let url: string;
     if (this.selectedMonth === 0) {
       // Fetch all expenses for the selected year
-      url = `${this.baseUrl}/api/income/getIncomeDetails/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
+      url = `${this.baseUrl}/api/v1/income/getIncomeDetails/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
     } else {
       // Fetch expenses for the specific month and year
-      url = `${this.baseUrl}/api/income/getIncomeDetails/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
+      url = `${this.baseUrl}/api/v1/income/getIncomeDetails/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
     }
 
     this.httpClient.get<IncomeSource[]>(url).subscribe({
@@ -187,6 +193,20 @@ export class IncomeComponent {
       },
       error: (error) => {
         console.error('Failed to load income data:', error);
+        if(error.status === 401){
+          if (error.error === 'TokenExpired') {
+            alert('Your session has expired. Please login again.');
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['/']); // or your login/landing route
+          } else if (error.error === 'InvalidToken') {
+            alert('Authorization failed! Please login again.');
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['/']); // or your login/landing route
+          }
+          else {
+            alert('Service Unavailable!! Please try later');
+          }
+        }
       },
       complete: () => {
         this.loading = false;
@@ -209,7 +229,7 @@ export class IncomeComponent {
         date:formattedDate,
       };
 
-      this.httpClient.post<IncomeSource>(`${this.baseUrl}/api/income/saveIncome`, incomeData).subscribe({
+      this.httpClient.post<IncomeSource>(`${this.baseUrl}/api/v1/income/saveIncome`, incomeData).subscribe({
         next: (newIncome) => {
           if(newIncome != null){
             this.incomeSources.push(newIncome);
@@ -223,11 +243,25 @@ export class IncomeComponent {
           }
         },
         error: (error) => {
-          console.error('Failed to add income data:', error);
+          console.error('Failed to add income:', error);
+          if(error.status === 401){
+            if (error.error === 'TokenExpired') {
+              alert('Your session has expired. Please login again.');
+              sessionStorage.removeItem('finance.auth');
+              this.router.navigate(['/']); // or your login/landing route
+            } else if (error.error === 'InvalidToken') {
+              alert('Authorization failed! Please login again.');
+              sessionStorage.removeItem('finance.auth');
+              this.router.navigate(['/']); // or your login/landing route
+            }
+            else {
+              alert('Service Unavailable!! Please try later');
+            }
+          }
         },
         complete: () => {
           this.loading = false;
-        },
+        }
       });
     });
   }
@@ -252,7 +286,7 @@ export class IncomeComponent {
         date: formattedDate,
       };
 
-      this.httpClient.put<IncomeSource>(`${this.baseUrl}/api/income/${income.id}`, updatedIncomeData).subscribe({
+      this.httpClient.put<IncomeSource>(`${this.baseUrl}/api/v1/income/${income.id}`, updatedIncomeData).subscribe({
         next: (updatedIncome) => {
           if(updatedIncome){
             this.toastr.success("Income of " + updatedIncome.source + " updated successfully");
@@ -266,6 +300,20 @@ export class IncomeComponent {
             this.toastr.warning("No changes to update");
           }
           console.error('Failed to update income:', error);
+          if(error.status === 401){
+            if (error.error === 'TokenExpired') {
+              alert('Your session has expired. Please login again.');
+              sessionStorage.removeItem('finance.auth');
+              this.router.navigate(['/']); // or your login/landing route
+            } else if (error.error === 'InvalidToken') {
+              alert('Authorization failed! Please login again.');
+              sessionStorage.removeItem('finance.auth');
+              this.router.navigate(['/']); // or your login/landing route
+            }
+            else {
+              alert('Service Unavailable!! Please try later');
+            }
+          }
         },
       });
     });
@@ -292,7 +340,7 @@ export class IncomeComponent {
       if (result) {
         const incomeSource = this.incomeSources.find(i => i.id === incomeId);
 
-        this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/income/incomeDeleteCheck`, incomeSource).subscribe({
+        this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/v1/income/incomeDeleteCheck`, incomeSource).subscribe({
           next: (result) => {
             if (result) {
             
@@ -302,7 +350,7 @@ export class IncomeComponent {
               }
               this.calculateTotalIncome();
               this.updateChartData();
-              this.httpClient.delete<void>(`${this.baseUrl}/api/income/${incomeId}`)
+              this.httpClient.delete<void>(`${this.baseUrl}/api/v1/income/${incomeId}`)
                 .subscribe({
                   next: () => {
                     this.toastr.warning("Income " +incomeSource?.source+ " has been deleted");
@@ -318,7 +366,21 @@ export class IncomeComponent {
             this.loading = false;
           },
           error: (error) => {
-            console.error('Failed to load income data:', error);
+            console.error('Failed to delete income:', error);
+            if(error.status === 401){
+              if (error.error === 'TokenExpired') {
+                alert('Your session has expired. Please login again.');
+                sessionStorage.removeItem('finance.auth');
+                this.router.navigate(['/']); // or your login/landing route
+              } else if (error.error === 'InvalidToken') {
+                alert('Authorization failed! Please login again.');
+                sessionStorage.removeItem('finance.auth');
+                this.router.navigate(['/']); // or your login/landing route
+              }
+              else {
+                alert('Service Unavailable!! Please try later');
+              }
+            }
           }
         });
 
@@ -380,9 +442,9 @@ export class IncomeComponent {
 
     let url: string;
     if (this.selectedMonth === 0) {
-      url = `${this.baseUrl}/api/income/getIncomeReport/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
+      url = `${this.baseUrl}/api/v1/income/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
     } else {
-      url = `${this.baseUrl}/api/income/getIncomeReport/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
+      url = `${this.baseUrl}/api/v1/income/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
     }
 
     this.httpClient.get(url, { responseType: 'blob' }).subscribe({
@@ -401,6 +463,21 @@ export class IncomeComponent {
       error: (error) => {
         console.error('Failed to generate report:', error);
         alert("Failed to generate the report. Please try again.");
+
+        if(error.status === 401){
+          if (error.error === 'TokenExpired') {
+            alert('Your session has expired. Please login again.');
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['/']); // or your login/landing route
+          } else if (error.error === 'InvalidToken') {
+            alert('Authorization failed! Please login again.');
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['/']); // or your login/landing route
+          }
+          else {
+            alert('Service Unavailable!! Please try later');
+          }
+        }
       }
     });
   }

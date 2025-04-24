@@ -98,9 +98,9 @@ export class BudgetsComponent {
       next: (userId) => {
         let url: string;
         if (this.selectedMonth === 0) {
-          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedYear}/all/false`;
+          url = `${this.baseUrl}/api/v1/expense/${userId}/${this.selectedYear}/all/false`;
         } else {
-          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/all/false`;
+          url = `${this.baseUrl}/api/v1/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/all/false`;
         }
   
         this.httpClient.get<Expense[]>(url).subscribe({
@@ -163,7 +163,7 @@ export class BudgetsComponent {
 
         if(this.selectedCategory === '') this.selectedCategory = 'all';
 
-        this.httpClient.get<Budget[]>(`${this.baseUrl}/api/budget/${userId}/${this.selectedCategory}`).subscribe({
+        this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/budget/${userId}/${this.selectedCategory}`).subscribe({
           next: (budgets) => {
             if(budgets === null){
               this.toastr.warning('You dont have budget', 'Please add Budget plan');
@@ -243,7 +243,7 @@ export class BudgetsComponent {
                 };
   
                 // Send individual POST request for each category
-                return this.httpClient.post(`${this.baseUrl}/api/budget/${userId}`, categoryData, {
+                return this.httpClient.post(`${this.baseUrl}/api/v1/budget/${userId}`, categoryData, {
                   headers: {
                     Authorization: `Bearer ${token}`,
                   },
@@ -295,7 +295,7 @@ export class BudgetsComponent {
     updatedBudgets.forEach((budget) => {
       // console.log(budget);
       this.httpClient
-        .put(`${this.baseUrl}/api/budget/${budget.id}`, budget, {
+        .put(`${this.baseUrl}/api/v1/budget/${budget.id}`, budget, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .subscribe({

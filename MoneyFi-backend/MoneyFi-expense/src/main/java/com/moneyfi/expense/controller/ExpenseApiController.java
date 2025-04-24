@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/expense")
+@RequestMapping("/api/v1/expense")
 public class ExpenseApiController {
 
     private final ExpenseService expenseService;
@@ -60,10 +60,10 @@ public class ExpenseApiController {
     @Operation(summary = "Method to get all the expense details in a particular month and in a particular year")
     @GetMapping("/getExpenses/{month}/{year}/{category}/{deleteStatus}")
     public ResponseEntity<List<ExpenseModel>> getAllExpensesByMonthYearAndCategory(@RequestHeader("Authorization") String authHeader,
-                                                                   @PathVariable("month") int month,
-                                                                   @PathVariable("year") int year,
-                                                                   @PathVariable("category") String category,
-                                                                   @PathVariable("deleteStatus") boolean deleteStatus){
+                                                                                   @PathVariable("month") int month,
+                                                                                   @PathVariable("year") int year,
+                                                                                   @PathVariable("category") String category,
+                                                                                   @PathVariable("deleteStatus") boolean deleteStatus){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
 
         return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllExpensesByMonthYearAndCategory(userId, month, year, category, deleteStatus));
@@ -88,9 +88,9 @@ public class ExpenseApiController {
     @Operation(summary = "Method to get all the expense details in a particular year")
     @GetMapping("/getExpenses/{year}/{category}/{deleteStatus}")
     public ResponseEntity<List<ExpenseModel>> getAllExpensesByYearAndCategory(@RequestHeader("Authorization") String authHeader,
-                                                                   @PathVariable("year") int year,
-                                                                   @PathVariable("category") String category,
-                                                                   @PathVariable("deleteStatus") boolean deleteStatus){
+                                                                              @PathVariable("year") int year,
+                                                                              @PathVariable("category") String category,
+                                                                              @PathVariable("deleteStatus") boolean deleteStatus){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
 
         return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllExpensesByYearAndCategory(userId, year, category, deleteStatus));
@@ -138,23 +138,22 @@ public class ExpenseApiController {
         return expenseService.getMonthlySavingsList(userId, year);
     }
 
-    @Operation(summary = "Method to get the total expense amount up to previous month (excludes current month)")
-    @GetMapping("/totalExpensesUpToPreviousMonth/{month}/{year}")
-    public BigDecimal getTotalExpensesUpToPreviousMonth(
-            @RequestHeader("Authorization") String authHeader,
-            @PathVariable("month") int month,
-            @PathVariable("year") int year) {
-        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
-        return expenseService.getTotalExpensesUpToPreviousMonth(userId, month, year);
-    }
+//    @Operation(summary = "Method to get the total expense amount up to previous month (excludes current month)")
+//    @GetMapping("/totalExpensesUpToPreviousMonth/{month}/{year}")
+//    public BigDecimal getTotalExpensesUpToPreviousMonth(@RequestHeader("Authorization") String authHeader,
+//                                                        @PathVariable("month") int month,
+//                                                        @PathVariable("year") int year) {
+//        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+//
+//        return expenseService.getTotalExpensesUpToPreviousMonth(userId, month, year);
+//    }
 
     @Operation(summary = "Method to find the total savings/ remaining amount in a month")
     @GetMapping("/" +
             "/{month}/{year}")
     public BigDecimal getTotalSavingsByMonthAndDate(@RequestHeader("Authorization") String authHeader,
-                                                @PathVariable("month") int month,
-                                                @PathVariable("year") int year){
+                                                    @PathVariable("month") int month,
+                                                    @PathVariable("year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
 
         return expenseService.getTotalSavingsByMonthAndDate(userId, month, year);

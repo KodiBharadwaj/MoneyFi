@@ -28,13 +28,18 @@ public interface ExpenseRepository extends JpaRepository<ExpenseModel, Long> {
     List<Object[]> findMonthlyExpenses(Long userId, int year, boolean deleteStatus);
 
 
-    @Query(nativeQuery = true, value = "exec getTotalExpensesUpToPreviousMonth " +
-            "@userId = :userId, @month = :month, @year = :year")
-    BigDecimal getTotalExpensesUpToPreviousMonth(Long userId, int month, int year);
-
-
     @Query(nativeQuery = true, value = "exec getTotalExpenseInMonthAndYear @userId = :userId, " +
             "@month = :month, @year = :year")
     BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year);
+
+
+    @Query(nativeQuery = true, value = "exec getMonthlyIncomesListInAYear @userId = :userId, " +
+            "@year = :year, @deleteStatus = :deleteStatus")
+    List<Object[]> getMonthlyIncomesListInAYear(Long userId, int year, boolean deleteStatus);
+
+
+    @Query(nativeQuery = true, value = "exec getTotalIncomeInMonthAndYear @userId = :userId, " +
+            "@month = :month, @year = :year")
+    BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year);
 
 }

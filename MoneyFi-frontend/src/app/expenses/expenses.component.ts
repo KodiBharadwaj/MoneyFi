@@ -118,62 +118,64 @@ export class ExpensesComponent {
 
   loadExpensesData() {
     this.loading = true;
-    const token = sessionStorage.getItem('finance.auth');
-  
-    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next: (userId) => {
-        let url: string;
-        if(this.selectedCategory === '') this.selectedCategory = 'all';
-        if (this.selectedMonth === 0) {
-          // Fetch all expenses for the selected year
-          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedYear}/${this.selectedCategory}/false`;
-        } else {
-          // Fetch expenses for the specific month and year
-          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/false`;
-        }
-  
-        this.httpClient.get<Expense[]>(url).subscribe({
-          next: (data) => {
-            if (data && data.length > 0) {
-              this.expenses = data;
-              this.calculateTotalExpenses();
-              this.updateChartData();
-            } else {
-              this.expenses = [];
-              this.calculateTotalExpenses();
-              this.toastr.warning('No expenses found for the selected filters.', 'No Data');
-            }
-          },
-          error: (error) => {
-            console.error('Failed to load Expense data:', error);
-            // this.toastr.error('Failed to load expenses', 'Error');
-            if(error.status === 401){
-              alert('Service Unavailable!! Please try later')
-            }
-          },
-          complete: () => {
-            this.loading = false;
-          }
-        });
 
-        this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalIncome/${this.selectedMonth}/${this.selectedYear}`).subscribe({
-          next: (totalIncome) => {
-            this.totalIncome = totalIncome;
-            this.calculateSpentPercentage();
-          },
-          error: (error) => {
-            console.log('Failed to get income details', error);
-          }
-        });
+    let url: string;
+    if(this.selectedCategory === '') this.selectedCategory = 'all';
+    if (this.selectedMonth === 0) {
+      // Fetch all expenses for the selected year
+      url = `${this.baseUrl}/api/v1/expense/getExpenses/${this.selectedYear}/${this.selectedCategory}/false`;
+    } else {
+      // Fetch expenses for the specific month and year
+      url = `${this.baseUrl}/api/v1/expense/getExpenses/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/false`;
+    }
+
+    this.httpClient.get<Expense[]>(url).subscribe({
+      next: (data) => {
+        if (data && data.length > 0) {
+          this.expenses = data;
+          this.calculateTotalExpenses();
+          this.updateChartData();
+        } else {
+          this.expenses = [];
+          this.calculateTotalExpenses();
+          this.toastr.warning('No expenses found for the selected filters.', 'No Data');
+        }
       },
       error: (error) => {
-        console.error('Failed to fetch userId:', error);
-        alert("Session timed out! Please login again");
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['login']);
+        console.error('Failed to load Expense data:', error);
+        // this.toastr.error('Failed to load expenses', 'Error');
+        if(error.status === 401){
+          alert('Service Unavailable!! Please try later')
+        }
+      },
+      complete: () => {
         this.loading = false;
       }
     });
+
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalIncome/${this.selectedMonth}/${this.selectedYear}`).subscribe({
+      next: (totalIncome) => {
+        this.totalIncome = totalIncome;
+        this.calculateSpentPercentage();
+      },
+      error: (error) => {
+        console.log('Failed to get income details', error);
+      }
+    });
+    // const token = sessionStorage.getItem('finance.auth');
+  
+    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
+    //   next: (userId) => {
+        
+    //   },
+    //   error: (error) => {
+    //     console.error('Failed to fetch userId:', error);
+    //     alert("Session timed out! Please login again");
+    //     sessionStorage.removeItem('finance.auth');
+    //     this.router.navigate(['login']);
+    //     this.loading = false;
+    //   }
+    // });
   }
   
 
@@ -208,7 +210,7 @@ export class ExpensesComponent {
               userId: userId,
             };
 
-            this.httpClient.post<Expense>(`${this.baseUrl}/api/expense/${userId}`, expenseData, {
+            this.httpClient.post<Expense>(`${this.baseUrl}/api/v1/expense/${userId}`, expenseData, {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
@@ -270,7 +272,7 @@ export class ExpensesComponent {
             };
 
             this.httpClient.put<Expense>(
-              `${this.baseUrl}/api/expense/${expense.id}`,
+              `${this.baseUrl}/api/v1/expense/${expense.id}`,
               updatedExpenseData,
               {
                 headers: {
@@ -328,7 +330,7 @@ export class ExpensesComponent {
         }
         this.calculateTotalExpenses();
         this.updateChartData();
-        this.httpClient.delete<void>(`${this.baseUrl}/api/expense/${expenseId}`)
+        this.httpClient.delete<void>(`${this.baseUrl}/api/v1/expense/${expenseId}`)
           .subscribe({
             next: () => {
               this.toastr.warning("Expense " + expenseDataFetch?.description + " has been deleted");
@@ -422,9 +424,9 @@ export class ExpensesComponent {
 
         let url: string;
         if (this.selectedMonth === 0) {
-          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
+          url = `${this.baseUrl}/api/v1/expense/${userId}/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
         } else {
-          url = `${this.baseUrl}/api/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
+          url = `${this.baseUrl}/api/v1/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
         }
 
         this.httpClient.get(url, { responseType: 'blob' })

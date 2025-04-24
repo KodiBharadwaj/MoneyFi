@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/income")
+@RequestMapping("/api/v1/income")
 public class IncomeApiController {
 
     private final IncomeService incomeService;
@@ -125,13 +125,13 @@ public class IncomeApiController {
         return incomeService.getTotalIncomeInMonthAndYear(userId, month, year);
     }
 
-    @Operation(summary = "Method to get the list of total income amount of all months in a particular year")
-    @GetMapping("/monthlyTotalIncomesList/{year}")
-    public List<BigDecimal> getMonthlyTotals(@RequestHeader("Authorization") String authHeader,
-                                             @PathVariable("year") int year) {
-        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return incomeService.getMonthlyIncomes(userId, year);
-    }
+//    @Operation(summary = "Method to get the list of total income amount of all months in a particular year")
+//    @GetMapping("/monthlyTotalIncomesList/{year}")
+//    public List<BigDecimal> getMonthlyTotals(@RequestHeader("Authorization") String authHeader,
+//                                             @PathVariable("year") int year) {
+//        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+//        return incomeService.getMonthlyIncomes(userId, year);
+//    }
 
     @Operation(summary = "Method to get the total savings/remaining amount up to previous month (excludes current month)")
     @GetMapping("/totalRemainingIncomeUpToPreviousMonth/{month}/{year}")

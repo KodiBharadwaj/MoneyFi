@@ -91,7 +91,7 @@ export class GoalsComponent {
               this.loading = false;
             }
             this.totalGoalSavings = amount;
-            this.httpClient.get<number>(`${this.baseUrl}/api/income/${userId}/totalRemainingIncomeUpToPreviousMonth/${this.month}/${this.year}`).subscribe({
+            this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/${userId}/totalRemainingIncomeUpToPreviousMonth/${this.month}/${this.year}`).subscribe({
               next: (totalIncome) => {
                 // console.log(totalIncome);
                 // console.log(amount);

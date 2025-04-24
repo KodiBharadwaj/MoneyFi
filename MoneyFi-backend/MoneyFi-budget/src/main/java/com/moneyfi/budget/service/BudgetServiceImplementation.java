@@ -52,9 +52,18 @@ public class BudgetServiceImplementation implements BudgetService{
                             .map(i->i.getMoneyLimit())
                             .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
-        BigDecimal currentSpending = restTemplate.getForObject("http://MONEYFI-EXPENSE/api/expense/" + userId + "/totalExpense/" + month + "/" + year, BigDecimal.class);
+        BigDecimal currentSpending = getTotalExpenseInMonthAndYear(userId, month, year);
 
         return currentSpending.divide(moneyLimit, 5, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
+        BigDecimal totalExpense = budgetRepository.getTotalExpenseInMonthAndYear(userId, month, year);
+        if(totalExpense == null){
+            return BigDecimal.ZERO;
+        }
+
+        return totalExpense;
     }
 
     @Override

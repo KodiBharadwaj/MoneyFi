@@ -121,7 +121,7 @@ export class AddIncomeDialogComponent {
         this.dialogRef.close(this.incomeSource);
       }
       else {
-        this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/income/incomeUpdateCheck`, incomeDataUpdated).subscribe({
+        this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/v1/income/incomeUpdateCheck`, incomeDataUpdated).subscribe({
           next: (result) => {
             if (result) {
               this.dialogRef.close(this.incomeSource);
