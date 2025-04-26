@@ -1,4 +1,4 @@
-package com.moneyfi.budget.config;
+package com.moneyfi.goal.config;
 
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Autowired;

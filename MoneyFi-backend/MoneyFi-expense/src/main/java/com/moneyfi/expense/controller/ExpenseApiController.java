@@ -36,10 +36,12 @@ public class ExpenseApiController {
 //    }
 
     @Operation(summary = "Method to add the expense transaction")
-    @PostMapping("/{userId}")
-    public ResponseEntity<ExpenseModel> saveExpense(@RequestBody ExpenseModel expense,
-                                                    @PathVariable("userId") Long userId) {
+    @PostMapping("/saveExpense")
+    public ResponseEntity<ExpenseModel> saveExpense(@RequestHeader("Authorization") String authHeader,
+                                                    @RequestBody ExpenseModel expense) {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         expense.setUserId(userId);
+
         ExpenseModel createdExpense = expenseService.save(expense);
         if (createdExpense != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdExpense); // 201
@@ -148,9 +150,8 @@ public class ExpenseApiController {
 //        return expenseService.getTotalExpensesUpToPreviousMonth(userId, month, year);
 //    }
 
-    @Operation(summary = "Method to find the total savings/ remaining amount in a month")
-    @GetMapping("/" +
-            "/{month}/{year}")
+    @Operation(summary = "Method to find the total savings/++remaining amount in a month")
+    @GetMapping("/{month}/{year}")
     public BigDecimal getTotalSavingsByMonthAndDate(@RequestHeader("Authorization") String authHeader,
                                                     @PathVariable("month") int month,
                                                     @PathVariable("year") int year){
@@ -170,8 +171,12 @@ public class ExpenseApiController {
 
     @Operation(summary = "Method to update the expense details")
     @PutMapping("/{id}")
-    public ResponseEntity<ExpenseModel> updateExpense(@PathVariable("id") Long id,
+    public ResponseEntity<ExpenseModel> updateExpense(@RequestHeader("Authorization") String authHeader,
+                                                      @PathVariable("id") Long id,
                                                       @RequestBody ExpenseModel expense) {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        expense.setUserId(userId);
+
         ExpenseModel expenseModel = expenseRepository.findById(id).orElse(null);
         if(expenseModel != null){
             if(expenseModel.getAmount().compareTo(expense.getAmount()) == 0 &&

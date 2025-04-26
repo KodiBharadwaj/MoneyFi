@@ -47,7 +47,7 @@ export class FeedbackFormComponent {
   }
 
   getNameAndEmailOfUser(){
-    this.httpClient.get<ProfileDetails>(`${this.baseUrl}/api/userProfile/getProfile`).subscribe({
+    this.httpClient.get<ProfileDetails>(`${this.baseUrl}/api/v1/userProfile/getProfile`).subscribe({
       next: (userProfile) => {
         this.feedback.name = userProfile.name;
         this.feedback.email = userProfile.email;

@@ -36,7 +36,7 @@ export class ContactFormComponent {
   }
 
   getNameAndEmailOfUser(){
-    this.httpClient.get<ProfileDetails>(`${this.baseUrl}/api/userProfile/getProfile`).subscribe({
+    this.httpClient.get<ProfileDetails>(`${this.baseUrl}/api/v1/userProfile/getProfile`).subscribe({
       next: (userProfile) => {
         this.contactData.name = userProfile.name;
         this.contactData.email = userProfile.email;

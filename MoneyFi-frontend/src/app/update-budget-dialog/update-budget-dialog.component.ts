@@ -48,7 +48,6 @@ export class UpdateBudgetDialogComponent {
   baseUrl = "http://localhost:8765";
 
   ngOnInit() {
-    const token = sessionStorage.getItem('finance.auth');
     
     // Get current month and year
     const currentDate = new Date();
@@ -57,17 +56,11 @@ export class UpdateBudgetDialogComponent {
     // console.log(month);
     // console.log(year);
   
-    if (token) {
-      this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-        next: (userId) => {
-          this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/${userId}/totalIncome/${month}/${year}`).subscribe({
-            next: (totalIncome) => {
-              this.totalIncome = totalIncome;
-            },
-          });
-        },
-      });
-    }
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalIncome/${month}/${year}`).subscribe({
+      next: (totalIncome) => {
+        this.totalIncome = totalIncome;
+      },
+    });
   }
 
   createBudgetForm(budget: any): FormGroup {

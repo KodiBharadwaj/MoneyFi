@@ -64,95 +64,81 @@ export class OverviewComponent implements OnInit {
   }
 
   private loadFinancialData() {
-    const token = sessionStorage.getItem('finance.auth');
 
-    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next : (userId) => {
-
-      this.httpClient.get(`${this.baseUrl}/api/userProfile/getName`, {responseType : 'text'}).subscribe({
-        next : (userName : string) => {
-          this.summary.username = userName;
-        },
-        error : (error) => {
-          console.log('Failed to get the user name', error);
-        }
-      })
-
-      this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalIncome/${this.thisMonth}/${this.thisYear}`).subscribe({
-        next : (totalIncome) => {
-          this.summary.income = totalIncome;
-
-          this.httpClient.get<number>(`${this.baseUrl}/api/v1/expense/${userId}/totalExpense/${this.thisMonth}/${this.thisYear}`).subscribe({
-            next : (totalExpense) => {
-              this.summary.expenses = totalExpense;
-            },
-            error : (error) => {
-              console.log('Failed to get the expense details', error);
-            }
-          })
-        },
-        error : (error) => {
-          console.log('Failed to get the income details', error);
-        }
-      })
-
-
-      this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/budget/${userId}/all`).subscribe({
-        next : (budgetList) => {
-          const totalBudget = budgetList.reduce((acc, budget) => acc + budget.moneyLimit, 0);
-          this.summary.budget = totalBudget;
-        },
-        error : (error) => {
-          console.log('Failed to get the total goal income details', error);
-        }
-      })
-
-
-      this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/${userId}/totalRemainingIncomeUpToPreviousMonth/${this.thisMonth}/${this.thisYear}`).subscribe({
-        next : (totalRemainingIncome) => {
-          this.httpClient.get<number>(`${this.baseUrl}/api/goal/${userId}/totalCurrentGoalIncome`).subscribe({
-            next : (totalGoalIncome) => {
-              this.summary.netWorth = totalRemainingIncome + (this.summary.income - this.summary.expenses);
-            }
-          })
-        },
-        error : (error) => {
-          console.log('Failed to get the total goal income details', error);
-        }
-      })
-
-      this.httpClient.get<number>(`${this.baseUrl}/api/v1/budget/${userId}/budgetProgress/${this.thisMonth}/${this.thisYear}`).subscribe({
-        next : (totalBudgetIncome) => {
-          this.summary.budgetProgress = parseFloat((totalBudgetIncome * 100).toFixed(2));;
-        },
-        error : (error) => {
-          console.log('Failed to get the budget progress details', error);
-        }
-      })
-
-
-      this.httpClient.get<number>(`${this.baseUrl}/api/goal/${userId}/totalCurrentGoalIncome`).subscribe({
-        next : (totalCurrentGoalIncome) => {
-          this.httpClient.get<number>(`${this.baseUrl}/api/goal/${userId}/totalTargetGoalIncome`).subscribe({
-            next: (totalTargetGoalIncome) => {
-              this.summary.goalsProgress = parseFloat(((totalCurrentGoalIncome/totalTargetGoalIncome)*100).toFixed(2))
-            }
-          })
-        },
-        error : (error) => {
-          console.log('Failed to get the total goal income details', error);
-        }
-      })
-        
+    this.httpClient.get(`${this.baseUrl}/api/userProfile/getName`, {responseType : 'text'}).subscribe({
+      next : (userName : string) => {
+        this.summary.username = userName;
       },
       error : (error) => {
-        console.log('Failed to get the user Id', error);
-        alert("Session timed out! Please login again");
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['login']);
+        console.log('Failed to get the user name', error);
       }
     })
 
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalIncome/${this.thisMonth}/${this.thisYear}`).subscribe({
+      next : (totalIncome) => {
+        this.summary.income = totalIncome;
+
+        this.httpClient.get<number>(`${this.baseUrl}/api/v1/expense/totalExpense/${this.thisMonth}/${this.thisYear}`).subscribe({
+          next : (totalExpense) => {
+            this.summary.expenses = totalExpense;
+          },
+          error : (error) => {
+            console.log('Failed to get the expense details', error);
+          }
+        })
+      },
+      error : (error) => {
+        console.log('Failed to get the income details', error);
+      }
+    })
+
+
+    this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/budget/getBudgetDetails/all`).subscribe({
+      next : (budgetList) => {
+        const totalBudget = budgetList.reduce((acc, budget) => acc + budget.moneyLimit, 0);
+        this.summary.budget = totalBudget;
+      },
+      error : (error) => {
+        console.log('Failed to get the total goal income details', error);
+      }
+    })
+
+
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalRemainingIncomeUpToPreviousMonth/${this.thisMonth}/${this.thisYear}`).subscribe({
+      next : (totalRemainingIncome) => {
+        this.httpClient.get<number>(`${this.baseUrl}/api/v1/goal/totalCurrentGoalIncome`).subscribe({
+          next : (totalGoalIncome) => {
+            this.summary.netWorth = totalRemainingIncome + (this.summary.income - this.summary.expenses);
+          }
+        })
+      },
+      error : (error) => {
+        console.log('Failed to get the total goal income details', error);
+      }
+    })
+
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/budget/budgetProgress/${this.thisMonth}/${this.thisYear}`).subscribe({
+      next : (totalBudgetIncome) => {
+        this.summary.budgetProgress = parseFloat((totalBudgetIncome * 100).toFixed(2));;
+      },
+      error : (error) => {
+        console.log('Failed to get the budget progress details', error);
+      }
+    })
+
+
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/goal/totalCurrentGoalIncome`).subscribe({
+      next : (totalCurrentGoalIncome) => {
+        this.httpClient.get<number>(`${this.baseUrl}/api/v1/goal/totalTargetGoalIncome`).subscribe({
+          next: (totalTargetGoalIncome) => {
+            this.summary.goalsProgress = parseFloat(((totalCurrentGoalIncome/totalTargetGoalIncome)*100).toFixed(2))
+          }
+        })
+      },
+      error : (error) => {
+        console.log('Failed to get the total goal income details', error);
+      }
+    })
   }
 
 

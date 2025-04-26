@@ -74,7 +74,7 @@ export class ProfileComponent implements OnInit {
   }
 
   getProfile(): void {
-    this.http.get<UserProfileDetails>(`${this.baseUrl}/api/userProfile/getProfile`).subscribe({
+    this.http.get<UserProfileDetails>(`${this.baseUrl}/api/v1/userProfile/getProfile`).subscribe({
       next: (data) => {
         this.userProfileDetails = data;
         this.isImageLoading = false;
@@ -100,7 +100,7 @@ export class ProfileComponent implements OnInit {
 
     this.http.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next : (userId) => {
-        this.http.post<UserProfileDetails>(`${this.baseUrl}/api/userProfile/${userId}`, this.userProfileDetails).subscribe(
+        this.http.post<UserProfileDetails>(`${this.baseUrl}/api/v1/userProfile/saveProfile`, this.userProfileDetails).subscribe(
           (data) => {
             this.userProfileDetails = data;
             this.isEditing = false;

@@ -60,7 +60,6 @@ export class AddBudgetDialogComponent {
 
   
   ngOnInit() {
-    const token = sessionStorage.getItem('finance.auth');
     
     // Get current month and year
     const currentDate = new Date();
@@ -69,32 +68,14 @@ export class AddBudgetDialogComponent {
     console.log(month);
     console.log(year);
   
-    if (token) {
-      this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-        next: (userId) => {
-          this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/${userId}/totalIncome/${month}/${year}`).subscribe({
-            next: (totalIncome) => {
-              this.totalIncome = totalIncome;
-              this.initializeCategories();
-            },
-          });
-        },
-      });
-    }
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalIncome/${month}/${year}`).subscribe({
+      next: (totalIncome) => {
+        this.totalIncome = totalIncome;
+        this.initializeCategories();
+      },
+    });
   }
   
-
-  // initializeCategories() {
-  //   // Generate random percentages that sum up to 100
-  //   const randomPercentages = this.generateRandomPercentages(this.categories.length);
-
-  //   // Assign percentages and calculate initial amounts
-  //   this.budgetSource.categories = this.categories.map((category, index) => ({
-  //     category,
-  //     percentage: randomPercentages[index],
-  //     moneyLimit: 0,
-  //   }));
-  // }
   initializeCategories() {
     // Define fixed percentages for each category
     const fixedPercentages = [

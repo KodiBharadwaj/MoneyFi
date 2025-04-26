@@ -53,4 +53,4 @@ spring:
             uri:
               lb://MoneyFi-goal
             predicates:
-              - Path=/api/goal/**
+              - Path=/api/v1/goal/**

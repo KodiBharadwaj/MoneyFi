@@ -53,195 +53,198 @@ export class AnalysisComponent {
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
 
-    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next: (userId) => {
-        // Create parallel requests for both expenses and budgets
-        const expensesUrl = `${this.baseUrl}/api/v1/expense/${userId}/${currentMonth}/${currentYear}/all/false`;
-        const budgetsUrl = `${this.baseUrl}/api/v1/budget/${userId}/all`;
+    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
+    //   next: (userId) => {
+    //     // Create parallel requests for both expenses and budgets
+        
+    //   },
+    //   error: (error) => {
+    //     console.error('Failed to fetch userId:', error);
+    //     sessionStorage.removeItem('finance.auth');
+    //     this.router.navigate(['login']);
+    //   }
+    // });
+
+    const expensesUrl = `${this.baseUrl}/api/v1/expense/getExpenses/${currentMonth}/${currentYear}/all/false`;
+    const budgetsUrl = `${this.baseUrl}/api/v1/budget/getBudgetDetails/all`;
 
         // Use forkJoin to make parallel requests
-        forkJoin({
-          expenses: this.httpClient.get<any[]>(expensesUrl),
-          budgets: this.httpClient.get<any[]>(budgetsUrl)
-        }).subscribe({
-          next: ({ expenses, budgets }) => {
-            // Process category-wise expenses
-            const categoryExpenses = new Map<string, number>();
-            expenses.forEach(expense => {
-              const currentAmount = categoryExpenses.get(expense.category) || 0;
-              categoryExpenses.set(expense.category, currentAmount + expense.amount);
-            });
-
-            // Process category-wise budgets
-            const categoryBudgets = new Map<string, number>();
-            budgets.forEach(budget => {
-              categoryBudgets.set(budget.category, budget.moneyLimit);
-            });
-
-            // Get unique categories from both expenses and budgets
-            const allCategories = Array.from(new Set([
-              ...categoryExpenses.keys(),
-              ...categoryBudgets.keys()
-            ]));
-
-            // Update radar chart data with both datasets
-            this.radarChartData = {
-              labels: allCategories,
-              datasets: [
-                {
-                  label: 'Monthly Budget',
-                  data: allCategories.map(category => categoryBudgets.get(category) || 0),
-                  fill: true,
-                  backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                  borderColor: 'rgb(255, 99, 132)',
-                  pointBackgroundColor: 'rgb(255, 99, 132)',
-                  pointBorderColor: '#fff',
-                },
-                {
-                  label: 'Current Spending',
-                  data: allCategories.map(category => categoryExpenses.get(category) || 0),
-                  fill: true,
-                  backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                  borderColor: 'rgb(54, 162, 235)',
-                  pointBackgroundColor: 'rgb(54, 162, 235)',
-                  pointBorderColor: '#fff',
-                }
-              ]
-            };
-
-            // Update chart options for better scale
-            const maxValue = Math.max(
-              ...Array.from(categoryBudgets.values()),
-              ...Array.from(categoryExpenses.values())
-            );
-
-            this.radarChartOptions = {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  position: 'top',
-                  labels: {
-                    padding: 20,
-                    font: { size: 12 }
-                  }
-                },
-                title: {
-                  display: true,
-                  text: 'Monthly Budget vs. Actual Spending',
-                  padding: 20,
-                  font: {
-                    size: 16,
-                    weight: 'bold'
-                  }
-                }
-              },
-              scales: {
-                r: {
-                  min: 0,
-                  max: Math.ceil(maxValue / 1000) * 1000, // Round to nearest thousand
-                  ticks: {
-                    stepSize: Math.ceil(maxValue / 5000) * 1000, // Create about 5 steps
-                    display: false,
-                  }
-                }
-              }
-            };
-          },
-          error: (error) => {
-            console.error('Failed to load data:', error);
-          }
+    forkJoin({
+      expenses: this.httpClient.get<any[]>(expensesUrl),
+      budgets: this.httpClient.get<any[]>(budgetsUrl)
+    }).subscribe({
+      next: ({ expenses, budgets }) => {
+        // Process category-wise expenses
+        const categoryExpenses = new Map<string, number>();
+        expenses.forEach(expense => {
+          const currentAmount = categoryExpenses.get(expense.category) || 0;
+          categoryExpenses.set(expense.category, currentAmount + expense.amount);
         });
+
+        // Process category-wise budgets
+        const categoryBudgets = new Map<string, number>();
+        budgets.forEach(budget => {
+          categoryBudgets.set(budget.category, budget.moneyLimit);
+        });
+
+        // Get unique categories from both expenses and budgets
+        const allCategories = Array.from(new Set([
+          ...categoryExpenses.keys(),
+          ...categoryBudgets.keys()
+        ]));
+
+        // Update radar chart data with both datasets
+        this.radarChartData = {
+          labels: allCategories,
+          datasets: [
+            {
+              label: 'Monthly Budget',
+              data: allCategories.map(category => categoryBudgets.get(category) || 0),
+              fill: true,
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              borderColor: 'rgb(255, 99, 132)',
+              pointBackgroundColor: 'rgb(255, 99, 132)',
+              pointBorderColor: '#fff',
+            },
+            {
+              label: 'Current Spending',
+              data: allCategories.map(category => categoryExpenses.get(category) || 0),
+              fill: true,
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              borderColor: 'rgb(54, 162, 235)',
+              pointBackgroundColor: 'rgb(54, 162, 235)',
+              pointBorderColor: '#fff',
+            }
+          ]
+        };
+
+        // Update chart options for better scale
+        const maxValue = Math.max(
+          ...Array.from(categoryBudgets.values()),
+          ...Array.from(categoryExpenses.values())
+        );
+
+        this.radarChartOptions = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                padding: 20,
+                font: { size: 12 }
+              }
+            },
+            title: {
+              display: true,
+              text: 'Monthly Budget vs. Actual Spending',
+              padding: 20,
+              font: {
+                size: 16,
+                weight: 'bold'
+              }
+            }
+          },
+          scales: {
+            r: {
+              min: 0,
+              max: Math.ceil(maxValue / 1000) * 1000, // Round to nearest thousand
+              ticks: {
+                stepSize: Math.ceil(maxValue / 5000) * 1000, // Create about 5 steps
+                display: false,
+              }
+            }
+          }
+        };
       },
       error: (error) => {
-        console.error('Failed to fetch userId:', error);
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['login']);
+        console.error('Failed to load data:', error);
       }
     });
   }
 
   loadMixedChartData() {
-    const token = sessionStorage.getItem('finance.auth');
     const currentYear = new Date().getFullYear();
 
-    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next: (userId) => {
-        // Add savings to parallel requests
-        forkJoin({
-          incomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/income/${userId}/monthlyTotalIncomesList/${currentYear}`),
-          expenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/expense/${userId}/monthlyTotalExpensesList/${currentYear}`),
-          savings: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/expense/${userId}/monthlySavingsInYear/${currentYear}`)
-        }).subscribe({
-          next: ({ incomes, expenses, savings }) => {
-            // Update mixed chart data with real values including savings
-            this.mixedChartData = {
-              labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-              datasets: [
-                {
-                  type: 'bar',
-                  label: 'Expenses',
-                  data: expenses,
-                  borderColor: 'rgb(255, 99, 132)',
-                  backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                  order: 2
-                },
-                {
-                  type: 'line',
-                  label: 'Income',
-                  data: incomes,
-                  fill: false,
-                  borderColor: 'rgb(54, 162, 235)',
-                  tension: 0.4,
-                  order: 0
-                },
-                {
-                  type: 'line',
-                  label: 'Savings',
-                  data: savings,
-                  fill: false,
-                  borderColor: 'rgb(75, 192, 192)',
-                  tension: 0.4,
-                  order: 1
-                }
-              ],
-            };
+    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
+    //   next: (userId) => {
+    //     // Add savings to parallel requests
+        
+    //   },
+    //   error: (error) => {
+    //     console.error('Failed to fetch userId:', error);
+    //     sessionStorage.removeItem('finance.auth');
+    //     this.router.navigate(['login']);
+    //   }
+    // });
 
-            // Update chart options for better scale
-            const maxValue = Math.max(...incomes, ...expenses, ...savings);
-            this.mixedChartOptions = {
-              ...this.mixedChartOptions,
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  max: Math.ceil(maxValue / 10000) * 10000,
-                  ticks: {
-                    stepSize: Math.ceil(maxValue / 50000) * 10000
-                  }
-                }
-              },
-              plugins: {
-                title: {
-                  display: true,
-                  text: 'Monthly Income, Expenses & Savings Overview',
-                  padding: 20,
-                  font: {
-                    size: 16,
-                    weight: 'bold'
-                  }
-                }
+    forkJoin({
+      incomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/income/monthlyTotalIncomesList/${currentYear}`),
+      expenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/expense/monthlyTotalExpensesList/${currentYear}`),
+      savings: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/expense/monthlySavingsInYear/${currentYear}`)
+    }).subscribe({
+      next: ({ incomes, expenses, savings }) => {
+        // Update mixed chart data with real values including savings
+        this.mixedChartData = {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+          datasets: [
+            {
+              type: 'bar',
+              label: 'Expenses',
+              data: expenses,
+              borderColor: 'rgb(255, 99, 132)',
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              order: 2
+            },
+            {
+              type: 'line',
+              label: 'Income',
+              data: incomes,
+              fill: false,
+              borderColor: 'rgb(54, 162, 235)',
+              tension: 0.4,
+              order: 0
+            },
+            {
+              type: 'line',
+              label: 'Savings',
+              data: savings,
+              fill: false,
+              borderColor: 'rgb(75, 192, 192)',
+              tension: 0.4,
+              order: 1
+            }
+          ],
+        };
+
+        // Update chart options for better scale
+        const maxValue = Math.max(...incomes, ...expenses, ...savings);
+        this.mixedChartOptions = {
+          ...this.mixedChartOptions,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: Math.ceil(maxValue / 10000) * 10000,
+              ticks: {
+                stepSize: Math.ceil(maxValue / 50000) * 10000
               }
-            };
+            }
           },
-          error: (error) => {
-            console.error('Failed to load mixed chart data:', error);
+          plugins: {
+            title: {
+              display: true,
+              text: 'Monthly Income, Expenses & Savings Overview',
+              padding: 20,
+              font: {
+                size: 16,
+                weight: 'bold'
+              }
+            }
           }
-        });
+        };
       },
       error: (error) => {
-        console.error('Failed to fetch userId:', error);
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['login']);
+        console.error('Failed to load mixed chart data:', error);
       }
     });
   }
@@ -411,38 +414,39 @@ export class AnalysisComponent {
     const token = sessionStorage.getItem('finance.auth');
     const currentYear = new Date().getFullYear();
 
-    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next: (userId) => {
-        this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/expense/${userId}/monthlyCumulativeSavingsInYear/${currentYear}`)
-          .subscribe({
-            next: (cumulativeData) => {
-              this.lineChartData.datasets[0].data = cumulativeData;
-              
-              // Update chart options for better scale
-              const maxValue = Math.max(...cumulativeData);
-              this.lineChartOptions = {
-                ...this.lineChartOptions,
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    max: Math.ceil(maxValue / 10000) * 10000,
-                    ticks: {
-                      stepSize: Math.ceil(maxValue / 50000) * 10000,
-                      callback: (value) => '₹' + value.toLocaleString()
-                    }
-                  }
-                }
-              };
-            },
-            error: (error) => {
-              console.error('Failed to load cumulative data:', error);
+    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
+    //   next: (userId) => {
+        
+    //   },
+    //   error: (error) => {
+    //     console.error('Failed to fetch userId:', error);
+    //     sessionStorage.removeItem('finance.auth');
+    //     this.router.navigate(['login']);
+    //   }
+    // });
+
+    this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/expense/monthlyCumulativeSavingsInYear/${currentYear}`).subscribe({
+      next: (cumulativeData) => {
+        this.lineChartData.datasets[0].data = cumulativeData;
+        
+        // Update chart options for better scale
+        const maxValue = Math.max(...cumulativeData);
+        this.lineChartOptions = {
+          ...this.lineChartOptions,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: Math.ceil(maxValue / 10000) * 10000,
+              ticks: {
+                stepSize: Math.ceil(maxValue / 50000) * 10000,
+                callback: (value) => '₹' + value.toLocaleString()
+              }
             }
-          });
+          }
+        };
       },
       error: (error) => {
-        console.error('Failed to fetch userId:', error);
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['login']);
+        console.error('Failed to load cumulative data:', error);
       }
     });
   }

@@ -15,7 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/userProfile")
+@RequestMapping("/api/v1/userProfile")
 public class ProfileApiController {
 
     private final ProfileService profileService;
@@ -38,11 +38,23 @@ public class ProfileApiController {
     }
 
     @Operation(summary = "Method to save the profile details of a user")
-    @PostMapping("/{userId}")
-    public ProfileModel saveProfile(@PathVariable("userId") Long userId,
+    @PostMapping("saveProfile")
+    public ResponseEntity<ProfileModel> saveProfile(Authentication authentication,
                                     @RequestBody ProfileModel profile){
 
-        return profileService.saveUserDetails(userId, profile);
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails userDetails) {
+            String username = userDetails.getUsername();
+            Long userId = userService.getUserIdByUsername(username);
+
+            return ResponseEntity.ok(profileService.saveUserDetails(userId, profile));
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @Operation(summary = "Method to get the profile details of a user")

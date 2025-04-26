@@ -92,43 +92,58 @@ export class BudgetsComponent {
 
   loadExpensesData() {
     this.loading = true;
-    const token = sessionStorage.getItem('finance.auth');
+    // const token = sessionStorage.getItem('finance.auth');
   
-    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next: (userId) => {
-        let url: string;
-        if (this.selectedMonth === 0) {
-          url = `${this.baseUrl}/api/v1/expense/${userId}/${this.selectedYear}/all/false`;
+    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
+    //   next: (userId) => {
+        
+    //   },
+    //   error: (error) => {
+    //     console.error('Failed to fetch userId:', error);
+    //     alert("Session timed out! Please login again");
+    //     sessionStorage.removeItem('finance.auth');
+    //     this.router.navigate(['login']);
+    //     this.loading = false;
+    //   }
+    // });
+
+    let url: string;
+    if (this.selectedMonth === 0) {
+      url = `${this.baseUrl}/api/v1/expense/getExpenses/${this.selectedYear}/all/false`;
+    } else {
+      url = `${this.baseUrl}/api/v1/expense/getExpenses/${this.selectedMonth}/${this.selectedYear}/all/false`;
+    }
+
+    this.httpClient.get<Expense[]>(url).subscribe({
+      next: (expenses) => {
+        if (expenses && expenses.length > 0) {
+
+          this.expenses = expenses;
+          this.filteredExpenses = [...expenses]; // Initialize filteredExpenses with all expenses
+          this.updateBudgetsWithExpenses();
+
         } else {
-          url = `${this.baseUrl}/api/v1/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/all/false`;
+          this.toastr.warning('No expenses found for the selected filters.', 'No Data');
         }
-  
-        this.httpClient.get<Expense[]>(url).subscribe({
-          next: (expenses) => {
-            if (expenses && expenses.length > 0) {
-
-              this.expenses = expenses;
-              this.filteredExpenses = [...expenses]; // Initialize filteredExpenses with all expenses
-              this.updateBudgetsWithExpenses();
-
-            } else {
-              this.toastr.warning('No expenses found for the selected filters.', 'No Data');
-            }
-          },
-          error: (error) => {
-            console.error('Failed to load Expense data:', error);
-            this.toastr.error('Failed to load expenses', 'Error');
-          },
-          complete: () => {
-            this.loading = false;
-          }
-        });
       },
       error: (error) => {
-        console.error('Failed to fetch userId:', error);
-        alert("Session timed out! Please login again");
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['login']);
+        console.error('Failed to load expense data:', error);
+        if(error.status === 401){
+          if (error.error === 'TokenExpired') {
+            alert('Your session has expired. Please login again.');
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['/']); // or your login/landing route
+          } else if (error.error === 'InvalidToken') {
+            alert('Authorization failed! Please login again.');
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['/']); // or your login/landing route
+          }
+          else {
+            alert('Service Unavailable!! Please try later');
+          }
+        }
+      },
+      complete: () => {
         this.loading = false;
       }
     });
@@ -156,42 +171,53 @@ export class BudgetsComponent {
   
   loadBudgetData() {
     this.loading = true;
-    const token = sessionStorage.getItem('finance.auth');
+    // const token = sessionStorage.getItem('finance.auth');
   
-    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next: (userId) => {
+    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
+    //   next: (userId) => {
 
-        if(this.selectedCategory === '') this.selectedCategory = 'all';
+        
+    //   },
+    //   error: (error) => {
+    //     console.error('Failed to fetch userId:', error);
+    //     alert("Session timed out! Please login again");
+    //     sessionStorage.removeItem('finance.auth');
+    //     this.router.navigate(['login']);
+    //     this.loading = false;
+    //   }
+    // });
+    if(this.selectedCategory === '') this.selectedCategory = 'all';
 
-        this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/budget/${userId}/${this.selectedCategory}`).subscribe({
-          next: (budgets) => {
-            if(budgets === null){
-              this.toastr.warning('You dont have budget', 'Please add Budget plan');
-            }
-            else {
-              this.budgets = budgets;
-              this.calculateTotals();
-              // Load expenses after fetching budgets to update categories
-              this.loadExpensesData();
-            }
-          },
-          error: (error) => {
-            console.error('Failed to load Budget data:', error);
-            if(error.status === 401){
-              alert('Service Unavailable!! Please try later');
-            }
-            this.loading = false;
-          },
-          complete: () => {
-            this.loading = false;
-          }
-        });
+    this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/budget/getBudgetDetails/${this.selectedCategory}`).subscribe({
+      next: (budgets) => {
+        if(budgets === null){
+          this.toastr.warning('You dont have budget', 'Please add Budget plan');
+        }
+        else {
+          this.budgets = budgets;
+          this.calculateTotals();
+          // Load expenses after fetching budgets to update categories
+          this.loadExpensesData();
+        }
       },
       error: (error) => {
-        console.error('Failed to fetch userId:', error);
-        alert("Session timed out! Please login again");
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['login']);
+        console.error('Failed to load budget data:', error);
+        if(error.status === 401){
+          if (error.error === 'TokenExpired') {
+            alert('Your session has expired. Please login again.');
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['/']); // or your login/landing route
+          } else if (error.error === 'InvalidToken') {
+            alert('Authorization failed! Please login again.');
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['/']); // or your login/landing route
+          }
+          else {
+            alert('Service Unavailable!! Please try later');
+          }
+        }
+      },
+      complete: () => {
         this.loading = false;
       }
     });
@@ -229,44 +255,55 @@ export class BudgetsComponent {
   
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        const token = sessionStorage.getItem('finance.auth');
-        if (token) {
-          this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-            next: (userId) => {
-              console.log(userId);
-  
-              // Explicitly type the category requests
-              const categoryRequests: Promise<any>[] = result.categories.map((category: any) => {
-                const categoryData = {
-                  userId: userId,
-                  ...category, // Includes fields like name, percentage, and amount
-                };
-  
-                // Send individual POST request for each category
-                return this.httpClient.post(`${this.baseUrl}/api/v1/budget/${userId}`, categoryData, {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                }).toPromise(); // Convert Observable to Promise
-              });
-  
-              // Execute all POST requests
-              Promise.all(categoryRequests)
-                .then(() => {
-                  this.toastr.success('All categories added successfully');
-                  this.loadBudgetData(); // Refresh data if necessary
-                })
-                .catch((error) => {
-                  console.error('Failed to add one or more categories:', error);
-                  this.toastr.error('Some categories failed to add');
-                });
-            },
-            error: (error) => {
-              console.error('Failed to fetch userId:', error);
-              this.toastr.error('Failed to retrieve user ID');
-            },
+
+        const categoryRequests: Promise<any>[] = result.categories.map((category: any) => {
+          const categoryData = {
+            ...category, // Includes fields like name, percentage, and amount
+          };
+
+          // Send individual POST request for each category
+          return this.httpClient.post(`${this.baseUrl}/api/v1/budget/saveBudget`, categoryData).toPromise(); // Convert Observable to Promise
+        });
+
+        // Execute all POST requests
+        Promise.all(categoryRequests)
+          .then(() => {
+            this.toastr.success('All categories added successfully');
+            this.loadBudgetData(); // Refresh data if necessary
+          })
+          .catch((error) => {
+            console.error('Failed to add one or more categories:', error);
+            this.toastr.error('Some categories failed to add');
+            if(error.status === 401){
+              if (error.error === 'TokenExpired') {
+                alert('Your session has expired. Please login again.');
+                sessionStorage.removeItem('finance.auth');
+                this.router.navigate(['/']); // or your login/landing route
+              } else if (error.error === 'InvalidToken') {
+                alert('Authorization failed! Please login again.');
+                sessionStorage.removeItem('finance.auth');
+                this.router.navigate(['/']); // or your login/landing route
+              }
+              else {
+                alert('Service Unavailable!! Please try later');
+              }
+            }
           });
-        }
+        // const token = sessionStorage.getItem('finance.auth');
+        // if (token) {
+        //   this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
+        //     next: (userId) => {
+        //       console.log(userId);
+  
+        //       // Explicitly type the category requests
+              
+        //     },
+        //     error: (error) => {
+        //       console.error('Failed to fetch userId:', error);
+        //       this.toastr.error('Failed to retrieve user ID');
+        //     },
+        //   });
+        // }
       }
     });
   }
@@ -294,11 +331,7 @@ export class BudgetsComponent {
   
     updatedBudgets.forEach((budget) => {
       // console.log(budget);
-      this.httpClient
-        .put(`${this.baseUrl}/api/v1/budget/${budget.id}`, budget, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .subscribe({
+      this.httpClient.put(`${this.baseUrl}/api/v1/budget/${budget.id}`, budget).subscribe({
           next: () => {
             updateCount++;
   
@@ -311,6 +344,20 @@ export class BudgetsComponent {
           error: (error) => {
             console.error('Failed to update budget:', error);
             this.toastr.error('Failed to update budget');
+            if(error.status === 401){
+              if (error.error === 'TokenExpired') {
+                alert('Your session has expired. Please login again.');
+                sessionStorage.removeItem('finance.auth');
+                this.router.navigate(['/']); // or your login/landing route
+              } else if (error.error === 'InvalidToken') {
+                alert('Authorization failed! Please login again.');
+                sessionStorage.removeItem('finance.auth');
+                this.router.navigate(['/']); // or your login/landing route
+              }
+              else {
+                alert('Service Unavailable!! Please try later');
+              }
+            }
           },
         });
     });

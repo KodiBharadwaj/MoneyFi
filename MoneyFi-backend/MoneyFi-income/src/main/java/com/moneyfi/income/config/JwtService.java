@@ -26,7 +26,7 @@ public class JwtService {
                 .getBody()
                 .getSubject(); // Assuming username is stored as the subject
 
-        String url = "http://MONEYFI-API-GATEWAY/api/userProfile/getUserId/" + username;
+        String url = "http://MONEYFI-API-GATEWAY/api/v1/userProfile/getUserId/" + username;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);

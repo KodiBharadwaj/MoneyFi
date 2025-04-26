@@ -142,10 +142,20 @@ export class ExpensesComponent {
         }
       },
       error: (error) => {
-        console.error('Failed to load Expense data:', error);
-        // this.toastr.error('Failed to load expenses', 'Error');
+        console.error('Failed to load expense data:', error);
         if(error.status === 401){
-          alert('Service Unavailable!! Please try later')
+          if (error.error === 'TokenExpired') {
+            alert('Your session has expired. Please login again.');
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['/']); // or your login/landing route
+          } else if (error.error === 'InvalidToken') {
+            alert('Authorization failed! Please login again.');
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['/']); // or your login/landing route
+          }
+          else {
+            alert('Service Unavailable!! Please try later');
+          }
         }
       },
       complete: () => {
@@ -159,7 +169,21 @@ export class ExpensesComponent {
         this.calculateSpentPercentage();
       },
       error: (error) => {
-        console.log('Failed to get income details', error);
+        console.error('Failed to load total income:', error);
+        if(error.status === 401){
+          if (error.error === 'TokenExpired') {
+            alert('Your session has expired. Please login again.');
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['/']); // or your login/landing route
+          } else if (error.error === 'InvalidToken') {
+            alert('Authorization failed! Please login again.');
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['/']); // or your login/landing route
+          }
+          else {
+            alert('Service Unavailable!! Please try later');
+          }
+        }
       }
     });
     // const token = sessionStorage.getItem('finance.auth');
@@ -198,46 +222,56 @@ export class ExpensesComponent {
           return;
         }
 
-        const token = sessionStorage.getItem('finance.auth');
-        
-        this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-          next: (userId) => {
-            // Send POST request with the expense data
-            const formattedDate = this.formatDate(result.date);
-            const expenseData = {
-              ...result,
-              date: formattedDate,
-              userId: userId,
-            };
+        const formattedDate = this.formatDate(result.date);
+        const expenseData = {
+          ...result,
+          date: formattedDate,
+        };
 
-            this.httpClient.post<Expense>(`${this.baseUrl}/api/v1/expense/${userId}`, expenseData, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }).subscribe({
-              next: (newExpense) => {
-                this.expenses.push(newExpense);
-                this.calculateTotalExpenses();
-                this.updateChartData();
-                this.toastr.success('Expense added successfully');
-              },
-              error: (error) => {
-                console.error('Failed to add expense data:', error);
-                this.toastr.error('Failed to add expense', 'Error');
-              },
-              complete: () => {
-                this.loading = false;
-              },
-            });
+        this.httpClient.post<Expense>(`${this.baseUrl}/api/v1/expense/saveExpense`, expenseData).subscribe({
+          next: (newExpense) => {
+            this.expenses.push(newExpense);
+            this.calculateTotalExpenses();
+            this.updateChartData();
+            this.toastr.success('Expense added successfully');
           },
           error: (error) => {
-            console.error('Failed to fetch userId:', error);
-            alert("Session timed out! Please login again");
-            sessionStorage.removeItem('finance.auth');
-            this.router.navigate(['login']);
-            this.loading = false;
+            console.error('Failed to load expense data:', error);
+            if(error.status === 401){
+              if (error.error === 'TokenExpired') {
+                alert('Your session has expired. Please login again.');
+                sessionStorage.removeItem('finance.auth');
+                this.router.navigate(['/']); // or your login/landing route
+              } else if (error.error === 'InvalidToken') {
+                alert('Authorization failed! Please login again.');
+                sessionStorage.removeItem('finance.auth');
+                this.router.navigate(['/']); // or your login/landing route
+              }
+              else {
+                alert('Service Unavailable!! Please try later');
+              }
+            }
           },
+          complete: () => {
+            this.loading = false;
+          }
         });
+
+        // const token = sessionStorage.getItem('finance.auth');
+        
+        // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
+        //   next: (userId) => {
+        //     // Send POST request with the expense data
+            
+        //   },
+        //   error: (error) => {
+        //     console.error('Failed to fetch userId:', error);
+        //     alert("Session timed out! Please login again");
+        //     sessionStorage.removeItem('finance.auth');
+        //     this.router.navigate(['login']);
+        //     this.loading = false;
+        //   },
+        // });
       }
     });
   }
@@ -260,48 +294,55 @@ export class ExpensesComponent {
           return;
         }
 
-        const token = sessionStorage.getItem('finance.auth');
+        const formattedDate = this.formatDate(result.date);
+        const updatedExpenseData = {
+          ...result,
+          date: formattedDate,
+        };
 
-        this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-          next: (userId) => {
-            const formattedDate = this.formatDate(result.date);
-            const updatedExpenseData = {
-              ...result,
-              date: formattedDate,
-              userId: userId,
-            };
-
-            this.httpClient.put<Expense>(
-              `${this.baseUrl}/api/v1/expense/${expense.id}`,
-              updatedExpenseData,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            ).subscribe({
-              next: (updatedExpense) => {
-                // console.log('Expense updated successfully:', updatedExpense);
-                if(updatedExpense){
-                  this.loadExpensesData();
-                  this.toastr.success('Expense updated successfully');
-                } else {
-                  this.toastr.warning('No changes to update');
-                }
-              },
-              error: (error) => {
-                console.error('Failed to update Expense:', error);
-                this.toastr.error('Failed to update expense', 'Error');
-              },
-            });
+        this.httpClient.put<Expense>(`${this.baseUrl}/api/v1/expense/${expense.id}`,updatedExpenseData).subscribe({
+          next: (updatedExpense) => {
+            // console.log('Expense updated successfully:', updatedExpense);
+            if(updatedExpense){
+              this.loadExpensesData();
+              this.toastr.success('Expense updated successfully');
+            } else {
+              this.toastr.warning('No changes to update');
+            }
           },
           error: (error) => {
-            console.error('Failed to fetch userId:', error);
-            alert("Session timed out! Please login again");
-            sessionStorage.removeItem('finance.auth');
-            this.router.navigate(['login']);
+            console.error('Failed to update Expense:', error);
+            this.toastr.error('Failed to update expense', 'Error');
+            if(error.status === 401){
+              if (error.error === 'TokenExpired') {
+                alert('Your session has expired. Please login again.');
+                sessionStorage.removeItem('finance.auth');
+                this.router.navigate(['/']); // or your login/landing route
+              } else if (error.error === 'InvalidToken') {
+                alert('Authorization failed! Please login again.');
+                sessionStorage.removeItem('finance.auth');
+                this.router.navigate(['/']); // or your login/landing route
+              }
+              else {
+                alert('Service Unavailable!! Please try later');
+              }
+            }
           },
         });
+
+        // const token = sessionStorage.getItem('finance.auth');
+
+        // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
+        //   next: (userId) => {
+            
+        //   },
+        //   error: (error) => {
+        //     console.error('Failed to fetch userId:', error);
+        //     alert("Session timed out! Please login again");
+        //     sessionStorage.removeItem('finance.auth');
+        //     this.router.navigate(['login']);
+        //   },
+        // });
       }
     });
   }
@@ -417,45 +458,61 @@ export class ExpensesComponent {
 
 
   generateReport() {
-    const token = sessionStorage.getItem('finance.auth');
-  
-    this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next: (userId) => {
 
-        let url: string;
-        if (this.selectedMonth === 0) {
-          url = `${this.baseUrl}/api/v1/expense/${userId}/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
-        } else {
-          url = `${this.baseUrl}/api/v1/expense/${userId}/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
-        }
+    let url: string;
+    if (this.selectedMonth === 0) {
+      url = `${this.baseUrl}/api/v1/expense/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
+    } else {
+      url = `${this.baseUrl}/api/v1/expense/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
+    }
 
-        this.httpClient.get(url, { responseType: 'blob' })
-          .subscribe({
-            next: (response) => {
-              // Trigger File Download
-              const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `Monthly_Report_04_2025.xlsx`;
-              document.body.appendChild(a);
-              a.click();
-              window.URL.revokeObjectURL(url);
-              document.body.removeChild(a);
-            },
-            error: (error) => {
-              console.error('Failed to generate report:', error);
-              alert("Failed to generate the report. Please try again.");
+    this.httpClient.get(url, { responseType: 'blob' })
+      .subscribe({
+        next: (response) => {
+          // Trigger File Download
+          const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Monthly_Report_04_2025.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        },
+        error: (error) => {
+          console.error('Failed to generate report:', error);
+          alert("Failed to generate the report. Please try again.");
+          if(error.status === 401){
+            if (error.error === 'TokenExpired') {
+              alert('Your session has expired. Please login again.');
+              sessionStorage.removeItem('finance.auth');
+              this.router.navigate(['/']); // or your login/landing route
+            } else if (error.error === 'InvalidToken') {
+              alert('Authorization failed! Please login again.');
+              sessionStorage.removeItem('finance.auth');
+              this.router.navigate(['/']); // or your login/landing route
             }
-          });
-      },
-      error: (error) => {
-        console.error('Failed to fetch userId:', error);
-        alert("Session timed out! Please login again");
-        sessionStorage.removeItem('finance.auth');
-        this.router.navigate(['login']);
-      }
-    });
+            else {
+              alert('Service Unavailable!! Please try later');
+            }
+          }
+        }
+      });
+    // const token = sessionStorage.getItem('finance.auth');
+  
+    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
+    //   next: (userId) => {
+
+        
+    //   },
+    //   error: (error) => {
+    //     console.error('Failed to fetch userId:', error);
+    //     alert("Session timed out! Please login again");
+    //     sessionStorage.removeItem('finance.auth');
+    //     this.router.navigate(['login']);
+    //   }
+    // });
   }
 
 }
