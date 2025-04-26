@@ -17,7 +17,6 @@ Minor Changes:
 
 Defects:
 - User feedback mail images are not sending as images in mail to admin.
-- Implement user id authentication level in backend instead of doing in frontend,
 - Text should not be acceptable in the profile phone number input.
 
 
@@ -45,6 +44,7 @@ cleared changes:
 
 
 cleared defects:
+- Implement user id authentication level in backend instead of doing in frontend
 - If otp verification isn't there during signup, if user creates with unexisting email, then forgot password, email service wont work for that user.
   Add otp verification at signup stage itself.
 - same source and same category duplicate transaction should not allowed.
