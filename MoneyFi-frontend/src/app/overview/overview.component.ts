@@ -65,7 +65,7 @@ export class OverviewComponent implements OnInit {
 
   private loadFinancialData() {
 
-    this.httpClient.get(`${this.baseUrl}/api/userProfile/getName`, {responseType : 'text'}).subscribe({
+    this.httpClient.get(`${this.baseUrl}/api/v1/userProfile/getName`, {responseType : 'text'}).subscribe({
       next : (userName : string) => {
         this.summary.username = userName;
       },
