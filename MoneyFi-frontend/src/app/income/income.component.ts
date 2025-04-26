@@ -151,8 +151,8 @@ export class IncomeComponent {
             this.router.navigate(['/']); // or your login/landing route
           } else if (error.error === 'InvalidToken') {
             alert('Authorization failed! Please login again.');
-            sessionStorage.removeItem('finance.auth');
-            this.router.navigate(['/']); // or your login/landing route
+            // sessionStorage.removeItem('finance.auth');
+            // this.router.navigate(['/']); // or your login/landing route
           }
           else {
             alert('Service Unavailable!! Please try later');

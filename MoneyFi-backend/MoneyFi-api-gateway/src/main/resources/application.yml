@@ -6,7 +6,6 @@ eureka:
     prefer-ip-address: true
 
 
-
 spring:
   datasource:
     url: jdbc:sqlserver://${RDS_HOSTNAME:localhost}:${RDS_PORT:1433};databaseName=${RDS_DB_NAME:moneyfi_db};encrypt=true;trustServerCertificate=true

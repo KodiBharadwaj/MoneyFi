@@ -5,11 +5,13 @@ import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.repository.IncomeRepository;
 import com.moneyfi.income.service.IncomeService;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -30,15 +32,6 @@ public class IncomeApiController {
         this.incomeRepository = incomeRepository;
         this.jwtService = jwtService;
     }
-
-//    @GetMapping("/test")
-//    public ResponseEntity<String> testFunction(@RequestHeader("Authorization") String authHeader) {
-//
-//        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//        System.out.println("username check " + user.getUsername());
-//
-//        return ResponseEntity.ok("Received token: " + authHeader);
-//    }
 
 
     @Operation(summary = "Method to save the income details")

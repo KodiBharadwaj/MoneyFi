@@ -225,4 +225,10 @@ public class UserController {
                                    @PathVariable("inputOtp") String inputOtp){
         return userService.checkEnteredOtp(email, inputOtp);
     }
+
+
+    @GetMapping("/test")
+    public Object testMethod(){
+        return "success";
+    }
 }
