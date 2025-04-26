@@ -122,19 +122,13 @@ public class UserServiceImplementation implements UserService {
 
 
     @Scheduled(fixedRate = 3600000) // Runs every 1 hour
-    public void removeOtpCountOfPreviousDay() {
+    public void removeOtpCountOfPreviousDay1(){
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
-        List<UserAuthModel> userAuthModelList = userRepository.getUserListWhoseOtpCountGreaterThanThree();
+        List<UserAuthModel>  userAuthModelList = userRepository.getUserListWhoseOtpCountGreaterThanThree(startOfToday);
 
         for (UserAuthModel userAuthModel : userAuthModelList) {
-            if(userAuthModel.getOtpCount() >= 3 && userAuthModel.getVerificationCodeExpiration() == null){
-                userAuthModel.setVerificationCodeExpiration(LocalDateTime.now());
-                userRepository.save(userAuthModel);
-            }
-            else if (userAuthModel.getOtpCount() >= 3 && userAuthModel.getVerificationCodeExpiration().isBefore(startOfToday)) {
-                userAuthModel.setOtpCount(0);
-                userRepository.save(userAuthModel);
-            }
+            userAuthModel.setOtpCount(0);
+            userRepository.save(userAuthModel);
         }
     }
 }
