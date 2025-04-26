@@ -1,10 +1,17 @@
 package com.moneyfi.apigateway.controller;
 
+import com.moneyfi.apigateway.dto.ChangePasswordDto;
+import com.moneyfi.apigateway.dto.ProfileChangePassword;
+import com.moneyfi.apigateway.dto.RemainingTimeCountDto;
 import com.moneyfi.apigateway.model.UserPrincipal;
+import com.moneyfi.apigateway.model.auth.BlackListedToken;
+import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.Feedback;
 import com.moneyfi.apigateway.model.common.ProfileModel;
+import com.moneyfi.apigateway.service.TokenBlacklistService;
 import com.moneyfi.apigateway.service.profileservice.ProfileService;
+import com.moneyfi.apigateway.service.sessiontokens.SessionToken;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
@@ -14,17 +21,27 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/userProfile")
 public class ProfileApiController {
 
     private final ProfileService profileService;
     private final UserService userService;
+    private final TokenBlacklistService blacklistService;
+    private final SessionToken sessionTokenService;
 
     public ProfileApiController(ProfileService profileService,
-                                UserService userService){
+                                UserService userService,
+                                TokenBlacklistService blacklistService,
+                                SessionToken sessionTokenService){
         this.profileService = profileService;
         this.userService = userService;
+        this.blacklistService = blacklistService;
+        this.sessionTokenService = sessionTokenService;
     }
 
     @GetMapping("/test")
@@ -150,5 +167,43 @@ public class ProfileApiController {
     @GetMapping("/getUserId/{email}")
     public Long getUserId(@PathVariable("email") String email){
         return userService.getUserIdByUsername(email);
+    }
+
+    @Operation(summary = "Method to change the password for the logged in user in the profile section")
+    @PostMapping("/change-password")
+    public ProfileChangePassword changePassword(Authentication authentication,
+                                                @RequestBody ChangePasswordDto changePasswordDto) {
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        Long userId = userService.getUserIdByUsername(username);
+        changePasswordDto.setUserId(userId);
+        return userService.changePassword(changePasswordDto);
+    }
+
+    @Operation(summary = "Method to check the eligibility for next otp")
+    @GetMapping("/checkOtpActive/{email}")
+    public RemainingTimeCountDto checkOtpActiveMethod(@PathVariable("email") String email){
+        return userService.checkOtpActiveMethod(email);
+    }
+
+    @Operation(summary = "Method to logout/making the token blacklist")
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader("Authorization") String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        Date expiryDate = new Date(System.currentTimeMillis() + 3600000); // Expiry 1 hour later
+        BlackListedToken blackListedToken = new BlackListedToken();
+        blackListedToken.setToken(token);
+        blackListedToken.setExpiry(expiryDate);
+        blacklistService.blacklistToken(blackListedToken);
+
+        SessionTokenModel sessionTokens = sessionTokenService.getSessionDetailsByToken(token);
+        sessionTokens.setIsActive(false);
+        sessionTokenService.save(sessionTokens);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Logged out successfully");
+
+        return ResponseEntity.ok(response);
     }
 }

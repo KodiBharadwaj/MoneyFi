@@ -62,54 +62,56 @@ export class ChangePasswordDialogComponent {
     if (this.passwordForm.valid) {
       this.isLoading = true;
     
-      const token = sessionStorage.getItem('finance.auth');
+      // const token = sessionStorage.getItem('finance.auth');
 
-      this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-        next: (userId) => {
+      // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
+      //   next: (userId) => {
 
-          const changePasswordDto: ChangePassword = {
-            userId: userId,
-            currentPassword: this.passwordForm.get('currentPassword')?.value,
-            newPassword: this.passwordForm.get('newPassword')?.value
-          };
-    
-          if(changePasswordDto.currentPassword !== changePasswordDto.newPassword){
-            this.http.post<ProfileChangePassword>(`${this.baseUrl}/api/auth/change-password`, changePasswordDto)
-            .subscribe({
-              next: (profileChangeDto) => {
+          
+  
+      //   },
+      //   error: (error) => {
+      //     this.isLoading = false;
+      //     console.error('Failed to fetch userId:', error);
+      //     alert("Session timed out! Please login again");
+      //     sessionStorage.removeItem('finance.auth');
+      //     this.router.navigate(['login']);
+      //   }
+      // });
 
-                if(profileChangeDto.flag === true){
-                  this.dialogRef.close(true);
-                } 
-                else if(profileChangeDto.flag === false && profileChangeDto.otpCount >= 3){
-                  alert('Your Password change limit reached for today, Try tomorrow');
-                  this.dialogRef.close();
-                }
-                else {
-                  this.toastr.warning('Please enter correct old Password');
-                }
-                this.isLoading = false;
-              },
-              error: (error) => {
-                console.error('Error changing password:', error);
-                this.isLoading = false;
-              }
-            });
+      const changePasswordDto: ChangePassword = {
+        userId: 0,
+        currentPassword: this.passwordForm.get('currentPassword')?.value,
+        newPassword: this.passwordForm.get('newPassword')?.value
+      };
 
-          } else {
-            this.toastr.warning('Please enter new password');
+      if(changePasswordDto.currentPassword !== changePasswordDto.newPassword){
+        this.http.post<ProfileChangePassword>(`${this.baseUrl}/api/v1/userProfile/change-password`, changePasswordDto)
+        .subscribe({
+          next: (profileChangeDto) => {
+
+            if(profileChangeDto.flag === true){
+              this.dialogRef.close(true);
+            } 
+            else if(profileChangeDto.flag === false && profileChangeDto.otpCount >= 3){
+              alert('Your Password change limit reached for today, Try tomorrow');
+              this.dialogRef.close();
+            }
+            else {
+              this.toastr.warning('Please enter correct old Password');
+            }
+            this.isLoading = false;
+          },
+          error: (error) => {
+            console.error('Error changing password:', error);
             this.isLoading = false;
           }
-  
-        },
-        error: (error) => {
-          this.isLoading = false;
-          console.error('Failed to fetch userId:', error);
-          alert("Session timed out! Please login again");
-          sessionStorage.removeItem('finance.auth');
-          this.router.navigate(['login']);
-        }
-      });
+        });
+
+      } else {
+        this.toastr.warning('Please enter new password');
+        this.isLoading = false;
+      }
       
     }
   }

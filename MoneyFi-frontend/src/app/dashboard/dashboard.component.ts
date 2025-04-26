@@ -49,32 +49,21 @@ export class DashboardComponent {
   
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        const token = sessionStorage.getItem('finance.auth');
-        
-        this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-          next : (userId) => {
-            this.httpClient.post('http://localhost:8765/api/auth/logout', {}, { responseType: 'text' }).subscribe({
-              next: (response) => {
-                const jsonResponse = JSON.parse(response);
-                this.toastr.success(jsonResponse.message, '', {
-                  timeOut: 1500  // time in milliseconds (3 seconds)
-                });
-                sessionStorage.removeItem('finance.auth');
-                this.router.navigate(['']);
-              },
-              error: (error) => {
-                console.error(error);
-                this.toastr.error('Failed to logout')
-              }
+
+        this.httpClient.post('http://localhost:8765/api/auth/logout', {}, { responseType: 'text' }).subscribe({
+          next: (response) => {
+            const jsonResponse = JSON.parse(response);
+            this.toastr.success(jsonResponse.message, '', {
+              timeOut: 1500  // time in milliseconds (3 seconds)
             });
+            sessionStorage.removeItem('finance.auth');
+            this.router.navigate(['']);
           },
           error: (error) => {
-            console.error('Failed to fetch userId:', error);
-            alert("Session timed out! Please login again");
-            sessionStorage.removeItem('finance.auth');
-            this.router.navigate(['login']);
+            console.error(error);
+            this.toastr.error('Failed to logout')
           }
-        })
+        });
       }
     });
   }

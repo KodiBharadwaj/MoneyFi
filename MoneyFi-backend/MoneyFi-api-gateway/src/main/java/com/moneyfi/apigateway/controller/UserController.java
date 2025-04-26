@@ -22,8 +22,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @CrossOrigin("http://localhost:4200")
@@ -140,17 +138,6 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "Method to get the user id from user's email")
-    @GetMapping("/getUserId/{email}")
-    public Long getUserId(@PathVariable("email") String email){
-        return userService.getUserIdByUsername(email);
-    }
-
-    @Operation(summary = "Method to get user id from token")
-    @GetMapping("/token/{token}")
-    public Long getUserIdFromToken(@PathVariable("token") String token){
-        return userService.getUserIdFromToken(token);
-    }
 
     @Operation(summary = "Method for password forgot")
     @PostMapping("/forgot-password")
@@ -177,40 +164,6 @@ public class UserController {
     }
 
 
-    @Operation(summary = "Method to logout/making the token blacklist")
-    @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader("Authorization") String token) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        Date expiryDate = new Date(System.currentTimeMillis() + 3600000); // Expiry 1 hour later
-        BlackListedToken blackListedToken = new BlackListedToken();
-        blackListedToken.setToken(token);
-        blackListedToken.setExpiry(expiryDate);
-        blacklistService.blacklistToken(blackListedToken);
-
-        SessionTokenModel sessionTokens = sessionTokenService.getSessionDetailsByToken(token);
-        sessionTokens.setIsActive(false);
-        sessionTokenService.save(sessionTokens);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Logged out successfully");
-
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "Method to change the password for the logged in user in the profile section")
-    @PostMapping("/change-password")
-    public ProfileChangePassword changePassword(@RequestBody ChangePasswordDto changePasswordDto) {
-        return userService.changePassword(changePasswordDto);
-    }
-
-    @Operation(summary = "Method to check the eligibility for next otp")
-    @GetMapping("/checkOtpActive/{email}")
-    public RemainingTimeCountDto checkOtpActiveMethod(@PathVariable("email") String email){
-        return userService.checkOtpActiveMethod(email);
-    }
-
     @Operation(summary = "Method to send Otp for user verification during signup")
     @GetMapping("/sendOtpForSignup/{email}/{name}")
     public ResponseEntity<String> sendOtpForSignup(@PathVariable("email") String email,
@@ -224,11 +177,5 @@ public class UserController {
     public boolean checkEnteredOtp(@PathVariable("email") String email,
                                    @PathVariable("inputOtp") String inputOtp){
         return userService.checkEnteredOtp(email, inputOtp);
-    }
-
-
-    @GetMapping("/test")
-    public Object testMethod(){
-        return "success";
     }
 }

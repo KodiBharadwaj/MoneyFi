@@ -127,7 +127,8 @@ public class UserServiceImplementation implements UserService {
 
     private void sendPasswordAlertMail(Long userId, String email){
 
-        String userName = restTemplate.getForObject("http://MONEYFI-USER/api/profile/getName/" + userId, String.class);
+        String userName = profileRepository.findByUserId(userId).getName();
+
 
         String subject = "Password Change Alert!!";
         String body = "<html>"

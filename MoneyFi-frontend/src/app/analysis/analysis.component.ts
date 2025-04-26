@@ -53,18 +53,6 @@ export class AnalysisComponent {
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
 
-    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-    //   next: (userId) => {
-    //     // Create parallel requests for both expenses and budgets
-        
-    //   },
-    //   error: (error) => {
-    //     console.error('Failed to fetch userId:', error);
-    //     sessionStorage.removeItem('finance.auth');
-    //     this.router.navigate(['login']);
-    //   }
-    // });
-
     const expensesUrl = `${this.baseUrl}/api/v1/expense/getExpenses/${currentMonth}/${currentYear}/all/false`;
     const budgetsUrl = `${this.baseUrl}/api/v1/budget/getBudgetDetails/all`;
 
@@ -165,19 +153,6 @@ export class AnalysisComponent {
 
   loadMixedChartData() {
     const currentYear = new Date().getFullYear();
-
-    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-    //   next: (userId) => {
-    //     // Add savings to parallel requests
-        
-    //   },
-    //   error: (error) => {
-    //     console.error('Failed to fetch userId:', error);
-    //     sessionStorage.removeItem('finance.auth');
-    //     this.router.navigate(['login']);
-    //   }
-    // });
-
     forkJoin({
       incomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/income/monthlyTotalIncomesList/${currentYear}`),
       expenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/expense/monthlyTotalExpensesList/${currentYear}`),
@@ -413,17 +388,6 @@ export class AnalysisComponent {
   loadCumulativeData() {
     const token = sessionStorage.getItem('finance.auth');
     const currentYear = new Date().getFullYear();
-
-    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-    //   next: (userId) => {
-        
-    //   },
-    //   error: (error) => {
-    //     console.error('Failed to fetch userId:', error);
-    //     sessionStorage.removeItem('finance.auth');
-    //     this.router.navigate(['login']);
-    //   }
-    // });
 
     this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/expense/monthlyCumulativeSavingsInYear/${currentYear}`).subscribe({
       next: (cumulativeData) => {

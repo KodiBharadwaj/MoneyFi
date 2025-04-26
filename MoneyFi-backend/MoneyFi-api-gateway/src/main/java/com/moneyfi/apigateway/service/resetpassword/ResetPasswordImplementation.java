@@ -3,6 +3,7 @@ package com.moneyfi.apigateway.service.resetpassword;
 
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.repository.auth.UserRepository;
+import com.moneyfi.apigateway.repository.common.ProfileRepository;
 import com.moneyfi.apigateway.util.EmailFilter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,13 +18,16 @@ public class ResetPasswordImplementation implements ResetPassword {
     private final UserRepository userRepository;
     private final EmailFilter emailUtil;
     private final RestTemplate restTemplate;
+    private final ProfileRepository profileRepository;
 
     public ResetPasswordImplementation(EmailFilter emailFilter,
                                        UserRepository userRepository,
-                                       RestTemplate restTemplate){
+                                       RestTemplate restTemplate,
+                                       ProfileRepository profileRepository){
         this.emailUtil = emailFilter;
         this.userRepository = userRepository;
         this.restTemplate = restTemplate;
+        this.profileRepository = profileRepository;
     }
 
 
@@ -43,7 +47,7 @@ public class ResetPasswordImplementation implements ResetPassword {
         userAuthModel.setOtpCount(userAuthModel.getOtpCount() + 1);
         userRepository.save(userAuthModel);
 
-        String userName = restTemplate.getForObject("http://MONEYFI-USER/api/profile/getName/" + userAuthModel.getId(), String.class);
+        String userName = profileRepository.findByUserId(userAuthModel.getId()).getName();
 
         String subject = "MoneyFi's Password Reset Verification Code";
         String body = "<html>"

@@ -95,28 +95,21 @@ export class ProfileComponent implements OnInit {
 
   // Save the profile to the backend
   saveProfile(): void {
-    const token = sessionStorage.getItem('finance.auth');
-    // console.log(token);
-
-    this.http.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      next : (userId) => {
-        this.http.post<UserProfileDetails>(`${this.baseUrl}/api/v1/userProfile/saveProfile`, this.userProfileDetails).subscribe(
-          (data) => {
-            this.userProfileDetails = data;
-            this.isEditing = false;
-            this.toastr.success('Profle updated successfully!', '', {
-              timeOut:1500
-            });
-          },
-          (error) => {
-            console.error('Error saving profile:', error);
-            if(error.status === 401){
-              alert('Service Unavailable!! Please try later')
-            }
-          }
-        );
+    this.http.post<UserProfileDetails>(`${this.baseUrl}/api/v1/userProfile/saveProfile`, this.userProfileDetails).subscribe(
+      (data) => {
+        this.userProfileDetails = data;
+        this.isEditing = false;
+        this.toastr.success('Profle updated successfully!', '', {
+          timeOut:1500
+        });
+      },
+      (error) => {
+        console.error('Error saving profile:', error);
+        if(error.status === 401){
+          alert('Service Unavailable!! Please try later')
+        }
       }
-    })
+    );
 
   }
 

@@ -26,16 +26,13 @@ public class JwtService {
                 .getBody()
                 .getSubject(); // Assuming username is stored as the subject
 
-        String url = "http://localhost:8765/api/auth/getUserId/" + username;
+        String url = "http://localhost:8765/api/v1/userProfile/getUserId/" + username;
 
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setBearerAuth(token);
-//        HttpEntity<String> entity = new HttpEntity<>(headers);
-//
-//        ResponseEntity<Long> response = restTemplate.exchange(url, HttpMethod.GET, entity, Long.class);
-//        return response.getBody();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        Long userId = restTemplate.getForObject(url, Long.class);
-        return userId;
+        ResponseEntity<Long> response = restTemplate.exchange(url, HttpMethod.GET, entity, Long.class);
+        return response.getBody();
     }
 }
