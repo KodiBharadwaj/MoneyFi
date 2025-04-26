@@ -73,7 +73,7 @@ export class FeedbackFormComponent {
         comments : this.feedback.comments
       }
 
-      this.httpClient.post(`${this.baseUrl}/api/userProfile/feedback`, contactDto).subscribe(
+      this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/feedback`, contactDto).subscribe(
         (response) => {
           // alert('Form submitted successfully!');
           this.toastr.success('Feedback submitted successfully!', '', {

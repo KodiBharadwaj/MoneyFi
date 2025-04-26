@@ -100,7 +100,7 @@ export class ContactFormComponent {
     //   }
     // });
 
-    this.httpClient.post(`${this.baseUrl}/api/userProfile/contactUs`, contactDto).subscribe(
+    this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/contactUs`, contactDto).subscribe(
       (response) => {
         this.resetForm();
         this.toastr.success('Feedback submitted successfully!', '', {
