@@ -18,6 +18,7 @@ Minor Changes:
 Defects:
 - User feedback mail images are not sending as images in mail to admin.
 - Text should not be acceptable in the profile phone number input.
+- Implement @Transactional for the methods which deals with two jpa save operation to avoid half implmentation.
 
 
 
