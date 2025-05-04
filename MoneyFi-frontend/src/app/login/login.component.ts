@@ -102,7 +102,7 @@ export class LoginComponent {
       .subscribe(
         response => {
           this.isLoading = false; // Hide loading spinner
-          sessionStorage.setItem('finance.auth', response.jwtToken);
+          sessionStorage.setItem('moneyfi.auth', response.jwtToken);
           this.toastr.success('Login successful', 'Success', {
             timeOut: 1500  // 
           });

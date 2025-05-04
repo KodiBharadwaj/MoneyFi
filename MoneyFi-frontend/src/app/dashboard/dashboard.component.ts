@@ -56,7 +56,7 @@ export class DashboardComponent {
             this.toastr.success(jsonResponse.message, '', {
               timeOut: 1500  // time in milliseconds (3 seconds)
             });
-            sessionStorage.removeItem('finance.auth');
+            sessionStorage.removeItem('moneyfi.auth');
             this.router.navigate(['']);
           },
           error: (error) => {

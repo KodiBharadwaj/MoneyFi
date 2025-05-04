@@ -98,13 +98,13 @@ export class GoalsComponent {
       error: (error) => {
         console.error('Failed to load goal data:', error);
         if(error.status === 401){
-          if (error.error === 'TokenExpired') {
+          if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
             alert('Your session has expired. Please login again.');
-            sessionStorage.removeItem('finance.auth');
+            sessionStorage.removeItem('moneyfi.auth');
             this.router.navigate(['/']); // or your login/landing route
           } else if (error.error === 'InvalidToken') {
             alert('Authorization failed! Please login again.');
-            sessionStorage.removeItem('finance.auth');
+            sessionStorage.removeItem('moneyfi.auth');
             this.router.navigate(['/']); // or your login/landing route
           }
           else {
@@ -113,23 +113,6 @@ export class GoalsComponent {
         }
       },
     });
-    // const token = sessionStorage.getItem('finance.auth');
-    // // console.log(token);
-  
-    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-    //   next: (userId) => {
-    //     // console.log(userId);
-  
-        
-    //   },
-    //   error: (error) => {
-    //     console.error('Failed to fetch userId:', error);
-    //     alert("Session timed out! Please login again");
-    //     sessionStorage.removeItem('finance.auth');
-    //     this.router.navigate(['login']);
-    //     this.loading = false;
-    //   }
-    // });
   }
 
   addGoal() {
@@ -144,24 +127,7 @@ export class GoalsComponent {
   
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        const token = sessionStorage.getItem('finance.auth');
-        // console.log(token);
         if(result.targetAmount > result.currentAmount){
-          // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-          //   next: (userId) => {
-          //     // console.log(userId);
-              
-          //     // Send POST request with the income data
-              
-          //   },
-          //   error: (error) => {
-          //     console.error('Failed to fetch userId:', error);
-          //     alert("Session timed out! Please login again");
-          //     sessionStorage.removeItem('finance.auth');
-          //     this.router.navigate(['login']);
-          //     this.loading = false;
-          //   },
-          // });
 
           const formattedDate = this.formatDate(result.deadLine);
           const goalData = {
@@ -183,13 +149,13 @@ export class GoalsComponent {
               error: (error) => {
                 console.error('Failed to add goal data:', error);
                 if(error.status === 401){
-                  if (error.error === 'TokenExpired') {
+                  if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
                     alert('Your session has expired. Please login again.');
-                    sessionStorage.removeItem('finance.auth');
+                    sessionStorage.removeItem('moneyfi.auth');
                     this.router.navigate(['/']); // or your login/landing route
                   } else if (error.error === 'InvalidToken') {
                     alert('Authorization failed! Please login again.');
-                    sessionStorage.removeItem('finance.auth');
+                    sessionStorage.removeItem('moneyfi.auth');
                     this.router.navigate(['/']); // or your login/landing route
                   }
                   else {
@@ -215,19 +181,6 @@ export class GoalsComponent {
 
   addAmount(id: number) {
 
-    // const token = sessionStorage.getItem('finance.auth');
-    // // console.log(token);
-    // // console.log(id);
-  
-    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-    //   next: (userId) => {
-    //     // console.log(userId);
-  
-    //     // Open the dialog to get the amount
-        
-    //   }
-    // });
-
     const dialogRef = this.dialog.open(AddAmountGoalComponent, {
       width: '300px',
       data: { id }
@@ -246,13 +199,13 @@ export class GoalsComponent {
             error: (error) => {
               console.error('Error adding amount:', error);
               if(error.status === 401){
-                if (error.error === 'TokenExpired') {
+                if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
                   alert('Your session has expired. Please login again.');
-                  sessionStorage.removeItem('finance.auth');
+                  sessionStorage.removeItem('moneyfi.auth');
                   this.router.navigate(['/']); // or your login/landing route
                 } else if (error.error === 'InvalidToken') {
                   alert('Authorization failed! Please login again.');
-                  sessionStorage.removeItem('finance.auth');
+                  sessionStorage.removeItem('moneyfi.auth');
                   this.router.navigate(['/']); // or your login/landing route
                 }
                 else {
@@ -295,13 +248,13 @@ export class GoalsComponent {
           error: (error) => {
             console.error('Failed to update goal data:', error);
             if(error.status === 401){
-              if (error.error === 'TokenExpired') {
+              if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
                 alert('Your session has expired. Please login again.');
-                sessionStorage.removeItem('finance.auth');
+                sessionStorage.removeItem('moneyfi.auth');
                 this.router.navigate(['/']); // or your login/landing route
               } else if (error.error === 'InvalidToken') {
                 alert('Authorization failed! Please login again.');
-                sessionStorage.removeItem('finance.auth');
+                sessionStorage.removeItem('moneyfi.auth');
                 this.router.navigate(['/']); // or your login/landing route
               }
               else {
@@ -313,23 +266,6 @@ export class GoalsComponent {
             this.loading = false;
           },
         });
-        // const token = sessionStorage.getItem('finance.auth');
-        // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-        //   next: (userId) => {
-        //     // console.log(userId);
-            
-        //     // Send POST request with the income data
-        //     // console.log(result);
-            
-        //   },
-        //   error: (error) => {
-        //     console.error('Failed to fetch userId:', error);
-        //     alert("Session timed out! Please login again");
-        //     sessionStorage.removeItem('finance.auth');
-        //     this.router.navigate(['login']);
-        //     this.loading = false;
-        //   },
-        // });
         
       }
     });

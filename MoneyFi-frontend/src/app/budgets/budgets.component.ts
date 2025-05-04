@@ -92,20 +92,6 @@ export class BudgetsComponent {
 
   loadExpensesData() {
     this.loading = true;
-    // const token = sessionStorage.getItem('finance.auth');
-  
-    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-    //   next: (userId) => {
-        
-    //   },
-    //   error: (error) => {
-    //     console.error('Failed to fetch userId:', error);
-    //     alert("Session timed out! Please login again");
-    //     sessionStorage.removeItem('finance.auth');
-    //     this.router.navigate(['login']);
-    //     this.loading = false;
-    //   }
-    // });
 
     let url: string;
     if (this.selectedMonth === 0) {
@@ -129,13 +115,13 @@ export class BudgetsComponent {
       error: (error) => {
         console.error('Failed to load expense data:', error);
         if(error.status === 401){
-          if (error.error === 'TokenExpired') {
+          if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
             alert('Your session has expired. Please login again.');
-            sessionStorage.removeItem('finance.auth');
+            sessionStorage.removeItem('moneyfi.auth');
             this.router.navigate(['/']); // or your login/landing route
           } else if (error.error === 'InvalidToken') {
             alert('Authorization failed! Please login again.');
-            sessionStorage.removeItem('finance.auth');
+            sessionStorage.removeItem('moneyfi.auth');
             this.router.navigate(['/']); // or your login/landing route
           }
           else {
@@ -171,21 +157,6 @@ export class BudgetsComponent {
   
   loadBudgetData() {
     this.loading = true;
-    // const token = sessionStorage.getItem('finance.auth');
-  
-    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-    //   next: (userId) => {
-
-        
-    //   },
-    //   error: (error) => {
-    //     console.error('Failed to fetch userId:', error);
-    //     alert("Session timed out! Please login again");
-    //     sessionStorage.removeItem('finance.auth');
-    //     this.router.navigate(['login']);
-    //     this.loading = false;
-    //   }
-    // });
     if(this.selectedCategory === '') this.selectedCategory = 'all';
 
     this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/budget/getBudgetDetails/${this.selectedCategory}`).subscribe({
@@ -203,13 +174,13 @@ export class BudgetsComponent {
       error: (error) => {
         console.error('Failed to load budget data:', error);
         if(error.status === 401){
-          if (error.error === 'TokenExpired') {
+          if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
             alert('Your session has expired. Please login again.');
-            sessionStorage.removeItem('finance.auth');
+            sessionStorage.removeItem('moneyfi.auth');
             this.router.navigate(['/']); // or your login/landing route
           } else if (error.error === 'InvalidToken') {
             alert('Authorization failed! Please login again.');
-            sessionStorage.removeItem('finance.auth');
+            sessionStorage.removeItem('moneyfi.auth');
             this.router.navigate(['/']); // or your login/landing route
           }
           else {
@@ -275,13 +246,13 @@ export class BudgetsComponent {
             console.error('Failed to add one or more categories:', error);
             this.toastr.error('Some categories failed to add');
             if(error.status === 401){
-              if (error.error === 'TokenExpired') {
+              if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
                 alert('Your session has expired. Please login again.');
-                sessionStorage.removeItem('finance.auth');
+                sessionStorage.removeItem('moneyfi.auth');
                 this.router.navigate(['/']); // or your login/landing route
               } else if (error.error === 'InvalidToken') {
                 alert('Authorization failed! Please login again.');
-                sessionStorage.removeItem('finance.auth');
+                sessionStorage.removeItem('moneyfi.auth');
                 this.router.navigate(['/']); // or your login/landing route
               }
               else {
@@ -289,21 +260,6 @@ export class BudgetsComponent {
               }
             }
           });
-        // const token = sessionStorage.getItem('finance.auth');
-        // if (token) {
-        //   this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-        //     next: (userId) => {
-        //       console.log(userId);
-  
-        //       // Explicitly type the category requests
-              
-        //     },
-        //     error: (error) => {
-        //       console.error('Failed to fetch userId:', error);
-        //       this.toastr.error('Failed to retrieve user ID');
-        //     },
-        //   });
-        // }
       }
     });
   }
@@ -326,7 +282,7 @@ export class BudgetsComponent {
   
   // Save all updated budgets to the backend
   private saveUpdatedBudgets(updatedBudgets: any[]) {
-    const token = sessionStorage.getItem('finance.auth');
+    const token = sessionStorage.getItem('moneyfi.auth');
     let updateCount = 0;
   
     updatedBudgets.forEach((budget) => {
@@ -345,13 +301,13 @@ export class BudgetsComponent {
             console.error('Failed to update budget:', error);
             this.toastr.error('Failed to update budget');
             if(error.status === 401){
-              if (error.error === 'TokenExpired') {
+              if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
                 alert('Your session has expired. Please login again.');
-                sessionStorage.removeItem('finance.auth');
+                sessionStorage.removeItem('moneyfi.auth');
                 this.router.navigate(['/']); // or your login/landing route
               } else if (error.error === 'InvalidToken') {
                 alert('Authorization failed! Please login again.');
-                sessionStorage.removeItem('finance.auth');
+                sessionStorage.removeItem('moneyfi.auth');
                 this.router.navigate(['/']); // or your login/landing route
               }
               else {

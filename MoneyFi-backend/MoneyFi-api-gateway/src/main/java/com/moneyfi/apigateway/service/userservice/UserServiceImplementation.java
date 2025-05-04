@@ -345,7 +345,7 @@ public class UserServiceImplementation implements UserService {
     }
     private BlackListedToken makeUserTokenBlacklisted(String token){
 
-        Date expiryDate = new Date(System.currentTimeMillis() + 3600000); // Expiry 1 hour later
+        Date expiryDate = new Date(System.currentTimeMillis()); // current date and time
         BlackListedToken blackListedToken = new BlackListedToken();
         blackListedToken.setToken(token);
         blackListedToken.setExpiry(expiryDate);

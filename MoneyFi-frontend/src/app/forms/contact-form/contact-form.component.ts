@@ -82,23 +82,6 @@ export class ContactFormComponent {
       message : this.contactData.message,
       images : this.contactData.images || ""
     }
-  
-
-    // const token = sessionStorage.getItem('finance.auth');
-  
-    // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-    //   next: (userId) => {
-
-      
-    
-    //   },
-    //   error: (error) => {
-    //     console.error('Failed to fetch userId:', error);
-    //     alert("Session timed out! Please login again");
-    //     sessionStorage.removeItem('finance.auth');
-    //     this.router.navigate(['login']);
-    //   }
-    // });
 
     this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/contactUs`, contactDto).subscribe(
       (response) => {

@@ -140,7 +140,7 @@ onOtpValidated(success: boolean) {
     this.authApiService.signupApiFunction(this.tempSignupCredentials)
     .subscribe(
       response => {
-        sessionStorage.setItem('finance.auth', response.jwtToken);
+        sessionStorage.setItem('moneyfi.auth', response.jwtToken);
         this.isLoading = false;
         this.toastr.success('User registered successfully!', 'Signup success');
         this.router.navigate(['/login']);

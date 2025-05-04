@@ -14,7 +14,7 @@ export class AuthGuard implements CanActivate {
   constructor(private router: Router) {}
 
   canActivate(): boolean {
-    const token = sessionStorage.getItem('finance.auth');
+    const token = sessionStorage.getItem('moneyfi.auth');
     if (token) {
       // User is authenticated
       return true;

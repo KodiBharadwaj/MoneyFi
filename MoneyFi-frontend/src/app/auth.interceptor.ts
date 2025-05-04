@@ -6,7 +6,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req); // Proceed without modifying the request
   }
 
-  const jwt = sessionStorage.getItem('finance.auth')
+  const jwt = sessionStorage.getItem('moneyfi.auth')
   if(jwt){
     req = req.clone(
      {

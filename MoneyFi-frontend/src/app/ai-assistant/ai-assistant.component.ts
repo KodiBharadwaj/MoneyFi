@@ -36,7 +36,7 @@ export class AiAssistantComponent implements OnInit {
   getFinancialAdvice(): void {
     this.loading = true;
     this.error = null;
-    const token = sessionStorage.getItem('finance.auth');
+    const token = sessionStorage.getItem('moneyfi.auth');
 
     this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
       next: (userId) => {
@@ -133,7 +133,7 @@ export class AiAssistantComponent implements OnInit {
       },
       error: (error) => {
         console.error('Failed to fetch userId:', error);
-        sessionStorage.removeItem('finance.auth');
+        sessionStorage.removeItem('moneyfi.auth');
         this.router.navigate(['login']);
       }
     });

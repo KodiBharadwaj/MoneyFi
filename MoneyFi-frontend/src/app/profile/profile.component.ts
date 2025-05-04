@@ -83,7 +83,7 @@ export class ProfileComponent implements OnInit {
         this.isImageLoading = false;
         if (error.status === 401) {
           alert('Session expired! Please log in again.');
-          sessionStorage.removeItem('finance.auth');
+          sessionStorage.removeItem('moneyfi.auth');
           this.router.navigate(['login']);
         } else {
           alert('Failed to load profile. Please try again later.');

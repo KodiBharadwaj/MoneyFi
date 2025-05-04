@@ -46,7 +46,6 @@ export class AnalysisComponent {
   }
 
   loadChartData() {
-    const token = sessionStorage.getItem('finance.auth');
     
     // Get current month and year
     const currentDate = new Date();
@@ -386,7 +385,6 @@ export class AnalysisComponent {
 
   // Add new method to load cumulative data
   loadCumulativeData() {
-    const token = sessionStorage.getItem('finance.auth');
     const currentYear = new Date().getFullYear();
 
     this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/expense/monthlyCumulativeSavingsInYear/${currentYear}`).subscribe({
