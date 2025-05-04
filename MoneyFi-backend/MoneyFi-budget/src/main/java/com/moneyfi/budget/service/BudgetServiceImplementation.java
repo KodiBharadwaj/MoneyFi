@@ -2,6 +2,7 @@ package com.moneyfi.budget.service;
 
 import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.repository.BudgetRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -44,6 +45,7 @@ public class BudgetServiceImplementation implements BudgetService{
     }
 
     @Override
+    @Transactional
     public BigDecimal budgetProgress(Long userId, int month, int year) {
 
         List<BudgetModel> budgetsList = getAllBudgetsByUserIdAndCategory(userId, "all");
@@ -56,7 +58,6 @@ public class BudgetServiceImplementation implements BudgetService{
 
         return currentSpending.divide(moneyLimit, 5, RoundingMode.HALF_UP);
     }
-
     private BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
         BigDecimal totalExpense = budgetRepository.getTotalExpenseInMonthAndYear(userId, month, year);
         if(totalExpense == null){

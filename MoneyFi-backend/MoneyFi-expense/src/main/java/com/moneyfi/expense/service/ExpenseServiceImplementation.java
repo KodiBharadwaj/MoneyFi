@@ -2,6 +2,7 @@ package com.moneyfi.expense.service;
 
 import com.moneyfi.expense.model.ExpenseModel;
 import com.moneyfi.expense.repository.ExpenseRepository;
+import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
+    @Transactional
     public byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category) {
         List<ExpenseModel> monthlyExpenseList = getAllExpensesByMonthYearAndCategory(userId, month, year, category,false);
         return generateExcelReport(monthlyExpenseList);
@@ -152,6 +154,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
+    @Transactional
     public byte[] generateYearlyExcelReport(Long userId, int year, String category) {
         List<ExpenseModel> yearlyIncomeList = getAllExpensesByYearAndCategory(userId, year, category,false);
         return generateExcelReport(yearlyIncomeList);
@@ -173,6 +176,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
+    @Transactional
     public List<BigDecimal> getMonthlySavingsList(Long userId, int year) {
 
         BigDecimal[] incomes = getMonthlyIncomesListInAYear(userId, year);
@@ -185,7 +189,6 @@ public class ExpenseServiceImplementation implements ExpenseService{
         }
         return savings;
     }
-
     private BigDecimal[] getMonthlyIncomesListInAYear(Long userId, int year) {
         List<Object[]> rawIncomes = expenseRepository.getMonthlyIncomesListInAYear(userId, year, false);
         BigDecimal[] monthlyTotals = new BigDecimal[12];
@@ -211,6 +214,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
+    @Transactional
     public BigDecimal getTotalSavingsByMonthAndDate(Long userId, int month, int year) {
         BigDecimal totalIncome = getTotalIncomeInMonthAndYear(userId, month, year);
         BigDecimal totalExpenses = getTotalExpenseInMonthAndYear(userId, month, year);
@@ -221,7 +225,6 @@ public class ExpenseServiceImplementation implements ExpenseService{
 
         return BigDecimal.ZERO;
     }
-
     private BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
         BigDecimal totalIncome = expenseRepository.getTotalIncomeInMonthAndYear(userId, month, year);
         if(totalIncome == null){
@@ -232,6 +235,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
+    @Transactional
     public List<BigDecimal> getCumulativeMonthlySavings(Long userId, int year) {
 
         BigDecimal[] incomes = getMonthlyIncomesListInAYear(userId, year);

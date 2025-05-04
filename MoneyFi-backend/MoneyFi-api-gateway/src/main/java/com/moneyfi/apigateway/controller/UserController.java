@@ -1,56 +1,31 @@
 package com.moneyfi.apigateway.controller;
 
 import com.moneyfi.apigateway.dto.*;
-import com.moneyfi.apigateway.model.auth.BlackListedToken;
-import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
-import com.moneyfi.apigateway.repository.auth.UserRepository;
-import com.moneyfi.apigateway.service.*;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.resetpassword.ResetPassword;
-import com.moneyfi.apigateway.service.sessiontokens.SessionToken;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
-import java.util.Date;
 
 @RestController
 @CrossOrigin("http://localhost:4200")
 @RequestMapping("/api/auth")
 public class UserController {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
     private final UserService userService;
     private final JwtService jwtService;
-    private final UserRepository userRepository;
     private final ResetPassword passwordResetService;
-    private final TokenBlacklistService blacklistService;
-    private final SessionToken sessionTokenService;
 
 
     public UserController(UserService userService,
                           JwtService jwtService,
-                          UserRepository userRepository,
-                          ResetPassword resetPassword,
-                          TokenBlacklistService blacklistService,
-                          SessionToken sessionToken){
+                          ResetPassword resetPassword){
         this.userService = userService;
         this.jwtService = jwtService;
-        this.userRepository = userRepository;
         this.passwordResetService = resetPassword;
-        this.blacklistService = blacklistService;
-        this.sessionTokenService = sessionToken;
     }
 
 
@@ -69,73 +44,7 @@ public class UserController {
     @Operation(summary = "Method for the user to login")
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserAuthModel userAuthModel) {
-        SessionTokenModel sessionTokenUser = sessionTokenService.getUserByUsername(userAuthModel.getUsername());
-        if(sessionTokenUser != null){
-            if(sessionTokenUser.getIsActive()){
-                String oldToken = sessionTokenUser.getToken();
-
-                BlackListedToken blackListedToken = new BlackListedToken();
-                blackListedToken.setToken(oldToken);
-                Date expiryDate = new Date(System.currentTimeMillis() + 3600000);
-                blackListedToken.setExpiry(expiryDate);
-                blacklistService.blacklistToken(blackListedToken);
-            }
-        }
-        try {
-            // Validate user input (username and password should not be empty)
-            if (userAuthModel.getUsername() == null ||
-                    userAuthModel.getUsername().isEmpty() ||
-                    userAuthModel.getPassword() == null ||
-                    userAuthModel.getPassword().isEmpty()) {
-
-                return ResponseEntity.badRequest().body("Username and password are required");
-            }
-
-            // Check if the user exists in the database
-            UserAuthModel existingUser = userRepository.findByUsername(userAuthModel.getUsername());
-            if (existingUser == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UserAuthModel not found. Please sign up.");
-            }
-
-            try {
-                // Authenticate the user with the provided password
-                Authentication authentication = authenticationManager
-                        .authenticate(new UsernamePasswordAuthenticationToken(userAuthModel.getUsername(), userAuthModel.getPassword()));
-
-                // If authentication is successful
-                if (authentication.isAuthenticated()) {
-                    JwtToken token = jwtService.generateToken(userAuthModel.getUsername());
-
-                    // Conditions to store the jwt token to prevent multiple logins of same account in different browsers
-                    if(sessionTokenService.getUserByUsername(userAuthModel.getUsername()) != null){
-                        SessionTokenModel sessionTokens = sessionTokenService.getUserByUsername(userAuthModel.getUsername());
-                        sessionTokens.setUsername(userAuthModel.getUsername());
-                        sessionTokens.setCreatedTime(LocalDateTime.now());
-                        sessionTokens.setToken(token.getJwtToken());
-                        sessionTokens.setIsActive(true);
-                        sessionTokenService.save(sessionTokens);
-                    } else {
-                        SessionTokenModel sessionTokens = new SessionTokenModel();
-                        sessionTokens.setUsername(userAuthModel.getUsername());
-                        sessionTokens.setCreatedTime(LocalDateTime.now());
-                        sessionTokens.setToken(token.getJwtToken());
-                        sessionTokens.setIsActive(true);
-                        sessionTokenService.save(sessionTokens);
-                    }
-
-                    return ResponseEntity.ok(token);
-                }
-            } catch (BadCredentialsException ex) {
-                // If the password is incorrect
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect password");
-            }
-
-            // Default case for any other authentication failures
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-        } catch (Exception e) {
-            // Handle any unexpected errors
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during login");
-        }
+        return userService.login(userAuthModel);
     }
 
 

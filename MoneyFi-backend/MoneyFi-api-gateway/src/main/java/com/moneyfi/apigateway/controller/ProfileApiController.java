@@ -4,14 +4,10 @@ import com.moneyfi.apigateway.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.dto.ProfileChangePassword;
 import com.moneyfi.apigateway.dto.RemainingTimeCountDto;
 import com.moneyfi.apigateway.model.UserPrincipal;
-import com.moneyfi.apigateway.model.auth.BlackListedToken;
-import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.Feedback;
 import com.moneyfi.apigateway.model.common.ProfileModel;
-import com.moneyfi.apigateway.service.TokenBlacklistService;
 import com.moneyfi.apigateway.service.profileservice.ProfileService;
-import com.moneyfi.apigateway.service.sessiontokens.SessionToken;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
@@ -21,8 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -31,17 +25,11 @@ public class ProfileApiController {
 
     private final ProfileService profileService;
     private final UserService userService;
-    private final TokenBlacklistService blacklistService;
-    private final SessionToken sessionTokenService;
 
     public ProfileApiController(ProfileService profileService,
-                                UserService userService,
-                                TokenBlacklistService blacklistService,
-                                SessionToken sessionTokenService){
+                                UserService userService){
         this.profileService = profileService;
         this.userService = userService;
-        this.blacklistService = blacklistService;
-        this.sessionTokenService = sessionTokenService;
     }
 
     @GetMapping("/test")
@@ -54,7 +42,7 @@ public class ProfileApiController {
         return null;
     }
 
-    @Operation(summary = "Method to save the profile details of a user")
+    @Operation(summary = "Method to save/update the profile details of a user")
     @PostMapping("saveProfile")
     public ResponseEntity<ProfileModel> saveProfile(Authentication authentication,
                                     @RequestBody ProfileModel profile){
@@ -124,6 +112,7 @@ public class ProfileApiController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
+    @Operation(summary = "Method which deals with user contact/report details")
     @PostMapping("/contactUs")
     public ResponseEntity<ContactUs> saveContactUsDetails(@RequestBody ContactUs contactUsDetails,
                                           Authentication authentication){
@@ -143,6 +132,7 @@ public class ProfileApiController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
+    @Operation(summary = "Method which deals with user feedback")
     @PostMapping("/feedback")
     public ResponseEntity<Feedback> saveFeedback(Authentication authentication,
                                  @RequestBody Feedback feedback){
@@ -188,22 +178,6 @@ public class ProfileApiController {
     @Operation(summary = "Method to logout/making the token blacklist")
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader("Authorization") String token) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        Date expiryDate = new Date(System.currentTimeMillis() + 3600000); // Expiry 1 hour later
-        BlackListedToken blackListedToken = new BlackListedToken();
-        blackListedToken.setToken(token);
-        blackListedToken.setExpiry(expiryDate);
-        blacklistService.blacklistToken(blackListedToken);
-
-        SessionTokenModel sessionTokens = sessionTokenService.getSessionDetailsByToken(token);
-        sessionTokens.setIsActive(false);
-        sessionTokenService.save(sessionTokens);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Logged out successfully");
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userService.logout(token));
     }
 }

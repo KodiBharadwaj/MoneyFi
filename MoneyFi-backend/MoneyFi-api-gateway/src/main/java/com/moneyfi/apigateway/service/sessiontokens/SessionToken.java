@@ -4,7 +4,7 @@ import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 
 public interface SessionToken {
 
-    void save(SessionTokenModel sessionTokenModel);
+    SessionTokenModel save(SessionTokenModel sessionTokenModel);
 
     SessionTokenModel getUserByUsername(String username);
 

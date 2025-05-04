@@ -2,6 +2,7 @@ package com.moneyfi.income.service;
 
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.repository.IncomeRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -66,12 +67,12 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
+    @Transactional
     public byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category) {
 
         List<IncomeModel> monthlyIncomeList = getAllIncomesByMonthYearAndCategory(userId, month, year, category,false);
         return generateExcelReport(monthlyIncomeList);
     }
-
     private byte[] generateExcelReport(List<IncomeModel> incomeList){
         try(Workbook workbook = new XSSFWorkbook()){
             Sheet sheet = workbook.createSheet("Monthly Income Report");
@@ -117,7 +118,6 @@ public class IncomeServiceImplementation implements IncomeService {
             throw new RuntimeException(e);
         }
     }
-
     private CellStyle createDateStyle(Workbook workbook) {
         CellStyle dateStyle = workbook.createCellStyle();
         CreationHelper createHelper = workbook.getCreationHelper();
@@ -160,6 +160,7 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
+    @Transactional
     public byte[] generateYearlyExcelReport(Long userId, int year, String category) {
 
         List<IncomeModel> yearlyIncomeList = getAllIncomesByYear(userId, year, category, false);
@@ -192,6 +193,7 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
+    @Transactional
     public BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(Long userId, int month, int year) {
 
         // Adjust month and year to point to the previous month
@@ -219,7 +221,6 @@ public class IncomeServiceImplementation implements IncomeService {
 
         return totalIncome.subtract(totalExpense);
     }
-
     private BigDecimal getTotalExpensesUpToPreviousMonth(Long userId, int month, int year) {
         // Adjust month and year to point to the previous month
         final int adjustedMonth;
@@ -241,6 +242,7 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
+    @Transactional
     public boolean incomeUpdateCheckFunction(IncomeModel incomeModel) {
 
         BigDecimal totalIncome = getTotalIncomeInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
@@ -260,7 +262,6 @@ public class IncomeServiceImplementation implements IncomeService {
         }
         return false;
     }
-
     private BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
         BigDecimal totalExpense = incomeRepository.getTotalExpenseInMonthAndYear(userId, month, year);
         if(totalExpense == null){
@@ -271,6 +272,7 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
+    @Transactional
     public boolean incomeDeleteCheckFunction(IncomeModel incomeModel) {
 
         BigDecimal totalIncome = getTotalIncomeInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());

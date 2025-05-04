@@ -60,7 +60,6 @@ public class ProfileServiceImplementation implements ProfileService{
 
         return contactUsRepository.save(contactUsDetails);
     }
-
     private void sendContactAlertMail(ContactUs contactUsDetails, String images){
         String subject = "MoneyFi's User Report Alert!!";
 
@@ -90,7 +89,6 @@ public class ProfileServiceImplementation implements ProfileService{
 
         return feedbackRepository.save(feedback);
     }
-
     private void feedbackAlertMail(Feedback feedback){
         String subject = "MoneyFi's User Feedback";
 

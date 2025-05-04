@@ -153,6 +153,11 @@ onOtpValidated(success: boolean) {
         if (error.status === 409) {
           this.toastr.error('User already exists!', 'Signup Error');
         }
+
+        if(error.status === 401){
+          this.toastr.error('Server down. Please try later!')
+          this.router.navigate(['/'])
+        }
       }
     );
   } else {

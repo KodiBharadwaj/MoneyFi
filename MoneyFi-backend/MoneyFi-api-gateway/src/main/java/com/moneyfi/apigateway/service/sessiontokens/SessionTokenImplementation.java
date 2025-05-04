@@ -14,8 +14,8 @@ public class SessionTokenImplementation implements SessionToken{
     }
 
     @Override
-    public void save(SessionTokenModel sessionTokenModel) {
-        sessionTokenRepository.save(sessionTokenModel);
+    public SessionTokenModel save(SessionTokenModel sessionTokenModel) {
+        return sessionTokenRepository.save(sessionTokenModel);
     }
 
     @Override
