@@ -1,6 +1,6 @@
 **MoneFi - Personal Finance Management App**  
 *Role: Full Stack Developer*  
-*Technologies Used: Java, Spring Boot, Spring Security, Microservices, Eureka Server, Feign Client, API Gateway, Angular, Chart.js, Gemini AI, PostgreSQL*
+*Technologies Used: Java, Spring Boot, Spring Security, JWT, Microservices, Eureka Server, Rest Template, API Gateway, Angular, Chart.js, Gemini AI, MS Sql*
 
 **Project Overview:**  
 MoneFi is an intuitive and feature-rich personal finance management application designed to help users effectively track their income, expenses, and manage their finances. The app focuses on expense tracking, budgeting, and providing deep financial insights through AI-powered analytics. It offers an easy-to-use interface with visually appealing graphs, pie charts, and detailed financial reports. The platform is designed to empower users to gain control over their finances by setting budgets, goals, and receiving personalized financial advice.
