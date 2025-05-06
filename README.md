@@ -19,9 +19,9 @@ MoneFi is an intuitive and feature-rich personal finance management application 
   - **Java & Spring Boot:** The backend is built using Java and Spring Boot, ensuring fast, scalable, and secure application performance.
   - **Spring Security:** Provides secure authentication and authorization, safeguarding user data and transactions.
   - **Microservices Architecture:** The backend leverages microservices to ensure scalability and maintainability, enabling each service to handle a specific financial function (e.g., expense tracking, budgeting, analytics).
-  - **Eureka Server & Feign Client:** Eureka Server is used for service discovery, while Feign Client simplifies HTTP communication between services.
+  - **Eureka Server & Rest Template:** Eureka Server is used for service discovery, while Rest Template simplifies HTTP communication between services.
   - **API Gateway:** Centralized entry point for all client requests, routing them to appropriate microservices.
-  - **Database:** **PostgreSQL** is used as the relational database to store user financial data, ensuring data integrity and scalability.
+  - **Database:** **Microsoft Sql DBa** is used as the relational database to store user financial data, ensuring data integrity and scalability.
 
 - **Frontend:**
   - **Angular:** The frontend is built using Angular, providing a dynamic, single-page application (SPA) for a seamless user experience.
