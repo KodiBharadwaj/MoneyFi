@@ -61,23 +61,6 @@ export class ChangePasswordDialogComponent {
   onSubmit() {
     if (this.passwordForm.valid) {
       this.isLoading = true;
-    
-      // const token = sessionStorage.getItem('finance.auth');
-
-      // this.httpClient.get<number>(`${this.baseUrl}/api/auth/token/${token}`).subscribe({
-      //   next: (userId) => {
-
-          
-  
-      //   },
-      //   error: (error) => {
-      //     this.isLoading = false;
-      //     console.error('Failed to fetch userId:', error);
-      //     alert("Session timed out! Please login again");
-      //     sessionStorage.removeItem('finance.auth');
-      //     this.router.navigate(['login']);
-      //   }
-      // });
 
       const changePasswordDto: ChangePassword = {
         userId: 0,

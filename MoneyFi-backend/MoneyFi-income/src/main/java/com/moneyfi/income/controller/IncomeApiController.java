@@ -1,6 +1,7 @@
 package com.moneyfi.income.controller;
 
 import com.moneyfi.income.config.JwtService;
+import com.moneyfi.income.dto.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.repository.IncomeRepository;
 import com.moneyfi.income.service.IncomeService;
@@ -81,6 +82,16 @@ public class IncomeApiController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Monthly income report.xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(excelData);
+    }
+
+    @Operation(summary = "Method to get the monthly deleted incomes")
+    @GetMapping("/getDeletedIncomeDetails/{month}/{year}")
+    public ResponseEntity<List<IncomeDeletedDto>> getDeletedIncomesInAMonth(@RequestHeader("Authorization") String authHeader,
+                                                                            @PathVariable("month") int month,
+                                                                            @PathVariable("year") int year) {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        List<IncomeDeletedDto> incomesList = incomeService.getDeletedIncomesInAMonth(userId, month, year);
+        return ResponseEntity.ok(incomesList);
     }
 
     @Operation(summary = "Method to get all the income details in a particular year")

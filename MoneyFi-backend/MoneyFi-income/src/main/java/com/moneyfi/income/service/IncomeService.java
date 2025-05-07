@@ -1,5 +1,7 @@
 package com.moneyfi.income.service;
 
+import com.moneyfi.income.dto.IncomeDeletedDto;
+import com.moneyfi.income.model.IncomeDeleted;
 import com.moneyfi.income.model.IncomeModel;
 
 import java.math.BigDecimal;
@@ -14,6 +16,8 @@ public interface IncomeService {
     List<IncomeModel> getAllIncomesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus);
 
     byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category);
+
+    List<IncomeDeletedDto> getDeletedIncomesInAMonth(Long userId, int month, int year);
 
     List<IncomeModel> getAllIncomesByYear(Long userId, int year, String category, boolean deleteStatus);
 

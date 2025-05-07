@@ -1,0 +1,32 @@
+<h2 mat-dialog-title>🗑️ Deleted Incomes</h2>
+<div mat-dialog-content>
+  <div class="content-wrapper">
+    <table *ngIf="data.deletedIncomes.length > 0" class="deleted-incomes-table">
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Category</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Days Remaining</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let income of data.deletedIncomes">
+          <td>{{ income.source }}</td>
+          <td>{{ income.category }}</td>
+          <td>₹{{ income.amount.toLocaleString() }}</td>
+          <td>{{ income.date | date: 'mediumDate' }}</td>
+          <td>{{ income.recurring ? 'Recurring' : 'One-time' }}</td>
+          <td>{{ income.daysRemained }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p *ngIf="data.deletedIncomes.length === 0">No deleted incomes found.</p>
+  </div>
+</div>
+
+<div mat-dialog-actions>
+    <button mat-button (click)="closeDialog()">Close</button>
+</div>

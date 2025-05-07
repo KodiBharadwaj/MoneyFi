@@ -1,6 +1,9 @@
 package com.moneyfi.income.service;
 
+import com.moneyfi.income.dto.IncomeDeletedDto;
+import com.moneyfi.income.model.IncomeDeleted;
 import com.moneyfi.income.model.IncomeModel;
+import com.moneyfi.income.repository.IncomeDeletedRepository;
 import com.moneyfi.income.repository.IncomeRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,12 +26,15 @@ import java.util.List;
 public class IncomeServiceImplementation implements IncomeService {
 
     private final IncomeRepository incomeRepository;
+    private final IncomeDeletedRepository incomeDeletedRepository;
     private final RestTemplate restTemplate;
 
     public IncomeServiceImplementation(IncomeRepository incomeRepository,
-                                       RestTemplate restTemplate){
+                                       RestTemplate restTemplate,
+                                       IncomeDeletedRepository incomeDeletedRepository){
         this.incomeRepository = incomeRepository;
         this.restTemplate = restTemplate;
+        this.incomeDeletedRepository = incomeDeletedRepository;
     }
 
     @Override
@@ -73,6 +80,12 @@ public class IncomeServiceImplementation implements IncomeService {
         List<IncomeModel> monthlyIncomeList = getAllIncomesByMonthYearAndCategory(userId, month, year, category,false);
         return generateExcelReport(monthlyIncomeList);
     }
+
+    @Override
+    public List<IncomeDeletedDto> getDeletedIncomesInAMonth(Long userId, int month, int year) {
+        return incomeDeletedRepository.getDeletedIncomesInAMonth(userId, month, year);
+    }
+
     private byte[] generateExcelReport(List<IncomeModel> incomeList){
         try(Workbook workbook = new XSSFWorkbook()){
             Sheet sheet = workbook.createSheet("Monthly Income Report");
@@ -318,17 +331,29 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
+    @Transactional
     public boolean deleteIncomeById(Long id) {
 
         try {
             IncomeModel income = incomeRepository.findById(id).orElse(null);
             income.set_deleted(true);
+
+            saveIncomeDeletedDetails(id);
             incomeRepository.save(income);
             return true;
 
         } catch (HttpClientErrorException.NotFound e) {
             return false;
         }
+    }
+    private void saveIncomeDeletedDetails(Long id){
+        IncomeDeleted incomeDeleted = new IncomeDeleted();
+        LocalDateTime expiryTime = LocalDateTime.now().plusDays(30);
+
+        incomeDeleted.setIncomeId(id);
+        incomeDeleted.setStartDateTime(LocalDateTime.now());
+        incomeDeleted.setExpiryDateTime(expiryTime);
+        incomeDeletedRepository.save(incomeDeleted);
     }
 
 }

@@ -103,6 +103,8 @@
   <div class="table-container">
     <div class="header">
       <h2>Income Sources</h2>
+
+      <button (click)="isDeletedClicked()"> Deleted Incomes </button>
       <button class="report-btn" (click)="generateReport()">📊 Generate Report</button>
     </div>
     <table *ngIf="!loading && incomeSources.length > 0">
@@ -157,7 +159,7 @@
 
 
 
-<div>
+<!-- <div>
   <h2>Deleted Income Sources</h2>
   <button (click)="isDeletedClicked()">Click me</button>
   <table *ngIf="!loading && deletedIncomeSources.length > 0">
@@ -188,4 +190,4 @@
     </tbody>
   </table>
 
-</div>
+</div> -->

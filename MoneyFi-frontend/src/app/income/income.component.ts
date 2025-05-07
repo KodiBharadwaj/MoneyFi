@@ -13,6 +13,8 @@ import { NgChartsModule } from 'ng2-charts';
 import { MatSelectModule } from '@angular/material/select';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
+import { IncomeDeletedComponent } from '../income-deleted/income-deleted.component';
+import { incomeDeleted } from '../model/incomeDeleted';
 
 
 interface IncomeSource {
@@ -144,6 +146,7 @@ export class IncomeComponent {
       },
       error: (error) => {
         console.error('Failed to load income data:', error);
+        console.log(error.error);
         if(error.status === 401){
           if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
             alert('Your session has expired. Please login again.');
@@ -168,22 +171,20 @@ export class IncomeComponent {
   loadDeletedIncomeData() {
     this.loading = true;
 
-    if(this.selectedCategory === '') this.selectedCategory = "all";
-    let url: string;
-    if (this.selectedMonth === 0) {
-      // Fetch all expenses for the selected year
-      url = `${this.baseUrl}/api/v1/income/getIncomeDetails/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
-    } else {
-      // Fetch expenses for the specific month and year
-      url = `${this.baseUrl}/api/v1/income/getIncomeDetails/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
-    }
-
-    this.httpClient.get<IncomeSource[]>(url).subscribe({
+    const url = `${this.baseUrl}/api/v1/income/getDeletedIncomeDetails/${this.selectedMonth}/${this.selectedYear}`;
+    this.httpClient.get<incomeDeleted[]>(url).subscribe({
       next: (data) => {
         if (data && data.length > 0) {
-          this.deletedIncomeSources = data;
-          this.calculateTotalIncome();
-          this.updateChartData();
+          // this.deletedIncomeSources = data;
+          // this.calculateTotalIncome();
+          // this.updateChartData();
+
+          this.dialog.open(IncomeDeletedComponent, {
+            width: '850px', // Makes dialog wider
+            maxHeight: '90vh', // Keeps it scrollable on small screens
+            data: { deletedIncomes: data }
+          });
+
         } else {
           this.deletedIncomeSources = [];
           this.calculateTotalIncome();

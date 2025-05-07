@@ -19,6 +19,7 @@ Minor Changes:
 Defects:
 - User feedback mail images are not sending as images in mail to admin.
 - Text should not be acceptable in the profile phone number input.
+- Check when the service is not available, the app is logging out.
 
 
 
