@@ -11,4 +11,8 @@ import java.util.List;
 public interface IncomeDeletedRepository extends JpaRepository<IncomeDeleted, Long>, IncomeDeletedRepositoryCustom {
 
     List<IncomeDeletedDto> getDeletedIncomesInAMonth(Long userId, int month, int year);
+
+    IncomeDeleted findByIncomeId(Long incomeId);
+
+    void deleteByIncomeId(Long incomeId);
 }

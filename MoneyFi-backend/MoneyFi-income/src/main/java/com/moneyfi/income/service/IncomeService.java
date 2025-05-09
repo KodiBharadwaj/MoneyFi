@@ -33,7 +33,9 @@ public interface IncomeService {
 
     boolean incomeDeleteCheckFunction(IncomeModel incomeModel);
 
+    boolean incomeRevertFunction(Long incomeId, Long userId);
+
     IncomeModel updateBySource(Long id, IncomeModel income);
 
-    boolean deleteIncomeById(Long id);
+    boolean deleteIncomeById(Long id, Long userId);
 }

@@ -10,6 +10,7 @@
           <th>Date</th>
           <th>Type</th>
           <th>Days Remaining</th>
+          <th>Revert Back</th>
         </tr>
       </thead>
       <tbody>
@@ -20,6 +21,7 @@
           <td>{{ income.date | date: 'mediumDate' }}</td>
           <td>{{ income.recurring ? 'Recurring' : 'One-time' }}</td>
           <td>{{ income.daysRemained }}</td>
+          <td> <button (click) = "revertIncomeFunction(income.id)">Revert</button> </td>
         </tr>
       </tbody>
     </table>

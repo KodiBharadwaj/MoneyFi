@@ -17,6 +17,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 
@@ -308,6 +309,27 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
+    @Transactional
+    public boolean incomeRevertFunction(Long incomeId, Long userId) {
+        IncomeDeleted incomeDeleted = incomeDeletedRepository.findByIncomeId(incomeId);
+        LocalDateTime expiryTime = incomeDeleted.getExpiryDateTime();
+        LocalDateTime currentTime = LocalDateTime.now();
+        Integer numberOfDays = (int) ChronoUnit.DAYS.between(currentTime.toLocalDate(), expiryTime.toLocalDate());
+        if(numberOfDays > 0){
+            IncomeModel income = incomeRepository.findById(incomeId).orElse(null);
+            if(income != null && income.getUserId() == userId){
+                income.set_deleted(false);
+                incomeRepository.save(income);
+                incomeDeletedRepository.deleteByIncomeId(incomeId);
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public IncomeModel updateBySource(Long id, IncomeModel income) {
 
         IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
@@ -332,10 +354,13 @@ public class IncomeServiceImplementation implements IncomeService {
 
     @Override
     @Transactional
-    public boolean deleteIncomeById(Long id) {
+    public boolean deleteIncomeById(Long id, Long userId) {
 
         try {
             IncomeModel income = incomeRepository.findById(id).orElse(null);
+            if(income.getUserId() != userId){
+                return false;
+            }
             income.set_deleted(true);
 
             saveIncomeDeletedDetails(id);

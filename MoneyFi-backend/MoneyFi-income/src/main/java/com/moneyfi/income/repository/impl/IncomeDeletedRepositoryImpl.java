@@ -25,12 +25,13 @@ public class IncomeDeletedRepositoryImpl implements IncomeDeletedRepositoryCusto
 
         return results.stream()
                 .map(row -> new IncomeDeletedDto(
-                        (BigDecimal) row[0],
-                        (String) row[1],
-                        ((Date) row[2]).toLocalDate(),
-                        (String) row[3],
-                        (Boolean) row[4],
-                        ((Integer) row[5])
+                        (Long) row[0],
+                        (BigDecimal) row[1],
+                        (String) row[2],
+                        ((Date) row[3]).toLocalDate(),
+                        (String) row[4],
+                        (Boolean) row[5],
+                        ((Integer) row[6])
                 ))
                 .toList();
     }

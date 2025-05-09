@@ -164,12 +164,25 @@ public class IncomeApiController {
         return incomeService.incomeDeleteCheckFunction(incomeModel);
     }
 
+    @Operation(summary = "Method to revert the income back from deleted to normal list")
+    @GetMapping("/incomeRevert/{id}")
+    public boolean incomeRevertFunction(@RequestHeader("Authorization") String authHeader,
+                                        @PathVariable("id") Long incomeId){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return incomeService.incomeRevertFunction(incomeId, userId);
+    }
+
     @Operation(summary = "Method to update the income details")
     @PutMapping("/{id}")
-    public ResponseEntity<IncomeModel> updateIncome(@PathVariable("id") Long id,
+    public ResponseEntity<IncomeModel> updateIncome(@RequestHeader("Authorization") String authHeader,
+                                                    @PathVariable("id") Long id,
                                                     @RequestBody IncomeModel income) {
 
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
+        if(incomeModel.getUserId() != userId){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); // 401
+        }
         if(incomeModel != null){
             if(incomeModel.getAmount().compareTo(income.getAmount()) == 0 &&
                     incomeModel.getSource().equals(income.getSource()) &&
@@ -192,8 +205,10 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to delete the particular income. Here which is typically soft delete only")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteIncomeById(@PathVariable("id") Long id) {
-        boolean isDeleted = incomeService.deleteIncomeById(id);
+    public ResponseEntity<Void> deleteIncomeById(@RequestHeader("Authorization") String authHeader,
+                                                 @PathVariable("id") Long id) {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        boolean isDeleted = incomeService.deleteIncomeById(id, userId);
         if (isDeleted) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); // 204: No Content
         } else {

@@ -178,11 +178,18 @@ export class IncomeComponent {
           // this.deletedIncomeSources = data;
           // this.calculateTotalIncome();
           // this.updateChartData();
-
-          this.dialog.open(IncomeDeletedComponent, {
+          const dialogRef = this.dialog.open(IncomeDeletedComponent, {
             width: '850px', // Makes dialog wider
             maxHeight: '90vh', // Keeps it scrollable on small screens
             data: { deletedIncomes: data }
+          });
+
+          dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+              this.toastr.success('Income Reverted Successfully');
+              this.deleted = false;
+              this.loadIncomeData();
+            }
           });
 
         } else {

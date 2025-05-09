@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IncomeDeletedDto {
+    private Long id;
     private BigDecimal amount;
     private String source;
     private LocalDate date;
