@@ -98,19 +98,21 @@ export class GoalsComponent {
       error: (error) => {
         console.error('Failed to load goal data:', error);
         if(error.status === 401){
-          if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
-            alert('Your session has expired. Please login again.');
-            sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']); // or your login/landing route
-          } else if (error.error === 'InvalidToken') {
-            alert('Authorization failed! Please login again.');
-            sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']); // or your login/landing route
-          }
-          else {
+            if (error.error === 'TokenExpired') {
+              alert('Your session has expired. Please login again.');
+              sessionStorage.removeItem('moneyfi.auth');
+              this.router.navigate(['/']);
+            } else if(error.error === 'Token is blacklisted'){
+              alert('Your session has expired. Please login again.');
+              sessionStorage.removeItem('moneyfi.auth');
+              this.router.navigate(['/']);
+            }
+            else if(error.error === 'AuthorizationFailed'){
+              alert('Service Unavailable!! Please try later');
+            }
+          } else if (error.status === 503){
             alert('Service Unavailable!! Please try later');
           }
-        }
       },
     });
   }
@@ -149,18 +151,20 @@ export class GoalsComponent {
               error: (error) => {
                 console.error('Failed to add goal data:', error);
                 if(error.status === 401){
-                  if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
+                  if (error.error === 'TokenExpired') {
                     alert('Your session has expired. Please login again.');
                     sessionStorage.removeItem('moneyfi.auth');
-                    this.router.navigate(['/']); // or your login/landing route
-                  } else if (error.error === 'InvalidToken') {
-                    alert('Authorization failed! Please login again.');
+                    this.router.navigate(['/']);
+                  } else if(error.error === 'Token is blacklisted'){
+                    alert('Your session has expired. Please login again.');
                     sessionStorage.removeItem('moneyfi.auth');
-                    this.router.navigate(['/']); // or your login/landing route
+                    this.router.navigate(['/']);
                   }
-                  else {
+                  else if(error.error === 'AuthorizationFailed'){
                     alert('Service Unavailable!! Please try later');
                   }
+                } else if (error.status === 503){
+                  alert('Service Unavailable!! Please try later');
                 }
               },
               complete: () => {
@@ -199,18 +203,20 @@ export class GoalsComponent {
             error: (error) => {
               console.error('Error adding amount:', error);
               if(error.status === 401){
-                if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
+                if (error.error === 'TokenExpired') {
                   alert('Your session has expired. Please login again.');
                   sessionStorage.removeItem('moneyfi.auth');
-                  this.router.navigate(['/']); // or your login/landing route
-                } else if (error.error === 'InvalidToken') {
-                  alert('Authorization failed! Please login again.');
+                  this.router.navigate(['/']);
+                } else if(error.error === 'Token is blacklisted'){
+                  alert('Your session has expired. Please login again.');
                   sessionStorage.removeItem('moneyfi.auth');
-                  this.router.navigate(['/']); // or your login/landing route
+                  this.router.navigate(['/']);
                 }
-                else {
+                else if(error.error === 'AuthorizationFailed'){
                   alert('Service Unavailable!! Please try later');
                 }
+              } else if (error.status === 503){
+                alert('Service Unavailable!! Please try later');
               }
             }
           });
@@ -248,18 +254,20 @@ export class GoalsComponent {
           error: (error) => {
             console.error('Failed to update goal data:', error);
             if(error.status === 401){
-              if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
+              if (error.error === 'TokenExpired') {
                 alert('Your session has expired. Please login again.');
                 sessionStorage.removeItem('moneyfi.auth');
-                this.router.navigate(['/']); // or your login/landing route
-              } else if (error.error === 'InvalidToken') {
-                alert('Authorization failed! Please login again.');
+                this.router.navigate(['/']);
+              } else if(error.error === 'Token is blacklisted'){
+                alert('Your session has expired. Please login again.');
                 sessionStorage.removeItem('moneyfi.auth');
-                this.router.navigate(['/']); // or your login/landing route
+                this.router.navigate(['/']);
               }
-              else {
+              else if(error.error === 'AuthorizationFailed'){
                 alert('Service Unavailable!! Please try later');
               }
+            } else if (error.status === 503){
+              alert('Service Unavailable!! Please try later');
             }
           },
           complete: () => {

@@ -148,18 +148,20 @@ export class IncomeComponent {
         console.error('Failed to load income data:', error);
         console.log(error.error);
         if(error.status === 401){
-          if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
+          if (error.error === 'TokenExpired') {
             alert('Your session has expired. Please login again.');
             sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']); // or your login/landing route
-          } else if (error.error === 'InvalidToken') {
-            alert('Authorization failed! Please login again.');
+            this.router.navigate(['/']);
+          } else if(error.error === 'Token is blacklisted'){
+            alert('Your session has expired. Please login again.');
             sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']); // or your login/landing route
+            this.router.navigate(['/']);
           }
-          else {
+          else if(error.error === 'AuthorizationFailed'){
             alert('Service Unavailable!! Please try later');
           }
+        } else if (error.status === 503){
+          alert('Service Unavailable!! Please try later');
         }
       },
       complete: () => {
@@ -202,18 +204,20 @@ export class IncomeComponent {
       error: (error) => {
         console.error('Failed to load income data:', error);
         if(error.status === 401){
-          if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
+          if (error.error === 'TokenExpired') {
             alert('Your session has expired. Please login again.');
             sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']); // or your login/landing route
-          } else if (error.error === 'InvalidToken') {
-            alert('Authorization failed! Please login again.');
+            this.router.navigate(['/']);
+          } else if(error.error === 'Token is blacklisted'){
+            alert('Your session has expired. Please login again.');
             sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']); // or your login/landing route
+            this.router.navigate(['/']);
           }
-          else {
+          else if(error.error === 'AuthorizationFailed'){
             alert('Service Unavailable!! Please try later');
           }
+        } else if (error.status === 503){
+          alert('Service Unavailable!! Please try later');
         }
       },
       complete: () => {
@@ -253,19 +257,21 @@ export class IncomeComponent {
         error: (error) => {
           console.error('Failed to add income:', error);
           if(error.status === 401){
-            if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']); // or your login/landing route
-            } else if (error.error === 'InvalidToken') {
-              alert('Authorization failed! Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']); // or your login/landing route
-            }
-            else {
-              alert('Service Unavailable!! Please try later');
-            }
+          if (error.error === 'TokenExpired') {
+            alert('Your session has expired. Please login again.');
+            sessionStorage.removeItem('moneyfi.auth');
+            this.router.navigate(['/']);
+          } else if(error.error === 'Token is blacklisted'){
+            alert('Your session has expired. Please login again.');
+            sessionStorage.removeItem('moneyfi.auth');
+            this.router.navigate(['/']);
           }
+          else if(error.error === 'AuthorizationFailed'){
+            alert('Service Unavailable!! Please try later');
+          }
+        } else if (error.status === 503){
+          alert('Service Unavailable!! Please try later');
+        }
         },
         complete: () => {
           this.loading = false;
@@ -309,18 +315,20 @@ export class IncomeComponent {
           }
           console.error('Failed to update income:', error);
           if(error.status === 401){
-            if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
+            if (error.error === 'TokenExpired') {
               alert('Your session has expired. Please login again.');
               sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']); // or your login/landing route
-            } else if (error.error === 'InvalidToken') {
-              alert('Authorization failed! Please login again.');
+              this.router.navigate(['/']);
+            } else if(error.error === 'Token is blacklisted'){
+              alert('Your session has expired. Please login again.');
               sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']); // or your login/landing route
+              this.router.navigate(['/']);
             }
-            else {
+            else if(error.error === 'AuthorizationFailed'){
               alert('Service Unavailable!! Please try later');
             }
+          } else if (error.status === 503){
+            alert('Service Unavailable!! Please try later');
           }
         },
       });
@@ -376,18 +384,20 @@ export class IncomeComponent {
           error: (error) => {
             console.error('Failed to delete income:', error);
             if(error.status === 401){
-              if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
+              if (error.error === 'TokenExpired') {
                 alert('Your session has expired. Please login again.');
                 sessionStorage.removeItem('moneyfi.auth');
-                this.router.navigate(['/']); // or your login/landing route
-              } else if (error.error === 'InvalidToken') {
-                alert('Authorization failed! Please login again.');
+                this.router.navigate(['/']);
+              } else if(error.error === 'Token is blacklisted'){
+                alert('Your session has expired. Please login again.');
                 sessionStorage.removeItem('moneyfi.auth');
-                this.router.navigate(['/']); // or your login/landing route
+                this.router.navigate(['/']);
               }
-              else {
+              else if(error.error === 'AuthorizationFailed'){
                 alert('Service Unavailable!! Please try later');
               }
+            } else if (error.status === 503){
+              alert('Service Unavailable!! Please try later');
             }
           }
         });
@@ -473,19 +483,21 @@ export class IncomeComponent {
         alert("Failed to generate the report. Please try again.");
 
         if(error.status === 401){
-          if (error.error === 'TokenExpired'|| 'Token is blacklisted') {
-            alert('Your session has expired. Please login again.');
-            sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']); // or your login/landing route
-          } else if (error.error === 'InvalidToken') {
-            alert('Authorization failed! Please login again.');
-            sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']); // or your login/landing route
-          }
-          else {
+            if (error.error === 'TokenExpired') {
+              alert('Your session has expired. Please login again.');
+              sessionStorage.removeItem('moneyfi.auth');
+              this.router.navigate(['/']);
+            } else if(error.error === 'Token is blacklisted'){
+              alert('Your session has expired. Please login again.');
+              sessionStorage.removeItem('moneyfi.auth');
+              this.router.navigate(['/']);
+            }
+            else if(error.error === 'AuthorizationFailed'){
+              alert('Service Unavailable!! Please try later');
+            }
+          } else if (error.status === 503){
             alert('Service Unavailable!! Please try later');
           }
-        }
       }
     });
   }

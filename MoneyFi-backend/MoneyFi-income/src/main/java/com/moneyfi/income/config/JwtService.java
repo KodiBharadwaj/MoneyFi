@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Component
@@ -32,7 +33,11 @@ public class JwtService {
         headers.setBearerAuth(token);
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<Long> response = restTemplate.exchange(url, HttpMethod.GET, entity, Long.class);
-        return response.getBody();
+        try {
+            ResponseEntity<Long> response = restTemplate.exchange(url, HttpMethod.GET, entity, Long.class);
+            return response.getBody();
+        } catch (RestClientException e) {
+            throw new RuntimeException("User service unavailable", e);
+        }
     }
 }
