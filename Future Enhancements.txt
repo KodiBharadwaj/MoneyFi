@@ -1,8 +1,6 @@
 Project MoneyFi:
 
 Major Changes:
-- Implement soft delete and set 30 day expiration for the deleted transactions(Income, Expense). (ongoing)
-- Error handling in both backend and frontend.
 - Google authentication
 
 
@@ -42,6 +40,7 @@ cleared changes:
 - Put contact us section. and feedback section.
 - Put change password 3 time limit in profile section
 - Make the first letter capital by default while adding a transaction.
+- Implement soft delete and set 30 day expiration for the deleted transactions(Income). (ongoing)
 
 
 

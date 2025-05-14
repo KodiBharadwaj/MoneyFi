@@ -104,8 +104,10 @@
     <div class="header">
       <h2>Income Sources</h2>
 
-      <button (click)="isDeletedClicked()"> Deleted Incomes </button>
-      <button class="report-btn" (click)="generateReport()">📊 Generate Report</button>
+      <div>
+        <button class="report-btn" (click)="isDeletedClicked()"> Deleted Incomes </button>
+        <button class="report-btn" (click)="generateReport()" style="margin-left: 5px;">📊 Generate Report</button>
+      </div>
     </div>
     <table *ngIf="!loading && incomeSources.length > 0">
       <thead>
