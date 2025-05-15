@@ -176,6 +176,7 @@ export class IncomeComponent {
     const url = `${this.baseUrl}/api/v1/income/getDeletedIncomeDetails/${this.selectedMonth}/${this.selectedYear}`;
     this.httpClient.get<incomeDeleted[]>(url).subscribe({
       next: (data) => {
+        console.log(data)
         if (data && data.length > 0) {
           // this.deletedIncomeSources = data;
           // this.calculateTotalIncome();

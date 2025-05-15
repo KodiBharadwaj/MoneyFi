@@ -15,13 +15,15 @@
       </thead>
       <tbody>
         <tr *ngFor="let income of data.deletedIncomes">
-          <td>{{ income.source }}</td>
-          <td>{{ income.category }}</td>
-          <td>₹{{ income.amount.toLocaleString() }}</td>
-          <td>{{ income.date | date: 'mediumDate' }}</td>
-          <td>{{ income.recurring ? 'Recurring' : 'One-time' }}</td>
-          <td>{{ income.daysRemained }}</td>
-          <td> <button (click) = "revertIncomeFunction(income.id)">Revert</button> </td>
+          <td>{{ income[4] }}</td> <!-- source -->
+          <td>{{ income[2] }}</td> <!-- category (you called it 'Other del 3') -->
+          <td>₹{{ income[1]?.toLocaleString() }}</td> <!-- amount -->
+          <td>{{ income[3] | date: 'mediumDate' }}</td> <!-- date -->
+          <td>{{ income[5] ? 'Recurring' : 'One-time' }}</td> <!-- recurring flag -->
+          <td>{{ income[6] }}</td> <!-- daysRemained (or userId if mislabeled) -->
+          <td>
+            <button (click)="revertIncomeFunction(income[0])">Revert</button> <!-- id -->
+          </td>
         </tr>
       </tbody>
     </table>

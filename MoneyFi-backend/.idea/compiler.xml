@@ -23,8 +23,8 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="MoneyFi-api-gateway" options="-parameters" />
-      <module name="MoneyFi-budget" options="-parameters" />
-      <module name="MoneyFi-expense" options="-parameters" />
+      <module name="MoneyFi-budget" options="" />
+      <module name="MoneyFi-expense" options="" />
       <module name="MoneyFi-goal" options="-parameters" />
       <module name="MoneyFi-income" options="-parameters" />
       <module name="MoneyFi-user-details" options="-parameters" />

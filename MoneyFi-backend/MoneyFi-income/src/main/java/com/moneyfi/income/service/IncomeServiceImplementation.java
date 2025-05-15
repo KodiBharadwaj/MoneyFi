@@ -5,6 +5,7 @@ import com.moneyfi.income.model.IncomeDeleted;
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.repository.IncomeDeletedRepository;
 import com.moneyfi.income.repository.IncomeRepository;
+import com.moneyfi.income.repository.common.IncomeCommonRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -27,14 +28,17 @@ import java.util.List;
 public class IncomeServiceImplementation implements IncomeService {
 
     private final IncomeRepository incomeRepository;
+    private final IncomeCommonRepository incomeCommonRepository;
     private final IncomeDeletedRepository incomeDeletedRepository;
     private final RestTemplate restTemplate;
 
     public IncomeServiceImplementation(IncomeRepository incomeRepository,
                                        RestTemplate restTemplate,
+                                       IncomeCommonRepository incomeCommonRepository,
                                        IncomeDeletedRepository incomeDeletedRepository){
         this.incomeRepository = incomeRepository;
         this.restTemplate = restTemplate;
+        this.incomeCommonRepository = incomeCommonRepository;
         this.incomeDeletedRepository = incomeDeletedRepository;
     }
 
@@ -84,7 +88,7 @@ public class IncomeServiceImplementation implements IncomeService {
 
     @Override
     public List<IncomeDeletedDto> getDeletedIncomesInAMonth(Long userId, int month, int year) {
-        return incomeDeletedRepository.getDeletedIncomesInAMonth(userId, month, year);
+        return incomeCommonRepository.getDeletedIncomesInAMonth(userId, month, year);
     }
 
     private byte[] generateExcelReport(List<IncomeModel> incomeList){
