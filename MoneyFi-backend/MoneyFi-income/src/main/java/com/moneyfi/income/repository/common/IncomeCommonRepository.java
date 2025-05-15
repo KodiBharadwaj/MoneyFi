@@ -1,4 +1,4 @@
-package com.moneyfi.income.repository.impl;
+package com.moneyfi.income.repository.common;
 
 import com.moneyfi.income.dto.IncomeDeletedDto;
 

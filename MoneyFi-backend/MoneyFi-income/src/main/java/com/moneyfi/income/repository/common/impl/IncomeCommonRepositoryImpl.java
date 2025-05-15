@@ -1,15 +1,17 @@
-package com.moneyfi.income.repository.impl;
+package com.moneyfi.income.repository.common.impl;
 
 import com.moneyfi.income.dto.IncomeDeletedDto;
-import com.moneyfi.income.repository.IncomeDeletedRepository;
+import com.moneyfi.income.repository.common.IncomeDeletedRepositoryCustom;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.List;
 
+@Repository
 public class IncomeDeletedRepositoryImpl implements IncomeDeletedRepositoryCustom {
 
     @Autowired
