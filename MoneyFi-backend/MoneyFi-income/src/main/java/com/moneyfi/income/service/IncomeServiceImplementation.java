@@ -1,11 +1,12 @@
 package com.moneyfi.income.service;
 
-import com.moneyfi.income.dto.IncomeDeletedDto;
+import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeDeleted;
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.repository.IncomeDeletedRepository;
 import com.moneyfi.income.repository.IncomeRepository;
 import com.moneyfi.income.repository.common.IncomeCommonRepository;
+import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -64,25 +66,15 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public List<IncomeModel> getAllIncomesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus) {
-        List<IncomeModel> list = incomeRepository.getAllIncomesByDate(userId, month, year, deleteStatus);
-        if(category.equalsIgnoreCase("all")){
-            return list.stream()
-                    .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
-                    .toList();
-        }
-
-        return list.stream()
-                .filter(i -> i.getCategory().equalsIgnoreCase(category))
-                .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
-                .toList();
+    public List<IncomeDetailsDto> getAllIncomesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus) {
+        return incomeCommonRepository.getAllIncomesByDate(userId, month, year, category, deleteStatus);
     }
 
     @Override
     @Transactional
     public byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category) {
 
-        List<IncomeModel> monthlyIncomeList = getAllIncomesByMonthYearAndCategory(userId, month, year, category,false);
+        List<IncomeDetailsDto> monthlyIncomeList = getAllIncomesByMonthYearAndCategory(userId, month, year, category,false);
         return generateExcelReport(monthlyIncomeList);
     }
 
@@ -91,7 +83,7 @@ public class IncomeServiceImplementation implements IncomeService {
         return incomeCommonRepository.getDeletedIncomesInAMonth(userId, month, year);
     }
 
-    private byte[] generateExcelReport(List<IncomeModel> incomeList){
+    private byte[] generateExcelReport(List<IncomeDetailsDto> incomeList){
         try(Workbook workbook = new XSSFWorkbook()){
             Sheet sheet = workbook.createSheet("Monthly Income Report");
 
@@ -109,7 +101,7 @@ public class IncomeServiceImplementation implements IncomeService {
 
             // Populate Data Rows
             int rowIndex = 1;
-            for (IncomeModel data : incomeList) {
+            for (IncomeDetailsDto data : incomeList) {
                 Row row = sheet.createRow(rowIndex++);
                 row.createCell(0).setCellValue(data.getCategory());
                 row.createCell(1).setCellValue(data.getSource());
@@ -163,25 +155,15 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public List<IncomeModel> getAllIncomesByYear(Long userId, int year, String category, boolean deleteStatus) {
-        List<IncomeModel> list = incomeRepository.getAllIncomesByYear(userId, year, deleteStatus);
-        if(category.equalsIgnoreCase("all")){
-            return list.stream()
-                    .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
-                    .toList();
-        }
-
-        return list.stream()
-                .filter(i -> i.getCategory().equalsIgnoreCase(category))
-                .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
-                .toList();
+    public List<IncomeDetailsDto> getAllIncomesByYear(Long userId, int year, String category, boolean deleteStatus) {
+        return incomeCommonRepository.getAllIncomesByYear(userId, year, category, deleteStatus);
     }
 
     @Override
     @Transactional
     public byte[] generateYearlyExcelReport(Long userId, int year, String category) {
 
-        List<IncomeModel> yearlyIncomeList = getAllIncomesByYear(userId, year, category, false);
+        List<IncomeDetailsDto> yearlyIncomeList = getAllIncomesByYear(userId, year, category, false);
         return generateExcelReport(yearlyIncomeList);
     }
 
@@ -202,7 +184,7 @@ public class IncomeServiceImplementation implements IncomeService {
 
     @Override
     public BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
-        BigDecimal totalIncome = incomeRepository.getTotalIncomeInMonthAndYear(userId, month, year);
+        BigDecimal totalIncome = incomeCommonRepository.getTotalIncomeInMonthAndYear(userId, month, year);
         if(totalIncome == null){
             return BigDecimal.ZERO;
         }
@@ -226,7 +208,7 @@ public class IncomeServiceImplementation implements IncomeService {
             adjustedYear = year;
         }
 
-        BigDecimal totalIncome = incomeRepository.getRemainingIncomeUpToPreviousMonthByMonthAndYear(userId, adjustedMonth, adjustedYear);
+        BigDecimal totalIncome = incomeCommonRepository.getRemainingIncomeUpToPreviousMonthByMonthAndYear(userId, adjustedMonth, adjustedYear);
         if(totalIncome == null || totalIncome == BigDecimal.ZERO){
             return BigDecimal.ZERO;
         }
@@ -251,7 +233,7 @@ public class IncomeServiceImplementation implements IncomeService {
             adjustedMonth = month;
             adjustedYear = year;
         }
-        BigDecimal value = incomeRepository.getTotalExpensesUpToPreviousMonth(userId, adjustedMonth, adjustedYear);
+        BigDecimal value = incomeCommonRepository.getTotalExpensesUpToPreviousMonth(userId, adjustedMonth, adjustedYear);
         if(value != null){
             return value;
         } else {
@@ -281,7 +263,7 @@ public class IncomeServiceImplementation implements IncomeService {
         return false;
     }
     private BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
-        BigDecimal totalExpense = incomeRepository.getTotalExpenseInMonthAndYear(userId, month, year);
+        BigDecimal totalExpense = incomeCommonRepository.getTotalExpenseInMonthAndYear(userId, month, year);
         if(totalExpense == null){
             return BigDecimal.ZERO;
         }

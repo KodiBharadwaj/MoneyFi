@@ -46,7 +46,7 @@ interface IncomeSource {
 })
 export class IncomeComponent {
   totalIncome: number = 0;
-  incomeSources: IncomeSource[] = [];
+  incomeSources: any[] = [];
   deletedIncomeSources: IncomeSource[] = [];
   loading: boolean = false;
   recurringPercentage: number = 0;
@@ -131,7 +131,7 @@ export class IncomeComponent {
       url = `${this.baseUrl}/api/v1/income/getIncomeDetails/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
     }
 
-    this.httpClient.get<IncomeSource[]>(url).subscribe({
+    this.httpClient.get<any[]>(url).subscribe({
       next: (data) => {
         if (data && data.length > 0) {
           this.incomeSources = data;

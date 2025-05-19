@@ -1,4 +1,4 @@
-package com.moneyfi.income.dto;
+package com.moneyfi.income.service.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

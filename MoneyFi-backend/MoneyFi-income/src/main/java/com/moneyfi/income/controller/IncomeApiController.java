@@ -1,18 +1,17 @@
 package com.moneyfi.income.controller;
 
 import com.moneyfi.income.config.JwtService;
-import com.moneyfi.income.dto.IncomeDeletedDto;
+import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.repository.IncomeRepository;
 import com.moneyfi.income.service.IncomeService;
+import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -59,13 +58,13 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to get all the income details in a particular month and in a particular year")
     @GetMapping("/getIncomeDetails/{month}/{year}/{category}/{deleteStatus}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomesByMonthYearAndCategory(@RequestHeader("Authorization") String authHeader,
-                                                                                 @PathVariable("month") int month,
-                                                                                 @PathVariable("year") int year,
-                                                                                 @PathVariable("category") String category,
-                                                                                 @PathVariable("deleteStatus") boolean deleteStatus){
+    public ResponseEntity<List<IncomeDetailsDto>> getAllIncomesByMonthYearAndCategory(@RequestHeader("Authorization") String authHeader,
+                                                                                      @PathVariable("month") int month,
+                                                                                      @PathVariable("year") int year,
+                                                                                      @PathVariable("category") String category,
+                                                                                      @PathVariable("deleteStatus") boolean deleteStatus){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        List<IncomeModel> incomesList = incomeService.getAllIncomesByMonthYearAndCategory(userId, month, year, category, deleteStatus);
+        List<IncomeDetailsDto> incomesList = incomeService.getAllIncomesByMonthYearAndCategory(userId, month, year, category, deleteStatus);
         return ResponseEntity.ok(incomesList);
     }
 
@@ -96,12 +95,12 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to get all the income details in a particular year")
     @GetMapping("/getIncomeDetails/{year}/{category}/{deleteStatus}")
-    public ResponseEntity<List<IncomeModel>> getAllIncomesByYear(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<List<IncomeDetailsDto>> getAllIncomesByYear(@RequestHeader("Authorization") String authHeader,
                                                                  @PathVariable("year") int year,
                                                                  @PathVariable("category") String category,
                                                                  @PathVariable("deleteStatus") boolean deleteStatus){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        List<IncomeModel> incomesList = incomeService.getAllIncomesByYear(userId, year, category, deleteStatus);
+        List<IncomeDetailsDto> incomesList = incomeService.getAllIncomesByYear(userId, year, category, deleteStatus);
         return ResponseEntity.ok(incomesList); // 200
     }
 
@@ -179,6 +178,7 @@ public class IncomeApiController {
                                                     @RequestBody IncomeModel income) {
 
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        income.setUserId(userId);
         IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
         if(incomeModel.getUserId() != userId){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); // 401
