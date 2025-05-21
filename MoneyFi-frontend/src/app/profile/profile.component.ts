@@ -18,7 +18,7 @@ interface UserProfileDetails {
   email: string;
   phone: string;
   gender: string;
-  dateOfBirth: Date;
+  dateOfBirth: string;
   maritalStatus : string;
   address: string;
   incomeRange:number;
@@ -50,7 +50,7 @@ export class ProfileComponent implements OnInit {
     email: '',
     phone: '',
     gender: '',
-    dateOfBirth: new Date,
+    dateOfBirth: '',
     maritalStatus: '',
     address: '',
     incomeRange:0,

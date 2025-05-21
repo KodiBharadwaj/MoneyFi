@@ -16,9 +16,6 @@ Minor Changes:
 
 Defects:
 - User feedback mail images are not sending as images in mail to admin.
-- Text should not be acceptable in the profile phone number input.
-- Implement dto feature to fetch data to exclue user id - data bleach
-- DOB in profile is showing current date before loading and in server error time.
 
 
 
@@ -66,3 +63,6 @@ cleared defects:
 - category section is not working properly in income, expense and budget services.
 - User should not be able to add the future transactions in income, expense.
 - Implement @Transactional for the methods which deals with greater than two jpa save operation to avoid half implmentation.
+- Implement dto feature to fetch data to exclue user id - data bleach
+- Text should not be acceptable in the profile phone number input.
+- DOB in profile is showing current date before loading and in server error time.

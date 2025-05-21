@@ -43,10 +43,7 @@
       <div class="info-section">
         <h2>Personal Information</h2>
         <div class="info-grid">
-          <!-- <div class="info-item">
-            <label>Full Name</label>
-            <input type="text" [(ngModel)]="userProfileDetails.name" [readonly]="true" [class.editable]="isEditing">
-          </div> -->
+
           <mat-form-field appearance="outline" class="form-field compact">
             <mat-label>Full Name</mat-label>
             <input
@@ -58,12 +55,6 @@
             />
           </mat-form-field>
           
-          
-
-          <!-- <div class="info-item">
-            <label>Email Address</label>
-            <input type="email" [(ngModel)]="userProfileDetails.email" [readonly]="true" [class.editable]="isEditing">
-          </div> -->
           <mat-form-field appearance="outline" class="form-field compact">
             <mat-label>Email Address</mat-label>
             <input
@@ -75,21 +66,19 @@
             />
           </mat-form-field>
           
-
-          <!-- <div class="info-item">
-            <label>Phone Number</label>
-            <input type="tel" [(ngModel)]="userProfileDetails.phone" [readonly]="!isEditing" [class.editable]="isEditing">
-          </div> -->
           <mat-form-field appearance="outline" class="form-field compact">
             <mat-label>Phone Number</mat-label>
-            <input matInput [(ngModel)]="userProfileDetails.phone" [readonly]="!isEditing">
+            <input
+              matInput
+              type="number" 
+              [(ngModel)]="userProfileDetails.phone"
+              [readonly]="!isEditing"
+              pattern="[0-9]*"
+              inputmode="numeric"
+            />
           </mat-form-field>
-          
 
-          <!-- <div class="info-item">
-            <label>Date of Birth</label>
-            <input type="date" [(ngModel)]="userProfileDetails.dateOfBirth" [readonly]="!isEditing" [class.editable]="isEditing">
-          </div> -->
+          
           <mat-form-field appearance="outline" class="form-field full-width">
             <mat-label>Date of Birth</mat-label>
             <input matInput
