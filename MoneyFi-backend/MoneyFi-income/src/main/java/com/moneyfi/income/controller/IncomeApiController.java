@@ -178,6 +178,7 @@ public class IncomeApiController {
                                                     @RequestBody IncomeModel income) {
 
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+
         income.setUserId(userId);
         IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
         if(incomeModel.getUserId() != userId){

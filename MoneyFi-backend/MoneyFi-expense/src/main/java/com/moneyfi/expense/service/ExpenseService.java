@@ -1,6 +1,7 @@
 package com.moneyfi.expense.service;
 
 import com.moneyfi.expense.model.ExpenseModel;
+import com.moneyfi.expense.service.dto.response.ExpenseDetailsDto;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -11,11 +12,11 @@ public interface ExpenseService {
 
     List<ExpenseModel> getAllExpenses(Long userId);
 
-    List<ExpenseModel> getAllExpensesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus);
+    List<ExpenseDetailsDto> getAllExpensesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus);
 
     byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category);
 
-    List<ExpenseModel> getAllExpensesByYearAndCategory(Long userId, int year, String category, boolean deleteStatus);
+    List<ExpenseDetailsDto> getAllExpensesByYearAndCategory(Long userId, int year, String category, boolean deleteStatus);
 
     byte[] generateYearlyExcelReport(Long userId, int year, String category);
 

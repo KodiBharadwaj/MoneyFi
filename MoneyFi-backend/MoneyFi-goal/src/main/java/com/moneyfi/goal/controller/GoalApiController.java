@@ -4,6 +4,7 @@ import com.moneyfi.goal.config.JwtService;
 import com.moneyfi.goal.model.GoalModel;
 import com.moneyfi.goal.repository.GoalRepository;
 import com.moneyfi.goal.service.GoalService;
+import com.moneyfi.goal.service.dto.response.GoalDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,9 +55,9 @@ public class GoalApiController {
 
     @Operation(summary = "Method to get a goal")
     @GetMapping("/getGoalDetails")
-    public ResponseEntity<List<GoalModel>> getAllGoals(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<List<GoalDetailsDto>> getAllGoals(@RequestHeader("Authorization") String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        List<GoalModel> list = goalService.getAllGoals(userId);
+        List<GoalDetailsDto> list = goalService.getAllGoals(userId);
         return ResponseEntity.status(HttpStatus.OK).body(list); // 200
     }
 
@@ -80,12 +81,12 @@ public class GoalApiController {
                                                 @PathVariable("id") Long id,
                                                 @RequestBody GoalModel goal) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        GoalModel updatedGoal = goalService.updateByGoalName(id, goal);
+        GoalModel updatedGoal = goalService.updateByGoalName(id, userId, goal);
 
-        if(updatedGoal!=null){
+        if(updatedGoal != null){
             return ResponseEntity.status(HttpStatus.CREATED).body(updatedGoal);
         }
-        else{
+        else {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
     }

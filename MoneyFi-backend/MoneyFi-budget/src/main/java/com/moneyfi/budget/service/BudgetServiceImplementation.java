@@ -2,6 +2,8 @@ package com.moneyfi.budget.service;
 
 import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.repository.BudgetRepository;
+import com.moneyfi.budget.repository.common.BudgetCommonRepository;
+import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -15,12 +17,15 @@ import java.util.List;
 public class BudgetServiceImplementation implements BudgetService{
 
     private final BudgetRepository budgetRepository;
+    private final BudgetCommonRepository budgetCommonRepository;
     private final RestTemplate restTemplate;
 
     public BudgetServiceImplementation(BudgetRepository budgetRepository,
-                                       RestTemplate restTemplate){
+                                       RestTemplate restTemplate,
+                                       BudgetCommonRepository budgetCommonRepository){
         this.budgetRepository = budgetRepository;
         this.restTemplate = restTemplate;
+        this.budgetCommonRepository = budgetCommonRepository;
     }
 
     @Override
@@ -29,26 +34,15 @@ public class BudgetServiceImplementation implements BudgetService{
     }
 
     @Override
-    public List<BudgetModel> getAllBudgetsByUserIdAndCategory(Long userId, String category) {
-
-        List<BudgetModel> budgetList = budgetRepository.getBudgetsByUserId(userId);
-        if(category.equalsIgnoreCase("all")){
-            return budgetList.stream()
-                    .sorted((a,b)-> Long.compare(a.getId(), b.getId()))
-                    .toList();
-        }
-
-        return budgetList.stream()
-                .filter(i -> i.getCategory().equalsIgnoreCase(category))
-                .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
-                .toList();
+    public List<BudgetDetailsDto> getAllBudgetsByUserIdAndCategory(Long userId, String category) {
+        return budgetCommonRepository.getBudgetsByUserId(userId, category);
     }
 
     @Override
     @Transactional
     public BigDecimal budgetProgress(Long userId, int month, int year) {
 
-        List<BudgetModel> budgetsList = getAllBudgetsByUserIdAndCategory(userId, "all");
+        List<BudgetDetailsDto> budgetsList = getAllBudgetsByUserIdAndCategory(userId, "all");
         BigDecimal moneyLimit = budgetsList
                             .stream()
                             .map(i->i.getMoneyLimit())

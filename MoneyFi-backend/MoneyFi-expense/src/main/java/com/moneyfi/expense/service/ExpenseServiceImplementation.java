@@ -2,6 +2,8 @@ package com.moneyfi.expense.service;
 
 import com.moneyfi.expense.model.ExpenseModel;
 import com.moneyfi.expense.repository.ExpenseRepository;
+import com.moneyfi.expense.repository.common.ExpenseCommonRepository;
+import com.moneyfi.expense.service.dto.response.ExpenseDetailsDto;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -21,12 +23,15 @@ import java.util.List;
 public class ExpenseServiceImplementation implements ExpenseService{
 
     private final ExpenseRepository expenseRepository;
+    private final ExpenseCommonRepository expenseCommonRepository;
     private final RestTemplate restTemplate;
 
     public ExpenseServiceImplementation(ExpenseRepository expenseRepository,
-                                        RestTemplate restTemplate){
+                                        RestTemplate restTemplate,
+                                        ExpenseCommonRepository expenseCommonRepository){
         this.expenseRepository = expenseRepository;
         this.restTemplate = restTemplate;
+        this.expenseCommonRepository = expenseCommonRepository;
     }
 
     @Override
@@ -45,28 +50,18 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public List<ExpenseModel> getAllExpensesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus) {
-        List<ExpenseModel> list = expenseRepository.getAllExpensesByDate(userId, month, year, deleteStatus);
-        if(category.equalsIgnoreCase("all")){
-            return list.stream()
-                    .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
-                    .toList();
-        }
-
-        return list.stream()
-                .filter(i -> i.getCategory().equalsIgnoreCase(category))
-                .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
-                .toList();
+    public List<ExpenseDetailsDto> getAllExpensesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus) {
+        return expenseCommonRepository.getAllExpensesByDate(userId, month, year, category, deleteStatus);
     }
 
     @Override
     @Transactional
     public byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category) {
-        List<ExpenseModel> monthlyExpenseList = getAllExpensesByMonthYearAndCategory(userId, month, year, category,false);
+        List<ExpenseDetailsDto> monthlyExpenseList = getAllExpensesByMonthYearAndCategory(userId, month, year, category,false);
         return generateExcelReport(monthlyExpenseList);
     }
 
-    private byte[] generateExcelReport(List<ExpenseModel> expenseList){
+    private byte[] generateExcelReport(List<ExpenseDetailsDto> expenseList){
         try(Workbook workbook = new XSSFWorkbook()){
             Sheet sheet = workbook.createSheet("Monthly Expense Report");
 
@@ -84,7 +79,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
 
             // Populate Data Rows
             int rowIndex = 1;
-            for (ExpenseModel data : expenseList) {
+            for (ExpenseDetailsDto data : expenseList) {
                 Row row = sheet.createRow(rowIndex++);
                 row.createCell(0).setCellValue(data.getCategory());
                 row.createCell(1).setCellValue(data.getDescription());
@@ -139,24 +134,14 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public List<ExpenseModel> getAllExpensesByYearAndCategory(Long userId, int year, String category, boolean deleteStatus) {
-        List<ExpenseModel> list = expenseRepository.getAllExpensesByYear(userId, year, deleteStatus);
-        if(category.equalsIgnoreCase("all")){
-            return list.stream()
-                    .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
-                    .toList();
-        }
-
-        return list.stream()
-                .filter(i -> i.getCategory().equalsIgnoreCase(category))
-                .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
-                .toList();
+    public List<ExpenseDetailsDto> getAllExpensesByYearAndCategory(Long userId, int year, String category, boolean deleteStatus) {
+        return expenseCommonRepository.getAllExpensesByYear(userId, year, category, deleteStatus);
     }
 
     @Override
     @Transactional
     public byte[] generateYearlyExcelReport(Long userId, int year, String category) {
-        List<ExpenseModel> yearlyIncomeList = getAllExpensesByYearAndCategory(userId, year, category,false);
+        List<ExpenseDetailsDto> yearlyIncomeList = getAllExpensesByYearAndCategory(userId, year, category,false);
         return generateExcelReport(yearlyIncomeList);
     }
 
@@ -205,7 +190,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
 
     @Override
     public BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
-        BigDecimal totalExpense = expenseRepository.getTotalExpenseInMonthAndYear(userId, month, year);
+        BigDecimal totalExpense = expenseCommonRepository.getTotalExpenseInMonthAndYear(userId, month, year);
         if(totalExpense == null){
             return BigDecimal.ZERO;
         }
@@ -226,7 +211,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
         return BigDecimal.ZERO;
     }
     private BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
-        BigDecimal totalIncome = expenseRepository.getTotalIncomeInMonthAndYear(userId, month, year);
+        BigDecimal totalIncome = expenseCommonRepository.getTotalIncomeInMonthAndYear(userId, month, year);
         if(totalIncome == null){
             return BigDecimal.ZERO;
         }

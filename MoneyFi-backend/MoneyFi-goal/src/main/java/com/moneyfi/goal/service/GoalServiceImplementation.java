@@ -2,6 +2,8 @@ package com.moneyfi.goal.service;
 
 import com.moneyfi.goal.model.GoalModel;
 import com.moneyfi.goal.repository.GoalRepository;
+import com.moneyfi.goal.repository.common.GoalCommonRepository;
+import com.moneyfi.goal.service.dto.response.GoalDetailsDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -12,9 +14,12 @@ import java.util.List;
 public class GoalServiceImplementation implements GoalService{
 
     private final GoalRepository goalRepository;
+    private final GoalCommonRepository goalCommonRepository;
 
-    public GoalServiceImplementation(GoalRepository goalRepository){
+    public GoalServiceImplementation(GoalRepository goalRepository,
+                                     GoalCommonRepository goalCommonRepository){
         this.goalRepository = goalRepository;
+        this.goalCommonRepository = goalCommonRepository;
     }
 
     @Override
@@ -30,16 +35,13 @@ public class GoalServiceImplementation implements GoalService{
     }
 
     @Override
-    public List<GoalModel> getAllGoals(Long userId) {
-        return goalRepository.findByUserId(userId)
-                .stream()
-                .sorted((a,b)-> Long.compare(a.getId(), b.getId()))
-                .toList();
+    public List<GoalDetailsDto> getAllGoals(Long userId) {
+        return goalCommonRepository.findByUserId(userId);
     }
 
     @Override
     public BigDecimal getCurrentTotalGoalIncome(Long userId) {
-        BigDecimal totalGoalIncome = goalRepository.getCurrentTotalGoalIncome(userId);
+        BigDecimal totalGoalIncome = goalCommonRepository.getCurrentTotalGoalIncome(userId);
         if(totalGoalIncome == null){
             return BigDecimal.ZERO;
         }
@@ -49,7 +51,7 @@ public class GoalServiceImplementation implements GoalService{
 
     @Override
     public BigDecimal getTargetTotalGoalIncome(Long userId) {
-        BigDecimal totalGoalTargetIncome = goalRepository.getTargetTotalGoalIncome(userId);
+        BigDecimal totalGoalTargetIncome = goalCommonRepository.getTotalTargetGoalIncome(userId);
         if(totalGoalTargetIncome == null){
             return BigDecimal.ZERO;
         }
@@ -58,7 +60,8 @@ public class GoalServiceImplementation implements GoalService{
     }
 
     @Override
-    public GoalModel updateByGoalName(Long id, GoalModel goal) {
+    public GoalModel updateByGoalName(Long id, Long userId, GoalModel goal) {
+        goal.setUserId(userId);
         GoalModel goalModel = goalRepository.findById(id).orElse(null);
 
         goal.setUserId(goal.getUserId());
