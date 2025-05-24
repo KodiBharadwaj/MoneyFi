@@ -22,8 +22,12 @@
           <td>{{ income[5] ? 'Recurring' : 'One-time' }}</td> <!-- recurring flag -->
           <td>{{ income[6] }}</td> <!-- daysRemained (or userId if mislabeled) -->
           <td>
-            <button (click)="revertIncomeFunction(income[0])">Revert</button> <!-- id -->
+            <button class="revert-btn" (click)="revertIncomeFunction(income[0])">
+              &#8634; Revert
+            </button>
           </td>
+
+
         </tr>
       </tbody>
     </table>
