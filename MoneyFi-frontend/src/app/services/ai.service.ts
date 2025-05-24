@@ -46,7 +46,7 @@ export class AiService {
    */
   private async generateResponse(prompt: string): Promise<string> {
     const model = this.genAI.getGenerativeModel({
-      model: 'gemini-pro',
+      model: 'gemini-2.0-flash',
       ...this.generationConfig,
     });
 
