@@ -2,7 +2,6 @@ package com.moneyfi.apigateway.controller;
 
 import com.moneyfi.apigateway.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.dto.ProfileChangePassword;
-import com.moneyfi.apigateway.dto.RemainingTimeCountDto;
 import com.moneyfi.apigateway.model.UserPrincipal;
 import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.Feedback;
@@ -167,12 +166,6 @@ public class ProfileApiController {
         Long userId = userService.getUserIdByUsername(username);
         changePasswordDto.setUserId(userId);
         return userService.changePassword(changePasswordDto);
-    }
-
-    @Operation(summary = "Method to check the eligibility for next otp")
-    @GetMapping("/checkOtpActive/{email}")
-    public RemainingTimeCountDto checkOtpActiveMethod(@PathVariable("email") String email){
-        return userService.checkOtpActiveMethod(email);
     }
 
     @Operation(summary = "Method to logout/making the token blacklist")

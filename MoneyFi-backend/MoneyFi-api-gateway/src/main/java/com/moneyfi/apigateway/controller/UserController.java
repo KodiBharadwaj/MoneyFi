@@ -81,6 +81,12 @@ public class UserController {
         return ResponseEntity.ok(userService.sendOtpForSignup(email, name));
     }
 
+    @Operation(summary = "Method to check the eligibility for next otp")
+    @GetMapping("/checkOtpActive/{email}")
+    public RemainingTimeCountDto checkOtpActiveMethod(@PathVariable("email") String email){
+        return userService.checkOtpActiveMethod(email);
+    }
+
     @Operation(summary = "Method to check the otp entered correct or not during user creation")
     @GetMapping("/checkOtp/{email}/{inputOtp}")
     public boolean checkEnteredOtp(@PathVariable("email") String email,
