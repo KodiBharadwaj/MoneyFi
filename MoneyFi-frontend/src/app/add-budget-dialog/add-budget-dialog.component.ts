@@ -49,6 +49,7 @@ export class AddBudgetDialogComponent {
     'House Rent',
     'Emi and loans',
     'Health & Medical',
+    'Goal',
     'Miscellaneous'
   ];
 
@@ -82,12 +83,13 @@ export class AddBudgetDialogComponent {
       13, // Food
       7, // Travelling
       5,  // Entertainment
-      12, // Groceries
+      8, // Groceries
       10, // Shopping
       10, // Bills & utilities
-      20, // House Rent
-      10,  // Emi and loans
+      10, // House Rent
+      6,  // Emi and loans
       8,  // Health & Medical
+      18, // Goal
       5   // Miscellaneous
     ];
   
@@ -134,11 +136,7 @@ export class AddBudgetDialogComponent {
       (sum, category) => sum + category.percentage,
       0
     );
-
-    // if (totalPercentage !== 100) {
-    //   alert('An internal error occurred: Percentages do not sum to 100.');
-    //   return;
-    // }
+    
     this.dialogRef.close(this.budgetSource);
   }
 

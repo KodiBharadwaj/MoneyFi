@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface GoalService {
 
-    GoalModel save(GoalModel goal);
+    GoalModel save(GoalModel goal, BigDecimal amountToBeAdded, String authHeader);
 
-    GoalModel addAmount(Long id, BigDecimal amount);
+    GoalModel addAmount(Long id, BigDecimal amount, String authHeader);
 
     List<GoalDetailsDto> getAllGoals(Long userId);
 
@@ -18,7 +18,7 @@ public interface GoalService {
 
     BigDecimal getTargetTotalGoalIncome(Long userId);
 
-    GoalModel updateByGoalName(Long id, Long userId, GoalModel goal);
+    GoalModel updateByGoalName(Long id, GoalModel goal, String authHeader);
 
-    boolean deleteGoalById(Long id);
+    boolean deleteGoalById(Long id, String authHeader);
 }

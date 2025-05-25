@@ -65,7 +65,7 @@ export class BudgetsComponent {
   selectedCategory: string = '';
   categories: string[] = [
     'Food', 'Travelling', 'Entertainment', 'Groceries', 'Shopping', 'Bills & utilities', 
-    'House Rent', 'Emi and loans', 'Health & Medical', 'Miscellaneous'
+    'House Rent', 'Emi and loans', 'Health & Medical', 'Goal', 'Miscellaneous'
   ];
   months: string[] = [
     'January', 'February', 'March', 'April', 'May', 'June',

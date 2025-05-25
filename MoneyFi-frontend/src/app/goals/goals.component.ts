@@ -44,10 +44,9 @@ export class GoalsComponent {
   goals: Goal[] = [];
   loading: boolean = false;
 
-  // totalRemainingBalance : number | undefined;\
-  totalRemainingBalance: number = 0;
   totalGoalSavings : number = 0;
-  totalNetworth : number = 0;
+  availableBalance : number = 0;
+  totalGoalTargetAmount : number = 0;
 
   month : number = 0;
   year : number = 0;
@@ -86,14 +85,25 @@ export class GoalsComponent {
           this.loading = false;
         }
         this.totalGoalSavings = amount;
-        this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalRemainingIncomeUpToPreviousMonth/${this.month}/${this.year}`).subscribe({
-          next: (totalIncome) => {
-            // console.log(totalIncome);
-            // console.log(amount);
-            this.totalNetworth = totalIncome;
-            this.totalRemainingBalance = totalIncome - amount;
+
+        this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/availableBalance`).subscribe({
+          next : (availableBalance) => {
+            this.availableBalance = availableBalance;
           },
-        });
+          error : (error) => {
+            console.log('Failed to get the overall available income details', error);
+          }
+        })
+
+        this.httpClient.get<number>(`${this.baseUrl}/api/v1/goal/totalTargetGoalIncome`).subscribe({
+          next: (totalTargetGoalIncome) => {
+            this.totalGoalTargetAmount = totalTargetGoalIncome;
+          }, 
+          error : (error) => {
+            console.log('Failed to get the total goal target amount', error);
+          }
+        })
+
       },
       error: (error) => {
         console.error('Failed to load goal data:', error);
@@ -122,10 +132,6 @@ export class GoalsComponent {
       width: '500px',
       panelClass: 'income-dialog',
     });
-
-    if(this.totalRemainingBalance === 0){
-      alert("You don't have savings till previous month. Adding goal money will be deducted next month!")
-    }
   
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
@@ -133,19 +139,15 @@ export class GoalsComponent {
 
           const formattedDate = this.formatDate(result.deadLine);
           const goalData = {
-            ...result, // This should contain fields like source, amount, date, category, recurring, etc.
-            // userId: userId, // Add userId if your backend requires it
+            ...result,
             deadLine:formattedDate,
           };
 
-          if(goalData.currentAmount < this.totalRemainingBalance){
+          if(goalData.currentAmount < this.availableBalance){
             this.httpClient.post<inputGoal>(`${this.baseUrl}/api/v1/goal/saveGoal`, goalData).subscribe({
               next: (newGoal) => {
-                // console.log(newGoal);
-                // this.goals = newGoal.map(goal => this.modelConverterFunction(goal));
-                const newGoalConverted = this.modelConverterFunction(newGoal); // Convert single goal
-                this.goals.push(newGoalConverted); // Add to existing goals array
-                // console.log(this.goals);
+                const newGoalConverted = this.modelConverterFunction(newGoal); 
+                this.goals.push(newGoalConverted); 
                 this.loadGoals();
               },
               error: (error) => {
@@ -192,12 +194,12 @@ export class GoalsComponent {
 
     // Handle the dialog's close event
     dialogRef.afterClosed().subscribe((amount) => {
-      if (amount !== undefined && amount > 0 && amount < this.totalRemainingBalance) {
+      if (amount !== undefined && amount > 0 && amount < this.availableBalance) {
         this.httpClient
           .post<inputGoal>(`${this.baseUrl}/api/v1/goal/${id}/addAmount/${amount}`, null)
           .subscribe({
             next: (response) => {
-              // console.log(response);
+              
               this.loadGoals();
             },
             error: (error) => {
@@ -233,21 +235,21 @@ export class GoalsComponent {
       panelClass: 'income-dialog',
       data: { ...goal, isUpdate: true }, // Pass the income data to the dialog
     });
-    // console.log(goal);
+    
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
 
         const formattedDate = this.formatDate(result.deadLine);
         const goalData = {
-          ...result, // This should contain fields like source, amount, date, category, recurring, etc.
+          ...result, 
           deadLine:formattedDate,
         };
-        // console.log(goalData);
+        
         this.httpClient.put<inputGoal>(`${this.baseUrl}/api/v1/goal/${goal.id}`, goalData).subscribe({
           next: (updatedGoal) => {
             const newGoalConverted = this.modelConverterFunction(updatedGoal); // Convert single goal
             this.goals.push(newGoalConverted); // Add to existing goals array
-            // console.log(this.goals);
+            
             this.toastr.success("Goal has been updated");
             this.loadGoals();
           },

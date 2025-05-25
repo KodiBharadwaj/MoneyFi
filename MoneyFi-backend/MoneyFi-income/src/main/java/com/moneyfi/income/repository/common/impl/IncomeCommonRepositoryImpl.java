@@ -211,4 +211,19 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
         }
     }
 
+    @Override
+    public BigDecimal getAvailableBalanceOfUser(Long userId) {
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec [getAvailableBalanceOfUser] " +
+                                    "@userId = :userId")
+                    .setParameter("userId", userId);
+
+            return (BigDecimal) query.getSingleResult();
+
+        } catch (Exception e) {
+            throw new QueryValidationException("Error occurred while fetching total remaining balance of a user");
+        }
+    }
+
 }

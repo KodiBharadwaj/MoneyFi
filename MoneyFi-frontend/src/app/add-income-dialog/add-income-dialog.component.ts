@@ -113,10 +113,10 @@ export class AddIncomeDialogComponent {
     if (this.isValid()) {
 
       const incomeDataUpdated = {
-        ...this.incomeData, // This should contain fields like source, amount, date, category, recurring, etc.
+        ...this.incomeData,
         amount:this.incomeSource.amount
       };
-      // console.log(incomeDataUpdated);
+      
       if(this.flag == false){
         this.dialogRef.close(this.incomeSource);
       }

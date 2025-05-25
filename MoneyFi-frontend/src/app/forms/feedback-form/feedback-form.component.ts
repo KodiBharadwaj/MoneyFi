@@ -1,16 +1,3 @@
-// import { Component } from '@angular/core';
-
-// @Component({
-//   selector: 'app-feedback-form',
-//   standalone: true,
-//   imports: [],
-//   templateUrl: './feedback-form.component.html',
-//   styleUrl: './feedback-form.component.css'
-// })
-// export class FeedbackFormComponent {
-
-// }
-
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
@@ -64,8 +51,6 @@ export class FeedbackFormComponent {
 
   submitFeedback() {
     if (this.feedback.name && this.feedback.email && this.feedback.rating) {
-      // console.log('Feedback Submitted:', this.feedback);
-      // alert('Thank you for your feedback!');
       const contactDto = {
         name : this.feedback.name,
         email : this.feedback.email,
@@ -75,7 +60,6 @@ export class FeedbackFormComponent {
 
       this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/feedback`, contactDto).subscribe(
         (response) => {
-          // alert('Form submitted successfully!');
           this.toastr.success('Feedback submitted successfully!', '', {
             timeOut: 1500  // toast visible for 3 seconds
           });

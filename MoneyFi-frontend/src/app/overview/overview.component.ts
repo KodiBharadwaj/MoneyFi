@@ -12,6 +12,7 @@ import { ToastrService } from 'ngx-toastr';
 interface FinancialSummary {
   income: number;
   expenses: number;
+  availableBalance : number;
   budget: number;
   netWorth: number;
   budgetProgress: number;
@@ -46,6 +47,7 @@ export class OverviewComponent implements OnInit {
   summary: FinancialSummary = {
     income: 0,
     expenses: 0,
+    availableBalance : 0,
     budget: 0,
     netWorth: 0,
     budgetProgress: 0,
@@ -74,21 +76,21 @@ export class OverviewComponent implements OnInit {
       }
     })
 
-    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalIncome/${this.thisMonth}/${this.thisYear}`).subscribe({
-      next : (totalIncome) => {
-        this.summary.income = totalIncome;
-
-        this.httpClient.get<number>(`${this.baseUrl}/api/v1/expense/totalExpense/${this.thisMonth}/${this.thisYear}`).subscribe({
-          next : (totalExpense) => {
-            this.summary.expenses = totalExpense;
-          },
-          error : (error) => {
-            console.log('Failed to get the expense details', error);
-          }
-        })
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/availableBalance`).subscribe({
+      next : (availableBalance) => {
+        this.summary.availableBalance = availableBalance;
       },
       error : (error) => {
         console.log('Failed to get the income details', error);
+      }
+    })
+
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/expense/totalExpense/${this.thisMonth}/${this.thisYear}`).subscribe({
+      next : (totalExpense) => {
+        this.summary.expenses = totalExpense;
+      },
+      error : (error) => {
+        console.log('Failed to get the expense details', error);
       }
     })
 
@@ -97,20 +99,6 @@ export class OverviewComponent implements OnInit {
       next : (budgetList) => {
         const totalBudget = budgetList.reduce((acc, budget) => acc + budget.moneyLimit, 0);
         this.summary.budget = totalBudget;
-      },
-      error : (error) => {
-        console.log('Failed to get the total goal income details', error);
-      }
-    })
-
-
-    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalRemainingIncomeUpToPreviousMonth/${this.thisMonth}/${this.thisYear}`).subscribe({
-      next : (totalRemainingIncome) => {
-        this.httpClient.get<number>(`${this.baseUrl}/api/v1/goal/totalCurrentGoalIncome`).subscribe({
-          next : (totalGoalIncome) => {
-            this.summary.netWorth = totalRemainingIncome + (this.summary.income - this.summary.expenses);
-          }
-        })
       },
       error : (error) => {
         console.log('Failed to get the total goal income details', error);
@@ -129,6 +117,8 @@ export class OverviewComponent implements OnInit {
 
     this.httpClient.get<number>(`${this.baseUrl}/api/v1/goal/totalCurrentGoalIncome`).subscribe({
       next : (totalCurrentGoalIncome) => {
+        this.summary.netWorth = totalCurrentGoalIncome;
+        
         this.httpClient.get<number>(`${this.baseUrl}/api/v1/goal/totalTargetGoalIncome`).subscribe({
           next: (totalTargetGoalIncome) => {
             this.summary.goalsProgress = parseFloat(((totalCurrentGoalIncome/totalTargetGoalIncome)*100).toFixed(2))

@@ -435,3 +435,16 @@ h2 {
 .report-btn:hover {
   background: #0056b3;
 }
+
+
+
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none; /* optional, prevents hover effects */
+}
+
+button:disabled i {
+  color: #aaa; /* faded icon color */
+}

@@ -182,9 +182,9 @@ public class ExpenseApiController {
     }
 
     @Operation(summary = "Method to delete the particular expense. Here which is typically soft delete")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteExpenseById(@PathVariable("id") Long id) {
-        boolean isDeleted = expenseService.deleteExpenseById(id);
+    @DeleteMapping
+    public ResponseEntity<Void> deleteExpenseById(@RequestBody List<Long> ids) {
+        boolean isDeleted = expenseService.deleteExpenseById(ids);
         if (isDeleted) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); // 204: No Content
         } else {

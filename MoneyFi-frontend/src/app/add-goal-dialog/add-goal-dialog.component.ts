@@ -40,14 +40,15 @@ export class AddGoalDialogComponent {
   };
 
   dialogTitle: string;
-
+  updateGoal : boolean = false;
   constructor(
     public dialogRef: MatDialogRef<AddGoalDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     const dialogData = data || {};
-
+  
     if (dialogData.isUpdate) {
+      this.updateGoal = true;
       this.dialogTitle = 'Update Goal';
       this.goalSource = { ...dialogData };
     } else {
@@ -61,6 +62,8 @@ export class AddGoalDialogComponent {
       };
     }
   }
+
+  today: Date = new Date();
 
   isValid(): boolean {
     return (

@@ -17,4 +17,5 @@ public class GoalDetailsDto {
     private BigDecimal targetAmount;
     private Date deadLine;
     private String category;
+    private boolean isDeleted;
 }

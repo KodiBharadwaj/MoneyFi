@@ -38,4 +38,6 @@ public interface IncomeService {
     IncomeModel updateBySource(Long id, IncomeModel income);
 
     boolean deleteIncomeById(Long id, Long userId);
+
+    BigDecimal getAvailableBalanceOfUser(Long userId);
 }
