@@ -281,12 +281,14 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public boolean deleteExpenseById(Long id) {
+    public boolean deleteExpenseById(List<Long> ids) {
 
         try {
-            ExpenseModel expense = expenseRepository.findById(id).orElse(null);
-            expense.set_deleted(true);
-            expenseRepository.save(expense);
+            for(Long it : ids){
+                ExpenseModel expense = expenseRepository.findById(it).orElse(null);
+                expense.set_deleted(true);
+                expenseRepository.save(expense);
+            }
             return true;
         } catch (HttpClientErrorException.NotFound e) {
             return false;

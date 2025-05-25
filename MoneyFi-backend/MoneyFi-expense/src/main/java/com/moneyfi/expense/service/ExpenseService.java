@@ -32,5 +32,5 @@ public interface ExpenseService {
 
     ExpenseModel updateBySource(Long id, ExpenseModel expense);
 
-    boolean deleteExpenseById(Long id);
+    boolean deleteExpenseById(List<Long> ids);
 }

@@ -1,16 +1,3 @@
-// import { Component } from '@angular/core';
-
-// @Component({
-//   selector: 'app-survey-form',
-//   standalone: true,
-//   imports: [],
-//   templateUrl: './survey-form.component.html',
-//   styleUrl: './survey-form.component.css'
-// })
-// export class SurveyFormComponent {
-
-// }
-
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';

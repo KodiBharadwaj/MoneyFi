@@ -355,6 +355,12 @@ public class IncomeServiceImplementation implements IncomeService {
             return false;
         }
     }
+
+    @Override
+    public BigDecimal getAvailableBalanceOfUser(Long userId) {
+        return incomeCommonRepository.getAvailableBalanceOfUser(userId);
+    }
+
     private void saveIncomeDeletedDetails(Long id){
         IncomeDeleted incomeDeleted = new IncomeDeleted();
         LocalDateTime expiryTime = LocalDateTime.now().plusDays(30);

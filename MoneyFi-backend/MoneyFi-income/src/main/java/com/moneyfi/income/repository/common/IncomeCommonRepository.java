@@ -21,4 +21,6 @@ public interface IncomeCommonRepository {
     BigDecimal getTotalExpensesUpToPreviousMonth(Long userId, int adjustedMonth, int adjustedYear);
 
     BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year);
+
+    BigDecimal getAvailableBalanceOfUser(Long userId);
 }

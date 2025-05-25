@@ -21,7 +21,8 @@
           </div>
           <div class="ratio-legend">
             <span class="status-message">{{ getSpendingStatusMessage(spentPercentage) }}</span>
-            <span class="remaining">Income Left: ₹{{incomeLeft | number}}</span>
+            <span class="remaining">Income Left (This month): ₹{{thisMonthincomeLeft | number}}</span>
+            <span class="remaining">Income Left (Overall): ₹{{overallincomeLeft | number}}</span>
           </div>
         </div>
       </div>
@@ -137,10 +138,10 @@
             </span>
           </td>
           <td class="actions">
-            <button class="action-btn edit" (click)="updateExpense(expense)">
+            <button class="action-btn edit" (click)="updateExpense(expense)" [disabled]="expense.category === 'Goal'">
               <i class="fas fa-edit"></i>
             </button>
-            <button class="action-btn delete" (click)="deleteExpense(expense.id)">
+            <button class="action-btn delete" (click)="deleteExpense(expense.id)" [disabled]="expense.category === 'Goal'">
               <i class="fas fa-trash"></i>
             </button>
           </td>

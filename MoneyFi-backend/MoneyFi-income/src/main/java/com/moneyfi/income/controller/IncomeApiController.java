@@ -171,6 +171,13 @@ public class IncomeApiController {
         return incomeService.incomeRevertFunction(incomeId, userId);
     }
 
+    @Operation(summary = "Method to find the available balance for a user")
+    @GetMapping("/availableBalance")
+    public BigDecimal getAvailableBalanceOfUser(@RequestHeader("Authorization") String authHeader){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return incomeService.getAvailableBalanceOfUser(userId);
+    }
+
     @Operation(summary = "Method to update the income details")
     @PutMapping("/{id}")
     public ResponseEntity<IncomeModel> updateIncome(@RequestHeader("Authorization") String authHeader,

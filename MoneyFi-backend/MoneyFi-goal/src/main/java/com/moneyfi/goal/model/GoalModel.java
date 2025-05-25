@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -26,4 +27,9 @@ public class GoalModel {
     private BigDecimal targetAmount;
     private LocalDate deadLine;
     private String category;
+    private boolean isDeleted;
+
+    @Column(name = "expense_ids")
+    private String expenseIds;
+
 }

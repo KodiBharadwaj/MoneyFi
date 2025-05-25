@@ -16,8 +16,8 @@
 
     <div class="card remaining">
       <div class="card-content">
-        <h3>Total Remaining Balance</h3>
-        <p class="amount"><span [appCountUp]="totalNetworth"></span></p>
+        <h3>Total Available Balance</h3>
+        <p class="amount"><span [appCountUp]="availableBalance"></span></p>
         <p class="period">Previous Month</p>
       </div>
       <i class="fas fa-piggy-bank icon"></i>
@@ -34,8 +34,8 @@
 
     <div class="card available-balance">
       <div class="card-content">
-        <h3>Available Balance</h3>
-        <p class="amount"><span [appCountUp]="totalRemainingBalance"></span></p>
+        <h3>Goal Target</h3>
+        <p class="amount"><span [appCountUp]="totalGoalTargetAmount"></span></p>
         <p class="period">Previous Month</p>
       </div>
       <i class="fas fa-wallet icon"></i>

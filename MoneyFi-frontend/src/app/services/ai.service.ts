@@ -54,20 +54,3 @@ export class AiService {
     return result.response.text();
   }
 }
-
-// // Example usage of ai service in another component
-// export class SomeOtherComponent {
-//   constructor(private aiService: AiService) {}
-
-//   someMethod() {
-//     this.aiService.getAiResponse('your prompt here')
-//       .subscribe({
-//         next: (response) => {
-//           // Handle the AI response
-//         },
-//         error: (error) => {
-//           // Handle any errors
-//         }
-//       });
-//   }
-// }

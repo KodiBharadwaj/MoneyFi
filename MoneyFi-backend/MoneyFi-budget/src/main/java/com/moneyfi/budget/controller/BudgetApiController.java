@@ -31,6 +31,7 @@ public class BudgetApiController {
                                                   @RequestHeader("Authorization") String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         budget.setUserId(userId);
+        System.out.println("budget check: " + budget);
         BudgetModel createdBudget = budgetService.save(budget);
         if (createdBudget != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdBudget); // 201

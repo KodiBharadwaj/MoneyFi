@@ -11,7 +11,7 @@
     <mat-form-field appearance="outline" class="form-field">
       <mat-label>Current Amount</mat-label>
       <span matPrefix class="currency-prefix">₹</span>
-      <input matInput type="number" [(ngModel)]="goalSource.currentAmount" name="currentAmount" required>
+      <input matInput type="number" [(ngModel)]="goalSource.currentAmount" [disabled] = "updateGoal === true" name="currentAmount" required>
       <mat-error *ngIf="goalSource.currentAmount === ''">Current Amount is required</mat-error>
     </mat-form-field>
 
@@ -24,7 +24,7 @@
 
     <mat-form-field appearance="outline" class="form-field">
       <mat-label>Deadline</mat-label>
-      <input matInput [matDatepicker]="picker" [(ngModel)]="goalSource.deadLine" name="deadLine" required>
+      <input matInput [matDatepicker]="picker" [(ngModel)]="goalSource.deadLine" [min]="today" name="deadLine" required>
       <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
       <mat-error *ngIf="!goalSource.deadLine">Deadline is required</mat-error>
@@ -32,7 +32,7 @@
 
     <mat-form-field appearance="outline" class="form-field">
       <mat-label>Category</mat-label>
-      <mat-select [(ngModel)]="goalSource.category" name="category" required>
+      <mat-select [(ngModel)]="goalSource.category" name="category" [disabled] = "updateGoal === true" required>
         <mat-option value="Education">Education</mat-option>
         <mat-option value="Savings">Savings</mat-option>
         <mat-option value="Investments">Investments</mat-option>

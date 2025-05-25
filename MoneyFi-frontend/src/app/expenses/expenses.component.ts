@@ -55,7 +55,7 @@ export class ExpensesComponent {
   selectedCategory: string = '';
   categories: string[] = [
     'Food', 'Travelling', 'Entertainment', 'Groceries', 'Shopping', 'Bills & utilities', 
-    'House Rent', 'Emi and loans', 'Health & Medical', 'Miscellaneous'
+    'House Rent', 'Emi and loans', 'Health & Medical', 'Goal', 'Miscellaneous'
   ];
   months: string[] = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -66,7 +66,8 @@ export class ExpensesComponent {
   uniqueCategories: string[] = [];
   totalIncome: number = 0;
   spentPercentage: number = 0;
-  incomeLeft: number = 0;
+  thisMonthincomeLeft: number = 0;
+  overallincomeLeft: number = 0;
 
   public pieChartData: ChartData<'pie' | 'doughnut', number[], string> = {
     labels: [],
@@ -207,7 +208,7 @@ export class ExpensesComponent {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         // Check if adding this expense would exceed income
-        if (this.totalExpenses + result.amount > this.totalIncome) {
+        if (result.amount > this.overallincomeLeft) {
           this.toastr.error('Cannot add expense. Amount exceeds Available Income.', 'Insufficient Income');
           return;
         }
@@ -336,7 +337,8 @@ export class ExpensesComponent {
         }
         this.calculateTotalExpenses();
         this.updateChartData();
-        this.httpClient.delete<void>(`${this.baseUrl}/api/v1/expense/${expenseId}`)
+        const idsToDelete = [expenseId]; 
+        this.httpClient.delete<void>(`${this.baseUrl}/api/v1/expense`, { body : idsToDelete })
           .subscribe({
             next: () => {
               this.toastr.warning("Expense " + expenseDataFetch?.description + " has been deleted");
@@ -406,7 +408,22 @@ export class ExpensesComponent {
     this.spentPercentage = this.totalIncome > 0 
       ? parseFloat(((this.totalExpenses / this.totalIncome) * 100).toFixed(2))
       : 0;
-    this.incomeLeft = this.totalIncome - this.totalExpenses;
+    
+    if(this.totalIncome - this.totalExpenses >= 0){
+      this.thisMonthincomeLeft = this.totalIncome - this.totalExpenses;
+    }
+    else {
+      this.thisMonthincomeLeft = 0;
+    }
+
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/availableBalance`).subscribe({
+      next : (availableBalance) => {
+        this.overallincomeLeft = availableBalance;
+      },
+      error : (error) => {
+        console.log('Failed to get the total available income details', error);
+      }
+    })
   }
   
   getSpendingStatusMessage(percentage: number): string {

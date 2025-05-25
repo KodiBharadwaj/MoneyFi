@@ -15,13 +15,13 @@
         <div class="tile-header">
           <div class="tile-icon-title-container">
             <mat-icon class="tile-icon">trending_up</mat-icon>
-            <h3 class="tile-title">Total Income</h3>
+            <h3 class="tile-title">Available Balance</h3>
           </div>
         </div>
         <div class="tile-content">
           <!-- <p class="tile-amount">₹{{summary.income | number:'1.0-0'}}</p> -->
-          <p class="tile-amount"><span [appCountUp]="summary.income"></span></p>
-          <span class="tile-subtext">This Month</span>
+          <p class="tile-amount"><span [appCountUp]="summary.availableBalance"></span></p>
+          <span class="tile-subtext">This Acc</span>
         </div>
       </div>
 
@@ -59,12 +59,12 @@
         <div class="tile-header">
           <div class="tile-icon-title-container">
             <mat-icon class="tile-icon">account_balance</mat-icon>
-            <h3 class="tile-title">Net Worth</h3>
+            <h3 class="tile-title">Goal Savings</h3>
           </div>
         </div>
         <div class="tile-content">
           <p class="tile-amount"><span [appCountUp]="summary.netWorth"></span></p>
-          <span class="tile-subtext">Total Assets</span>
+          <span class="tile-subtext">External Savings</span>
         </div>
       </div>
     </div>
@@ -85,7 +85,14 @@
       <p class="progress-description">
         {{ summary.budgetProgress > 75 ? 'Budget is running high! Consider cutting expenses.' : 'You\'re on track with your monthly budget.' }}
       </p>
-      <p>Budget Left : {{summary.budget - summary.expenses}} </p>
+      <!-- <p>Budget Left : {{summary.budget - summary.expenses}} </p> -->
+       <p>
+        Budget Left: 
+        {{ summary.budget - summary.expenses >= 0 ? (summary.budget - summary.expenses) : 0 }} 
+        <span *ngIf="summary.budget - summary.expenses < 0">
+          ({{ (summary.expenses - summary.budget) | number }} spent more 🔺)
+        </span>
+      </p>
     </div>
 
     <div class="progress-container">

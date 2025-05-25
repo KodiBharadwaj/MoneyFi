@@ -178,9 +178,6 @@ export class IncomeComponent {
       next: (data) => {
         console.log(data)
         if (data && data.length > 0) {
-          // this.deletedIncomeSources = data;
-          // this.calculateTotalIncome();
-          // this.updateChartData();
           const dialogRef = this.dialog.open(IncomeDeletedComponent, {
             width: '850px', // Makes dialog wider
             maxHeight: '90vh', // Keeps it scrollable on small screens
