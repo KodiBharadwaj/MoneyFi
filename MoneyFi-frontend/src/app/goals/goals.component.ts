@@ -16,6 +16,9 @@ interface Goal {
   targetAmount: number;
   deadLine: Date;
   category: string;
+  goalStatus : string;
+  daysRemaining : number;
+  progressPercentage : number;
   icon: string;
   color: string
 }
@@ -27,6 +30,9 @@ interface inputGoal {
   targetAmount: number;
   deadLine: Date;
   category: string;
+  goalStatus: string;
+  daysRemaining : number;
+  progressPercentage : number;
 }
 
 @Component({
@@ -106,6 +112,7 @@ export class GoalsComponent {
 
       },
       error: (error) => {
+        this.loading = false;
         console.error('Failed to load goal data:', error);
         if(error.status === 401){
             if (error.error === 'TokenExpired') {
@@ -146,9 +153,10 @@ export class GoalsComponent {
           if(goalData.currentAmount < this.availableBalance){
             this.httpClient.post<inputGoal>(`${this.baseUrl}/api/v1/goal/saveGoal`, goalData).subscribe({
               next: (newGoal) => {
-                const newGoalConverted = this.modelConverterFunction(newGoal); 
-                this.goals.push(newGoalConverted); 
+                // const newGoalConverted = this.modelConverterFunction(newGoal); 
+                // this.goals.push(newGoalConverted); 
                 this.loadGoals();
+                this.toastr.success('Goal ' + newGoal.goalName + ' added successfully');
               },
               error: (error) => {
                 console.error('Failed to add goal data:', error);
@@ -175,7 +183,7 @@ export class GoalsComponent {
             });
 
           } else {
-            alert("Cannot add the goal! Entered amount is greater than the remaining amount")
+            alert("Cannot add the goal! Entered amount is greater than the available amount")
           }
 
         } else {
@@ -192,14 +200,14 @@ export class GoalsComponent {
       data: { id }
     });
 
-    // Handle the dialog's close event
+
     dialogRef.afterClosed().subscribe((amount) => {
       if (amount !== undefined && amount > 0 && amount < this.availableBalance) {
-        this.httpClient
-          .post<inputGoal>(`${this.baseUrl}/api/v1/goal/${id}/addAmount/${amount}`, null)
-          .subscribe({
+
+        this.httpClient.post<inputGoal>(`${this.baseUrl}/api/v1/goal/${id}/addAmount/${amount}`, null).subscribe({
             next: (response) => {
               
+              this.toastr.success('Amount added successully');
               this.loadGoals();
             },
             error: (error) => {
@@ -229,11 +237,11 @@ export class GoalsComponent {
   }
   
 
-  updateGoal(goal: inputGoal) {
+  updateGoal(goal: any) {
     const dialogRef = this.dialog.open(AddGoalDialogComponent, {
       width: '500px',
       panelClass: 'income-dialog',
-      data: { ...goal, isUpdate: true }, // Pass the income data to the dialog
+      data: { ...goal, isUpdate: true }, 
     });
     
     dialogRef.afterClosed().subscribe((result) => {
@@ -245,12 +253,12 @@ export class GoalsComponent {
           deadLine:formattedDate,
         };
         
-        this.httpClient.put<inputGoal>(`${this.baseUrl}/api/v1/goal/${goal.id}`, goalData).subscribe({
+        this.httpClient.put<any>(`${this.baseUrl}/api/v1/goal/${goal.id}`, goalData).subscribe({
           next: (updatedGoal) => {
-            const newGoalConverted = this.modelConverterFunction(updatedGoal); // Convert single goal
-            this.goals.push(newGoalConverted); // Add to existing goals array
+            // const newGoalConverted = this.modelConverterFunction(updatedGoal); 
+            // this.goals.push(newGoalConverted); 
             
-            this.toastr.success("Goal has been updated");
+            this.toastr.success("Goal " + updatedGoal.goalName + " has been updated");
             this.loadGoals();
           },
           error: (error) => {
@@ -331,46 +339,13 @@ export class GoalsComponent {
       targetAmount: data.targetAmount,
       deadLine: new Date(data.deadLine),
       category: data.category,
+      goalStatus : data.goalStatus,
+      daysRemaining : data.daysRemaining,
+      progressPercentage : data.progressPercentage,
       icon: icon,
       color: color
     };
-  }
-  
-
-  getProgressPercentage(currentAmount: number, targetAmount: number): number {
-    return Math.min((currentAmount / targetAmount) * 100, 100); // Ensure it doesn't exceed 100%
-  }
-
-  getDaysRemaining(deadline: Date): number {
-    if (!deadline) {
-      console.error('Deadline is undefined or null');
-      return NaN;
-    }
-  
-    const deadlineDate = new Date(deadline);
-    if (isNaN(deadlineDate.getTime())) {
-      console.error('Invalid deadline date:', deadline);
-      return NaN;
-    }
-  
-    const today = new Date();
-    const diffTime = deadlineDate.getTime() - today.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  }
-  
-
-  getProgressColor(currentAmount: number, targetAmount: number): string {
-    const percentage = this.getProgressPercentage(currentAmount, targetAmount);
-    if (percentage >= 90) return '#4caf50';
-    if (percentage >= 50) return '#2196f3';
-    return '#ff9800';
-  }
-
-  
-  viewGoalDetails(goal: Goal) {
-    
-  }
-
+  } 
 
   deleteGoal(goalId : number){
     // console.log(goalId);
@@ -405,21 +380,6 @@ export class GoalsComponent {
       style: 'currency',
       currency: 'USD'
     }).format(amount);
-  }
-
-  getGoalStatus(goal: Goal): string {
-    const progressPercentage = this.getProgressPercentage(goal.currentAmount, goal.targetAmount);
-    const daysRemaining = this.getDaysRemaining(goal.deadLine);
-  
-    if (progressPercentage >= 100) {
-      return daysRemaining > 0 ? 'completed-early' : 'completed-on-time';
-    }
-  
-    if (daysRemaining <= 0) {
-      return 'overdue';
-    }
-  
-    return 'in-progress';
   }
 
 }
