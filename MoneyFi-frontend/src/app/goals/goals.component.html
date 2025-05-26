@@ -64,12 +64,12 @@
         <div
           class="progress-circle"
           [style.background]="'conic-gradient(' + goal.color + ' ' +
-          getProgressPercentage(goal.currentAmount, goal.targetAmount) +
+          goal.progressPercentage +
           '%, #f0f0f0 0)'"
         >
           <div class="progress-inner">
             <span class="percentage">
-              {{ getProgressPercentage(goal.currentAmount, goal.targetAmount) | number:'1.0-0' }}%
+              {{ goal.progressPercentage | number:'1.0-0' }}%
             </span>
             <span class="label">Complete</span>
           </div>
@@ -90,22 +90,22 @@
       <!-- Timeline -->
       <div class="timeline">
         <i class="fas fa-clock"></i>
-        <span class="days-left">{{ getDaysRemaining(goal.deadLine) }} days left</span>
+        <span class="days-left">{{ goal.daysRemaining }} days left</span>
         <span class="deadline">Due by {{ goal.deadLine | date }}</span>
       </div>
 
       <!-- Status Badges Container -->
       <div class="status-badges-container">
-        <div class="status-badge" *ngIf="getGoalStatus(goal) === 'overdue'">
+        <div class="status-badge" *ngIf="goal.goalStatus === 'overdue'">
           <i class="fas fa-exclamation-circle"></i> Overdue
         </div>
-        <div class="status-badge" *ngIf="getGoalStatus(goal) === 'completed-early'">
+        <div class="status-badge" *ngIf="goal.goalStatus === 'completed-early'">
           <i class="fas fa-check-circle"></i> Completed Early
         </div>
-        <div class="status-badge" *ngIf="getGoalStatus(goal) === 'completed-on-time'">
+        <div class="status-badge" *ngIf="goal.goalStatus === 'completed-on-time'">
           <i class="fas fa-check-circle"></i> Completed On Time
         </div>
-        <div class="status-badge" *ngIf="getGoalStatus(goal) === 'in-progress'">
+        <div class="status-badge" *ngIf="goal.goalStatus === 'in-progress'">
           <i class="fas fa-hourglass-half"></i> On Going 
         </div>
       </div>

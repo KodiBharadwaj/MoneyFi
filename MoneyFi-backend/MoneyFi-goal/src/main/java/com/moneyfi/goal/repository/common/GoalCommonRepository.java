@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface GoalCommonRepository {
-    List<GoalDetailsDto> findByUserId(Long userId);
+    List<GoalDetailsDto> getAllGoalsByUserId(Long userId);
 
     BigDecimal getCurrentTotalGoalIncome(Long userId);
 

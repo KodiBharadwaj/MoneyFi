@@ -14,8 +14,10 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -94,10 +96,7 @@ public class GoalServiceImplementation implements GoalService{
 
     @Override
     public List<GoalDetailsDto> getAllGoals(Long userId) {
-        return goalCommonRepository.findByUserId(userId)
-                .stream()
-                .filter(i-> i.isDeleted() == false)
-                .toList();
+        return goalCommonRepository.getAllGoalsByUserId(userId);
     }
 
     @Override

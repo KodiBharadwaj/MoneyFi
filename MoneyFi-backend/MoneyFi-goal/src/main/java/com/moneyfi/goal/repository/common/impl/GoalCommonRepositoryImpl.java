@@ -21,7 +21,7 @@ public class GoalCommonRepositoryImpl implements GoalCommonRepository {
     private EntityManager entityManager;
 
     @Override
-    public List<GoalDetailsDto> findByUserId(Long userId) {
+    public List<GoalDetailsDto> getAllGoalsByUserId(Long userId) {
         try {
             List<GoalDetailsDto> goalList = new ArrayList<>();
 

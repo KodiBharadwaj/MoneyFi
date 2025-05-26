@@ -18,4 +18,7 @@ public class GoalDetailsDto {
     private Date deadLine;
     private String category;
     private boolean isDeleted;
+    private Long daysRemaining;
+    private Long progressPercentage;
+    private String goalStatus;
 }
