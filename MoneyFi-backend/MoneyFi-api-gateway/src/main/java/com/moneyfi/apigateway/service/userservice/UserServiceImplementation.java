@@ -79,6 +79,9 @@ public class UserServiceImplementation implements UserService {
         UserAuthModel userAuthModel = new UserAuthModel();
         userAuthModel.setUsername(userProfile.getUsername());
         userAuthModel.setPassword(encoder.encode(userProfile.getPassword()));
+        userAuthModel.setOtpCount(0);
+        userAuthModel.setDeleted(false);
+        userAuthModel.setBlocked(false);
         UserAuthModel user =  userRepository.save(userAuthModel);
 
         saveUserProfileDetails(user.getId(), userProfile);
