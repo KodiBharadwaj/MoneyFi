@@ -9,8 +9,7 @@ Minor Changes:
 - Landing page, so may buttons are there in the footer. Add the necessary info.
 - Replace double with BigDecimal in amount (frontend pending)
 - Put a name in the network section for every api.
-- Implement 440 error code for login time out (token expiration).
-
+- Modify Budget Promise bunch api calls to singe api while adding or modifying a budget.
 
 
 
@@ -40,7 +39,7 @@ cleared changes:
 - Put change password 3 time limit in profile section
 - Make the first letter capital by default while adding a transaction.
 - Implement soft delete and set 30 day expiration for the deleted transactions(Income). (ongoing)
-
+- Goal frontend implementation moved to sp.
 
 
 cleared defects:
