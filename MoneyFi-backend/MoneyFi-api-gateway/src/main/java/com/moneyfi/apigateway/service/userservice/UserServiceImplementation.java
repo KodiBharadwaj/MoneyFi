@@ -113,6 +113,12 @@ public class UserServiceImplementation implements UserService {
             if (existingUser == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UserAuthModel not found. Please sign up.");
             }
+            if(existingUser != null && existingUser.isBlocked()){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Account Blocked! Please contact admin");
+            }
+            if(existingUser != null && existingUser.isDeleted()){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Account Deleted! Please contact admin");
+            }
 
             try {
                 // Authenticate the user with the provided password

@@ -113,10 +113,18 @@ export class LoginComponent {
           this.isLoading = false; // Hide loading spinner
           if (error.status === 404) {
             this.toastr.error('User not found. Please sign up.', 'Login Failed');
-          } else if (error.status === 401) {
+          } 
+          else if (error.status === 401) {
             if (error.error === 'Incorrect password') {
               this.toastr.error('Incorrect password. Please try again.', 'Login Failed');
-            } else {
+            } 
+            else if (error.error === 'Account Blocked! Please contact admin'){
+              this.toastr.error('Account Blocked! Please contact admin');
+            }
+            else if (error.error === 'Account Deleted! Please contact admin'){
+              this.toastr.error('Account Deleted! Please contact admin');
+            }
+            else {
               this.toastr.error('Invalid username or password', 'Login Failed');
             }
           } else {
