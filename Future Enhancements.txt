@@ -2,14 +2,16 @@ Project MoneyFi:
 
 Major Changes:
 - Google authentication
-
+- Modify Budget Promise bunch api calls to singe api while adding or modifying a budget.
+- Implement forgot username feature (user should receive mail by providing necessary details like dob, phn No)
+- Implement block account feature for security reasons.
+- Implement delete account feature (soft delete - can be revert back if user needs ticket raise)
 
 Minor Changes:
 - Write junit test cases for income service (ongoing)
 - Landing page, so may buttons are there in the footer. Add the necessary info.
 - Replace double with BigDecimal in amount (frontend pending)
 - Put a name in the network section for every api.
-- Modify Budget Promise bunch api calls to singe api while adding or modifying a budget.
 
 
 
