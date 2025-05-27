@@ -277,3 +277,90 @@ BEGIN
 
 END
 GO
+
+
+
+
+
+
+CREATE PROCEDURE [dbo].[getAllIncomesOfUser] (
+	@userId BIGINT
+	)
+AS
+BEGIN
+
+	SET NOCOUNT ON;
+
+    SELECT * FROM income_table it WITH (NOLOCK)
+	WHERE it.user_id = @userId;
+END
+GO
+
+
+
+
+
+
+CREATE PROCEDURE [dbo].[getMonthlyIncomesListInAYear] (
+	@userId BIGINT,
+	@year INT,
+	@deleteStatus BIT
+	)
+
+AS
+BEGIN
+
+	SET NOCOUNT ON;
+
+    SELECT MONTH(it.date) as month
+	, SUM(it.amount)
+	FROM income_table it WITH (NOLOCK)
+	WHERE it.user_id = @userId
+	AND YEAR(it.date) = @year
+	AND it.is_deleted = @deleteStatus
+	GROUP BY MONTH(it.date)
+	ORDER BY month ASC;
+END
+GO
+
+
+
+
+
+CREATE PROCEDURE [dbo].[getIncomeBySourceAndCategory] (
+	@userId BIGINT,
+	@source VARCHAR(50),
+	@category VARCHAR(50),
+	@date DATE
+	)
+AS
+BEGIN
+
+	SET NOCOUNT ON;
+
+    SELECT *
+	FROM income_table it WITH (NOLOCK)
+	WHERE it.user_id = @userId
+	AND it.source = @source
+	AND it.category = @category
+	AND it.is_deleted = 0
+	AND MONTH(it.date) = MONTH(@date)
+	AND YEAR(it.date) = YEAR(@date);
+END
+GO
+
+
+
+
+
+CREATE PROCEDURE [dbo].[getIncomeByIncomeId] (
+	@incomeId BIGINT
+	)
+AS
+BEGIN
+
+	SET NOCOUNT ON;
+
+    SELECT amount from income_table it WITH (NOLOCK)
+	WHERE it.id = @incomeId;
+END
