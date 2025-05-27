@@ -4,7 +4,6 @@ Major Changes:
 - Google authentication
 - Modify Budget Promise bunch api calls to singe api while adding or modifying a budget.
 - Implement forgot username feature (user should receive mail by providing necessary details like dob, phn No)
-- Implement block account feature for security reasons.
 - Implement delete account feature (soft delete - can be revert back if user needs ticket raise)
 
 Minor Changes:

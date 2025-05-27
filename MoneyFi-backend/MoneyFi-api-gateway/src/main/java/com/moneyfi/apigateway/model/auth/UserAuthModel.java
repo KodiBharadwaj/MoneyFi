@@ -19,5 +19,5 @@ public class UserAuthModel {
     private String verificationCode;
     private LocalDateTime verificationCodeExpiration;
     private int otpCount;
-
+    private boolean isDeleted;
 }
