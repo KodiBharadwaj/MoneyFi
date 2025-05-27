@@ -1,5 +1,3 @@
 Project MoneyFi:
 
-Main is only for production.
-Please checkout to testing-v1 branch for details of defects/features.
-
+Checkout to dev branch for tickets.
