@@ -4,7 +4,6 @@ Major Changes:
 - Google authentication
 - Modify Budget Promise bunch api calls to singe api while adding or modifying a budget.
 - Implement forgot username feature (user should receive mail by providing necessary details like dob, phn No)
-- Implement delete account feature (soft delete - can be revert back if user needs ticket raise)
 
 Minor Changes:
 - Write junit test cases for income service (ongoing)
@@ -41,6 +40,8 @@ cleared changes:
 - Make the first letter capital by default while adding a transaction.
 - Implement soft delete and set 30 day expiration for the deleted transactions(Income). (ongoing)
 - Goal frontend implementation moved to sp.
+- Implement delete account & block feature (soft delete - can be revert back if user needs ticket raise)
+
 
 
 cleared defects:
