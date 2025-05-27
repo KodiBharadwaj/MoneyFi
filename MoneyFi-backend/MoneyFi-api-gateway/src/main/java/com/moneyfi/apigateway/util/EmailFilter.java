@@ -11,7 +11,7 @@ import java.util.Random;
 public class EmailFilter {
     public static boolean sendEmail(String toEmail, String subject, String body) {
         String fromEmail = "bharadwajkodi2003@gmail.com";  // Sender's email
-        String password = "pkiv sayk hirk kwvh";  // Sender's email password (Make sure it's correct or use App password)
+        String password = "xxxx xxxx xxxx xxxx";  // Sender's email password (Make sure it's correct or use App password)
         String host = "smtp.gmail.com";  // Gmail SMTP server
         String port = "587";  // SMTP port for Gmail
 
