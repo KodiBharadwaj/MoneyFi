@@ -1,0 +1,53 @@
+<div class="dialog-container">
+  <h2 class="dialog-title">{{ dialogTitle }}</h2>
+  
+  <form class="income-form" novalidate>
+    <mat-form-field appearance="outline" class="form-field">
+      <mat-label>Goal Name</mat-label>
+      <input matInput [(ngModel)]="goalSource.goalName" name="goalName" (ngModelChange)="capitalizeFirstLetter()" required>
+      <mat-error *ngIf="goalSource.goalName.trim() === ''">Goal Name is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="form-field">
+      <mat-label>Current Amount</mat-label>
+      <span matPrefix class="currency-prefix">₹</span>
+      <input matInput type="number" [(ngModel)]="goalSource.currentAmount" [disabled] = "updateGoal === true" name="currentAmount" required>
+      <mat-error *ngIf="goalSource.currentAmount === ''">Current Amount is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="form-field">
+      <mat-label>Target Amount</mat-label>
+      <span matPrefix class="currency-prefix">₹</span>
+      <input matInput type="number" [(ngModel)]="goalSource.targetAmount" name="targetAmount" required>
+      <mat-error *ngIf="goalSource.targetAmount === ''">Target Amount is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="form-field">
+      <mat-label>Deadline</mat-label>
+      <input matInput [matDatepicker]="picker" [(ngModel)]="goalSource.deadLine" [min]="today" name="deadLine" required>
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+      <mat-error *ngIf="!goalSource.deadLine">Deadline is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="form-field">
+      <mat-label>Category</mat-label>
+      <mat-select [(ngModel)]="goalSource.category" name="category" [disabled] = "updateGoal === true" required>
+        <mat-option value="Education">Education</mat-option>
+        <mat-option value="Savings">Savings</mat-option>
+        <mat-option value="Investments">Investments</mat-option>
+        <mat-option value="Vehicle">Vehicle</mat-option>
+        <mat-option value="Health">Health</mat-option>
+        <mat-option value="Home">Home</mat-option>
+        <mat-option value="Electronics">Electronics</mat-option>
+        <mat-option value="Other">Other</mat-option>
+      </mat-select>
+      <mat-error *ngIf="goalSource.category.trim() === ''">Category is required</mat-error>
+    </mat-form-field>
+
+    <div class="dialog-actions">
+      <button mat-stroked-button (click)="onCancel()">Cancel</button>
+      <button mat-raised-button color="primary" [disabled]="!isValid()" (click)="onSave()">Save Goal</button>
+    </div>
+  </form>
+</div>

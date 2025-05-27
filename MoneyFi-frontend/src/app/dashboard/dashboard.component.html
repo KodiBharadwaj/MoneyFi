@@ -1,0 +1,63 @@
+
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo">
+      <i class="fas fa-chart-pie fa-2x"></i>
+      <span>MoneyFi</span>
+    </div>
+    
+    <div class="nav-links">
+      <button routerLink="overview" routerLinkActive="active">
+        <i class="fas fa-home"></i>
+        <span>Overview</span>
+      </button>
+
+      <button routerLink="income" routerLinkActive="active">
+        <i class="fas fa-money-bill-wave"></i>
+        <span>Income</span>
+      </button>
+
+      <button routerLink="expenses" routerLinkActive="active">
+        <i class="fas fa-receipt"></i>
+        <span>Expenses</span>
+      </button>
+
+      <button routerLink="budgets" routerLinkActive="active">
+        <i class="fas fa-wallet"></i>
+        <span>Budgets</span>
+      </button>
+
+      <button routerLink="goals" routerLinkActive="active">
+        <i class="fas fa-bullseye"></i>
+        <span>Goals</span>
+      </button>
+
+      <button routerLink="analysis" routerLinkActive="active">
+        <i class="fas fa-chart-line"></i>
+        <span>AI Analysis</span>
+      </button>
+    </div>
+
+    <div class="user-section">
+      <button routerLink="profile" routerLinkActive="active">
+        <i class="fas fa-user-circle"></i>
+        <span>Profile</span>
+      </button>
+      <button routerLink="contact-us" routerLinkActive="active">
+        <i class="fas fa-envelope"></i>
+        <span>Contact us</span>
+      </button>
+      <button class="logout-btn" (click)="logoutUser()">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </button>
+    </div>
+  </nav>
+  <main class="main-content">
+    <div class="content-container">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+
+</div>

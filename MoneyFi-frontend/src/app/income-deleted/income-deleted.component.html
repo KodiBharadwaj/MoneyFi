@@ -1,0 +1,40 @@
+<h2 mat-dialog-title>🗑️ Deleted Incomes</h2>
+<div mat-dialog-content>
+  <div class="content-wrapper">
+    <table *ngIf="data.deletedIncomes.length > 0" class="deleted-incomes-table">
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Category</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Days Remaining</th>
+          <th>Revert Back</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let income of data.deletedIncomes">
+          <td>{{ income[4] }}</td> <!-- source -->
+          <td>{{ income[2] }}</td> <!-- category (you called it 'Other del 3') -->
+          <td>₹{{ income[1]?.toLocaleString() }}</td> <!-- amount -->
+          <td>{{ income[3] | date: 'mediumDate' }}</td> <!-- date -->
+          <td>{{ income[5] ? 'Recurring' : 'One-time' }}</td> <!-- recurring flag -->
+          <td>{{ income[6] }}</td> <!-- daysRemained (or userId if mislabeled) -->
+          <td>
+            <button class="revert-btn" (click)="revertIncomeFunction(income[0])">
+              &#8634; Revert
+            </button>
+          </td>
+
+
+        </tr>
+      </tbody>
+    </table>
+    <p *ngIf="data.deletedIncomes.length === 0">No deleted incomes found.</p>
+  </div>
+</div>
+
+<div mat-dialog-actions>
+    <button mat-button (click)="closeDialog()">Close</button>
+</div>

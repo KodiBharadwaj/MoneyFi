@@ -1,0 +1,137 @@
+<div class="profile-container">
+  <div class="profile-card">
+    <div class="profile-header">
+      <div class="cover-photo"></div>
+      <div class="profile-image-wrapper">
+        <div class="profile-image">
+          <!-- Spinner -->
+          <div class="spinner" *ngIf="isImageLoading"></div>
+      
+          <!-- Actual Image -->
+          <img [src]="userProfileDetails.profileImage"
+               alt="Profile Picture"
+               (load)="onImageLoad()"
+               [class.hidden]="isImageLoading" />
+      
+          <!-- Image Upload (Edit Mode) -->
+          <div class="image-upload" *ngIf="isEditing">
+            <label for="file-input">
+              <i class="fas fa-camera"></i>
+            </label>
+            <input id="file-input" type="file" (change)="onImageUpload($event)" accept="image/*">
+          </div>
+        </div>
+      </div>
+      
+      <div class="profile-title">
+        <h1>{{ userProfileDetails.name }}</h1>
+        <h4 *ngIf="userProfileDetails.createdDate">since {{ userProfileDetails.createdDate | date: 'longDate' }}</h4>
+        <div class="button-container" style="margin-top: auto;">
+          <button mat-raised-button color="primary" class="change-password-btn" (click)="changePassword()">
+            <mat-icon>lock</mat-icon>
+            Change Password
+          </button>
+        </div>
+      </div>
+      <button class="edit-profile-btn" (click)="toggleEdit()">
+        <i class="fas" [ngClass]="isEditing ? 'fa-times' : 'fa-edit'"></i>
+        {{ isEditing ? 'Cancel' : 'Edit Profile' }}
+      </button>
+    </div>
+
+    <div class="profile-info">
+      <div class="info-section">
+        <h2>Personal Information</h2>
+        <div class="info-grid">
+
+          <mat-form-field appearance="outline" class="form-field compact">
+            <mat-label>Full Name</mat-label>
+            <input
+              matInput
+              [(ngModel)]="userProfileDetails.name"
+              [readonly]="true"
+              [class.readonly-bright]="!isEditing"
+              [class.readonly-dim]="isEditing"
+            />
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="form-field compact">
+            <mat-label>Email Address</mat-label>
+            <input
+              matInput
+              [(ngModel)]="userProfileDetails.email"
+              [readonly]="true"
+              [class.readonly-bright]="!isEditing"
+              [class.readonly-dim]="isEditing"
+            />
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="form-field compact">
+            <mat-label>Phone Number</mat-label>
+            <input
+              matInput
+              type="number" 
+              [(ngModel)]="userProfileDetails.phone"
+              [readonly]="!isEditing"
+              pattern="[0-9]*"
+              inputmode="numeric"
+            />
+          </mat-form-field>
+
+          
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Date of Birth</mat-label>
+            <input matInput
+                   [matDatepicker]="dobPicker"
+                   [(ngModel)]="userProfileDetails.dateOfBirth"
+                   [readonly]="!isEditing"
+                   [max] = "today"
+                   name="dateOfBirth">
+          
+            <mat-datepicker-toggle matIconSuffix [for]="dobPicker"></mat-datepicker-toggle>
+            <mat-datepicker #dobPicker></mat-datepicker>
+          </mat-form-field>
+          
+
+          <div class="info-item">
+            <label>Gender</label>
+            <select [(ngModel)]="userProfileDetails.gender" [disabled]="!isEditing" [class.editable]="isEditing">
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="info-item">
+            <label>Marital Status</label>
+            <select [(ngModel)]="userProfileDetails.maritalStatus" [disabled]="!isEditing" [class.editable]="isEditing">
+              <option value="">Select Status</option>
+              <option value="Single">Single</option>
+              <option value="Married">Married</option>
+              <option value="Divorced">Divorced</option>
+              <option value="Widowed">Widowed</option>
+            </select>
+          </div>
+
+          <div class="info-item">
+            <label>Income Range</label>
+            <input type="tel" [(ngModel)]="userProfileDetails.incomeRange" [readonly]="!isEditing" [class.editable]="isEditing">
+          </div>
+
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Address</h2>
+        <div class="info-item full-width">
+          <textarea [(ngModel)]="userProfileDetails.address" [readonly]="!isEditing" [class.editable]="isEditing"></textarea>
+        </div>
+      </div>
+
+      <button class="save-btn" *ngIf="isEditing" (click)="onSaveProfile()">
+        <i class="fas fa-save"></i> Save Changes
+      </button>
+    </div>
+  </div>
+</div>

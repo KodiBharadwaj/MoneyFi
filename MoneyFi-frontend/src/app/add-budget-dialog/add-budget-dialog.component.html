@@ -1,0 +1,44 @@
+<div class="dialog-container">
+  <h2 class="dialog-title"> Add Your Budget</h2>
+
+  <!-- Scrollable Content -->
+  <div class="scrollable-content">
+    <form class="income-form">
+      <h2 class="total-income">
+        Your Total Income: <span>₹{{ totalIncome }}</span>
+      </h2>
+
+      <!-- Input for Total Budget -->
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Set Your Total Budget</mat-label>
+        <span matPrefix class="currency-prefix">₹</span>
+        <input
+          matInput
+          type="number"
+          [(ngModel)]="budgetSource.moneyLimit"
+          (input)="onBudgetChange()"
+          name="targetAmount"
+          placeholder="Enter budget amount"
+        />
+      </mat-form-field>
+
+      <div class="recommended-budget">
+        <h2 class="budget-caption">🌟 MoneyFi’s Recommended Budget Plan</h2>
+        <h3 class="edit-note">You can customize this anytime!</h3>
+      </div>
+
+      <!-- Dynamic Category List -->
+      <div *ngFor="let category of budgetSource.categories" class="category-row">
+        <p class="category-name"> {{ category.category }}</p>
+        <p class="category-percentage">Percentage: <strong>{{ category.percentage }}%</strong></p>
+        <p class="category-amount">Amount: ₹<strong>{{ category.moneyLimit.toFixed(2) }}</strong></p>
+      </div>
+    </form>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="dialog-actions">
+    <button mat-stroked-button (click)="onCancel()">Cancel</button>
+    <button mat-raised-button color="primary" (click)="onSave()">Save Budget</button>
+  </div>
+</div>

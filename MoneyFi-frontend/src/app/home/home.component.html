@@ -1,0 +1,144 @@
+<header>
+  <div class="header-content">
+    <span class="brand-name" (click)="navigateTo('')" role="button" tabindex="0">
+      <i class="fas fa-chart-pie"></i>
+      MoneyFi
+    </span>
+
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#">Home</a></li>
+        <li><a href="#footer">About</a></li>
+        <li><a href="#footer">Contact</a></li>
+        <li><a href="#features">Features</a></li>
+      </ul>
+    </nav>
+
+    <div class="auth-buttons" *ngIf="!isLoggedIn">
+      <button class="btn-login" (click)="navigateTo('/login')">Login</button>
+      <button class="btn-signup" (click)="navigateTo('/signup')">Sign Up</button>
+    </div>
+  </div>
+</header>
+
+<!-- Hero Section -->
+<main>
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1>Financial Management<br>Made Simple</h1>
+        <p class="hero-subtitle">Your all-in-one solution for expense tracking, budgeting, and achieving financial
+          freedom</p>
+        <div class="cta-buttons">
+          <button (click)="navigateTo('/signup')" class="primary-btn">Start Today</button>
+          <button (click)="scrollToFeatures()" class="secondary-btn">
+            <span>Explore Features </span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+      <div class="hero-chart">
+        <div class="chart-card">
+          <p>Monitor your spending patterns with our intuitive analytics</p>
+          <canvas baseChart [data]="polarChartData" [options]="polarChartOptions" [type]="'polarArea'">
+          </canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <h2>Why Choose MoneyFi?</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-wallet"></i>
+        </div>
+        <h3>Expense Tracking</h3>
+        <p>Track & Categorize your daily expenses and income with our easy-to-use automated system</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>Smart Spending Insights</h3>
+        <p>Transform your transactions into insights with visual analytics and spending trends</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-bullseye"></i>
+        </div>
+        <h3>Budget & Savings Goals</h3>
+        <p>Set personalized budgets, track savings goals, and organize your entire financial journey in one place</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA Section -->
+  <section class="final-cta">
+    <div class="cta-wrapper">
+      <div class="cta-content">
+        <h2>Ready to Master Your Finances?</h2>
+        <p>Join thousands of users who are already saving more and spending wisely</p>
+        <div class="cta-actions">
+          <button (click)="navigateTo('/signup')" class="primary-btn">
+            Get Started
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Footer -->
+<footer>
+  <div id="footer" class="footer-content">
+    <div class="footer-brand">
+      <h3><i class="fas fa-chart-pie"></i> MoneyFi</h3>
+      <p>Smart financial management for everyone</p>
+      <div class="social-links">
+        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+      </div>
+    </div>
+    <div class="footer-links">
+      <div class="link-group">
+        <h4>Product</h4>
+        <a href="#features">Features</a>
+        <a href="#">Pricing</a>
+        <a href="#">Security</a>
+      </div>
+      <div class="link-group">
+        <h4>Company</h4>
+        <a href="#features">About</a>
+        <a href="#">Contact</a>
+        <a href="#">Careers</a>
+      </div>
+      <div class="link-group">
+        <h4>Resources</h4>
+        <a href="#">Blog</a>
+        <a href="#">Help Center</a>
+        <a href="#">Guides</a>
+      </div>
+      <div class="link-group">
+        <h4>Legal</h4>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Cookie Policy</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-bottom-content">
+      <p>&copy; 2024 MoneyFi. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="/#">Sitemap</a>
+        <span class="separator">•</span>
+        <a href="/#">Accessibility</a>
+      </div>
+    </div>
+  </div>
+</footer>
