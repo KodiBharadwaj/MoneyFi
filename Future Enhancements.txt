@@ -15,6 +15,9 @@ Minor Changes:
 
 
 Defects:
+- update functionality is not working in all services.
+- user id exposing during updating a transaction in all services.
+- change update budget to backend list.
 - User feedback mail images are not sending as images in mail to admin.
 - Trigger is not coming in scripts generated.
 

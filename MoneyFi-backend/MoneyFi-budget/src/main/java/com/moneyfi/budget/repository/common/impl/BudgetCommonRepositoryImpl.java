@@ -20,15 +20,19 @@ public class BudgetCommonRepositoryImpl implements BudgetCommonRepository {
     private EntityManager entityManager;
 
     @Override
-    public List<BudgetDetailsDto> getBudgetsByUserId(Long userId, String category) {
+    public List<BudgetDetailsDto> getBudgetsByUserId(Long userId, int month, int year, String category) {
         try {
             List<BudgetDetailsDto> budgetList = new ArrayList<>();
 
             if(category.equalsIgnoreCase("all")){
                 Query query = entityManager.createNativeQuery(
                                 "exec [getAllBudgetsByUserId] " +
-                                        "@userId = :userId")
+                                        "@userId = :userId, " +
+                                        "@month = :month, " +
+                                        "@year = :year")
                         .setParameter("userId", userId)
+                        .setParameter("month", month)
+                        .setParameter("year", year)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(BudgetDetailsDto.class));
 
@@ -39,8 +43,12 @@ public class BudgetCommonRepositoryImpl implements BudgetCommonRepository {
                 Query query = entityManager.createNativeQuery(
                                 "exec [getAllBudgetsByUserIdAndByCategory] " +
                                         "@userId = :userId, " +
+                                        "@month = :month, " +
+                                        "@year = :year, " +
                                         "@category = :category")
                         .setParameter("userId", userId)
+                        .setParameter("month", month)
+                        .setParameter("year", year)
                         .setParameter("category", category)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(BudgetDetailsDto.class));

@@ -20,16 +20,8 @@ interface Budget {
   category: string;
   moneyLimit: number;
   currentSpending: number;
+  progressPercentage:number;
   remaining:number;
-}
-
-interface Expense {
-  id: number;
-  amount: number;
-  date: string;
-  category: string;
-  description: string;  
-  recurring: boolean;
 }
 
 @Component({
@@ -56,9 +48,6 @@ export class BudgetsComponent {
   totalSpent: number = 0;
   budgets: Budget[] = [];
 
-
-  expenses: Expense[] = [];
-  filteredExpenses: Expense[] = [];
   loading: boolean = false;
   selectedYear: number = new Date().getFullYear();
   selectedMonth: number = 0; // 0 means all months
@@ -89,88 +78,20 @@ export class BudgetsComponent {
     const currentYear = new Date().getFullYear();
     this.availableYears = Array.from({length: 5}, (_, i) => currentYear - i);
   }
-
-  loadExpensesData() {
-    this.loading = true;
-
-    let url: string;
-    if (this.selectedMonth === 0) {
-      url = `${this.baseUrl}/api/v1/expense/getExpenses/${this.selectedYear}/all/false`;
-    } else {
-      url = `${this.baseUrl}/api/v1/expense/getExpenses/${this.selectedMonth}/${this.selectedYear}/all/false`;
-    }
-
-    this.httpClient.get<Expense[]>(url).subscribe({
-      next: (expenses) => {
-        if (expenses && expenses.length > 0) {
-
-          this.expenses = expenses;
-          this.filteredExpenses = [...expenses]; // Initialize filteredExpenses with all expenses
-          this.updateBudgetsWithExpenses();
-
-        } else {
-          this.toastr.warning('No expenses found for the selected filters.', 'No Data');
-        }
-      },
-      error: (error) => {
-        console.error('Failed to load expense data:', error);
-        if(error.status === 401){
-            if (error.error === 'TokenExpired') {
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            } else if(error.error === 'Token is blacklisted'){
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            }
-            else if(error.error === 'AuthorizationFailed'){
-              alert('Service Unavailable!! Please try later');
-            }
-          } else if (error.status === 503){
-            alert('Service Unavailable!! Please try later');
-          }
-      },
-      complete: () => {
-        this.loading = false;
-      }
-    });
-  }
-
-  updateBudgetsWithExpenses() {
-    const expenseMap = new Map<string, number>();
-
-    this.filteredExpenses.forEach(expense => {
-      expenseMap.set(
-        expense.category,
-        (expenseMap.get(expense.category) || 0) + expense.amount
-      );
-    });
-
-    this.budgets.forEach(budget => {
-      const spentInCategory = expenseMap.get(budget.category) || 0;
-      budget.currentSpending = spentInCategory;
-      budget.remaining = budget.moneyLimit - spentInCategory;
-    });
-
-    this.calculateTotals();
-  }
-
   
   loadBudgetData() {
     this.loading = true;
     if(this.selectedCategory === '') this.selectedCategory = 'all';
 
-    this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/budget/getBudgetDetails/${this.selectedCategory}`).subscribe({
+    this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/budget/getBudgetDetails/${this.selectedCategory}/${this.selectedMonth}/${this.selectedYear}`).subscribe({
       next: (budgets) => {
         if(budgets === null){
           this.toastr.warning('You dont have budget', 'Please add Budget plan');
+          this.loading = false;
         }
         else {
           this.budgets = budgets;
           this.calculateTotals();
-          // Load expenses after fetching budgets to update categories
-          this.loadExpensesData();
         }
       },
       error: (error) => {
@@ -201,22 +122,9 @@ export class BudgetsComponent {
   calculateTotals() {
     this.totalBudget = this.budgets.reduce((sum, budget) => sum + budget.moneyLimit, 0);
     this.totalSpent = this.budgets.reduce((sum, budget) => sum + budget.currentSpending, 0);
-  }
+  }  
 
-  
-  calculateBudgetRemaining(data: Budget[]): void {
-    data.forEach(budget => {
-      budget.remaining = budget.moneyLimit - budget.currentSpending;
-    });
-  }
-  
-
-  getProgressPercentage(currentSpending: number, moneyLimit: number): number {
-    return (currentSpending / moneyLimit) * 100;
-  }
-
-  getProgressColor(currentSpending: number, moneyLimit: number): string {
-    const percentage = this.getProgressPercentage(currentSpending, moneyLimit);
+  getProgressColor(percentage: number): string {
     if (percentage >= 90) return '#f44336';  // Red
     if (percentage >= 75) return '#ff9800';  // Orange
     return '#4caf50';  // Green
@@ -230,42 +138,34 @@ export class BudgetsComponent {
   
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
+        console.log(result);
 
-        const categoryRequests: Promise<any>[] = result.categories.map((category: any) => {
-          const categoryData = {
-            ...category, // Includes fields like name, percentage, and amount
-          };
-
-          // Send individual POST request for each category
-          return this.httpClient.post(`${this.baseUrl}/api/v1/budget/saveBudget`, categoryData).toPromise(); // Convert Observable to Promise
-        });
-
-        // Execute all POST requests
-        Promise.all(categoryRequests)
-          .then(() => {
-            this.toastr.success('All categories added successfully');
-            this.loadBudgetData(); // Refresh data if necessary
-          })
-          .catch((error) => {
-            console.error('Failed to add one or more categories:', error);
-            this.toastr.error('Some categories failed to add');
+        this.httpClient.post(`${this.baseUrl}/api/v1/budget/saveBudget`, result).subscribe({
+          next : () => {
+            this.loadBudgetData();
+            this.toastr.success('Budget added successfully')
+          },
+          error: (error) => {
+            console.error('Failed to load total income:', error);
+            this.toastr.error('Failed to add Budget! Please try later')
             if(error.status === 401){
-              if (error.error === 'TokenExpired') {
-                alert('Your session has expired. Please login again.');
-                sessionStorage.removeItem('moneyfi.auth');
-                this.router.navigate(['/']);
-              } else if(error.error === 'Token is blacklisted'){
-                alert('Your session has expired. Please login again.');
-                sessionStorage.removeItem('moneyfi.auth');
-                this.router.navigate(['/']);
-              }
-              else if(error.error === 'AuthorizationFailed'){
+                if (error.error === 'TokenExpired') {
+                  alert('Your session has expired. Please login again.');
+                  sessionStorage.removeItem('moneyfi.auth');
+                  this.router.navigate(['/']);
+                } else if(error.error === 'Token is blacklisted'){
+                  alert('Your session has expired. Please login again.');
+                  sessionStorage.removeItem('moneyfi.auth');
+                  this.router.navigate(['/']);
+                }
+                else if(error.error === 'AuthorizationFailed'){
+                  alert('Service Unavailable!! Please try later');
+                }
+              } else if (error.status === 503){
                 alert('Service Unavailable!! Please try later');
               }
-            } else if (error.status === 503){
-              alert('Service Unavailable!! Please try later');
-            }
-          });
+          }
+        })
       }
     });
   }
@@ -286,7 +186,6 @@ export class BudgetsComponent {
     });
   }
   
-  // Save all updated budgets to the backend
   private saveUpdatedBudgets(updatedBudgets: any[]) {
     const token = sessionStorage.getItem('moneyfi.auth');
     let updateCount = 0;
@@ -331,7 +230,6 @@ export class BudgetsComponent {
 
   filterExpenses() {
     this.loadBudgetData();
-    // this.loadExpensesData();
   }
 
   resetFilters() {

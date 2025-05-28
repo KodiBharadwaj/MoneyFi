@@ -1,4 +1,4 @@
-package com.moneyfi.budget.service.dto.response;
+package com.moneyfi.budget.service.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,10 +9,8 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BudgetDetailsDto {
-    private Long id;
+public class AddBudgetDto {
     private String category;
-    private BigDecimal currentSpending;
+    private Integer percentage;
     private BigDecimal moneyLimit;
-    private Long progressPercentage;
 }

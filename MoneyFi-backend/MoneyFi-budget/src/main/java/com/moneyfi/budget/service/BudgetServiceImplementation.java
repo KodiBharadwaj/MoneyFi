@@ -3,6 +3,7 @@ package com.moneyfi.budget.service;
 import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.repository.BudgetRepository;
 import com.moneyfi.budget.repository.common.BudgetCommonRepository;
+import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -29,20 +30,28 @@ public class BudgetServiceImplementation implements BudgetService{
     }
 
     @Override
-    public BudgetModel save(BudgetModel budget) {
-        return budgetRepository.save(budget);
+    @Transactional
+    public void save(List<AddBudgetDto> budgetList, Long userId) {
+
+        for(AddBudgetDto budget : budgetList){
+            BudgetModel budgetModel = new BudgetModel();
+            budgetModel.setUserId(userId);
+            budgetModel.setCategory(budget.getCategory());
+            budgetModel.setMoneyLimit(budget.getMoneyLimit());
+            budgetRepository.save(budgetModel);
+        }
     }
 
     @Override
-    public List<BudgetDetailsDto> getAllBudgetsByUserIdAndCategory(Long userId, String category) {
-        return budgetCommonRepository.getBudgetsByUserId(userId, category);
+    public List<BudgetDetailsDto> getAllBudgetsByUserIdAndCategory(Long userId, int month, int year, String category) {
+        return budgetCommonRepository.getBudgetsByUserId(userId, month, year, category);
     }
 
     @Override
     @Transactional
     public BigDecimal budgetProgress(Long userId, int month, int year) {
 
-        List<BudgetDetailsDto> budgetsList = getAllBudgetsByUserIdAndCategory(userId, "all");
+        List<BudgetDetailsDto> budgetsList = getAllBudgetsByUserIdAndCategory(userId, month, year, "all");
         BigDecimal moneyLimit = budgetsList
                             .stream()
                             .map(i->i.getMoneyLimit())
@@ -62,9 +71,11 @@ public class BudgetServiceImplementation implements BudgetService{
     }
 
     @Override
-    public BudgetModel update(Long id, BudgetModel budget) {
-        System.out.println(budget);
+    public BudgetModel update(Long id, Long userId, BudgetModel budget) {
         BudgetModel budgetModel = budgetRepository.findById(id).orElse(null);
+        if(budgetModel.getUserId() != userId){
+            return null;
+        }
 
         if(budget.getCategory() != null){
             budgetModel.setCategory(budget.getCategory());
@@ -76,6 +87,6 @@ public class BudgetServiceImplementation implements BudgetService{
             budgetModel.setMoneyLimit(budget.getMoneyLimit());
         }
 
-        return save(budgetModel);
+        return budgetRepository.save(budgetModel);
     }
 }
