@@ -6,6 +6,7 @@ Major Changes:
 - Implement forgot username feature (user should receive mail by providing necessary details like dob, phn No)
 
 Minor Changes:
+- check with sonar for code quality.
 - Write junit test cases for income service (ongoing)
 - Landing page, so may buttons are there in the footer. Add the necessary info.
 - Replace double with BigDecimal in amount (frontend pending)
@@ -15,7 +16,7 @@ Minor Changes:
 
 Defects:
 - User feedback mail images are not sending as images in mail to admin.
-
+- Trigger is not coming in scripts generated.
 
 
 
