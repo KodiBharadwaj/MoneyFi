@@ -30,7 +30,7 @@ public interface ExpenseService {
 
     List<BigDecimal> getCumulativeMonthlySavings(Long userId, int year);
 
-    ExpenseModel updateBySource(Long id, ExpenseModel expense);
+    ExpenseDetailsDto updateBySource(Long id, Long userId, ExpenseModel expense);
 
     boolean deleteExpenseById(List<Long> ids);
 }

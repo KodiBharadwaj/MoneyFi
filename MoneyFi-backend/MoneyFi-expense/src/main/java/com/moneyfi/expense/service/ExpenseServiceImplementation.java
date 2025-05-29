@@ -7,6 +7,7 @@ import com.moneyfi.expense.service.dto.response.ExpenseDetailsDto;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -14,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -258,7 +260,10 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public ExpenseModel updateBySource(Long id, ExpenseModel expense) {
+    public ExpenseDetailsDto updateBySource(Long id, Long userId, ExpenseModel expense) {
+        expense.setUserId(userId);
+        expense.set_deleted(false);
+
         ExpenseModel expenseModel = expenseRepository.findById(id).orElse(null);
 
         if(expense.getCategory() != null){
@@ -277,7 +282,13 @@ public class ExpenseServiceImplementation implements ExpenseService{
             expenseModel.setRecurring(expense.isRecurring());
         }
 
-        return save(expenseModel);
+        return updateExpenseDtoConversion(save(expenseModel));
+    }
+    private ExpenseDetailsDto updateExpenseDtoConversion(ExpenseModel updatedExpense){
+        ExpenseDetailsDto expenseDetailsDto = new ExpenseDetailsDto();
+        BeanUtils.copyProperties(updatedExpense, expenseDetailsDto);
+        expenseDetailsDto.setDate(Date.valueOf(updatedExpense.getDate()));
+        return expenseDetailsDto;
     }
 
     @Override

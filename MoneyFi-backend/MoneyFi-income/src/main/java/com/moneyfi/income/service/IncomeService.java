@@ -29,13 +29,13 @@ public interface IncomeService {
 
     BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(Long userId, int month, int year);
 
-    boolean incomeUpdateCheckFunction(IncomeModel incomeModel);
+    boolean incomeUpdateCheckFunction(IncomeModel incomeModel, Long userId);
 
     boolean incomeDeleteCheckFunction(IncomeModel incomeModel);
 
     boolean incomeRevertFunction(Long incomeId, Long userId);
 
-    IncomeModel updateBySource(Long id, IncomeModel income);
+    IncomeDetailsDto updateBySource(Long id, Long userId, IncomeModel income);
 
     boolean deleteIncomeById(Long id, Long userId);
 

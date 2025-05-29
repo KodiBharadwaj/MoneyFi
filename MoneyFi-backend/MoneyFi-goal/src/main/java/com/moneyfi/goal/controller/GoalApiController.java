@@ -2,7 +2,6 @@ package com.moneyfi.goal.controller;
 
 import com.moneyfi.goal.config.JwtService;
 import com.moneyfi.goal.model.GoalModel;
-import com.moneyfi.goal.repository.GoalRepository;
 import com.moneyfi.goal.service.GoalService;
 import com.moneyfi.goal.service.dto.response.GoalDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +12,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v1/goal")
@@ -23,14 +21,11 @@ public class GoalApiController {
     private RestTemplate restTemplate;
 
     private final GoalService goalService;
-    private final GoalRepository goalRepository;
     private final JwtService jwtService;
 
     public GoalApiController(GoalService goalService,
-                             GoalRepository goalRepository,
                              JwtService jwtService){
         this.goalService = goalService;
-        this.goalRepository = goalRepository;
         this.jwtService = jwtService;
     }
 
@@ -53,11 +48,11 @@ public class GoalApiController {
 
     @Operation(summary = "Method to add a goal")
     @PostMapping("/saveGoal")
-    public ResponseEntity<GoalModel> saveGoal(@RequestBody GoalModel goal,
+    public ResponseEntity<GoalDetailsDto> saveGoal(@RequestBody GoalModel goal,
                                               @RequestHeader("Authorization") String authHeader) {
 
         BigDecimal amountToBeAdded = BigDecimal.ZERO;
-        GoalModel createdGoal = goalService.save(goal, amountToBeAdded, authHeader);
+        GoalDetailsDto createdGoal = goalService.save(goal, amountToBeAdded, authHeader);
         if (createdGoal != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdGoal); // 201
         } else {
@@ -67,7 +62,7 @@ public class GoalApiController {
 
     @Operation(summary = "Method to add amount to a particular goal")
     @PostMapping("/{id}/addAmount/{amount}")
-    public GoalModel addAmount(@RequestHeader("Authorization") String authHeader,
+    public GoalDetailsDto addAmount(@RequestHeader("Authorization") String authHeader,
                                @PathVariable("id") Long id,
                                @PathVariable("amount") BigDecimal amount){
 
@@ -98,10 +93,10 @@ public class GoalApiController {
 
     @Operation(summary = "Method to update the goal details")
     @PutMapping("/{id}")
-    public ResponseEntity<GoalModel> updateGoal(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<GoalDetailsDto> updateGoal(@RequestHeader("Authorization") String authHeader,
                                                 @PathVariable("id") Long id,
                                                 @RequestBody GoalModel goal) {
-        GoalModel updatedGoal = goalService.updateByGoalName(id, goal, authHeader);
+        GoalDetailsDto updatedGoal = goalService.updateByGoalName(id, goal, authHeader);
 
         if(updatedGoal != null){
             return ResponseEntity.status(HttpStatus.CREATED).body(updatedGoal);

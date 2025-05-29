@@ -8,6 +8,7 @@ import com.moneyfi.goal.repository.common.GoalCommonRepository;
 import com.moneyfi.goal.service.dto.response.GoalDetailsDto;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -15,9 +16,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,7 +43,7 @@ public class GoalServiceImplementation implements GoalService{
 
     @Override
     @Transactional
-    public GoalModel save(GoalModel goal, BigDecimal amountToBeAdded, String authHeader) {
+    public GoalDetailsDto save(GoalModel goal, BigDecimal amountToBeAdded, String authHeader) {
         String token = authHeader.substring(7);
         Long userId = jwtService.extractUserIdFromToken(token);
         goal.setUserId(userId);
@@ -55,7 +56,7 @@ public class GoalServiceImplementation implements GoalService{
             goal.setExpenseIds(goal.getExpenseIds() + "," + expenseId.toString());
         }
 
-        return goalRepository.save(goal);
+        return updatedGoalDtoConversion(goalRepository.save(goal));
     }
     private Long functionCallToExpenseServiceToSaveExpense(GoalModel goal, BigDecimal amountToBeAdded, String token){
         ExpenseModelDto expenseModelDto = new ExpenseModelDto();
@@ -88,7 +89,7 @@ public class GoalServiceImplementation implements GoalService{
 
     @Override
     @Transactional
-    public GoalModel addAmount(Long id, BigDecimal amount, String authHeader) {
+    public GoalDetailsDto addAmount(Long id, BigDecimal amount, String authHeader) {
         GoalModel goalModel = goalRepository.findById(id).orElse(null);
         goalModel.setCurrentAmount(goalModel.getCurrentAmount().add(amount));
         return save(goalModel, amount, authHeader);
@@ -120,12 +121,15 @@ public class GoalServiceImplementation implements GoalService{
     }
 
     @Override
-    public GoalModel updateByGoalName(Long id, GoalModel goal, String authHeader) {
+    public GoalDetailsDto updateByGoalName(Long id, GoalModel goal, String authHeader) {
         String token = authHeader.substring(7);
         Long userId = jwtService.extractUserIdFromToken(token);
 
         goal.setUserId(userId);
         GoalModel goalModel = goalRepository.findById(id).orElse(null);
+        if(goalModel.getUserId() != userId){
+            return null;
+        }
 
         if(goal.getGoalName() != null){
             goalModel.setGoalName(goal.getGoalName());
@@ -142,7 +146,13 @@ public class GoalServiceImplementation implements GoalService{
          * Meanwhile, the ssms trigger activates here to update expense row with respective goal data.
          */
 
-        return goalRepository.save(goalModel);
+        return updatedGoalDtoConversion(goalRepository.save(goalModel));
+    }
+    private GoalDetailsDto updatedGoalDtoConversion(GoalModel updatedGoal){
+        GoalDetailsDto goalDetailsDto = new GoalDetailsDto();
+        BeanUtils.copyProperties(updatedGoal, goalDetailsDto);
+        goalDetailsDto.setDeadLine(Date.valueOf(updatedGoal.getDeadLine()));
+        return goalDetailsDto;
     }
 
     @Override

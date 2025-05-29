@@ -150,8 +150,7 @@ public class IncomeApiController {
     public boolean incomeUpdateCheckFunction(@RequestHeader("Authorization") String authHeader,
                                              @RequestBody IncomeModel incomeModel){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        incomeModel.setUserId(userId);
-        return incomeService.incomeUpdateCheckFunction(incomeModel);
+        return incomeService.incomeUpdateCheckFunction(incomeModel, userId);
     }
 
     @Operation(summary = "Method to check the particular income can be deleted")
@@ -180,13 +179,12 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to update the income details")
     @PutMapping("/{id}")
-    public ResponseEntity<IncomeModel> updateIncome(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<IncomeDetailsDto> updateIncome(@RequestHeader("Authorization") String authHeader,
                                                     @PathVariable("id") Long id,
                                                     @RequestBody IncomeModel income) {
 
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
 
-        income.setUserId(userId);
         IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
         if(incomeModel.getUserId() != userId){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); // 401
@@ -202,7 +200,7 @@ public class IncomeApiController {
             }
         }
 
-        IncomeModel updatedIncome = incomeService.updateBySource(id, income);
+        IncomeDetailsDto updatedIncome = incomeService.updateBySource(id, userId, income);
         if(updatedIncome!=null){
             return ResponseEntity.status(HttpStatus.CREATED).body(updatedIncome); // 201
         }

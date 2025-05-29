@@ -116,10 +116,10 @@ public class UserServiceImplementation implements UserService {
             if (existingUser == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UserAuthModel not found. Please sign up.");
             }
-            if(existingUser != null && existingUser.isBlocked()){
+            else if(existingUser.isBlocked()){
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Account Blocked! Please contact admin");
             }
-            if(existingUser != null && existingUser.isDeleted()){
+            else if(existingUser.isDeleted()){
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Account Deleted! Please contact admin");
             }
 
@@ -147,16 +147,14 @@ public class UserServiceImplementation implements UserService {
     private void makeOldSessionInActiveOfUserForNewLogin(UserAuthModel userAuthModel){
 
         SessionTokenModel sessionTokenUser = sessionTokenService.getUserByUsername(userAuthModel.getUsername());
-        if(sessionTokenUser != null){
-            if(sessionTokenUser.getIsActive()){
-                String oldToken = sessionTokenUser.getToken();
+        if(sessionTokenUser != null && sessionTokenUser.getIsActive()){
+            String oldToken = sessionTokenUser.getToken();
 
-                BlackListedToken blackListedToken = new BlackListedToken();
-                blackListedToken.setToken(oldToken);
-                Date expiryDate = new Date(System.currentTimeMillis() + 3600000);
-                blackListedToken.setExpiry(expiryDate);
-                blacklistService.blacklistToken(blackListedToken);
-            }
+            BlackListedToken blackListedToken = new BlackListedToken();
+            blackListedToken.setToken(oldToken);
+            Date expiryDate = new Date(System.currentTimeMillis() + 3600000);
+            blackListedToken.setExpiry(expiryDate);
+            blacklistService.blacklistToken(blackListedToken);
         }
     }
     private void functionToPreventMultipleLogins(UserAuthModel userAuthModel, JwtToken token){

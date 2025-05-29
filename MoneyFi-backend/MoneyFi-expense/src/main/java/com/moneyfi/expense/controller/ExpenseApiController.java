@@ -156,11 +156,10 @@ public class ExpenseApiController {
 
     @Operation(summary = "Method to update the expense details")
     @PutMapping("/{id}")
-    public ResponseEntity<ExpenseModel> updateExpense(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<ExpenseDetailsDto> updateExpense(@RequestHeader("Authorization") String authHeader,
                                                       @PathVariable("id") Long id,
                                                       @RequestBody ExpenseModel expense) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        expense.setUserId(userId);
 
         ExpenseModel expenseModel = expenseRepository.findById(id).orElse(null);
         if(expenseModel != null){
@@ -172,7 +171,7 @@ public class ExpenseApiController {
                 return ResponseEntity.noContent().build(); // 204
             }
         }
-        ExpenseModel updatedExpense = expenseService.updateBySource(id, expense);
+        ExpenseDetailsDto updatedExpense = expenseService.updateBySource(id, userId, expense);
         if(updatedExpense!=null){
             return ResponseEntity.status(HttpStatus.CREATED).body(updatedExpense);
         }
