@@ -298,7 +298,7 @@ export class IncomeComponent {
         date: formattedDate,
       };
 
-      this.httpClient.put<IncomeSource>(`${this.baseUrl}/api/v1/income/${income.id}`, updatedIncomeData).subscribe({
+      this.httpClient.put<any>(`${this.baseUrl}/api/v1/income/${income.id}`, updatedIncomeData).subscribe({
         next: (updatedIncome) => {
           if(updatedIncome){
             this.toastr.success("Income of " + updatedIncome.source + " updated successfully");

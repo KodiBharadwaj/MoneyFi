@@ -267,10 +267,10 @@ export class ExpensesComponent {
         const updatedTotalExpenses = this.totalExpenses - expense.amount + result.amount;
         
         // Check if the update would exceed income
-        if (updatedTotalExpenses > this.totalIncome) {
-          this.toastr.error('Cannot update expense. Amount exceeds available income.', 'Insufficient Income');
-          return;
-        }
+        // if (updatedTotalExpenses > this.totalIncome) {
+        //   this.toastr.error('Cannot update expense. Amount exceeds available income.', 'Insufficient Income');
+        //   return;
+        // }
 
         const formattedDate = this.formatDate(result.date);
         const updatedExpenseData = {
