@@ -16,7 +16,6 @@ Minor Changes:
 
 Defects:
 - update functionality is not working in all services.
-- change update budget to backend list.
 - User feedback mail images are not sending as images in mail to admin.
 
 
@@ -44,6 +43,7 @@ cleared changes:
 - Goal frontend implementation moved to sp.
 - Implement delete account & block feature (soft delete - can be revert back if user needs ticket raise)
 - check with sonar for code quality and sonar fixes.
+- change update budget to backend list.
 
 
 cleared defects:
