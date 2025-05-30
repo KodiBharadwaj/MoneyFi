@@ -3,6 +3,7 @@ package com.moneyfi.income.service;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
+import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,7 +36,7 @@ public interface IncomeService {
 
     boolean incomeRevertFunction(Long incomeId, Long userId);
 
-    IncomeDetailsDto updateBySource(Long id, Long userId, IncomeModel income);
+    ResponseEntity<IncomeDetailsDto> updateBySource(Long id, Long userId, IncomeModel income);
 
     boolean deleteIncomeById(Long id, Long userId);
 

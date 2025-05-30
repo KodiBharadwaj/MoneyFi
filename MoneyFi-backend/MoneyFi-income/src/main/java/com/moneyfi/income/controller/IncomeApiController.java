@@ -3,7 +3,6 @@ package com.moneyfi.income.controller;
 import com.moneyfi.income.config.JwtService;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeModel;
-import com.moneyfi.income.repository.IncomeRepository;
 import com.moneyfi.income.service.IncomeService;
 import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -22,14 +20,11 @@ import java.util.List;
 public class IncomeApiController {
 
     private final IncomeService incomeService;
-    private final IncomeRepository incomeRepository;
     private final JwtService jwtService;
 
     public IncomeApiController(IncomeService incomeService,
-                               IncomeRepository incomeRepository,
                                JwtService jwtService){
         this.incomeService = incomeService;
-        this.incomeRepository = incomeRepository;
         this.jwtService = jwtService;
     }
 
@@ -73,7 +68,7 @@ public class IncomeApiController {
     public ResponseEntity<byte[]> getMonthlyIncomeReport(@RequestHeader("Authorization") String authHeader,
                                                          @PathVariable("month") int month,
                                                          @PathVariable("year") int year,
-                                                         @PathVariable("category") String category) throws IOException {
+                                                         @PathVariable("category") String category) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
 
         byte[] excelData = incomeService.generateMonthlyExcelReport(userId, month, year, category);
@@ -108,7 +103,7 @@ public class IncomeApiController {
     @GetMapping("/{year}/{category}/generateYearlyReport")
     public ResponseEntity<byte[]> getYearlyIncomeReport(@RequestHeader("Authorization") String authHeader,
                                                         @PathVariable("year") int year,
-                                                        @PathVariable("category") String category) throws IOException {
+                                                        @PathVariable("category") String category) {
 
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
 
@@ -185,28 +180,7 @@ public class IncomeApiController {
 
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
 
-        IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
-        if(incomeModel.getUserId() != userId){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); // 401
-        }
-        if(incomeModel != null){
-            if(incomeModel.getAmount().compareTo(income.getAmount()) == 0 &&
-                    incomeModel.getSource().equals(income.getSource()) &&
-                    incomeModel.getCategory().equals(income.getCategory()) &&
-                    incomeModel.getDate().equals(income.getDate()) &&
-                    incomeModel.isRecurring() == income.isRecurring()){
-                return ResponseEntity.noContent().build(); // HTTP 204
-
-            }
-        }
-
-        IncomeDetailsDto updatedIncome = incomeService.updateBySource(id, userId, income);
-        if(updatedIncome!=null){
-            return ResponseEntity.status(HttpStatus.CREATED).body(updatedIncome); // 201
-        }
-        else{
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null); // 409
-        }
+        return incomeService.updateBySource(id, userId, income);
     }
 
     @Operation(summary = "Method to delete the particular income. Here which is typically soft delete only")

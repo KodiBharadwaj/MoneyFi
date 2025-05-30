@@ -15,11 +15,16 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.moneyfi.income.utils.StringConstants.*;
+
 @Repository
 public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
 
-    @Autowired
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
+
+    public IncomeCommonRepositoryImpl(EntityManager entityManager){
+        this.entityManager = entityManager;
+    }
 
     @Override
     public List<IncomeDetailsDto> getAllIncomesByDate(Long userId, int month, int year, String category, boolean deleteStatus) {
@@ -33,10 +38,10 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                                         "@month = :month, " +
                                         "@year = :year, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("month", month)
-                        .setParameter("year", year)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(MONTH, month)
+                        .setParameter(YEAR, year)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
 
@@ -51,11 +56,11 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                                         "@year = :year, " +
                                         "@category = :category, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("month", month)
-                        .setParameter("year", year)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(MONTH, month)
+                        .setParameter(YEAR, year)
                         .setParameter("category", category)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
 
@@ -79,9 +84,9 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                             "@userId = :userId, " +
                             "@month = :month, " +
                             "@year = :year")
-                    .setParameter("userId", userId)
-                    .setParameter("month", month)
-                    .setParameter("year", year)
+                    .setParameter(USER_ID, userId)
+                    .setParameter(MONTH, month)
+                    .setParameter(YEAR, year)
                     .unwrap(NativeQuery.class)
                     .setResultListTransformer(Transformers.aliasToBean(IncomeDeletedDto.class));
 
@@ -103,9 +108,9 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                                         "@userId = :userId, " +
                                         "@year = :year, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("year", year)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(YEAR, year)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
 
@@ -119,10 +124,10 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                                         "@year = :year, " +
                                         "@category = :category, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("year", year)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(YEAR, year)
                         .setParameter("category", category)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
 
@@ -143,9 +148,9 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                                     "@userId = :userId, " +
                                     "@month = :month, " +
                                     "@year = :year")
-                    .setParameter("userId", userId)
-                    .setParameter("month", month)
-                    .setParameter("year", year);
+                    .setParameter(USER_ID, userId)
+                    .setParameter(MONTH, month)
+                    .setParameter(YEAR, year);
 
             return (BigDecimal) query.getSingleResult();
 
@@ -162,9 +167,9 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                                     "@userId = :userId, " +
                                     "@month = :month, " +
                                     "@year = :year")
-                    .setParameter("userId", userId)
-                    .setParameter("month", month)
-                    .setParameter("year", year);
+                    .setParameter(USER_ID, userId)
+                    .setParameter(MONTH, month)
+                    .setParameter(YEAR, year);
 
             return (BigDecimal) query.getSingleResult();
 
@@ -181,9 +186,9 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                                     "@userId = :userId, " +
                                     "@month = :month, " +
                                     "@year = :year")
-                    .setParameter("userId", userId)
-                    .setParameter("month", month)
-                    .setParameter("year", year);
+                    .setParameter(USER_ID, userId)
+                    .setParameter(MONTH, month)
+                    .setParameter(YEAR, year);
 
             return (BigDecimal) query.getSingleResult();
 
@@ -200,9 +205,9 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                                     "@userId = :userId, " +
                                     "@month = :month, " +
                                     "@year = :year")
-                    .setParameter("userId", userId)
-                    .setParameter("month", month)
-                    .setParameter("year", year);
+                    .setParameter(USER_ID, userId)
+                    .setParameter(MONTH, month)
+                    .setParameter(YEAR, year);
 
             return (BigDecimal) query.getSingleResult();
 
@@ -217,7 +222,7 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
             Query query = entityManager.createNativeQuery(
                             "exec [getAvailableBalanceOfUser] " +
                                     "@userId = :userId")
-                    .setParameter("userId", userId);
+                    .setParameter(USER_ID, userId);
 
             return (BigDecimal) query.getSingleResult();
 
