@@ -15,16 +15,13 @@ public class ProfileServiceImplementation implements ProfileService{
     private final ProfileRepository profileRepository;
     private final ContactUsRepository contactUsRepository;
     private final FeedbackRepository feedbackRepository;
-    private final EmailFilter emailFilter;
 
     public ProfileServiceImplementation(ProfileRepository profileRepository,
                                         ContactUsRepository contactUsRepository,
-                                        FeedbackRepository feedbackRepository,
-                                        EmailFilter emailFilter){
+                                        FeedbackRepository feedbackRepository){
         this.profileRepository = profileRepository;
         this.contactUsRepository = contactUsRepository;
         this.feedbackRepository = feedbackRepository;
-        this.emailFilter = emailFilter;
     }
 
     @Override
@@ -80,7 +77,7 @@ public class ProfileServiceImplementation implements ProfileService{
 
         body += "</body></html>";
 
-        emailFilter.sendEmail("bharadwajkodi2003@gmail.com", subject, body);
+        EmailFilter.sendEmail("bharadwajkodi2003@gmail.com", subject, body);
     }
 
     @Override
@@ -101,6 +98,6 @@ public class ProfileServiceImplementation implements ProfileService{
                 + "<p style='font-size: 16px;'>Comment: </p>"
                 + "<p style='font-size: 16px;'>" + feedback.getComments() + "</p>";
 
-        emailFilter.sendEmail("bharadwajkodi2003@gmail.com", subject, body);
+        EmailFilter.sendEmail("bharadwajkodi2003@gmail.com", subject, body);
     }
 }

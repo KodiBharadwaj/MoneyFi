@@ -1,6 +1,7 @@
 package com.moneyfi.apigateway.service.resetpassword;
 
 
+import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.repository.auth.UserRepository;
 import com.moneyfi.apigateway.repository.common.ProfileRepository;
@@ -8,7 +9,6 @@ import com.moneyfi.apigateway.util.EmailFilter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 
@@ -16,17 +16,11 @@ import java.time.LocalDateTime;
 public class ResetPasswordImplementation implements ResetPassword {
 
     private final UserRepository userRepository;
-    private final EmailFilter emailUtil;
-    private final RestTemplate restTemplate;
     private final ProfileRepository profileRepository;
 
-    public ResetPasswordImplementation(EmailFilter emailFilter,
-                                       UserRepository userRepository,
-                                       RestTemplate restTemplate,
+    public ResetPasswordImplementation(UserRepository userRepository,
                                        ProfileRepository profileRepository){
-        this.emailUtil = emailFilter;
         this.userRepository = userRepository;
-        this.restTemplate = restTemplate;
         this.profileRepository = profileRepository;
     }
 
@@ -36,10 +30,10 @@ public class ResetPasswordImplementation implements ResetPassword {
 
         UserAuthModel userAuthModel = userRepository.findByUsername(email);
         if(userAuthModel == null){
-            throw new RuntimeException("No userAuthModel Found");
+            throw new ResourceNotFoundException("No userAuthModel Found");
         }
 
-        String verificationCode = emailUtil.generateVerificationCode();
+        String verificationCode = EmailFilter.generateVerificationCode();
 
 
         userAuthModel.setVerificationCode(verificationCode);
@@ -64,7 +58,7 @@ public class ResetPasswordImplementation implements ResetPassword {
                 + "<p style='font-size: 14px;'>The Support Team</p>"
                 + "</body>"
                 + "</html>";
-        boolean isMailSent = emailUtil.sendEmail(email, subject, body);
+        boolean isMailSent = EmailFilter.sendEmail(email, subject, body);
 
         if(isMailSent){
             return "Verification code sent to your email!";
@@ -77,16 +71,11 @@ public class ResetPasswordImplementation implements ResetPassword {
     @Override
     public boolean verifyCode(String email, String code) {
         UserAuthModel userAuthModel = userRepository.findByUsername(email);
-
-        if(userAuthModel ==null){
-             throw  new RuntimeException("UserAuthModel not found");
+        if(userAuthModel == null){
+             throw new ResourceNotFoundException("UserAuthModel not found");
         }
 
-        if (userAuthModel.getVerificationCode().equals(code) && LocalDateTime.now().isBefore(userAuthModel.getVerificationCodeExpiration())) {
-            return true;
-        }
-
-        return false;
+        return userAuthModel.getVerificationCode().equals(code) && LocalDateTime.now().isBefore(userAuthModel.getVerificationCodeExpiration());
     }
 
     @Override

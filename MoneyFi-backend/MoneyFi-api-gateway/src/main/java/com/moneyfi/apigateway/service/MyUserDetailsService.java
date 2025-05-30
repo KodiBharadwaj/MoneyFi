@@ -3,12 +3,14 @@ package com.moneyfi.apigateway.service;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.repository.auth.UserRepository;
 import com.moneyfi.apigateway.model.UserPrincipal;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class MyUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -23,7 +25,7 @@ public class MyUserDetailsService implements UserDetailsService {
         UserAuthModel userAuthModel = userRepository.findByUsername(username);
 
         if (userAuthModel == null) {
-            System.out.println("No userAuthModel with this UserAuthModel Name: " + username);
+            log.info("No userAuthModel with this UserAuthModel Name: " + username);
             throw new UsernameNotFoundException("UserAuthModel Not Found");
         } else {
             return new UserPrincipal(userAuthModel);
