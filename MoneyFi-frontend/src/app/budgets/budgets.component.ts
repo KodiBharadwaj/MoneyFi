@@ -180,49 +180,49 @@ export class BudgetsComponent {
   
     dialogRef.afterClosed().subscribe((updatedBudgets) => {
       if (updatedBudgets) {
-        // console.log(updatedBudgets);
-        this.saveUpdatedBudgets(updatedBudgets);
+
+        const modifiedBudgets = updatedBudgets.filter((updatedBudget: any) => {
+          const originalBudget = this.budgets.find(b => b.id === updatedBudget.id);
+          return originalBudget && originalBudget.moneyLimit !== updatedBudget.moneyLimit;
+        });
+  
+        if (modifiedBudgets.length > 0) {
+          console.log('Modified budgets:', modifiedBudgets);
+          this.saveUpdatedBudgets(modifiedBudgets);
+        } else {
+          this.toastr.warning('No changes to update');
+        }
       }
     });
   }
   
   private saveUpdatedBudgets(updatedBudgets: any[]) {
-    const token = sessionStorage.getItem('moneyfi.auth');
-    let updateCount = 0;
-  
-    updatedBudgets.forEach((budget) => {
-      // console.log(budget);
-      this.httpClient.put(`${this.baseUrl}/api/v1/budget/${budget.id}`, budget).subscribe({
-          next: () => {
-            updateCount++;
-  
-            // Check if all budgets have been updated
-            if (updateCount === updatedBudgets.length) {
-              this.toastr.success('All budgets updated successfully');
-              this.loadBudgetData(); // Refresh budgets after update
-            }
-          },
-          error: (error) => {
-            console.error('Failed to update budget:', error);
-            this.toastr.error('Failed to update budget');
-            if(error.status === 401){
-              if (error.error === 'TokenExpired') {
-                alert('Your session has expired. Please login again.');
-                sessionStorage.removeItem('moneyfi.auth');
-                this.router.navigate(['/']);
-              } else if(error.error === 'Token is blacklisted'){
-                alert('Your session has expired. Please login again.');
-                sessionStorage.removeItem('moneyfi.auth');
-                this.router.navigate(['/']);
-              }
-              else if(error.error === 'AuthorizationFailed'){
-                alert('Service Unavailable!! Please try later');
-              }
-            } else if (error.status === 503){
-              alert('Service Unavailable!! Please try later');
-            }
-          },
-        });
+
+    this.httpClient.put(`${this.baseUrl}/api/v1/budget/updateBudget`, updatedBudgets).subscribe({
+      next: () => {
+        this.toastr.success('Budget updated successfully');
+        this.loadBudgetData();
+      },
+      error: (error) => {
+        console.error('Failed to update budget:', error);
+        this.toastr.error('Failed to update budget');
+        if(error.status === 401){
+          if (error.error === 'TokenExpired') {
+            alert('Your session has expired. Please login again.');
+            sessionStorage.removeItem('moneyfi.auth');
+            this.router.navigate(['/']);
+          } else if(error.error === 'Token is blacklisted'){
+            alert('Your session has expired. Please login again.');
+            sessionStorage.removeItem('moneyfi.auth');
+            this.router.navigate(['/']);
+          }
+          else if(error.error === 'AuthorizationFailed'){
+            alert('Service Unavailable!! Please try later');
+          }
+        } else if (error.status === 503){
+          alert('Service Unavailable!! Please try later');
+        }
+      },
     });
   }
   

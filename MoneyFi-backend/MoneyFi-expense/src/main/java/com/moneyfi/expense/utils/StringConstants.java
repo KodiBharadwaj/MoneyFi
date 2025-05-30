@@ -1,4 +1,4 @@
-package com.moneyfi.expense;
+package com.moneyfi.expense.utils;
 
 public class StringConstants {
 

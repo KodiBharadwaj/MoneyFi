@@ -7,14 +7,13 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.Transformers;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.moneyfi.expense.StringConstants.*;
+import static com.moneyfi.expense.utils.StringConstants.*;
 
 @Repository
 public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {

@@ -31,7 +31,7 @@ public class BudgetApiController {
     public void saveBudget(@RequestBody List<AddBudgetDto> budgetList,
                            @RequestHeader("Authorization") String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        budgetService.save(budgetList, userId);
+        budgetService.saveBudget(budgetList, userId);
     }
 
     @Operation(summary = "Method to get budget of a user")
@@ -59,17 +59,11 @@ public class BudgetApiController {
     }
 
     @Operation(summary = "Method to update the budget")
-    @PutMapping("/{id}")
-    public ResponseEntity<BudgetModel> updateBudget(@PathVariable("id") Long id,
-                                                    @RequestBody BudgetModel budget,
+    @PutMapping("/updateBudget")
+    public void updateBudget(@RequestBody List<BudgetModel> budgetList,
                                                     @RequestHeader("Authorization") String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        BudgetModel updatedBudget = budgetService.update(id, userId, budget);
-        if (updatedBudget != null) {
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body(updatedBudget); // 202
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+        budgetService.updateBudget(userId, budgetList);
     }
 
 }

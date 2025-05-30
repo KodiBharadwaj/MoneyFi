@@ -1,13 +1,12 @@
 package com.moneyfi.budget.service;
 
+import com.moneyfi.budget.exceptions.ResourceNotFoundException;
 import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.repository.BudgetRepository;
 import com.moneyfi.budget.repository.common.BudgetCommonRepository;
 import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
 import jakarta.transaction.Transactional;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -29,7 +28,7 @@ public class BudgetServiceImplementation implements BudgetService{
 
     @Override
     @Transactional
-    public void save(List<AddBudgetDto> budgetList, Long userId) {
+    public void saveBudget(List<AddBudgetDto> budgetList, Long userId) {
 
         for(AddBudgetDto budget : budgetList){
             BudgetModel budgetModel = new BudgetModel();
@@ -46,7 +45,6 @@ public class BudgetServiceImplementation implements BudgetService{
     }
 
     @Override
-    @Transactional
     public BigDecimal budgetProgress(Long userId, int month, int year) {
 
         List<BudgetDetailsDto> budgetsList = getAllBudgetsByUserIdAndCategory(userId, month, year, "all");
@@ -69,22 +67,27 @@ public class BudgetServiceImplementation implements BudgetService{
     }
 
     @Override
-    public ResponseEntity<BudgetModel> update(Long id, Long userId, BudgetModel budget) {
-        BudgetModel budgetModel = budgetRepository.findById(id).orElse(null);
-        if(budgetModel == null || !budgetModel.getUserId().equals(userId)){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        }
+    @Transactional
+    public void updateBudget(Long userId, List<BudgetModel> budgetList) {
 
-        if(budget.getCategory() != null){
-            budgetModel.setCategory(budget.getCategory());
-        }
-        if(budget.getCurrentSpending().compareTo(BigDecimal.ZERO) > 0){
-            budgetModel.setCurrentSpending(budget.getCurrentSpending());
-        }
-        if(budget.getMoneyLimit().compareTo(BigDecimal.ZERO) > 0){
-            budgetModel.setMoneyLimit(budget.getMoneyLimit());
-        }
+        for(BudgetModel budget : budgetList){
+            BudgetModel budgetModel = budgetRepository.findById(budget.getId()).orElse(null);
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(budgetRepository.save(budgetModel));
+            if(budgetModel == null || !budgetModel.getUserId().equals(userId)){
+                throw new ResourceNotFoundException("UnAuthorized try");
+            }
+
+            if(budget.getCategory() != null){
+                budgetModel.setCategory(budget.getCategory());
+            }
+            if(budget.getCurrentSpending().compareTo(BigDecimal.ZERO) > 0){
+                budgetModel.setCurrentSpending(budget.getCurrentSpending());
+            }
+            if(budget.getMoneyLimit().compareTo(BigDecimal.ZERO) > 0){
+                budgetModel.setMoneyLimit(budget.getMoneyLimit());
+            }
+
+            budgetRepository.save(budgetModel);
+        }
     }
 }

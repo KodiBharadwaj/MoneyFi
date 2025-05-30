@@ -6,7 +6,6 @@ Major Changes:
 - Implement forgot username feature (user should receive mail by providing necessary details like dob, phn No)
 
 Minor Changes:
-- check with sonar for code quality.
 - Write junit test cases for income service (ongoing)
 - Landing page, so may buttons are there in the footer. Add the necessary info.
 - Replace double with BigDecimal in amount (frontend pending)
@@ -17,10 +16,8 @@ Minor Changes:
 
 Defects:
 - update functionality is not working in all services.
-- user id exposing during updating a transaction in all services.
 - change update budget to backend list.
 - User feedback mail images are not sending as images in mail to admin.
-- Trigger is not coming in scripts generated.
 
 
 
@@ -46,7 +43,7 @@ cleared changes:
 - Implement soft delete and set 30 day expiration for the deleted transactions(Income). (ongoing)
 - Goal frontend implementation moved to sp.
 - Implement delete account & block feature (soft delete - can be revert back if user needs ticket raise)
-
+- check with sonar for code quality and sonar fixes.
 
 
 cleared defects:
@@ -72,3 +69,4 @@ cleared defects:
 - Implement dto feature to fetch data to exclue user id - data bleach
 - Text should not be acceptable in the profile phone number input.
 - DOB in profile is showing current date before loading and in server error time.
+- user id exposing during updating a transaction in all services.

@@ -10,11 +10,11 @@ import java.util.List;
 
 public interface BudgetService {
 
-    void save(List<AddBudgetDto> budgetList, Long userId);
+    void saveBudget(List<AddBudgetDto> budgetList, Long userId);
 
     List<BudgetDetailsDto> getAllBudgetsByUserIdAndCategory(Long userId, int month, int year, String category);
 
     BigDecimal budgetProgress(Long userId, int month, int year);
 
-    ResponseEntity<BudgetModel> update(Long id, Long userId, BudgetModel budget);
+    void updateBudget(Long userId, List<BudgetModel> budgetList);
 }

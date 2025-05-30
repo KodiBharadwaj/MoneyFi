@@ -1,4 +1,4 @@
-package com.moneyfi.goal;
+package com.moneyfi.goal.utils;
 
 public class StringConstants {
 
