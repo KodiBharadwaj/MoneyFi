@@ -17,9 +17,6 @@ import java.util.List;
 @RequestMapping("/api/v1/goal")
 public class GoalApiController {
 
-    @Autowired
-    private RestTemplate restTemplate;
-
     private final GoalService goalService;
     private final JwtService jwtService;
 
@@ -27,23 +24,6 @@ public class GoalApiController {
                              JwtService jwtService){
         this.goalService = goalService;
         this.jwtService = jwtService;
-    }
-
-    @GetMapping("/test")
-    public Object testFunction(@RequestHeader("Authorization") String authHeader){
-        String url = "http://localhost:8200/api/v1/expense/getExpenses";
-//        Object object = restTemplate.getForObject(url, Object.class);
-//        return object;
-        if (authHeader.startsWith("Bearer ")) {
-            authHeader = authHeader.substring(7);
-        }
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(authHeader);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
-        return response.getBody();
     }
 
     @Operation(summary = "Method to add a goal")
@@ -96,14 +76,7 @@ public class GoalApiController {
     public ResponseEntity<GoalDetailsDto> updateGoal(@RequestHeader("Authorization") String authHeader,
                                                 @PathVariable("id") Long id,
                                                 @RequestBody GoalModel goal) {
-        GoalDetailsDto updatedGoal = goalService.updateByGoalName(id, goal, authHeader);
-
-        if(updatedGoal != null){
-            return ResponseEntity.status(HttpStatus.CREATED).body(updatedGoal);
-        }
-        else {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
-        }
+        return goalService.updateByGoalName(id, goal, authHeader);
     }
 
     @Operation(summary = "Method to delete the goal by goal id")

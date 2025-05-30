@@ -14,11 +14,16 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.moneyfi.goal.StringConstants.USER_ID;
+
 @Repository
 public class GoalCommonRepositoryImpl implements GoalCommonRepository {
 
-    @Autowired
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
+
+    public GoalCommonRepositoryImpl(EntityManager entityManager){
+        this.entityManager = entityManager;
+    }
 
     @Override
     public List<GoalDetailsDto> getAllGoalsByUserId(Long userId) {
@@ -28,7 +33,7 @@ public class GoalCommonRepositoryImpl implements GoalCommonRepository {
             Query query = entityManager.createNativeQuery(
                             "exec [getAllGoalsByUserId] " +
                                     "@userId = :userId")
-                    .setParameter("userId", userId)
+                    .setParameter(USER_ID, userId)
                     .unwrap(NativeQuery.class)
                     .setResultTransformer(Transformers.aliasToBean(GoalDetailsDto.class));
 
@@ -46,7 +51,7 @@ public class GoalCommonRepositoryImpl implements GoalCommonRepository {
             Query query = entityManager.createNativeQuery(
                             "exec [getTotalCurrentGoalIncome] " +
                                     "@userId = :userId")
-                    .setParameter("userId", userId);
+                    .setParameter(USER_ID, userId);
 
             return (BigDecimal) query.getSingleResult();
 
@@ -61,7 +66,7 @@ public class GoalCommonRepositoryImpl implements GoalCommonRepository {
             Query query = entityManager.createNativeQuery(
                             "exec [getTotalTargetGoalIncome] " +
                                     "@userId = :userId")
-                    .setParameter("userId", userId);
+                    .setParameter(USER_ID, userId);
 
             return (BigDecimal) query.getSingleResult();
 
