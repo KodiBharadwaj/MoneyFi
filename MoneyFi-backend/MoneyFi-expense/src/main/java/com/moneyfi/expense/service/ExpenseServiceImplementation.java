@@ -1,5 +1,6 @@
 package com.moneyfi.expense.service;
 
+import com.moneyfi.expense.exceptions.ResourceNotFoundException;
 import com.moneyfi.expense.model.ExpenseModel;
 import com.moneyfi.expense.repository.ExpenseRepository;
 import com.moneyfi.expense.repository.common.ExpenseCommonRepository;
@@ -8,9 +9,10 @@ import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -26,19 +28,16 @@ public class ExpenseServiceImplementation implements ExpenseService{
 
     private final ExpenseRepository expenseRepository;
     private final ExpenseCommonRepository expenseCommonRepository;
-    private final RestTemplate restTemplate;
 
     public ExpenseServiceImplementation(ExpenseRepository expenseRepository,
-                                        RestTemplate restTemplate,
                                         ExpenseCommonRepository expenseCommonRepository){
         this.expenseRepository = expenseRepository;
-        this.restTemplate = restTemplate;
         this.expenseCommonRepository = expenseCommonRepository;
     }
 
     @Override
     public ExpenseModel save(ExpenseModel expense) {
-        expense.set_deleted(false);
+        expense.setDeleted(false);
         return expenseRepository.save(expense);
     }
 
@@ -46,7 +45,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
     public List<ExpenseModel> getAllExpenses(Long userId) {
         return expenseRepository.findExpensesByUserId(userId)
                 .stream()
-                .filter(i->i.is_deleted() == false)
+                .filter(i -> !i.isDeleted())
                 .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
                 .toList();
     }
@@ -105,7 +104,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
             return outputStream.toByteArray();
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ResourceNotFoundException("Error in creating the Excel Report");
         }
     }
 
@@ -260,11 +259,22 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    public ExpenseDetailsDto updateBySource(Long id, Long userId, ExpenseModel expense) {
+    public ResponseEntity<ExpenseDetailsDto> updateBySource(Long id, Long userId, ExpenseModel expense) {
         expense.setUserId(userId);
-        expense.set_deleted(false);
+        expense.setDeleted(false);
 
         ExpenseModel expenseModel = expenseRepository.findById(id).orElse(null);
+
+        if(expenseModel == null || !expenseModel.getUserId().equals(userId)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+        if(expenseModel.getAmount().compareTo(expense.getAmount()) == 0 &&
+                expenseModel.getCategory().equals(expense.getCategory()) &&
+                expenseModel.getDescription().equals(expense.getDescription()) &&
+                expenseModel.getDate().equals(expense.getDate()) &&
+                expenseModel.isRecurring() == expense.isRecurring()){
+            return ResponseEntity.noContent().build(); // 204
+        }
 
         if(expense.getCategory() != null){
             expenseModel.setCategory(expense.getCategory());
@@ -282,7 +292,7 @@ public class ExpenseServiceImplementation implements ExpenseService{
             expenseModel.setRecurring(expense.isRecurring());
         }
 
-        return updateExpenseDtoConversion(save(expenseModel));
+        return ResponseEntity.status(HttpStatus.CREATED).body(updateExpenseDtoConversion(save(expenseModel)));
     }
     private ExpenseDetailsDto updateExpenseDtoConversion(ExpenseModel updatedExpense){
         ExpenseDetailsDto expenseDetailsDto = new ExpenseDetailsDto();
@@ -297,8 +307,10 @@ public class ExpenseServiceImplementation implements ExpenseService{
         try {
             for(Long it : ids){
                 ExpenseModel expense = expenseRepository.findById(it).orElse(null);
-                expense.set_deleted(true);
-                expenseRepository.save(expense);
+                if(expense != null){
+                    expense.setDeleted(true);
+                    expenseRepository.save(expense);
+                }
             }
             return true;
         } catch (HttpClientErrorException.NotFound e) {

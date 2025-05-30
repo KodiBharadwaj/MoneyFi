@@ -2,6 +2,7 @@ package com.moneyfi.expense.service;
 
 import com.moneyfi.expense.model.ExpenseModel;
 import com.moneyfi.expense.service.dto.response.ExpenseDetailsDto;
+import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -30,7 +31,7 @@ public interface ExpenseService {
 
     List<BigDecimal> getCumulativeMonthlySavings(Long userId, int year);
 
-    ExpenseDetailsDto updateBySource(Long id, Long userId, ExpenseModel expense);
+    ResponseEntity<ExpenseDetailsDto> updateBySource(Long id, Long userId, ExpenseModel expense);
 
     boolean deleteExpenseById(List<Long> ids);
 }

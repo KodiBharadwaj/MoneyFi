@@ -14,11 +14,16 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.moneyfi.expense.StringConstants.*;
+
 @Repository
 public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
 
-    @Autowired
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
+
+    public ExpenseCommonRepositoryImpl(EntityManager entityManager){
+        this.entityManager = entityManager;
+    }
 
     @Override
     public List<ExpenseDetailsDto> getAllExpensesByDate(Long userId, int month, int year, String category, boolean deleteStatus) {
@@ -32,10 +37,10 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
                                         "@month = :month, " +
                                         "@year = :year, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("month", month)
-                        .setParameter("year", year)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(MONTH, month)
+                        .setParameter(YEAR, year)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(ExpenseDetailsDto.class));
 
@@ -50,11 +55,11 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
                                         "@year = :year, " +
                                         "@category = :category, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("month", month)
-                        .setParameter("year", year)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(MONTH, month)
+                        .setParameter(YEAR, year)
                         .setParameter("category", category)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(ExpenseDetailsDto.class));
 
@@ -78,9 +83,9 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
                                         "@userId = :userId, " +
                                         "@year = :year, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("year", year)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(YEAR, year)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(ExpenseDetailsDto.class));
 
@@ -94,10 +99,10 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
                                         "@year = :year, " +
                                         "@category = :category, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("year", year)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(YEAR, year)
                         .setParameter("category", category)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(ExpenseDetailsDto.class));
 
@@ -118,9 +123,9 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
                                     "@userId = :userId, " +
                                     "@month = :month, " +
                                     "@year = :year")
-                    .setParameter("userId", userId)
-                    .setParameter("month", month)
-                    .setParameter("year", year);
+                    .setParameter(USER_ID, userId)
+                    .setParameter(MONTH, month)
+                    .setParameter(YEAR, year);
 
             return (BigDecimal) query.getSingleResult();
 
@@ -137,9 +142,9 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
                                     "@userId = :userId, " +
                                     "@month = :month, " +
                                     "@year = :year")
-                    .setParameter("userId", userId)
-                    .setParameter("month", month)
-                    .setParameter("year", year);
+                    .setParameter(USER_ID, userId)
+                    .setParameter(MONTH, month)
+                    .setParameter(YEAR, year);
 
             return (BigDecimal) query.getSingleResult();
 
