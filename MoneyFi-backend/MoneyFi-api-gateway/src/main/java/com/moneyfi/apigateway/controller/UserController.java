@@ -61,7 +61,7 @@ public class UserController {
         if (isValid) {
             return "Verification successful!";
         } else {
-            throw new RuntimeException("Invalid verification code");
+            throw new IllegalArgumentException("Invalid verification code");
         }
     }
 

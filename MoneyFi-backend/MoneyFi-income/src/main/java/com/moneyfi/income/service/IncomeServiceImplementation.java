@@ -1,5 +1,6 @@
 package com.moneyfi.income.service;
 
+import com.moneyfi.income.exceptions.ResourceNotFoundException;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeDeleted;
 import com.moneyfi.income.model.IncomeModel;
@@ -11,13 +12,16 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -30,14 +34,11 @@ public class IncomeServiceImplementation implements IncomeService {
     private final IncomeRepository incomeRepository;
     private final IncomeCommonRepository incomeCommonRepository;
     private final IncomeDeletedRepository incomeDeletedRepository;
-    private final RestTemplate restTemplate;
 
     public IncomeServiceImplementation(IncomeRepository incomeRepository,
-                                       RestTemplate restTemplate,
                                        IncomeCommonRepository incomeCommonRepository,
                                        IncomeDeletedRepository incomeDeletedRepository){
         this.incomeRepository = incomeRepository;
-        this.restTemplate = restTemplate;
         this.incomeCommonRepository = incomeCommonRepository;
         this.incomeDeletedRepository = incomeDeletedRepository;
     }
@@ -50,7 +51,7 @@ public class IncomeServiceImplementation implements IncomeService {
             return null;
         }
 
-        income.set_deleted(false);
+        income.setDeleted(false);
         return incomeRepository.save(income);
     }
 
@@ -58,7 +59,7 @@ public class IncomeServiceImplementation implements IncomeService {
     public List<IncomeModel> getAllIncomes(Long userId) {
         return incomeRepository.findIncomesOfUser(userId)
                 .stream()
-                .filter(i->i.is_deleted()==false)
+                .filter(i -> !i.isDeleted())
                 .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
                 .toList();
     }
@@ -123,7 +124,7 @@ public class IncomeServiceImplementation implements IncomeService {
             return outputStream.toByteArray();
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ResourceNotFoundException("Error in generating excel report");
         }
     }
     private CellStyle createDateStyle(Workbook workbook) {
@@ -240,25 +241,28 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    @Transactional
-    public boolean incomeUpdateCheckFunction(IncomeModel incomeModel) {
-
-        BigDecimal totalIncome = getTotalIncomeInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
-        BigDecimal previousUpdatedIncome = incomeRepository.getIncomeByIncomeId(incomeModel.getId());
-        if(previousUpdatedIncome == null){
-            previousUpdatedIncome = BigDecimal.ZERO;
-        }
-
-        BigDecimal updatedIncome = incomeModel.getAmount();
-        BigDecimal currentNetIncome = totalIncome.subtract(previousUpdatedIncome).add(updatedIncome);
-
-        BigDecimal totalExpensesInMonth =
-                getTotalExpenseInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
-
-        if(currentNetIncome.compareTo(totalExpensesInMonth) > 0){
-            return true;
-        }
-        return false;
+    public boolean incomeUpdateCheckFunction(IncomeModel incomeModel, Long userId) {
+/**
+//        incomeModel.setUserId(userId);
+//        BigDecimal totalAvailableIncome = getAvailableBalanceOfUser(userId);
+//        System.out.println("totalAvailableIncome" + totalAvailableIncome);
+//        BigDecimal previousUpdatedIncome = incomeRepository.getIncomeByIncomeId(incomeModel.getId());
+//        if(previousUpdatedIncome == null){
+//            previousUpdatedIncome = BigDecimal.ZERO;
+//        }
+//        System.out.println("previousUpdatedIncome" + previousUpdatedIncome);
+//        BigDecimal updatedIncome = incomeModel.getAmount();
+//        BigDecimal currentNetIncome = totalAvailableIncome.subtract(previousUpdatedIncome).add(updatedIncome);
+//        System.out.println("currentNetIncome" + currentNetIncome);
+//        BigDecimal totalExpensesInMonth =
+//                getTotalExpenseInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
+//        System.out.println("totalExpensesInMonth" + totalExpensesInMonth);
+//        if(currentNetIncome.compareTo(totalExpensesInMonth) > 0){
+//            return true;
+//        }
+//        return false;
+**/
+        return true;
     }
     private BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
         BigDecimal totalExpense = incomeCommonRepository.getTotalExpenseInMonthAndYear(userId, month, year);
@@ -285,11 +289,7 @@ public class IncomeServiceImplementation implements IncomeService {
         BigDecimal totalExpensesInMonth =
                 getTotalExpenseInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
 
-        if(currentNetIncome.compareTo(totalExpensesInMonth) > 0){
-            return true;
-        }
-
-        return false;
+        return currentNetIncome.compareTo(totalExpensesInMonth) > 0;
     }
 
     @Override
@@ -301,8 +301,8 @@ public class IncomeServiceImplementation implements IncomeService {
         Integer numberOfDays = (int) ChronoUnit.DAYS.between(currentTime.toLocalDate(), expiryTime.toLocalDate());
         if(numberOfDays > 0){
             IncomeModel income = incomeRepository.findById(incomeId).orElse(null);
-            if(income != null && income.getUserId() == userId){
-                income.set_deleted(false);
+            if(income != null && income.getUserId().equals(userId)){
+                income.setDeleted(false);
                 incomeRepository.save(income);
                 incomeDeletedRepository.deleteByIncomeId(incomeId);
                 return true;
@@ -314,9 +314,22 @@ public class IncomeServiceImplementation implements IncomeService {
     }
 
     @Override
-    public IncomeModel updateBySource(Long id, IncomeModel income) {
+    public ResponseEntity<IncomeDetailsDto> updateBySource(Long id, Long userId, IncomeModel income) {
 
+        income.setUserId(userId);
+        income.setDeleted(false);
         IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
+        if(incomeModel == null || !incomeModel.getUserId().equals(userId)){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
+
+        if(incomeModel.getAmount().compareTo(income.getAmount()) == 0 &&
+                incomeModel.getSource().equals(income.getSource()) &&
+                incomeModel.getCategory().equals(income.getCategory()) &&
+                incomeModel.getDate().equals(income.getDate()) &&
+                incomeModel.isRecurring() == income.isRecurring()){
+            return ResponseEntity.noContent().build(); // HTTP 204
+        }
 
         if(income.getAmount().compareTo(BigDecimal.ZERO) > 0){
             incomeModel.setAmount(income.getAmount());
@@ -332,8 +345,13 @@ public class IncomeServiceImplementation implements IncomeService {
         }
         incomeModel.setRecurring(income.isRecurring());
 
-        income.set_deleted(false);
-        return incomeRepository.save(income);
+        return ResponseEntity.status(HttpStatus.CREATED).body(updateIncomeDtoConversion(incomeRepository.save(income)));
+    }
+    private IncomeDetailsDto updateIncomeDtoConversion(IncomeModel updatedIncome){
+        IncomeDetailsDto incomeDetailsDto = new IncomeDetailsDto();
+        BeanUtils.copyProperties(updatedIncome, incomeDetailsDto);
+        incomeDetailsDto.setDate(Date.valueOf(updatedIncome.getDate()));
+        return incomeDetailsDto;
     }
 
     @Override
@@ -342,10 +360,10 @@ public class IncomeServiceImplementation implements IncomeService {
 
         try {
             IncomeModel income = incomeRepository.findById(id).orElse(null);
-            if(income.getUserId() != userId){
+            if(income == null || !income.getUserId().equals(userId)){
                 return false;
             }
-            income.set_deleted(true);
+            income.setDeleted(true);
 
             saveIncomeDeletedDetails(id);
             incomeRepository.save(income);

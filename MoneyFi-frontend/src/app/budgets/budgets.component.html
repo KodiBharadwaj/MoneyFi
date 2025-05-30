@@ -105,11 +105,11 @@
           <div class="progress-container">
             <div class="progress-bar">
               <div class="progress"
-                [style.width.%]="getProgressPercentage(budget.currentSpending, budget.moneyLimit)"
-                [style.backgroundColor]="getProgressColor(budget.currentSpending, budget.moneyLimit)">
+                [style.width.%]="budget.progressPercentage"
+                [style.backgroundColor]="getProgressColor(budget.progressPercentage)">
               </div>
             </div>
-            <p>{{ getProgressPercentage(budget.currentSpending, budget.moneyLimit) | number:'1.0-0' }}% Used</p>
+            <p>{{ budget.progressPercentage | number:'1.0-0' }}% Used</p>
           </div>
 
 
@@ -120,7 +120,7 @@
             </div>
             <div class="remaining">
               <p class="label">Remaining</p>
-              <p class="value">₹{{ budget.remaining }}</p>
+              <p class="value">₹{{ budget.moneyLimit - budget.currentSpending }}</p>
             </div>
           </div>
         </div>

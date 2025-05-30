@@ -10,12 +10,13 @@ Minor Changes:
 - Landing page, so may buttons are there in the footer. Add the necessary info.
 - Replace double with BigDecimal in amount (frontend pending)
 - Put a name in the network section for every api.
+- Add frontend baseurl api's in separate component.
 
 
 
 Defects:
+- update functionality is not working in all services.
 - User feedback mail images are not sending as images in mail to admin.
-
 
 
 
@@ -41,7 +42,8 @@ cleared changes:
 - Implement soft delete and set 30 day expiration for the deleted transactions(Income). (ongoing)
 - Goal frontend implementation moved to sp.
 - Implement delete account & block feature (soft delete - can be revert back if user needs ticket raise)
-
+- check with sonar for code quality and sonar fixes.
+- change update budget to backend list.
 
 
 cleared defects:
@@ -67,3 +69,4 @@ cleared defects:
 - Implement dto feature to fetch data to exclue user id - data bleach
 - Text should not be acceptable in the profile phone number input.
 - DOB in profile is showing current date before loading and in server error time.
+- user id exposing during updating a transaction in all services.

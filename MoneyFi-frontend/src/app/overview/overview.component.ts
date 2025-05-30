@@ -95,7 +95,7 @@ export class OverviewComponent implements OnInit {
     })
 
 
-    this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/budget/getBudgetDetails/all`).subscribe({
+    this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/budget/getBudgetDetails/all/${this.thisMonth}/${this.thisYear}`).subscribe({
       next : (budgetList) => {
         const totalBudget = budgetList.reduce((acc, budget) => acc + budget.moneyLimit, 0);
         this.summary.budget = totalBudget;

@@ -2,7 +2,6 @@ package com.moneyfi.apigateway.controller;
 
 import com.moneyfi.apigateway.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.dto.ProfileChangePassword;
-import com.moneyfi.apigateway.model.UserPrincipal;
 import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.Feedback;
 import com.moneyfi.apigateway.model.common.ProfileModel;
@@ -12,7 +11,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,9 +62,6 @@ public class ProfileApiController {
     @Operation(summary = "Method to get the profile details of a user")
     @GetMapping("/getProfile")
     public ResponseEntity<ProfileModel> getProfile(Authentication authentication){
-
-        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        System.out.println("username check " + user.getUsername());
 
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

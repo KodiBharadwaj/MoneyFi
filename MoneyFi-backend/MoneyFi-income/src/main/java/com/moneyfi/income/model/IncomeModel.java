@@ -1,6 +1,5 @@
 package com.moneyfi.income.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,5 +25,5 @@ public class IncomeModel {
     private LocalDate date;
     private String category;
     private boolean recurring;
-    private boolean is_deleted;
+    private boolean isDeleted;
 }

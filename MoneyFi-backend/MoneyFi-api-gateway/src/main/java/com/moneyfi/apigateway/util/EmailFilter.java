@@ -1,14 +1,19 @@
 package com.moneyfi.apigateway.util;
 
+import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import jakarta.mail.*;
 import jakarta.mail.internet.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Properties;
 import java.util.Random;
 
 @Component
+@Slf4j
 public class EmailFilter {
+    private EmailFilter(){}
+
     public static boolean sendEmail(String toEmail, String subject, String body) {
         String fromEmail = "bharadwajkodi2003@gmail.com";  // Sender's email
         String password = "xxxx xxxx xxxx xxxx";  // Sender's email password (Make sure it's correct or use App password)
@@ -49,17 +54,16 @@ public class EmailFilter {
 
             // Send the email
             Transport.send(message);
-            System.out.println("Email sent successfully!");
+            log.info("Email sent successfully!");
             return true;
         } catch (MessagingException e) {
             e.printStackTrace();
-            System.out.println("Failed to send email.");
-//            throw new RuntimeException("Failed to send email", e);
+            log.info("Failed to send mail ", e);
             return false;
         }
     }
 
-    public String generateVerificationCode() {
+    public static String generateVerificationCode() {
         Random random = new Random();
         int verificationCode = 100000 + random.nextInt(900000);
         return String.valueOf(verificationCode);

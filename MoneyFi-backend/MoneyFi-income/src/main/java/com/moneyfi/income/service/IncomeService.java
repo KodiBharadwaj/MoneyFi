@@ -3,6 +3,7 @@ package com.moneyfi.income.service;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
+import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -29,13 +30,13 @@ public interface IncomeService {
 
     BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(Long userId, int month, int year);
 
-    boolean incomeUpdateCheckFunction(IncomeModel incomeModel);
+    boolean incomeUpdateCheckFunction(IncomeModel incomeModel, Long userId);
 
     boolean incomeDeleteCheckFunction(IncomeModel incomeModel);
 
     boolean incomeRevertFunction(Long incomeId, Long userId);
 
-    IncomeModel updateBySource(Long id, IncomeModel income);
+    ResponseEntity<IncomeDetailsDto> updateBySource(Long id, Long userId, IncomeModel income);
 
     boolean deleteIncomeById(Long id, Long userId);
 

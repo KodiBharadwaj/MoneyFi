@@ -14,7 +14,6 @@ import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.sessiontokens.SessionToken;
 import com.moneyfi.apigateway.util.EmailFilter;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,7 +23,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,35 +35,29 @@ import java.util.Map;
 @Service
 public class UserServiceImplementation implements UserService {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
     private final UserRepository userRepository;
-    private final EmailFilter emailFilter;
-    private final RestTemplate restTemplate;
     private final OtpTempRepository otpTempRepository;
     private final JwtService jwtService;
     private final ProfileRepository profileRepository;
     private final SessionToken sessionTokenService;
     private final TokenBlacklistService blacklistService;
+    private AuthenticationManager authenticationManager;
 
     public UserServiceImplementation(UserRepository userRepository,
-                                     EmailFilter emailFilter,
-                                     RestTemplate restTemplate,
                                      OtpTempRepository otpTempRepository,
                                      JwtService jwtService,
                                      ProfileRepository profileRepository,
                                      SessionToken sessionTokenService,
-                                     TokenBlacklistService blacklistService){
+                                     TokenBlacklistService blacklistService,
+                                     AuthenticationManager authenticationManager){
         this.userRepository = userRepository;
-        this.emailFilter = emailFilter;
-        this.restTemplate = restTemplate;
         this.otpTempRepository = otpTempRepository;
         this.jwtService = jwtService;
         this.profileRepository = profileRepository;
         this.sessionTokenService = sessionTokenService;
         this.blacklistService = blacklistService;
+        this.authenticationManager = authenticationManager;
     }
 
     @Override
@@ -116,10 +108,10 @@ public class UserServiceImplementation implements UserService {
             if (existingUser == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UserAuthModel not found. Please sign up.");
             }
-            if(existingUser != null && existingUser.isBlocked()){
+            else if(existingUser.isBlocked()){
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Account Blocked! Please contact admin");
             }
-            if(existingUser != null && existingUser.isDeleted()){
+            else if(existingUser.isDeleted()){
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Account Deleted! Please contact admin");
             }
 
@@ -147,16 +139,14 @@ public class UserServiceImplementation implements UserService {
     private void makeOldSessionInActiveOfUserForNewLogin(UserAuthModel userAuthModel){
 
         SessionTokenModel sessionTokenUser = sessionTokenService.getUserByUsername(userAuthModel.getUsername());
-        if(sessionTokenUser != null){
-            if(sessionTokenUser.getIsActive()){
-                String oldToken = sessionTokenUser.getToken();
+        if(sessionTokenUser != null && sessionTokenUser.getIsActive()){
+            String oldToken = sessionTokenUser.getToken();
 
-                BlackListedToken blackListedToken = new BlackListedToken();
-                blackListedToken.setToken(oldToken);
-                Date expiryDate = new Date(System.currentTimeMillis() + 3600000);
-                blackListedToken.setExpiry(expiryDate);
-                blacklistService.blacklistToken(blackListedToken);
-            }
+            BlackListedToken blackListedToken = new BlackListedToken();
+            blackListedToken.setToken(oldToken);
+            Date expiryDate = new Date(System.currentTimeMillis() + 3600000);
+            blackListedToken.setExpiry(expiryDate);
+            blacklistService.blacklistToken(blackListedToken);
         }
     }
     private void functionToPreventMultipleLogins(UserAuthModel userAuthModel, JwtToken token){
@@ -190,7 +180,7 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public ProfileChangePassword changePassword(ChangePasswordDto changePasswordDto){
-        UserAuthModel userAuthModel = userRepository.findById(Long.valueOf(changePasswordDto.getUserId())).orElse(null);
+        UserAuthModel userAuthModel = userRepository.findById(changePasswordDto.getUserId()).orElse(null);
 
         ProfileChangePassword dto = new ProfileChangePassword();
         if(userAuthModel == null) {
@@ -237,7 +227,7 @@ public class UserServiceImplementation implements UserService {
                 + "<p style='font-size: 14px;'>The Support Team</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        EmailFilter.sendEmail(email, subject, body);
     }
 
     @Override
@@ -278,7 +268,7 @@ public class UserServiceImplementation implements UserService {
             return "User already exists!";
         }
 
-        String verificationCode = emailFilter.generateVerificationCode();
+        String verificationCode = EmailFilter.generateVerificationCode();
 
         String subject = "OTP for MoneyFi's account creation";
         String body = "<html>"
@@ -294,7 +284,7 @@ public class UserServiceImplementation implements UserService {
                 + "<p style='font-size: 14px;'>The Support Team</p>"
                 + "</body>"
                 + "</html>";
-        boolean isMailsent = emailFilter.sendEmail(email, subject, body);
+        boolean isMailsent = EmailFilter.sendEmail(email, subject, body);
 
         if(isMailsent){
             OtpTempModel user = otpTempRepository.findByEmail(email);

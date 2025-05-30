@@ -1,6 +1,5 @@
 package com.moneyfi.goal.repository.common;
 
-import com.moneyfi.goal.model.GoalModel;
 import com.moneyfi.goal.service.dto.response.GoalDetailsDto;
 
 import java.math.BigDecimal;

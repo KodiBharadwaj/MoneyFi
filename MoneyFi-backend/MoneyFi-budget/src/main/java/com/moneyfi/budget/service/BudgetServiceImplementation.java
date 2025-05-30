@@ -1,12 +1,13 @@
 package com.moneyfi.budget.service;
 
+import com.moneyfi.budget.exceptions.ResourceNotFoundException;
 import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.repository.BudgetRepository;
 import com.moneyfi.budget.repository.common.BudgetCommonRepository;
+import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -18,35 +19,39 @@ public class BudgetServiceImplementation implements BudgetService{
 
     private final BudgetRepository budgetRepository;
     private final BudgetCommonRepository budgetCommonRepository;
-    private final RestTemplate restTemplate;
 
     public BudgetServiceImplementation(BudgetRepository budgetRepository,
-                                       RestTemplate restTemplate,
                                        BudgetCommonRepository budgetCommonRepository){
         this.budgetRepository = budgetRepository;
-        this.restTemplate = restTemplate;
         this.budgetCommonRepository = budgetCommonRepository;
     }
 
     @Override
-    public BudgetModel save(BudgetModel budget) {
-        return budgetRepository.save(budget);
-    }
-
-    @Override
-    public List<BudgetDetailsDto> getAllBudgetsByUserIdAndCategory(Long userId, String category) {
-        return budgetCommonRepository.getBudgetsByUserId(userId, category);
-    }
-
-    @Override
     @Transactional
+    public void saveBudget(List<AddBudgetDto> budgetList, Long userId) {
+
+        for(AddBudgetDto budget : budgetList){
+            BudgetModel budgetModel = new BudgetModel();
+            budgetModel.setUserId(userId);
+            budgetModel.setCategory(budget.getCategory());
+            budgetModel.setMoneyLimit(budget.getMoneyLimit());
+            budgetRepository.save(budgetModel);
+        }
+    }
+
+    @Override
+    public List<BudgetDetailsDto> getAllBudgetsByUserIdAndCategory(Long userId, int month, int year, String category) {
+        return budgetCommonRepository.getBudgetsByUserId(userId, month, year, category);
+    }
+
+    @Override
     public BigDecimal budgetProgress(Long userId, int month, int year) {
 
-        List<BudgetDetailsDto> budgetsList = getAllBudgetsByUserIdAndCategory(userId, "all");
+        List<BudgetDetailsDto> budgetsList = getAllBudgetsByUserIdAndCategory(userId, month, year, "all");
         BigDecimal moneyLimit = budgetsList
                             .stream()
                             .map(i->i.getMoneyLimit())
-                            .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal currentSpending = getTotalExpenseInMonthAndYear(userId, month, year);
 
@@ -62,20 +67,27 @@ public class BudgetServiceImplementation implements BudgetService{
     }
 
     @Override
-    public BudgetModel update(Long id, BudgetModel budget) {
-        System.out.println(budget);
-        BudgetModel budgetModel = budgetRepository.findById(id).orElse(null);
+    @Transactional
+    public void updateBudget(Long userId, List<BudgetModel> budgetList) {
 
-        if(budget.getCategory() != null){
-            budgetModel.setCategory(budget.getCategory());
-        }
-        if(budget.getCurrentSpending().compareTo(BigDecimal.ZERO) > 0){
-            budgetModel.setCurrentSpending(budget.getCurrentSpending());
-        }
-        if(budget.getMoneyLimit().compareTo(BigDecimal.ZERO) > 0){
-            budgetModel.setMoneyLimit(budget.getMoneyLimit());
-        }
+        for(BudgetModel budget : budgetList){
+            BudgetModel budgetModel = budgetRepository.findById(budget.getId()).orElse(null);
 
-        return save(budgetModel);
+            if(budgetModel == null || !budgetModel.getUserId().equals(userId)){
+                throw new ResourceNotFoundException("UnAuthorized try");
+            }
+
+            if(budget.getCategory() != null){
+                budgetModel.setCategory(budget.getCategory());
+            }
+            if(budget.getCurrentSpending().compareTo(BigDecimal.ZERO) > 0){
+                budgetModel.setCurrentSpending(budget.getCurrentSpending());
+            }
+            if(budget.getMoneyLimit().compareTo(BigDecimal.ZERO) > 0){
+                budgetModel.setMoneyLimit(budget.getMoneyLimit());
+            }
+
+            budgetRepository.save(budgetModel);
+        }
     }
 }
