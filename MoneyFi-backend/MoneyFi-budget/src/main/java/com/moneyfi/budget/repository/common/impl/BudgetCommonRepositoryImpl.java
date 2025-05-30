@@ -16,8 +16,11 @@ import java.util.List;
 @Repository
 public class BudgetCommonRepositoryImpl implements BudgetCommonRepository {
 
-    @Autowired
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
+
+    public BudgetCommonRepositoryImpl(EntityManager entityManager){
+        this.entityManager = entityManager;
+    }
 
     @Override
     public List<BudgetDetailsDto> getBudgetsByUserId(Long userId, int month, int year, String category) {

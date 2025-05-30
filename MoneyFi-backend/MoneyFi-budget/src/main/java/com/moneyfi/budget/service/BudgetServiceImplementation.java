@@ -6,8 +6,9 @@ import com.moneyfi.budget.repository.common.BudgetCommonRepository;
 import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -19,13 +20,10 @@ public class BudgetServiceImplementation implements BudgetService{
 
     private final BudgetRepository budgetRepository;
     private final BudgetCommonRepository budgetCommonRepository;
-    private final RestTemplate restTemplate;
 
     public BudgetServiceImplementation(BudgetRepository budgetRepository,
-                                       RestTemplate restTemplate,
                                        BudgetCommonRepository budgetCommonRepository){
         this.budgetRepository = budgetRepository;
-        this.restTemplate = restTemplate;
         this.budgetCommonRepository = budgetCommonRepository;
     }
 
@@ -55,7 +53,7 @@ public class BudgetServiceImplementation implements BudgetService{
         BigDecimal moneyLimit = budgetsList
                             .stream()
                             .map(i->i.getMoneyLimit())
-                            .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal currentSpending = getTotalExpenseInMonthAndYear(userId, month, year);
 
@@ -71,10 +69,10 @@ public class BudgetServiceImplementation implements BudgetService{
     }
 
     @Override
-    public BudgetModel update(Long id, Long userId, BudgetModel budget) {
+    public ResponseEntity<BudgetModel> update(Long id, Long userId, BudgetModel budget) {
         BudgetModel budgetModel = budgetRepository.findById(id).orElse(null);
-        if(budgetModel.getUserId() != userId){
-            return null;
+        if(budgetModel == null || !budgetModel.getUserId().equals(userId)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
         if(budget.getCategory() != null){
@@ -87,6 +85,6 @@ public class BudgetServiceImplementation implements BudgetService{
             budgetModel.setMoneyLimit(budget.getMoneyLimit());
         }
 
-        return budgetRepository.save(budgetModel);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(budgetRepository.save(budgetModel));
     }
 }
