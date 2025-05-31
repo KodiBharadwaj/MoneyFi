@@ -52,12 +52,21 @@ export class DashboardComponent {
 
         this.httpClient.post('http://localhost:8765/api/v1/userProfile/logout', {}, { responseType: 'text' }).subscribe({
           next: (response) => {
+            console.log(response)
             const jsonResponse = JSON.parse(response);
-            this.toastr.success(jsonResponse.message, '', {
-              timeOut: 1500  // time in milliseconds (3 seconds)
-            });
-            sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['']);
+            console.log(jsonResponse)
+            if(jsonResponse.message === 'Logged out successfully'){
+                this.toastr.success(jsonResponse.message, '', {
+                timeOut: 1500  // time in milliseconds (3 seconds)
+              });
+              sessionStorage.removeItem('moneyfi.auth');
+              this.router.navigate(['']);
+            } else if(jsonResponse.message === 'Phone number is empty'){
+              alert('Kindly fill Phone number before log out')
+            }
+            else {
+              this.toastr.error('Failed to logout')
+            }
           },
           error: (error) => {
             console.error(error);

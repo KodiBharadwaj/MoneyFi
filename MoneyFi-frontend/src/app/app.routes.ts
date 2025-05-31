@@ -15,12 +15,14 @@ import { AnalysisComponent } from './analysis/analysis.component';
 import { AiAssistantComponent } from './ai-assistant/ai-assistant.component';
 import { ContactUsComponent } from './contact-us/contact-us.component';
 import { SignupOtpConfirmDialogComponent } from './signup-otp-confirm-dialog/signup-otp-confirm-dialog.component';
+import { ForgotUsernameComponent } from './forgot-username/forgot-username.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
-  {path:'forgot-password',component:ForgotPasswordComponent},
+  { path: 'forgot-password',component:ForgotPasswordComponent },
+  { path: 'forgot-username', component:ForgotUsernameComponent },
   { path: 'otp-confirm', component: SignupOtpConfirmDialogComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard],children:[
     {path:'',component:OverviewComponent},

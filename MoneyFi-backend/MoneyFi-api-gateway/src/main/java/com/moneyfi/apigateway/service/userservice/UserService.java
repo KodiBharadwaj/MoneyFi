@@ -1,9 +1,6 @@
 package com.moneyfi.apigateway.service.userservice;
 
-import com.moneyfi.apigateway.dto.ChangePasswordDto;
-import com.moneyfi.apigateway.dto.ProfileChangePassword;
-import com.moneyfi.apigateway.dto.RemainingTimeCountDto;
-import com.moneyfi.apigateway.dto.UserProfile;
+import com.moneyfi.apigateway.dto.*;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import org.springframework.http.ResponseEntity;
 
@@ -26,4 +23,6 @@ public interface UserService {
     boolean checkEnteredOtp(String email, String inputOtp);
 
     Map<String, String> logout(String token);
+
+    boolean getUsernameByDetails(ForgotUsernameDto userDetails);
 }

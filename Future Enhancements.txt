@@ -2,7 +2,6 @@ Project MoneyFi:
 
 Major Changes:
 - Google authentication
-- Modify Budget Promise bunch api calls to singe api while adding or modifying a budget.
 - Implement forgot username feature (user should receive mail by providing necessary details like dob, phn No)
 
 Minor Changes:
@@ -43,7 +42,8 @@ cleared changes:
 - Goal frontend implementation moved to sp.
 - Implement delete account & block feature (soft delete - can be revert back if user needs ticket raise)
 - check with sonar for code quality and sonar fixes.
-- change update budget to backend list.
+- Modify Budget Promise bunch api calls to singe api while adding or modifying a budget.
+
 
 
 cleared defects:
