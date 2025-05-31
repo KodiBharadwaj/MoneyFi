@@ -14,6 +14,7 @@ import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.sessiontokens.SessionToken;
 import com.moneyfi.apigateway.util.EmailFilter;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -27,12 +28,12 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
+@Slf4j
 public class UserServiceImplementation implements UserService {
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
@@ -342,6 +343,86 @@ public class UserServiceImplementation implements UserService {
 
         return response;
     }
+
+    @Override
+    public String getUsernameByDetails(ForgotUsernameDto userDetails) {
+
+        String username = "";
+
+        if(userDetails.getPhoneNumber() != null && !userDetails.getPhoneNumber().isEmpty()
+                                && userDetails.getPhoneNumber().length() == 10){
+
+            List<ProfileModel> fetchedUsers = profileRepository.findByPhone(userDetails.getPhoneNumber());
+
+            if(fetchedUsers.size() == 1){
+                return fetchedUsers.get(0).getEmail();
+            }
+
+            fetchedUsers = fetchedUsers
+                    .stream()
+                    .filter(user -> user.getDateOfBirth().equals(userDetails.getDateOfBirth()))
+                    .toList();
+            if(fetchedUsers.size() == 1){
+                return fetchedUsers.get(0).getEmail();
+            }
+
+            fetchedUsers = fetchedUsers
+                    .stream()
+                    .filter(user -> user.getName().equalsIgnoreCase(userDetails.getName()))
+                    .toList();
+            if(fetchedUsers.size() == 1){
+                return fetchedUsers.get(0).getEmail();
+            }
+
+            fetchedUsers = fetchedUsers
+                    .stream()
+                    .filter(user -> user.getGender().equalsIgnoreCase(userDetails.getGender())
+                                        && user.getMaritalStatus().equalsIgnoreCase(userDetails.getMaritalStatus()))
+                    .toList();
+            if(fetchedUsers.size() == 1){
+                return fetchedUsers.get(0).getEmail();
+            }
+
+            List<String> matchedUsernames = new ArrayList<>();
+            for(ProfileModel profile : fetchedUsers){
+
+                String address = profile.getAddress();
+                if (address != null && !address.isEmpty()) {
+                    Pattern pattern = Pattern.compile("\\b\\d{6}\\b");
+                    Matcher matcher = pattern.matcher(address);
+
+                    String pincode = null;
+                    if (matcher.find()) {
+                        pincode = matcher.group();
+
+                        if (pincode.equals(userDetails.getPinCode())) {
+                            matchedUsernames.add(profile.getEmail());
+                        }
+                    }
+                }
+            }
+
+            if(matchedUsernames.size() == 1){
+                return matchedUsernames.get(0);
+            }
+
+            username += "null";
+        }
+
+        if(username.equalsIgnoreCase("null")){
+
+            List<ProfileModel> fetchedUsersByAllDetails = profileRepository
+                    .findByUserProfileDetails(userDetails.getDateOfBirth(), userDetails.getName(), userDetails.getGender(),
+                            userDetails.getMaritalStatus());
+
+            if(fetchedUsersByAllDetails.size() == 1){
+                return fetchedUsersByAllDetails.get(0).getEmail();
+            }
+            return null;
+        }
+        return null;
+    }
+
     private BlackListedToken makeUserTokenBlacklisted(String token){
 
         Date expiryDate = new Date(System.currentTimeMillis()); // current date and time

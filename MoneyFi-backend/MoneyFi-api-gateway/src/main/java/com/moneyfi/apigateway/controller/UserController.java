@@ -93,4 +93,10 @@ public class UserController {
                                    @PathVariable("inputOtp") String inputOtp){
         return userService.checkEnteredOtp(email, inputOtp);
     }
+
+    @Operation(summary = "Method to return username when user forgets username")
+    @PostMapping("/forgotUsername")
+    public String forgotUsername(@RequestBody ForgotUsernameDto userDetails){
+        return userService.getUsernameByDetails(userDetails);
+    }
 }
