@@ -96,7 +96,7 @@ public class UserController {
 
     @Operation(summary = "Method to return username when user forgets username")
     @PostMapping("/forgotUsername")
-    public String forgotUsername(@RequestBody ForgotUsernameDto userDetails){
+    public boolean forgotUsername(@RequestBody ForgotUsernameDto userDetails){
         return userService.getUsernameByDetails(userDetails);
     }
 }

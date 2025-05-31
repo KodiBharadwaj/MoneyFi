@@ -332,12 +332,21 @@ public class UserServiceImplementation implements UserService {
             token = token.substring(7);
         }
 
+        Long userId = userRepository.findByUsername(jwtService.extractUserName(token)).getId();
+        String phoneNumber = profileRepository.findByUserId(userId).getPhone();
+
+        if(phoneNumber == null || phoneNumber.isEmpty()){
+            response.put("message", "Phone number is empty");
+            return response;
+        }
+
         BlackListedToken blackListedToken = makeUserTokenBlacklisted(token);
         SessionTokenModel sessionTokenModel = makeUserSessionInActive(token);
 
         if(blackListedToken != null && sessionTokenModel != null){
             response.put("message", "Logged out successfully");
-        } else {
+        }
+        else {
             response.put("message", "Logout failed!");
         }
 
@@ -345,12 +354,34 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public String getUsernameByDetails(ForgotUsernameDto userDetails) {
+    public boolean getUsernameByDetails(ForgotUsernameDto userDetails) {
+        String username = functionCallToRetriveUsername(userDetails);
+        System.out.println("check: " + username);
+        if(username == null || username.trim().isEmpty()){
+            return false;
+        }
 
+        String subject = "MoneyFi - Username request";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello User,</p>"
+                + "<p style='font-size: 16px;'>You have requested for username with your details. Here is you username: " + username + "</p>"
+                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
+                + "<p style='font-size: 16px;'>Kindly Ignore if it by you. If not, reply to this mail immediately to secure account.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at bharadwajkodi2003@gmail.com</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>The Support Team</p>"
+                + "</body>"
+                + "</html>";
+        return EmailFilter.sendEmail(username, subject, body);
+    }
+    private String functionCallToRetriveUsername(ForgotUsernameDto userDetails){
         String username = "";
 
         if(userDetails.getPhoneNumber() != null && !userDetails.getPhoneNumber().isEmpty()
-                                && userDetails.getPhoneNumber().length() == 10){
+                && userDetails.getPhoneNumber().length() == 10){
 
             List<ProfileModel> fetchedUsers = profileRepository.findByPhone(userDetails.getPhoneNumber());
 
@@ -377,7 +408,7 @@ public class UserServiceImplementation implements UserService {
             fetchedUsers = fetchedUsers
                     .stream()
                     .filter(user -> user.getGender().equalsIgnoreCase(userDetails.getGender())
-                                        && user.getMaritalStatus().equalsIgnoreCase(userDetails.getMaritalStatus()))
+                            && user.getMaritalStatus().equalsIgnoreCase(userDetails.getMaritalStatus()))
                     .toList();
             if(fetchedUsers.size() == 1){
                 return fetchedUsers.get(0).getEmail();
@@ -409,7 +440,7 @@ public class UserServiceImplementation implements UserService {
             username += "null";
         }
 
-        if(username.equalsIgnoreCase("null")){
+        if(username.isEmpty() || username.equalsIgnoreCase("null")){
 
             List<ProfileModel> fetchedUsersByAllDetails = profileRepository
                     .findByUserProfileDetails(userDetails.getDateOfBirth(), userDetails.getName(), userDetails.getGender(),

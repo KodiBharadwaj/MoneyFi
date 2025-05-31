@@ -24,5 +24,5 @@ public interface UserService {
 
     Map<String, String> logout(String token);
 
-    String getUsernameByDetails(ForgotUsernameDto userDetails);
+    boolean getUsernameByDetails(ForgotUsernameDto userDetails);
 }
