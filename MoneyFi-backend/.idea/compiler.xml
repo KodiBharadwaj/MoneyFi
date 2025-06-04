@@ -8,7 +8,6 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="MoneyFi-api-gateway" />
-        <module name="MoneyFi-user-details" />
         <module name="MoneyFi-expense" />
         <module name="MoneyFi-income" />
         <module name="eureka-server" />
@@ -17,6 +16,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="MoneyFi-user-details" target="17" />
       <module name="MoneyFi-userAuthModel-details" target="17" />
     </bytecodeTargetLevel>
   </component>
