@@ -16,6 +16,7 @@ Minor Changes:
 Defects:
 - update functionality is not working in all services.
 - User feedback mail images are not sending as images in mail to admin.
+- Forgot username has some issues (not fetching the username even without ph no, but unique user is there)
 
 
 

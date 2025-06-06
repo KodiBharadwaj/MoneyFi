@@ -36,6 +36,8 @@ import java.util.regex.Pattern;
 @Slf4j
 public class UserServiceImplementation implements UserService {
 
+    private static final String MESSAGE = "message";
+
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
     private final UserRepository userRepository;
     private final OtpTempRepository otpTempRepository;
@@ -312,15 +314,8 @@ public class UserServiceImplementation implements UserService {
     public boolean checkEnteredOtp(String email, String inputOtp) {
         OtpTempModel user = otpTempRepository.findByEmail(email);
 
-        if(user == null){
-            return false;
-        }
-
-        if(!user.getOtp().equals(inputOtp) || user.getExpirationTime().isBefore(LocalDateTime.now())){
-            return false;
-        }
-
-        return true;
+        return !(user == null || !user.getOtp().equals(inputOtp) ||
+                user.getExpirationTime().isBefore(LocalDateTime.now()));
     }
 
     @Override
@@ -336,7 +331,7 @@ public class UserServiceImplementation implements UserService {
         String phoneNumber = profileRepository.findByUserId(userId).getPhone();
 
         if(phoneNumber == null || phoneNumber.isEmpty()){
-            response.put("message", "Phone number is empty");
+            response.put(MESSAGE, "Phone number is empty");
             return response;
         }
 
@@ -344,10 +339,10 @@ public class UserServiceImplementation implements UserService {
         SessionTokenModel sessionTokenModel = makeUserSessionInActive(token);
 
         if(blackListedToken != null && sessionTokenModel != null){
-            response.put("message", "Logged out successfully");
+            response.put(MESSAGE, "Logged out successfully");
         }
         else {
-            response.put("message", "Logout failed!");
+            response.put(MESSAGE, "Logout failed!");
         }
 
         return response;
@@ -356,7 +351,7 @@ public class UserServiceImplementation implements UserService {
     @Override
     public boolean getUsernameByDetails(ForgotUsernameDto userDetails) {
         String username = functionCallToRetriveUsername(userDetails);
-        System.out.println("check: " + username);
+
         if(username == null || username.trim().isEmpty()){
             return false;
         }
