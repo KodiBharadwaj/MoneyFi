@@ -1,6 +1,7 @@
-package com.moneyfi.income.service;
+package com.moneyfi.income.service.impl;
 
 import com.moneyfi.income.exceptions.ResourceNotFoundException;
+import com.moneyfi.income.service.IncomeService;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeDeleted;
 import com.moneyfi.income.model.IncomeModel;
@@ -29,15 +30,15 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class IncomeServiceImplementation implements IncomeService {
+public class IncomeServiceImpl implements IncomeService {
 
     private final IncomeRepository incomeRepository;
     private final IncomeCommonRepository incomeCommonRepository;
     private final IncomeDeletedRepository incomeDeletedRepository;
 
-    public IncomeServiceImplementation(IncomeRepository incomeRepository,
-                                       IncomeCommonRepository incomeCommonRepository,
-                                       IncomeDeletedRepository incomeDeletedRepository){
+    public IncomeServiceImpl(IncomeRepository incomeRepository,
+                             IncomeCommonRepository incomeCommonRepository,
+                             IncomeDeletedRepository incomeDeletedRepository){
         this.incomeRepository = incomeRepository;
         this.incomeCommonRepository = incomeCommonRepository;
         this.incomeDeletedRepository = incomeDeletedRepository;

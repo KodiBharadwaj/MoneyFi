@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.dto;
+package com.moneyfi.apigateway.service.userservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

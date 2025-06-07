@@ -1,6 +1,5 @@
-package com.moneyfi.apigateway.service.userservice;
+package com.moneyfi.apigateway.service.userservice.impl;
 
-import com.moneyfi.apigateway.dto.*;
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.OtpTempModel;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
@@ -9,9 +8,11 @@ import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.repository.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.common.ProfileRepository;
 import com.moneyfi.apigateway.repository.auth.UserRepository;
-import com.moneyfi.apigateway.service.TokenBlacklistService;
+import com.moneyfi.apigateway.service.common.UserCommonRepository;
+import com.moneyfi.apigateway.service.userservice.UserServiceRepository;
+import com.moneyfi.apigateway.service.userservice.dto.*;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
-import com.moneyfi.apigateway.service.sessiontokens.SessionToken;
+import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
 import com.moneyfi.apigateway.util.EmailFilter;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import jakarta.transaction.Transactional;
@@ -35,7 +36,7 @@ import java.util.regex.Pattern;
 
 @Service
 @Slf4j
-public class UserServiceImplementation implements UserService {
+public class UserServiceRepositoryImpl implements UserServiceRepository {
 
     private static final String MESSAGE = "message";
 
@@ -44,23 +45,20 @@ public class UserServiceImplementation implements UserService {
     private final OtpTempRepository otpTempRepository;
     private final JwtService jwtService;
     private final ProfileRepository profileRepository;
-    private final SessionToken sessionTokenService;
-    private final TokenBlacklistService blacklistService;
+    private final UserCommonRepository userCommonRepository;
     private AuthenticationManager authenticationManager;
 
-    public UserServiceImplementation(UserRepository userRepository,
+    public UserServiceRepositoryImpl(UserRepository userRepository,
                                      OtpTempRepository otpTempRepository,
                                      JwtService jwtService,
                                      ProfileRepository profileRepository,
-                                     SessionToken sessionTokenService,
-                                     TokenBlacklistService blacklistService,
+                                     UserCommonRepository userCommonRepository,
                                      AuthenticationManager authenticationManager){
         this.userRepository = userRepository;
         this.otpTempRepository = otpTempRepository;
         this.jwtService = jwtService;
         this.profileRepository = profileRepository;
-        this.sessionTokenService = sessionTokenService;
-        this.blacklistService = blacklistService;
+        this.userCommonRepository = userCommonRepository;
         this.authenticationManager = authenticationManager;
     }
 
@@ -99,15 +97,12 @@ public class UserServiceImplementation implements UserService {
         makeOldSessionInActiveOfUserForNewLogin(userAuthModel);
 
         try {
-            // Validate user input (username and password should not be empty)
-            if (userAuthModel.getUsername() == null ||
-                    userAuthModel.getUsername().isEmpty() ||
-                    userAuthModel.getPassword() == null ||
-                    userAuthModel.getPassword().isEmpty()) {
+            if (userAuthModel.getUsername() == null || userAuthModel.getUsername().isEmpty() ||
+                    userAuthModel.getPassword() == null || userAuthModel.getPassword().isEmpty()) {
 
                 return ResponseEntity.badRequest().body("Username and password are required");
             }
-            // Check if the user exists in the database
+
             UserAuthModel existingUser = userRepository.findByUsername(userAuthModel.getUsername());
             if (existingUser == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UserAuthModel not found. Please sign up.");
@@ -120,7 +115,6 @@ public class UserServiceImplementation implements UserService {
             }
 
             try {
-                // Authenticate the user with the provided password
                 Authentication authentication = authenticationManager
                         .authenticate(new UsernamePasswordAuthenticationToken(userAuthModel.getUsername(), userAuthModel.getPassword()));
 
@@ -130,19 +124,17 @@ public class UserServiceImplementation implements UserService {
                     return ResponseEntity.ok(token);
                 }
             } catch (BadCredentialsException ex) {
-                // If the password is incorrect
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect password");
             }
-            // Default case for any other authentication failures
+
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         } catch (Exception e) {
-            // Handle any unexpected errors
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during login");
         }
     }
     private void makeOldSessionInActiveOfUserForNewLogin(UserAuthModel userAuthModel){
 
-        SessionTokenModel sessionTokenUser = sessionTokenService.getUserByUsername(userAuthModel.getUsername());
+        SessionTokenModel sessionTokenUser = userCommonRepository.getUserByUsername(userAuthModel.getUsername());
         if(sessionTokenUser != null && sessionTokenUser.getIsActive()){
             String oldToken = sessionTokenUser.getToken();
 
@@ -150,25 +142,25 @@ public class UserServiceImplementation implements UserService {
             blackListedToken.setToken(oldToken);
             Date expiryDate = new Date(System.currentTimeMillis() + 3600000);
             blackListedToken.setExpiry(expiryDate);
-            blacklistService.blacklistToken(blackListedToken);
+            userCommonRepository.blacklistToken(blackListedToken);
         }
     }
     private void functionToPreventMultipleLogins(UserAuthModel userAuthModel, JwtToken token){
         // Conditions to store the jwt token to prevent multiple logins of same account in different browsers
-        if(sessionTokenService.getUserByUsername(userAuthModel.getUsername()) != null){
-            SessionTokenModel sessionTokens = sessionTokenService.getUserByUsername(userAuthModel.getUsername());
+        if(userCommonRepository.getUserByUsername(userAuthModel.getUsername()) != null){
+            SessionTokenModel sessionTokens = userCommonRepository.getUserByUsername(userAuthModel.getUsername());
             sessionTokens.setUsername(userAuthModel.getUsername());
             sessionTokens.setCreatedTime(LocalDateTime.now());
             sessionTokens.setToken(token.getJwtToken());
             sessionTokens.setIsActive(true);
-            sessionTokenService.save(sessionTokens);
+            userCommonRepository.save(sessionTokens);
         } else {
             SessionTokenModel sessionTokens = new SessionTokenModel();
             sessionTokens.setUsername(userAuthModel.getUsername());
             sessionTokens.setCreatedTime(LocalDateTime.now());
             sessionTokens.setToken(token.getJwtToken());
             sessionTokens.setIsActive(true);
-            sessionTokenService.save(sessionTokens);
+            userCommonRepository.save(sessionTokens);
         }
     }
 
@@ -321,13 +313,13 @@ public class UserServiceImplementation implements UserService {
         BlackListedToken blackListedToken = new BlackListedToken();
         blackListedToken.setToken(token);
         blackListedToken.setExpiry(expiryDate);
-        return blacklistService.blacklistToken(blackListedToken);
+        return userCommonRepository.blacklistToken(blackListedToken);
     }
     private SessionTokenModel makeUserSessionInActive(String token){
 
-        SessionTokenModel sessionTokens = sessionTokenService.getSessionDetailsByToken(token);
+        SessionTokenModel sessionTokens = userCommonRepository.getSessionDetailsByToken(token);
         sessionTokens.setIsActive(false);
-        return sessionTokenService.save(sessionTokens);
+        return userCommonRepository.save(sessionTokens);
     }
 
 

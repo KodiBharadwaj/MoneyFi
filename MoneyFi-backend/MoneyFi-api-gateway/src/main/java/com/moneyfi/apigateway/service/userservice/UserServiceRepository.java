@@ -1,12 +1,12 @@
 package com.moneyfi.apigateway.service.userservice;
 
-import com.moneyfi.apigateway.dto.*;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
+import com.moneyfi.apigateway.service.userservice.dto.*;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Map;
 
-public interface UserService {
+public interface UserServiceRepository {
 
     UserAuthModel registerUser(UserProfile userProfile);
 

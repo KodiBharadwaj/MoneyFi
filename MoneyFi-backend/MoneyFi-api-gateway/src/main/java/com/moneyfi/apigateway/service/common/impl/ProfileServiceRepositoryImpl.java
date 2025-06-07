@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.service.profileservice;
+package com.moneyfi.apigateway.service.common.impl;
 
 import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.Feedback;
@@ -6,18 +6,18 @@ import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.repository.common.ContactUsRepository;
 import com.moneyfi.apigateway.repository.common.FeedbackRepository;
 import com.moneyfi.apigateway.repository.common.ProfileRepository;
-import com.moneyfi.apigateway.util.EmailFilter;
+import com.moneyfi.apigateway.service.common.ProfileServiceRepository;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProfileServiceImplementation implements ProfileService{
+public class ProfileServiceRepositoryImpl implements ProfileServiceRepository {
 
     private final ProfileRepository profileRepository;
     private final ContactUsRepository contactUsRepository;
     private final FeedbackRepository feedbackRepository;
 
-    public ProfileServiceImplementation(ProfileRepository profileRepository,
+    public ProfileServiceRepositoryImpl(ProfileRepository profileRepository,
                                         ContactUsRepository contactUsRepository,
                                         FeedbackRepository feedbackRepository){
         this.profileRepository = profileRepository;

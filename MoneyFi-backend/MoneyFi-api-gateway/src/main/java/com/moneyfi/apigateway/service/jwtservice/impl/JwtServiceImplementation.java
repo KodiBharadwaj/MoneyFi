@@ -1,6 +1,7 @@
-package com.moneyfi.apigateway.service.jwtservice;
+package com.moneyfi.apigateway.service.jwtservice.impl;
 
-import com.moneyfi.apigateway.dto.JwtToken;
+import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
+import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -14,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class JwtServiceImplementation implements JwtService{
+public class JwtServiceImplementation implements JwtService {
 
     @Value("${jwt.secret}")
     private String secret;

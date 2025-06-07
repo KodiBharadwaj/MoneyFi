@@ -1,8 +1,8 @@
 package com.moneyfi.apigateway.config;
 
-import com.moneyfi.apigateway.service.jwtservice.JwtServiceImplementation;
-import com.moneyfi.apigateway.service.MyUserDetailsService;
-import com.moneyfi.apigateway.service.TokenBlacklistService;
+import com.moneyfi.apigateway.service.common.UserCommonRepository;
+import com.moneyfi.apigateway.service.jwtservice.impl.JwtServiceImplementation;
+import com.moneyfi.apigateway.service.jwtservice.impl.MyUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +23,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     JwtServiceImplementation jwtService;
     @Autowired
-    TokenBlacklistService tokenBlacklistService;
+    UserCommonRepository userCommonRepository;
     @Autowired
     ApplicationContext context;
 
@@ -41,7 +41,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
             // Check if token is blacklisted
-            if (token != null && tokenBlacklistService.isTokenBlacklisted(token)) {
+            if (token != null && userCommonRepository.isTokenBlacklisted(token)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Token is blacklisted");
                 return;

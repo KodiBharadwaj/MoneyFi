@@ -8,7 +8,7 @@ public class EmailTemplates {
     private EmailTemplates() {
     }
 
-    private static final String ADMIN_EMAIL = "bharadwajkodi2003@gmail.com";
+    private static final String ADMIN_EMAIL = "moneyfi.owner@gmail.com";
 
     public static void sendPasswordAlertMail(String userName, String email){
 

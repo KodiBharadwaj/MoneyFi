@@ -1,12 +1,12 @@
 package com.moneyfi.apigateway.controller;
 
-import com.moneyfi.apigateway.dto.ChangePasswordDto;
-import com.moneyfi.apigateway.dto.ProfileChangePassword;
+import com.moneyfi.apigateway.service.userservice.dto.ChangePasswordDto;
+import com.moneyfi.apigateway.service.userservice.dto.ProfileChangePassword;
 import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.Feedback;
 import com.moneyfi.apigateway.model.common.ProfileModel;
-import com.moneyfi.apigateway.service.profileservice.ProfileService;
-import com.moneyfi.apigateway.service.userservice.UserService;
+import com.moneyfi.apigateway.service.common.ProfileServiceRepository;
+import com.moneyfi.apigateway.service.userservice.UserServiceRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,20 +20,20 @@ import java.util.Map;
 @RequestMapping("/api/v1/userProfile")
 public class ProfileApiController {
 
-    private final ProfileService profileService;
-    private final UserService userService;
+    private final ProfileServiceRepository profileServiceRepository;
+    private final UserServiceRepository userServiceRepository;
 
-    public ProfileApiController(ProfileService profileService,
-                                UserService userService){
-        this.profileService = profileService;
-        this.userService = userService;
+    public ProfileApiController(ProfileServiceRepository profileServiceRepository,
+                                UserServiceRepository userServiceRepository){
+        this.profileServiceRepository = profileServiceRepository;
+        this.userServiceRepository = userServiceRepository;
     }
 
     @GetMapping("/test")
     public Long testFunction(Authentication authentication){
         if(authentication.isAuthenticated()){
             String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-            return  userService.getUserIdByUsername(username);
+            return  userServiceRepository.getUserIdByUsername(username);
         }
 
         return null;
@@ -51,9 +51,9 @@ public class ProfileApiController {
         Object principal = authentication.getPrincipal();
         if (principal instanceof UserDetails userDetails) {
             String username = userDetails.getUsername();
-            Long userId = userService.getUserIdByUsername(username);
+            Long userId = userServiceRepository.getUserIdByUsername(username);
 
-            return ResponseEntity.ok(profileService.saveUserDetails(userId, profile));
+            return ResponseEntity.ok(profileServiceRepository.saveUserDetails(userId, profile));
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -70,8 +70,8 @@ public class ProfileApiController {
         Object principal = authentication.getPrincipal();
         if (principal instanceof UserDetails userDetails) {
             String username = userDetails.getUsername();
-            Long userId = userService.getUserIdByUsername(username);
-            ProfileModel profile = profileService.getUserDetailsByUserId(userId);
+            Long userId = userServiceRepository.getUserIdByUsername(username);
+            ProfileModel profile = profileServiceRepository.getUserDetailsByUserId(userId);
 
             if (profile != null) {
                 return ResponseEntity.ok(profile);
@@ -93,8 +93,8 @@ public class ProfileApiController {
         Object principal = authentication.getPrincipal();
         if (principal instanceof UserDetails userDetails) {
             String username = userDetails.getUsername();
-            Long userId = userService.getUserIdByUsername(username);
-            ProfileModel profile = profileService.getUserDetailsByUserId(userId);
+            Long userId = userServiceRepository.getUserIdByUsername(username);
+            ProfileModel profile = profileServiceRepository.getUserDetailsByUserId(userId);
 
             if (profile != null) {
                 return ResponseEntity.ok(profile.getName());
@@ -117,10 +117,10 @@ public class ProfileApiController {
         Object principal = authentication.getPrincipal();
         if (principal instanceof UserDetails userDetails) {
             String username = userDetails.getUsername();
-            Long userId = userService.getUserIdByUsername(username);
+            Long userId = userServiceRepository.getUserIdByUsername(username);
             contactUsDetails.setUserId(userId);
 
-            return ResponseEntity.ok(profileService.saveContactUsDetails(contactUsDetails));
+            return ResponseEntity.ok(profileServiceRepository.saveContactUsDetails(contactUsDetails));
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -138,10 +138,10 @@ public class ProfileApiController {
         Object principal = authentication.getPrincipal();
         if (principal instanceof UserDetails userDetails) {
             String username = userDetails.getUsername();
-            Long userId = userService.getUserIdByUsername(username);
+            Long userId = userServiceRepository.getUserIdByUsername(username);
             feedback.setUserId(userId);
 
-            return ResponseEntity.ok(profileService.saveFeedback(feedback));
+            return ResponseEntity.ok(profileServiceRepository.saveFeedback(feedback));
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -150,7 +150,7 @@ public class ProfileApiController {
     @Operation(summary = "Method to get the user id from user's email")
     @GetMapping("/getUserId/{email}")
     public Long getUserId(@PathVariable("email") String email){
-        return userService.getUserIdByUsername(email);
+        return userServiceRepository.getUserIdByUsername(email);
     }
 
     @Operation(summary = "Method to change the password for the logged in user in the profile section")
@@ -158,14 +158,14 @@ public class ProfileApiController {
     public ProfileChangePassword changePassword(Authentication authentication,
                                                 @RequestBody ChangePasswordDto changePasswordDto) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        Long userId = userService.getUserIdByUsername(username);
+        Long userId = userServiceRepository.getUserIdByUsername(username);
         changePasswordDto.setUserId(userId);
-        return userService.changePassword(changePasswordDto);
+        return userServiceRepository.changePassword(changePasswordDto);
     }
 
     @Operation(summary = "Method to logout/making the token blacklist")
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader("Authorization") String token) {
-        return ResponseEntity.ok(userService.logout(token));
+        return ResponseEntity.ok(userServiceRepository.logout(token));
     }
 }

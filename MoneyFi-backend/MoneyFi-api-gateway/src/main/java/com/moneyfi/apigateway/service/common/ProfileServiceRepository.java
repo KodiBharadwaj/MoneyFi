@@ -1,10 +1,10 @@
-package com.moneyfi.apigateway.service.profileservice;
+package com.moneyfi.apigateway.service.common;
 
 import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.Feedback;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 
-public interface ProfileService {
+public interface ProfileServiceRepository {
 
     ProfileModel saveUserDetails(Long userId, ProfileModel profile);
 
