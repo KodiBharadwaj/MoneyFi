@@ -71,7 +71,6 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    @Transactional
     public byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category) {
 
         List<IncomeDetailsDto> monthlyIncomeList = getAllIncomesByMonthYearAndCategory(userId, month, year, category,false);
@@ -160,7 +159,6 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    @Transactional
     public byte[] generateYearlyExcelReport(Long userId, int year, String category) {
 
         List<IncomeDetailsDto> yearlyIncomeList = getAllIncomesByYear(userId, year, category, false);
@@ -193,7 +191,6 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    @Transactional
     public BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(Long userId, int month, int year) {
 
         // Adjust month and year to point to the previous month
@@ -275,7 +272,6 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    @Transactional
     public boolean incomeDeleteCheckFunction(IncomeModel incomeModel) {
 
         BigDecimal totalIncome = getTotalIncomeInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());

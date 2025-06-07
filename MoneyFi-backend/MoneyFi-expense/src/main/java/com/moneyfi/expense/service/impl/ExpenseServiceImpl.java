@@ -1,9 +1,10 @@
-package com.moneyfi.expense.service;
+package com.moneyfi.expense.service.impl;
 
 import com.moneyfi.expense.exceptions.ResourceNotFoundException;
 import com.moneyfi.expense.model.ExpenseModel;
 import com.moneyfi.expense.repository.ExpenseRepository;
 import com.moneyfi.expense.repository.common.ExpenseCommonRepository;
+import com.moneyfi.expense.service.ExpenseService;
 import com.moneyfi.expense.service.dto.response.ExpenseDetailsDto;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
@@ -24,13 +25,13 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class ExpenseServiceImplementation implements ExpenseService{
+public class ExpenseServiceImpl implements ExpenseService {
 
     private final ExpenseRepository expenseRepository;
     private final ExpenseCommonRepository expenseCommonRepository;
 
-    public ExpenseServiceImplementation(ExpenseRepository expenseRepository,
-                                        ExpenseCommonRepository expenseCommonRepository){
+    public ExpenseServiceImpl(ExpenseRepository expenseRepository,
+                              ExpenseCommonRepository expenseCommonRepository){
         this.expenseRepository = expenseRepository;
         this.expenseCommonRepository = expenseCommonRepository;
     }
@@ -56,7 +57,6 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    @Transactional
     public byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category) {
         List<ExpenseDetailsDto> monthlyExpenseList = getAllExpensesByMonthYearAndCategory(userId, month, year, category,false);
         return generateExcelReport(monthlyExpenseList);
@@ -140,7 +140,6 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    @Transactional
     public byte[] generateYearlyExcelReport(Long userId, int year, String category) {
         List<ExpenseDetailsDto> yearlyIncomeList = getAllExpensesByYearAndCategory(userId, year, category,false);
         return generateExcelReport(yearlyIncomeList);
@@ -162,7 +161,6 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    @Transactional
     public List<BigDecimal> getMonthlySavingsList(Long userId, int year) {
 
         BigDecimal[] incomes = getMonthlyIncomesListInAYear(userId, year);
@@ -200,7 +198,6 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    @Transactional
     public BigDecimal getTotalSavingsByMonthAndDate(Long userId, int month, int year) {
         BigDecimal totalIncome = getTotalIncomeInMonthAndYear(userId, month, year);
         BigDecimal totalExpenses = getTotalExpenseInMonthAndYear(userId, month, year);
@@ -221,7 +218,6 @@ public class ExpenseServiceImplementation implements ExpenseService{
     }
 
     @Override
-    @Transactional
     public List<BigDecimal> getCumulativeMonthlySavings(Long userId, int year) {
 
         BigDecimal[] incomes = getMonthlyIncomesListInAYear(userId, year);

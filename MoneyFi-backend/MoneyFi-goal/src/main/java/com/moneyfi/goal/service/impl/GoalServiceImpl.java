@@ -1,11 +1,12 @@
-package com.moneyfi.goal.service;
+package com.moneyfi.goal.service.impl;
 
 import com.moneyfi.goal.config.JwtService;
-import com.moneyfi.goal.dto.ExpenseModelDto;
+import com.moneyfi.goal.service.dto.response.ExpenseModelDto;
 import com.moneyfi.goal.exceptions.ResourceNotFoundException;
 import com.moneyfi.goal.model.GoalModel;
 import com.moneyfi.goal.repository.GoalRepository;
 import com.moneyfi.goal.repository.common.GoalCommonRepository;
+import com.moneyfi.goal.service.GoalService;
 import com.moneyfi.goal.service.dto.response.GoalDetailsDto;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -24,17 +25,17 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class GoalServiceImplementation implements GoalService{
+public class GoalServiceImpl implements GoalService {
 
     private final GoalRepository goalRepository;
     private final GoalCommonRepository goalCommonRepository;
     private final RestTemplate restTemplate;
     private final JwtService jwtService;
 
-    public GoalServiceImplementation(GoalRepository goalRepository,
-                                     GoalCommonRepository goalCommonRepository,
-                                     RestTemplate restTemplate,
-                                     JwtService jwtService){
+    public GoalServiceImpl(GoalRepository goalRepository,
+                           GoalCommonRepository goalCommonRepository,
+                           RestTemplate restTemplate,
+                           JwtService jwtService){
         this.goalRepository = goalRepository;
         this.goalCommonRepository = goalCommonRepository;
         this.restTemplate = restTemplate;
@@ -91,7 +92,6 @@ public class GoalServiceImplementation implements GoalService{
     }
 
     @Override
-    @Transactional
     public GoalDetailsDto addAmount(Long id, BigDecimal amount, String authHeader) {
         GoalModel goalModel = goalRepository.findById(id).orElse(null);
         if(goalModel == null){
