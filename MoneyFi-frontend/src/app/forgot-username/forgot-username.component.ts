@@ -22,7 +22,7 @@ export class ForgotUsernameComponent {
     name: '',
     gender: '',
     maritalStatus: '',
-    pincode: ''
+    pinCode: ''
   };
 
   constructor(
