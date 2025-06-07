@@ -13,6 +13,7 @@ import com.moneyfi.apigateway.service.TokenBlacklistService;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.sessiontokens.SessionToken;
 import com.moneyfi.apigateway.util.EmailFilter;
+import com.moneyfi.apigateway.util.EmailTemplates;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -201,7 +202,10 @@ public class UserServiceImplementation implements UserService {
             return dto;
         }
 
-        new Thread(() -> sendPasswordAlertMail(userAuthModel.getId(), userAuthModel.getUsername())).start();
+        String userName = profileRepository.findByUserId(userAuthModel.getId()).getName();
+        new Thread(() ->
+                EmailTemplates.sendPasswordAlertMail(userName, userAuthModel.getUsername())
+        ).start();
 
         userAuthModel.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
         userAuthModel.setOtpCount(userAuthModel.getOtpCount()+1);
@@ -210,27 +214,6 @@ public class UserServiceImplementation implements UserService {
 
         dto.setFlag(true);
         return dto;
-    }
-    private void sendPasswordAlertMail(Long userId, String email){
-
-        String userName = profileRepository.findByUserId(userId).getName();
-
-
-        String subject = "Password Change Alert!!";
-        String body = "<html>"
-                + "<body>"
-                + "<p style='font-size: 16px;'>Hello " + userName +",</p>"
-                + "<p style='font-size: 16px;'>You have changed the password for your account with username: " + email + "</p>"
-                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
-                + "<p style='font-size: 16px;'>Kindly Ignore if it by you. If not, reply to this mail immediately to secure account.</p>"
-                + "<hr>"
-                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at bharadwajkodi2003@gmail.com</p>"
-                + "<br>"
-                + "<p style='font-size: 14px;'>Best regards,</p>"
-                + "<p style='font-size: 14px;'>The Support Team</p>"
-                + "</body>"
-                + "</html>";
-        EmailFilter.sendEmail(email, subject, body);
     }
 
     @Override
@@ -272,22 +255,7 @@ public class UserServiceImplementation implements UserService {
         }
 
         String verificationCode = EmailFilter.generateVerificationCode();
-
-        String subject = "OTP for MoneyFi's account creation";
-        String body = "<html>"
-                + "<body>"
-                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
-                + "<p style='font-size: 16px;'>You have requested for account creation. Please use the following verification code:</p>"
-                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'>" + verificationCode + "</p>"
-                + "<p style='font-size: 16px;'>This code is valid for 5 minutes only. If you did not raise, please ignore this email.</p>"
-                + "<hr>"
-                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at bharadwajkodi2003@gmail.com</p>"
-                + "<br>"
-                + "<p style='font-size: 14px;'>Best regards,</p>"
-                + "<p style='font-size: 14px;'>The Support Team</p>"
-                + "</body>"
-                + "</html>";
-        boolean isMailsent = EmailFilter.sendEmail(email, subject, body);
+        boolean isMailsent = EmailTemplates.sendEmailToUserForSignup(email, name, verificationCode);
 
         if(isMailsent){
             OtpTempModel user = otpTempRepository.findByEmail(email);
@@ -347,32 +315,34 @@ public class UserServiceImplementation implements UserService {
 
         return response;
     }
+    private BlackListedToken makeUserTokenBlacklisted(String token){
+
+        Date expiryDate = new Date(System.currentTimeMillis()); // current date and time
+        BlackListedToken blackListedToken = new BlackListedToken();
+        blackListedToken.setToken(token);
+        blackListedToken.setExpiry(expiryDate);
+        return blacklistService.blacklistToken(blackListedToken);
+    }
+    private SessionTokenModel makeUserSessionInActive(String token){
+
+        SessionTokenModel sessionTokens = sessionTokenService.getSessionDetailsByToken(token);
+        sessionTokens.setIsActive(false);
+        return sessionTokenService.save(sessionTokens);
+    }
+
 
     @Override
     public boolean getUsernameByDetails(ForgotUsernameDto userDetails) {
-        String username = functionCallToRetriveUsername(userDetails);
+        String username = functionCallToRetrieveUsername(userDetails);
 
         if(username == null || username.trim().isEmpty()){
             return false;
         }
 
-        String subject = "MoneyFi - Username request";
-        String body = "<html>"
-                + "<body>"
-                + "<p style='font-size: 16px;'>Hello User,</p>"
-                + "<p style='font-size: 16px;'>You have requested for username with your details. Here is you username: " + username + "</p>"
-                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
-                + "<p style='font-size: 16px;'>Kindly Ignore if it by you. If not, reply to this mail immediately to secure account.</p>"
-                + "<hr>"
-                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at bharadwajkodi2003@gmail.com</p>"
-                + "<br>"
-                + "<p style='font-size: 14px;'>Best regards,</p>"
-                + "<p style='font-size: 14px;'>The Support Team</p>"
-                + "</body>"
-                + "</html>";
-        return EmailFilter.sendEmail(username, subject, body);
+        log.info("Username fetched: {}", username);
+        return EmailTemplates.sendUserNameToUser(username);
     }
-    private String functionCallToRetriveUsername(ForgotUsernameDto userDetails){
+    private String functionCallToRetrieveUsername(ForgotUsernameDto userDetails){
         String username = "";
 
         if(userDetails.getPhoneNumber() != null && !userDetails.getPhoneNumber().isEmpty()
@@ -409,31 +379,39 @@ public class UserServiceImplementation implements UserService {
                 return fetchedUsers.get(0).getEmail();
             }
 
-            List<String> matchedUsernames = new ArrayList<>();
-            for(ProfileModel profile : fetchedUsers){
-
-                String address = profile.getAddress();
-                if (address != null && !address.isEmpty()) {
-                    Pattern pattern = Pattern.compile("\\b\\d{6}\\b");
-                    Matcher matcher = pattern.matcher(address);
-
-                    String pincode = null;
-                    if (matcher.find()) {
-                        pincode = matcher.group();
-
-                        if (pincode.equals(userDetails.getPinCode())) {
-                            matchedUsernames.add(profile.getEmail());
-                        }
-                    }
-                }
-            }
-
+            List<String> matchedUsernames = functionToFetchUserByPinCode(fetchedUsers, userDetails);
             if(matchedUsernames.size() == 1){
                 return matchedUsernames.get(0);
             }
 
             username += "null";
         }
+
+        return functionCallToFetchUsernameByUserDetailsWithoutPhoneNumber(username, userDetails);
+    }
+    private List<String> functionToFetchUserByPinCode(List<ProfileModel> fetchedUsers, ForgotUsernameDto userDetails){
+        List<String> matchedUsernames = new ArrayList<>();
+
+        for(ProfileModel profile : fetchedUsers){
+
+            String address = profile.getAddress();
+            if (address != null && !address.isEmpty()) {
+                Pattern pattern = Pattern.compile("\\b\\d{6}\\b");
+                Matcher matcher = pattern.matcher(address);
+
+                String pincode = null;
+                if (matcher.find()) {
+                    pincode = matcher.group();
+
+                    if (pincode.equals(userDetails.getPinCode())) {
+                        matchedUsernames.add(profile.getEmail());
+                    }
+                }
+            }
+        }
+        return matchedUsernames;
+    }
+    private String functionCallToFetchUsernameByUserDetailsWithoutPhoneNumber(String username, ForgotUsernameDto userDetails){
 
         if(username.isEmpty() || username.equalsIgnoreCase("null")){
 
@@ -444,28 +422,19 @@ public class UserServiceImplementation implements UserService {
             if(fetchedUsersByAllDetails.size() == 1){
                 return fetchedUsersByAllDetails.get(0).getEmail();
             }
-            return null;
+
+            List<String> matchedUsernames = functionToFetchUserByPinCode(fetchedUsersByAllDetails, userDetails);
+            if(matchedUsernames.size() == 1){
+                return matchedUsernames.get(0);
+            }
         }
         return null;
     }
 
-    private BlackListedToken makeUserTokenBlacklisted(String token){
-
-        Date expiryDate = new Date(System.currentTimeMillis()); // current date and time
-        BlackListedToken blackListedToken = new BlackListedToken();
-        blackListedToken.setToken(token);
-        blackListedToken.setExpiry(expiryDate);
-        return blacklistService.blacklistToken(blackListedToken);
-    }
-    private SessionTokenModel makeUserSessionInActive(String token){
-
-        SessionTokenModel sessionTokens = sessionTokenService.getSessionDetailsByToken(token);
-        sessionTokens.setIsActive(false);
-        return sessionTokenService.save(sessionTokens);
-    }
 
 
-    @Scheduled(fixedRate = 3600000) // Runs every 1 hour
+
+    @Scheduled(fixedRate = 3600000) // Method Runs for every 1 hour
     public void removeOtpCountOfPreviousDay1(){
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
         List<UserAuthModel>  userAuthModelList = userRepository.getUserListWhoseOtpCountGreaterThanThree(startOfToday);
