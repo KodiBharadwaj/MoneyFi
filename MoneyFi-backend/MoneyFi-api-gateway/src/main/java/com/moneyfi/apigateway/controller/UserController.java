@@ -1,10 +1,12 @@
 package com.moneyfi.apigateway.controller;
 
-import com.moneyfi.apigateway.dto.*;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
-import com.moneyfi.apigateway.service.resetpassword.ResetPassword;
-import com.moneyfi.apigateway.service.userservice.UserService;
+import com.moneyfi.apigateway.service.common.UserCommonRepository;
+import com.moneyfi.apigateway.service.userservice.UserServiceRepository;
+import com.moneyfi.apigateway.service.userservice.dto.ForgotUsernameDto;
+import com.moneyfi.apigateway.service.userservice.dto.RemainingTimeCountDto;
+import com.moneyfi.apigateway.service.userservice.dto.UserProfile;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,15 +17,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class UserController {
 
-    private final UserService userService;
+    private final UserServiceRepository userServiceRepository;
     private final JwtService jwtService;
-    private final ResetPassword passwordResetService;
+    private final UserCommonRepository passwordResetService;
 
 
-    public UserController(UserService userService,
+    public UserController(UserServiceRepository userServiceRepository,
                           JwtService jwtService,
-                          ResetPassword resetPassword){
-        this.userService = userService;
+                          UserCommonRepository resetPassword){
+        this.userServiceRepository = userServiceRepository;
         this.jwtService = jwtService;
         this.passwordResetService = resetPassword;
     }
@@ -33,7 +35,7 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserProfile userProfile) {
 
-        UserAuthModel user = userService.registerUser(userProfile);
+        UserAuthModel user = userServiceRepository.registerUser(userProfile);
         if(user == null){
             return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists"); //409
         } else {
@@ -44,7 +46,7 @@ public class UserController {
     @Operation(summary = "Method for the user to login")
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserAuthModel userAuthModel) {
-        return userService.login(userAuthModel);
+        return userServiceRepository.login(userAuthModel);
     }
 
 
@@ -78,25 +80,25 @@ public class UserController {
     public ResponseEntity<String> sendOtpForSignup(@PathVariable("email") String email,
                                     @PathVariable("name") String name){
 
-        return ResponseEntity.ok(userService.sendOtpForSignup(email, name));
+        return ResponseEntity.ok(userServiceRepository.sendOtpForSignup(email, name));
     }
 
     @Operation(summary = "Method to check the eligibility for next otp")
     @GetMapping("/checkOtpActive/{email}")
     public RemainingTimeCountDto checkOtpActiveMethod(@PathVariable("email") String email){
-        return userService.checkOtpActiveMethod(email);
+        return userServiceRepository.checkOtpActiveMethod(email);
     }
 
     @Operation(summary = "Method to check the otp entered correct or not during user creation")
     @GetMapping("/checkOtp/{email}/{inputOtp}")
     public boolean checkEnteredOtp(@PathVariable("email") String email,
                                    @PathVariable("inputOtp") String inputOtp){
-        return userService.checkEnteredOtp(email, inputOtp);
+        return userServiceRepository.checkEnteredOtp(email, inputOtp);
     }
 
     @Operation(summary = "Method to return username when user forgets username")
     @PostMapping("/forgotUsername")
     public boolean forgotUsername(@RequestBody ForgotUsernameDto userDetails){
-        return userService.getUsernameByDetails(userDetails);
+        return userServiceRepository.getUsernameByDetails(userDetails);
     }
 }

@@ -2,7 +2,7 @@ Project MoneyFi:
 
 Major Changes:
 - Google authentication
-- Implement forgot username feature (user should receive mail by providing necessary details like dob, phn No)
+
 
 Minor Changes:
 - Write junit test cases for income service (ongoing)
@@ -16,7 +16,6 @@ Minor Changes:
 Defects:
 - update functionality is not working in all services.
 - User feedback mail images are not sending as images in mail to admin.
-- Forgot username has some issues (not fetching the username even without ph no, but unique user is there)
 
 
 
@@ -44,6 +43,7 @@ cleared changes:
 - Implement delete account & block feature (soft delete - can be revert back if user needs ticket raise)
 - check with sonar for code quality and sonar fixes.
 - Modify Budget Promise bunch api calls to singe api while adding or modifying a budget.
+- Implement forgot username feature (user should receive mail by providing necessary details like dob, phn No)
 
 
 

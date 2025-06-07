@@ -1,6 +1,6 @@
 package com.moneyfi.apigateway.service.jwtservice;
 
-import com.moneyfi.apigateway.dto.JwtToken;
+import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public interface JwtService {
