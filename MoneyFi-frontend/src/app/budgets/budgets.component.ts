@@ -13,6 +13,7 @@ import { AddExpenseDialogComponent } from '../add-expense-dialog/add-expense-dia
 import { NgChartsModule } from 'ng2-charts';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { UpdateBudgetDialogComponent } from '../update-budget-dialog/update-budget-dialog.component';
+import { environment } from '../../environments/environment';
 
 
 interface Budget {
@@ -42,7 +43,7 @@ interface Budget {
 export class BudgetsComponent {
 
   constructor(private httpClient:HttpClient, private router:Router, private dialog: MatDialog, private toastr:ToastrService){};
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
   totalBudget: number = 0;
   totalSpent: number = 0;

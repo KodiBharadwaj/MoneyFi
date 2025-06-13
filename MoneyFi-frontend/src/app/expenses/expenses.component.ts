@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
+import { environment } from '../../environments/environment.development';
 
 interface Expense {
   id: number;
@@ -97,7 +98,7 @@ export class ExpensesComponent {
 
   constructor(private httpClient: HttpClient, private dialog: MatDialog, private router:Router, private toastr:ToastrService) {}
 
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
 
   ngOnInit() {

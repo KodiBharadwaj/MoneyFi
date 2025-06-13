@@ -10,8 +10,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { ToastrService } from 'ngx-toastr';
 import { ChangePasswordDialogComponent } from '../change-password-dialog/change-password-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { UserProfile } from '../model/UserProfile';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 interface UserProfileDetails {
   name: string;
@@ -63,7 +63,7 @@ export class ProfileComponent implements OnInit {
 
   constructor(private http: HttpClient, private toastr:ToastrService, private dialog:MatDialog, private router: Router) { }
 
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
   ngOnInit(): void {
     this.getProfile();
   }

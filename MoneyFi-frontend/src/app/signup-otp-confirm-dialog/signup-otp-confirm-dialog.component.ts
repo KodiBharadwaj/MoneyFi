@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule, NgModel } from '@angular/forms';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-signup-otp-confirm-dialog',
@@ -13,7 +14,7 @@ export class SignupOtpConfirmDialogComponent {
 
   constructor(private httpClient: HttpClient){};
 
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
   @Input() email!: string; // ⬅️ receive email from parent
   @Output() otpValidated = new EventEmitter<boolean>();

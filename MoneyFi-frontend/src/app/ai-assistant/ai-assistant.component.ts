@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { finalize, forkJoin } from 'rxjs';
 import { FormatAdvicePipe } from '../shared/pipes/format-advice.pipe';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-ai-assistant',
@@ -18,7 +19,7 @@ export class AiAssistantComponent implements OnInit {
   advice: string = '';
   loading: boolean = false;
   error: string | null = null;
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
   currentYear = new Date().getFullYear();
   currentMonth = new Date().getMonth() + 1;
 
