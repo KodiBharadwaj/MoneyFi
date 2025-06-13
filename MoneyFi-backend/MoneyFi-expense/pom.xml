@@ -157,6 +157,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>MoneyFi-expense</finalName>
 	</build>
 
 </project>

@@ -156,6 +156,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>MoneyFi-income</finalName>
 	</build>
 
 </project>

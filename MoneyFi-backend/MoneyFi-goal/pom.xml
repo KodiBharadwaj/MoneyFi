@@ -148,6 +148,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>MoneyFi-goal</finalName>
 	</build>
 
 </project>

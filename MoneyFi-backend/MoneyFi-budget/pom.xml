@@ -150,5 +150,6 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>MoneyFi-budget</finalName>
 	</build>
 </project>
