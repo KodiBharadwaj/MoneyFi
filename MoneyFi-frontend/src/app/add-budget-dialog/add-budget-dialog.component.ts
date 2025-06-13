@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-add-budget-dialog',
@@ -30,7 +31,7 @@ import { MatSelectModule } from '@angular/material/select';
   CommonModule],
 })
 export class AddBudgetDialogComponent {
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
   budgetSource = {
     moneyLimit: 0,

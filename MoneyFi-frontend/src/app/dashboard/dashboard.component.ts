@@ -4,7 +4,7 @@ import { IncomeComponent } from '../income/income.component';
 import { ExpensesComponent } from '../expenses/expenses.component';
 import { BudgetsComponent } from '../budgets/budgets.component';
 import { GoalsComponent } from '../goals/goals.component';
-import { ActivatedRoute, Route, Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { OverviewComponent } from '../overview/overview.component';
 import { ConfirmLogoutDialogComponent } from '../confirm-logout-dialog/confirm-logout-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -12,6 +12,7 @@ import { ProfileComponent } from '../profile/profile.component';
 import { AnalysisComponent } from '../analysis/analysis.component';
 import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-dashboard',
@@ -38,7 +39,7 @@ export class DashboardComponent {
   private toastr: ToastrService){};
 
   isLoading = false;
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
 
   logoutUser(): void {
