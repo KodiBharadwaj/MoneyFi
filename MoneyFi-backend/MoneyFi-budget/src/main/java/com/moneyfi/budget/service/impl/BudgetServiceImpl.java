@@ -1,9 +1,10 @@
-package com.moneyfi.budget.service;
+package com.moneyfi.budget.service.impl;
 
 import com.moneyfi.budget.exceptions.ResourceNotFoundException;
 import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.repository.BudgetRepository;
 import com.moneyfi.budget.repository.common.BudgetCommonRepository;
+import com.moneyfi.budget.service.BudgetService;
 import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
 import jakarta.transaction.Transactional;
@@ -15,13 +16,13 @@ import java.util.List;
 
 
 @Service
-public class BudgetServiceImplementation implements BudgetService{
+public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetRepository budgetRepository;
     private final BudgetCommonRepository budgetCommonRepository;
 
-    public BudgetServiceImplementation(BudgetRepository budgetRepository,
-                                       BudgetCommonRepository budgetCommonRepository){
+    public BudgetServiceImpl(BudgetRepository budgetRepository,
+                             BudgetCommonRepository budgetCommonRepository){
         this.budgetRepository = budgetRepository;
         this.budgetCommonRepository = budgetCommonRepository;
     }

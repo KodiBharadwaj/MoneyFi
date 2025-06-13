@@ -153,6 +153,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
+        <finalName>MoneyFi-api-gateway</finalName>
     </build>
     <repositories>
         <repository>
