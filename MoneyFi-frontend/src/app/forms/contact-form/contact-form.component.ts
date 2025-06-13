@@ -4,8 +4,8 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { UserProfile } from '../../model/UserProfile';
 import { ProfileDetails } from '../../model/ProfileDetails';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-contact-form',
@@ -28,7 +28,7 @@ export class ContactFormComponent {
   email : string = '';
   selectedFile: File | null = null;
   previewUrl: string | ArrayBuffer | null = null;
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
   ngOnInit(){
     

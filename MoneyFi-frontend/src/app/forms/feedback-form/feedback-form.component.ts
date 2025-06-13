@@ -4,8 +4,8 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { UserProfile } from '../../model/UserProfile';
 import { ProfileDetails } from '../../model/ProfileDetails';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-feedback-form',
@@ -17,7 +17,7 @@ import { ProfileDetails } from '../../model/ProfileDetails';
 export class FeedbackFormComponent {
 
   constructor(private httpClient:HttpClient, private router:Router, private toastr:ToastrService){};
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
   
   feedback = {
     name: '',
