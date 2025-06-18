@@ -4,6 +4,7 @@ import { map, Observable, switchMap } from 'rxjs';
 import { JwtToken } from './model/JwtToken';
 import { LoginCredentials } from './model/LoginCredentials';
 import { SignupCredentials } from './model/SignupCredentials';
+import { environment } from '../environments/environment';
 
 
 @Injectable({
@@ -13,7 +14,7 @@ export class AuthApiService {
 
   constructor(private authClient:HttpClient) { }
 
-  baseUrl = "http://localhost:8765/api/auth"
+  baseUrl = environment.BASE_URL + "/api/auth";
   
   loginApiFunction(loginCredentials:LoginCredentials):Observable<JwtToken>{
     const token = this.authClient.post<JwtToken>(this.baseUrl+"/login", loginCredentials);

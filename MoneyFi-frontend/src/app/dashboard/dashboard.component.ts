@@ -51,7 +51,7 @@ export class DashboardComponent {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
 
-        this.httpClient.post('http://localhost:8765/api/v1/userProfile/logout', {}, { responseType: 'text' }).subscribe({
+        this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/logout`, {}, { responseType: 'text' }).subscribe({
           next: (response) => {
             console.log(response)
             const jsonResponse = JSON.parse(response);
