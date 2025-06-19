@@ -108,7 +108,7 @@ public class GoalServiceImpl implements GoalService {
 
     @Override
     public BigDecimal getCurrentTotalGoalIncome(Long userId) {
-        BigDecimal totalGoalIncome = goalCommonRepository.getCurrentTotalGoalIncome(userId);
+        BigDecimal totalGoalIncome = goalRepository.getCurrentTotalGoalIncome(userId);
         if(totalGoalIncome == null){
             return BigDecimal.ZERO;
         }
@@ -118,7 +118,7 @@ public class GoalServiceImpl implements GoalService {
 
     @Override
     public BigDecimal getTargetTotalGoalIncome(Long userId) {
-        BigDecimal totalGoalTargetIncome = goalCommonRepository.getTotalTargetGoalIncome(userId);
+        BigDecimal totalGoalTargetIncome = goalRepository.getTotalTargetGoalIncome(userId);
         if(totalGoalTargetIncome == null){
             return BigDecimal.ZERO;
         }

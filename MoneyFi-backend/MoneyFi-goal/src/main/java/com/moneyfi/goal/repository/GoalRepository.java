@@ -11,4 +11,10 @@ import java.util.List;
 
 
 public interface GoalRepository extends JpaRepository<GoalModel, Long> {
+
+    @Query(nativeQuery = true, value = "exec getTotalCurrentGoalIncome @userId = :userId")
+    BigDecimal getCurrentTotalGoalIncome(Long userId);
+
+    @Query(nativeQuery = true, value = "exec getTotalTargetGoalIncome @userId = :userId")
+    BigDecimal getTotalTargetGoalIncome(Long userId);
 }
