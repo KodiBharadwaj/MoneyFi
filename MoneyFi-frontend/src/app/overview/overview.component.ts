@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from '../../environments/environment';
 
 interface FinancialSummary {
   income: number;
@@ -59,7 +60,7 @@ export class OverviewComponent implements OnInit {
   thisYear = new Date().getFullYear(); // Current year
 
   constructor(private router: Router, private httpClient:HttpClient, private toastr:ToastrService) {}
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
   ngOnInit() {
     this.loadFinancialData();

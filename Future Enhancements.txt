@@ -2,6 +2,7 @@ Project MoneyFi:
 
 Major Changes:
 - Google authentication
+- Use s3 for profile upload.
 
 
 Minor Changes:

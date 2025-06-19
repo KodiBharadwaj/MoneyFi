@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-income-deleted',
@@ -13,7 +14,7 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class IncomeDeletedComponent {
 
-  baseUrl = "http://localhost:8765"
+  baseUrl = environment.BASE_URL
 
   constructor(private httpClient : HttpClient, private toastr : ToastrService,
      public dialogRef: MatDialogRef<IncomeDeletedComponent>, 

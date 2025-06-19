@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { NgChartsModule } from 'ng2-charts';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from '../../environments/environment.development';
 
 @Component({
   selector: 'app-forgot-username',
@@ -31,7 +32,7 @@ export class ForgotUsernameComponent {
     private toastr: ToastrService
   ) {}
 
-  baseUrl = 'http://localhost:8765'; 
+  baseUrl = environment.BASE_URL; 
 
   navigateTo(route: string): void {
     this.router.navigate([route]);

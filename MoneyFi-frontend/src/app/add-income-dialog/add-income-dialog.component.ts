@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from '../../environments/environment';
 
 interface IncomeSource {
   id: number;
@@ -90,7 +91,7 @@ export class AddIncomeDialogComponent {
     }
   }
 
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
   today : Date = new Date();
 
   isValid(): boolean {

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Chart, ChartConfiguration, ChartData } from 'chart.js';
+import { ChartConfiguration, ChartData } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -8,6 +8,7 @@ import { forkJoin } from 'rxjs';
 import { AiService } from '../services/ai.service';
 import { ToastrService } from 'ngx-toastr';
 import { finalize } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-analysis',
@@ -17,7 +18,7 @@ import { finalize } from 'rxjs/operators';
   styleUrl: './analysis.component.scss'
 })
 export class AnalysisComponent {
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
   // Add new properties
   isRadarFlipped = false;

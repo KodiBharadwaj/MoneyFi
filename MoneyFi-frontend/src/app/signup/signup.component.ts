@@ -5,12 +5,12 @@ import { CommonModule } from '@angular/common';
 import { SignupCredentials } from '../model/SignupCredentials';
 import { AuthApiService } from '../auth-api.service';
 import { HttpClient } from '@angular/common/http';
-
 import { ToastrModule, ToastrService } from 'ngx-toastr';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { SignupOtpConfirmDialogComponent } from '../signup-otp-confirm-dialog/signup-otp-confirm-dialog.component';
-import { UserProfile } from '../model/UserProfile';
+import { environment } from '../../environments/environment';
+
 
 @Component({
   selector: 'app-signup',
@@ -95,7 +95,7 @@ export class SignupComponent {
     this.router.navigate(['/login']);
   }
 
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
 
 isLoading: boolean = false; // Controls the loading spinner

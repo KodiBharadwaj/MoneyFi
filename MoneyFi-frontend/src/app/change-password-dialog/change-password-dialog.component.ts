@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
 import { ProfileChangePassword } from '../model/ProfileChangePassword';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-change-password-dialog',
@@ -54,7 +55,7 @@ export class ChangePasswordDialogComponent {
       ? null : { mismatch: true };
   }
 
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
   isLoading: boolean = false;
 

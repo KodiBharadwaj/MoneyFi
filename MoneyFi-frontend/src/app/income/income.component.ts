@@ -15,6 +15,7 @@ import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
 import { IncomeDeletedComponent } from '../income-deleted/income-deleted.component';
 import { incomeDeleted } from '../model/incomeDeleted';
+import { environment } from '../../environments/environment.development';
 
 
 interface IncomeSource {
@@ -93,7 +94,7 @@ export class IncomeComponent {
 
   constructor(public httpClient: HttpClient,private dialog: MatDialog, private router:Router, private toastr:ToastrService) {};
 
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
   
   ngOnInit() {
     this.initializeFilters();
