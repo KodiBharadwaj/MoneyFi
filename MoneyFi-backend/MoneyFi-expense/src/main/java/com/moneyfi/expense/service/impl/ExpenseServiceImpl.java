@@ -6,7 +6,6 @@ import com.moneyfi.expense.repository.ExpenseRepository;
 import com.moneyfi.expense.repository.common.ExpenseCommonRepository;
 import com.moneyfi.expense.service.ExpenseService;
 import com.moneyfi.expense.service.dto.response.ExpenseDetailsDto;
-import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
@@ -189,7 +188,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
-        BigDecimal totalExpense = expenseCommonRepository.getTotalExpenseInMonthAndYear(userId, month, year);
+        BigDecimal totalExpense = expenseRepository.getTotalExpenseInMonthAndYear(userId, month, year);
         if(totalExpense == null){
             return BigDecimal.ZERO;
         }
@@ -209,7 +208,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return BigDecimal.ZERO;
     }
     private BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
-        BigDecimal totalIncome = expenseCommonRepository.getTotalIncomeInMonthAndYear(userId, month, year);
+        BigDecimal totalIncome = expenseRepository.getTotalIncomeInMonthAndYear(userId, month, year);
         if(totalIncome == null){
             return BigDecimal.ZERO;
         }

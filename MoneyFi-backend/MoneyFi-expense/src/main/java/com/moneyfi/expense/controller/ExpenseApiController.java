@@ -43,7 +43,6 @@ public class ExpenseApiController {
     @GetMapping("/getExpenses")
     public ResponseEntity<List<ExpenseModel>> getAllExpenses(@RequestHeader("Authorization") String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         List<ExpenseModel> list = expenseService.getAllExpenses(userId);
         return ResponseEntity.status(HttpStatus.OK).body(list); // 200
     }
@@ -56,7 +55,6 @@ public class ExpenseApiController {
                                                                                         @PathVariable("category") String category,
                                                                                         @PathVariable("deleteStatus") boolean deleteStatus){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllExpensesByMonthYearAndCategory(userId, month, year, category, deleteStatus));
     }
 
@@ -68,7 +66,6 @@ public class ExpenseApiController {
                                                           @PathVariable("year") int year) {
 
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         byte[] excelData = expenseService.generateMonthlyExcelReport(userId, month, year, category);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Monthly expense report.xlsx")
@@ -83,7 +80,6 @@ public class ExpenseApiController {
                                                                               @PathVariable("category") String category,
                                                                               @PathVariable("deleteStatus") boolean deleteStatus){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllExpensesByYearAndCategory(userId, year, category, deleteStatus));
     }
 
@@ -93,7 +89,6 @@ public class ExpenseApiController {
                                                          @PathVariable("year") int year,
                                                          @PathVariable("category") String category) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         byte[] excelData = expenseService.generateYearlyExcelReport(userId, year, category);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Yearly expense report.xlsx")
@@ -107,7 +102,6 @@ public class ExpenseApiController {
                                                     @PathVariable("month") int month,
                                                     @PathVariable("year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return expenseService.getTotalExpenseInMonthAndYear(userId, month, year);
     }
 
@@ -116,7 +110,6 @@ public class ExpenseApiController {
     public List<BigDecimal> getMonthlyTotals(@RequestHeader("Authorization") String authHeader,
                                              @PathVariable("year") int year) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return expenseService.getMonthlyExpenses(userId, year);
     }
 
@@ -125,7 +118,6 @@ public class ExpenseApiController {
     public List<BigDecimal> getMonthlySavingsList(@RequestHeader("Authorization") String authHeader,
                                                   @PathVariable("year") int year) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return expenseService.getMonthlySavingsList(userId, year);
     }
 
@@ -136,7 +128,6 @@ public class ExpenseApiController {
                                                     @PathVariable("month") int month,
                                                     @PathVariable("year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return expenseService.getTotalSavingsByMonthAndDate(userId, month, year);
     }
 
@@ -145,7 +136,6 @@ public class ExpenseApiController {
     public List<BigDecimal> getCumulativeMonthlySavings(@RequestHeader("Authorization") String authHeader,
                                                         @PathVariable("year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return expenseService.getCumulativeMonthlySavings(userId, year);
     }
 
@@ -155,7 +145,6 @@ public class ExpenseApiController {
                                                       @PathVariable("id") Long id,
                                                       @RequestBody ExpenseModel expense) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return expenseService.updateBySource(id, userId, expense);
     }
 

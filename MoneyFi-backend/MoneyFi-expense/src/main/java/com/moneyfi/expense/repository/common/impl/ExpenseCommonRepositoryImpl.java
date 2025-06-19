@@ -9,7 +9,6 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,44 +110,6 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
 
         } catch (Exception e) {
             throw new QueryValidationException("Error occurred while fetching yearly expense data");
-        }
-    }
-
-    @Override
-    public BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
-        try {
-            Query query = entityManager.createNativeQuery(
-                            "exec [getTotalExpenseInMonthAndYear] " +
-                                    "@userId = :userId, " +
-                                    "@month = :month, " +
-                                    "@year = :year")
-                    .setParameter(USER_ID, userId)
-                    .setParameter(MONTH, month)
-                    .setParameter(YEAR, year);
-
-            return (BigDecimal) query.getSingleResult();
-
-        } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching total expense amount");
-        }
-    }
-
-    @Override
-    public BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
-        try {
-            Query query = entityManager.createNativeQuery(
-                            "exec [getTotalIncomeInMonthAndYear] " +
-                                    "@userId = :userId, " +
-                                    "@month = :month, " +
-                                    "@year = :year")
-                    .setParameter(USER_ID, userId)
-                    .setParameter(MONTH, month)
-                    .setParameter(YEAR, year);
-
-            return (BigDecimal) query.getSingleResult();
-
-        } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching total income amount");
         }
     }
 }
