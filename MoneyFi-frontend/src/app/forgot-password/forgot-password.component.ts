@@ -9,6 +9,7 @@ import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { remainingTimeCount } from '../model/remainingTimeCount';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from '../../environments/environment';
 
 
 @Component({
@@ -32,6 +33,8 @@ export class ForgotPasswordComponent {
   successMessage: string = '';
 
   constructor(private http: HttpClient,private router:Router, private toastr:ToastrService) {}
+
+  baseUrl = environment.BASE_URL;
 
   public radarChartData: ChartData<'radar'> = {
     labels: ['Budgeting', 'Saving', 'Investing', 'Planning', 'Tracking', 'Goals'],
@@ -100,11 +103,11 @@ export class ForgotPasswordComponent {
     this.isLoading = true; // Start loading
 
 
-    this.http.get<remainingTimeCount>(`http://localhost:8765/api/auth/checkOtpActive/${this.email}`).subscribe({
+    this.http.get<remainingTimeCount>(`${this.baseUrl}/api/auth/checkOtpActive/${this.email}`).subscribe({
       next : (outputDto) => {
         if(outputDto.result){
 
-          this.http.post(`http://localhost:8765/api/auth/forgot-password`, null, { 
+          this.http.post(`${this.baseUrl}/api/auth/forgot-password`, null, { 
             params: { email: this.email },
             responseType: 'text'
           }).subscribe({
@@ -159,7 +162,7 @@ export class ForgotPasswordComponent {
     }
 
     // Make API call to verify code
-    this.http.post(`http://localhost:8765/api/auth/verify-code`, null, { 
+    this.http.post(`${this.baseUrl}/api/auth/verify-code`, null, { 
       params: { 
         email: this.email,
         code: this.verificationCode 
@@ -188,7 +191,7 @@ export class ForgotPasswordComponent {
     }
 
     // Make API call to reset password
-    this.http.put(`http://localhost:8765/api/auth/update-password`, null, { 
+    this.http.put(`${this.baseUrl}/api/auth/update-password`, null, { 
       params: { 
         email: this.email,
         password: this.newPassword 
