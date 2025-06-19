@@ -182,7 +182,7 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     public BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
-        BigDecimal totalIncome = incomeCommonRepository.getTotalIncomeInMonthAndYear(userId, month, year);
+        BigDecimal totalIncome = incomeRepository.getTotalIncomeInMonthAndYear(userId, month, year);
         if(totalIncome == null){
             return BigDecimal.ZERO;
         }
@@ -205,7 +205,7 @@ public class IncomeServiceImpl implements IncomeService {
             adjustedYear = year;
         }
 
-        BigDecimal totalIncome = incomeCommonRepository.getRemainingIncomeUpToPreviousMonthByMonthAndYear(userId, adjustedMonth, adjustedYear);
+        BigDecimal totalIncome = incomeRepository.getRemainingIncomeUpToPreviousMonthByMonthAndYear(userId, adjustedMonth, adjustedYear);
         if(totalIncome == null || totalIncome == BigDecimal.ZERO){
             return BigDecimal.ZERO;
         }
@@ -230,7 +230,7 @@ public class IncomeServiceImpl implements IncomeService {
             adjustedMonth = month;
             adjustedYear = year;
         }
-        BigDecimal value = incomeCommonRepository.getTotalExpensesUpToPreviousMonth(userId, adjustedMonth, adjustedYear);
+        BigDecimal value = incomeRepository.getTotalExpensesUpToPreviousMonth(userId, adjustedMonth, adjustedYear);
         if(value != null){
             return value;
         } else {
@@ -263,7 +263,7 @@ public class IncomeServiceImpl implements IncomeService {
         return true;
     }
     private BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
-        BigDecimal totalExpense = incomeCommonRepository.getTotalExpenseInMonthAndYear(userId, month, year);
+        BigDecimal totalExpense = incomeRepository.getTotalExpenseInMonthAndYear(userId, month, year);
         if(totalExpense == null){
             return BigDecimal.ZERO;
         }
@@ -373,7 +373,7 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     public BigDecimal getAvailableBalanceOfUser(Long userId) {
-        return incomeCommonRepository.getAvailableBalanceOfUser(userId);
+        return incomeRepository.getAvailableBalanceOfUser(userId);
     }
 
     private void saveIncomeDeletedDetails(Long id){

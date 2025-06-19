@@ -8,10 +8,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.Transformers;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -139,96 +137,4 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
             throw new QueryValidationException("Error occurred while fetching yearly income data");
         }
     }
-
-    @Override
-    public BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
-        try {
-            Query query = entityManager.createNativeQuery(
-                            "exec [getTotalIncomeInMonthAndYear] " +
-                                    "@userId = :userId, " +
-                                    "@month = :month, " +
-                                    "@year = :year")
-                    .setParameter(USER_ID, userId)
-                    .setParameter(MONTH, month)
-                    .setParameter(YEAR, year);
-
-            return (BigDecimal) query.getSingleResult();
-
-        } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching total income");
-        }
-    }
-
-    @Override
-    public BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(Long userId, int month, int year) {
-        try {
-            Query query = entityManager.createNativeQuery(
-                            "exec [getRemainingIncomeUpToPreviousMonthByMonthAndYear] " +
-                                    "@userId = :userId, " +
-                                    "@month = :month, " +
-                                    "@year = :year")
-                    .setParameter(USER_ID, userId)
-                    .setParameter(MONTH, month)
-                    .setParameter(YEAR, year);
-
-            return (BigDecimal) query.getSingleResult();
-
-        } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching remaining income");
-        }
-    }
-
-    @Override
-    public BigDecimal getTotalExpensesUpToPreviousMonth(Long userId, int month, int year) {
-        try {
-            Query query = entityManager.createNativeQuery(
-                            "exec [getTotalExpensesUpToPreviousMonth] " +
-                                    "@userId = :userId, " +
-                                    "@month = :month, " +
-                                    "@year = :year")
-                    .setParameter(USER_ID, userId)
-                    .setParameter(MONTH, month)
-                    .setParameter(YEAR, year);
-
-            return (BigDecimal) query.getSingleResult();
-
-        } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching total expenses upto previous month");
-        }
-    }
-
-    @Override
-    public BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
-        try {
-            Query query = entityManager.createNativeQuery(
-                            "exec [getTotalExpenseInMonthAndYear] " +
-                                    "@userId = :userId, " +
-                                    "@month = :month, " +
-                                    "@year = :year")
-                    .setParameter(USER_ID, userId)
-                    .setParameter(MONTH, month)
-                    .setParameter(YEAR, year);
-
-            return (BigDecimal) query.getSingleResult();
-
-        } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching total expense in a month");
-        }
-    }
-
-    @Override
-    public BigDecimal getAvailableBalanceOfUser(Long userId) {
-        try {
-            Query query = entityManager.createNativeQuery(
-                            "exec [getAvailableBalanceOfUser] " +
-                                    "@userId = :userId")
-                    .setParameter(USER_ID, userId);
-
-            return (BigDecimal) query.getSingleResult();
-
-        } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching total remaining balance of a user");
-        }
-    }
-
 }

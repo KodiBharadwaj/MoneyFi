@@ -1,7 +1,6 @@
 package com.moneyfi.income.repository;
 
 import com.moneyfi.income.model.IncomeModel;
-import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -28,4 +27,22 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
     @Query(nativeQuery = true, value = "exec getIncomeByIncomeId @incomeId = :incomeId")
     BigDecimal getIncomeByIncomeId(Long incomeId);
 
+    @Query(nativeQuery = true, value = "exec getTotalIncomeInMonthAndYear @userId = :userId, " +
+            "@month = :month, @year = :year")
+    BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year);
+
+    @Query(nativeQuery = true, value = "exec getRemainingIncomeUpToPreviousMonthByMonthAndYear @userId = :userId, " +
+            "@month = :month, @year = :year")
+    BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(Long userId, int month, int year);
+
+    @Query(nativeQuery = true, value = "exec getTotalExpensesUpToPreviousMonth @userId = :userId, " +
+            "@month = :month, @year = :year")
+    BigDecimal getTotalExpensesUpToPreviousMonth(Long userId, int month, int year);
+
+    @Query(nativeQuery = true, value = "exec getTotalExpenseInMonthAndYear @userId = :userId, " +
+            "@month = :month, @year = :year")
+    BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year);
+
+    @Query(nativeQuery = true, value = "exec getAvailableBalanceOfUser @userId = :userId")
+    BigDecimal getAvailableBalanceOfUser(Long userId);
 }

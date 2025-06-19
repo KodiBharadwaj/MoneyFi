@@ -70,7 +70,6 @@ public class IncomeApiController {
                                                          @PathVariable("year") int year,
                                                          @PathVariable("category") String category) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         byte[] excelData = incomeService.generateMonthlyExcelReport(userId, month, year, category);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Monthly income report.xlsx")
@@ -106,7 +105,6 @@ public class IncomeApiController {
                                                         @PathVariable("category") String category) {
 
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         byte[] excelData = incomeService.generateYearlyExcelReport(userId, year, category);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Yearly income report.xlsx")
@@ -179,7 +177,6 @@ public class IncomeApiController {
                                                     @RequestBody IncomeModel income) {
 
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return incomeService.updateBySource(id, userId, income);
     }
 
