@@ -129,15 +129,6 @@ public class IncomeApiController {
         return incomeService.getMonthlyIncomes(userId, year);
     }
 
-    @Operation(summary = "Method to get the total savings/remaining amount up to previous month (excludes current month)")
-    @GetMapping("/totalRemainingIncomeUpToPreviousMonth/{month}/{year}")
-    public BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(@RequestHeader("Authorization") String authHeader,
-                                                                        @PathVariable("month") int month,
-                                                                        @PathVariable("year") int year) {
-        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return incomeService.getRemainingIncomeUpToPreviousMonthByMonthAndYear(userId, month, year);
-    }
-
     @Operation(summary = "Method to check the particular income can be editable")
     @PostMapping("/incomeUpdateCheck")
     public boolean incomeUpdateCheckFunction(@RequestHeader("Authorization") String authHeader,

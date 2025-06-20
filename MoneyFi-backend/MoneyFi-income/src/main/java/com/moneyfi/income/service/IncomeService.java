@@ -28,8 +28,6 @@ public interface IncomeService {
 
     BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year);
 
-    BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(Long userId, int month, int year);
-
     boolean incomeUpdateCheckFunction(IncomeModel incomeModel, Long userId);
 
     boolean incomeDeleteCheckFunction(IncomeModel incomeModel);

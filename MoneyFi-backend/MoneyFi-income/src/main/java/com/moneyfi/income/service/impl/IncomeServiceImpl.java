@@ -191,54 +191,6 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(Long userId, int month, int year) {
-
-        // Adjust month and year to point to the previous month
-        final int adjustedMonth;
-        final int adjustedYear;
-
-        if (month == 1) { // Handle January case
-            adjustedMonth = 13;
-            adjustedYear = year - 1;
-        } else {
-            adjustedMonth = month;
-            adjustedYear = year;
-        }
-
-        BigDecimal totalIncome = incomeRepository.getRemainingIncomeUpToPreviousMonthByMonthAndYear(userId, adjustedMonth, adjustedYear);
-        if(totalIncome == null || totalIncome == BigDecimal.ZERO){
-            return BigDecimal.ZERO;
-        }
-
-        BigDecimal totalExpense = getTotalExpensesUpToPreviousMonth(userId, month, year);
-
-        if(totalExpense.compareTo(totalIncome) > 0){
-            return BigDecimal.ZERO;
-        }
-
-        return totalIncome.subtract(totalExpense);
-    }
-    private BigDecimal getTotalExpensesUpToPreviousMonth(Long userId, int month, int year) {
-        // Adjust month and year to point to the previous month
-        final int adjustedMonth;
-        final int adjustedYear;
-
-        if (month == 1) { // Handle January case
-            adjustedMonth = 13;
-            adjustedYear = year - 1;
-        } else {
-            adjustedMonth = month;
-            adjustedYear = year;
-        }
-        BigDecimal value = incomeRepository.getTotalExpensesUpToPreviousMonth(userId, adjustedMonth, adjustedYear);
-        if(value != null){
-            return value;
-        } else {
-            return BigDecimal.ZERO;
-        }
-    }
-
-    @Override
     public boolean incomeUpdateCheckFunction(IncomeModel incomeModel, Long userId) {
 /**
 //        incomeModel.setUserId(userId);
