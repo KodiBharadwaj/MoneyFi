@@ -13,7 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -37,9 +38,12 @@ public class IncomeServiceImplementationTest {
     private IncomeCommonRepository incomeCommonRepositoryMock;
     @Mock
     private IncomeDeletedRepository incomeDeletedRepositoryMock;
-    @Mock
-    private RestTemplate restTemplateMock;
-    private final Long userId = 1L;
+
+    private static final Long USER_ID = 1L;
+    private static final Long INCOME_ID = 7L;
+    private static final int MONTH = 5;
+    private static final int YEAR = 2025;
+    private static final String CATEGORY = "All";
 
     @BeforeEach
     void init(){
@@ -86,9 +90,9 @@ public class IncomeServiceImplementationTest {
 
         given(incomeRepositoryMock.findIncomesOfUser(anyLong())).willReturn(incomesList);
 
-        List<IncomeModel> list = incomeServiceInject.getAllIncomes(userId);
+        List<IncomeModel> list = incomeServiceInject.getAllIncomes(USER_ID);
 
-        verify(incomeRepositoryMock, times(1)).findIncomesOfUser(userId);
+        verify(incomeRepositoryMock, times(1)).findIncomesOfUser(USER_ID);
 
         Assertions.assertNotNull(list);
         Assertions.assertEquals(1, list.size());
@@ -98,18 +102,15 @@ public class IncomeServiceImplementationTest {
     void getAllIncomesByMonthYearAndCategoryTest(){
         List<IncomeDetailsDto> incomesList = new ArrayList<>();
         incomesList.add(setIncomeDetailsDtoList());
-        int month = 4;
-        int year = 2025;
-        boolean is_deleted = false;
-        String category = "all";
+        boolean isDeleted = false;
 
         given(incomeCommonRepositoryMock.getAllIncomesByDate(anyLong(), anyInt(), anyInt(), anyString(), anyBoolean()))
                 .willReturn(incomesList);
 
-        List<IncomeDetailsDto> list = incomeServiceInject.getAllIncomesByMonthYearAndCategory(userId, month, year, category, is_deleted);
+        List<IncomeDetailsDto> list = incomeServiceInject.getAllIncomesByMonthYearAndCategory(USER_ID, MONTH, YEAR, CATEGORY, isDeleted);
 
         verify(incomeCommonRepositoryMock, times(1))
-                .getAllIncomesByDate(userId, month, year, category, is_deleted);
+                .getAllIncomesByDate(USER_ID, MONTH, YEAR, CATEGORY, isDeleted);
 
         Assertions.assertNotNull(list);
         Assertions.assertEquals(1, list.size());
@@ -119,18 +120,15 @@ public class IncomeServiceImplementationTest {
     void generateMonthlyExcelReportTest(){
         List<IncomeDetailsDto> incomesList = new ArrayList<>();
         incomesList.add(setIncomeDetailsDtoList());
-        int month = 4;
-        int year = 2025;
-        boolean is_deleted = false;
-        String category = "all";
+        boolean isDeleted = false;
 
         given(incomeCommonRepositoryMock.getAllIncomesByDate(anyLong(), anyInt(), anyInt(), anyString(), anyBoolean()))
                 .willReturn(incomesList);
 
-        byte[] excel = incomeServiceInject.generateMonthlyExcelReport(userId, month, year, category);
+        byte[] excel = incomeServiceInject.generateMonthlyExcelReport(USER_ID, MONTH, YEAR, CATEGORY);
 
         verify(incomeCommonRepositoryMock, times(1))
-                .getAllIncomesByDate(userId, month, year, category, is_deleted);
+                .getAllIncomesByDate(USER_ID, MONTH, YEAR, CATEGORY, isDeleted);
 
         Assertions.assertNotNull(excel);
     }
@@ -141,18 +139,15 @@ public class IncomeServiceImplementationTest {
         IncomeDetailsDto incomeDetailsDto = setIncomeDetailsDtoList();
         incomeDetailsDto.setRecurring(false);
         incomesList.add(incomeDetailsDto);
-        int month = 4;
-        int year = 2025;
-        boolean is_deleted = false;
-        String category = "all";
+        boolean isDeleted = false;
 
         given(incomeCommonRepositoryMock.getAllIncomesByDate(anyLong(), anyInt(), anyInt(), anyString(), anyBoolean()))
                 .willReturn(incomesList);
 
-        byte[] excel = incomeServiceInject.generateMonthlyExcelReport(userId, month, year, category);
+        byte[] excel = incomeServiceInject.generateMonthlyExcelReport(USER_ID, MONTH, YEAR, CATEGORY);
 
         verify(incomeCommonRepositoryMock, times(1))
-                .getAllIncomesByDate(userId, month, year, category, is_deleted);
+                .getAllIncomesByDate(USER_ID, MONTH, YEAR, CATEGORY, isDeleted);
 
         Assertions.assertNotNull(excel);
     }
@@ -160,16 +155,14 @@ public class IncomeServiceImplementationTest {
     @Test
     void getDeletedIncomesInAMonthTest(){
         List<IncomeDeletedDto> deletedIncomesList = new ArrayList<>();
-        int month = 4;
-        int year = 2025;
 
         given(incomeCommonRepositoryMock.getDeletedIncomesInAMonth(anyLong(), anyInt(), anyInt()))
                 .willReturn(deletedIncomesList);
 
-        List<IncomeDeletedDto> list = incomeServiceInject.getDeletedIncomesInAMonth(userId, month, year);
+        List<IncomeDeletedDto> list = incomeServiceInject.getDeletedIncomesInAMonth(USER_ID, MONTH, YEAR);
 
         verify(incomeCommonRepositoryMock, times(1))
-                .getDeletedIncomesInAMonth(userId, month, year);
+                .getDeletedIncomesInAMonth(USER_ID, MONTH, YEAR);
 
         Assertions.assertNotNull(list);
         Assertions.assertEquals(0, list.size());
@@ -179,20 +172,37 @@ public class IncomeServiceImplementationTest {
     void getAllIncomesByYearTest(){
         List<IncomeDetailsDto> incomesList = new ArrayList<>();
         incomesList.add(setIncomeDetailsDtoList());
-        int year = 2025;
-        boolean is_deleted = false;
-        String category = "all";
+        boolean isDeleted = false;
 
         given(incomeCommonRepositoryMock.getAllIncomesByYear(anyLong(), anyInt(), anyString(), anyBoolean()))
                 .willReturn(incomesList);
 
-        List<IncomeDetailsDto> list = incomeServiceInject.getAllIncomesByYear(userId, year, category, is_deleted);
+        List<IncomeDetailsDto> list = incomeServiceInject.getAllIncomesByYear(USER_ID, YEAR, CATEGORY, isDeleted);
 
         verify(incomeCommonRepositoryMock, times(1))
-                .getAllIncomesByYear(userId, year, category, is_deleted);
+                .getAllIncomesByYear(USER_ID, YEAR, CATEGORY, isDeleted);
 
         Assertions.assertNotNull(list);
         Assertions.assertEquals(1, list.size());
+    }
+
+    @Test
+    void generateYearlyExcelReportTest(){
+        List<IncomeDetailsDto> incomesList = new ArrayList<>();
+        IncomeDetailsDto incomeDetailsDto = setIncomeDetailsDtoList();
+        incomeDetailsDto.setRecurring(false);
+        incomesList.add(incomeDetailsDto);
+        boolean isDeleted = false;
+
+        given(incomeCommonRepositoryMock.getAllIncomesByYear(anyLong(), anyInt(), anyString(), anyBoolean()))
+                .willReturn(incomesList);
+
+        byte[] excel = incomeServiceInject.generateYearlyExcelReport(USER_ID, YEAR, CATEGORY);
+
+        verify(incomeCommonRepositoryMock, times(1))
+                .getAllIncomesByYear(USER_ID, YEAR, CATEGORY, isDeleted);
+
+        Assertions.assertNotNull(excel);
     }
 
 
@@ -212,44 +222,39 @@ public class IncomeServiceImplementationTest {
         dummyList.add(new Object[]{11, new BigDecimal("2000.00")}); // November
         dummyList.add(new Object[]{12, new BigDecimal("2100.00")}); // December
 
-        int year = 2025;
 
         given(incomeRepositoryMock.findMonthlyIncomes(anyLong(), anyInt(), anyBoolean())).willReturn(dummyList);
 
-        List<BigDecimal> list = incomeServiceInject.getMonthlyIncomes(userId, year);
+        List<BigDecimal> list = incomeServiceInject.getMonthlyIncomes(USER_ID, YEAR);
 
-        verify(incomeRepositoryMock, times(1)).findMonthlyIncomes(userId, year, false);
+        verify(incomeRepositoryMock, times(1)).findMonthlyIncomes(USER_ID, YEAR, false);
 
         Assertions.assertNotNull(list);
         Assertions.assertEquals(12, list.size());
     }
 
     @Test
-    public void getTotalIncomeInMonthAndYearTest(){
+    void getTotalIncomeInMonthAndYearTest(){
         BigDecimal totalIncome = new BigDecimal("12345");
-        int month = 5;
-        int year = 2025;
 
-        given(incomeCommonRepositoryMock.getTotalIncomeInMonthAndYear(anyLong(), anyInt(), anyInt())).willReturn(totalIncome);
+        given(incomeRepositoryMock.getTotalIncomeInMonthAndYear(anyLong(), anyInt(), anyInt())).willReturn(totalIncome);
 
-        BigDecimal totalIncome1 = incomeServiceInject.getTotalIncomeInMonthAndYear(userId, month, year);
+        BigDecimal totalIncome1 = incomeServiceInject.getTotalIncomeInMonthAndYear(USER_ID, MONTH, YEAR);
 
-        verify(incomeCommonRepositoryMock, times(1)).getTotalIncomeInMonthAndYear(userId, month, year);
+        verify(incomeRepositoryMock, times(1)).getTotalIncomeInMonthAndYear(USER_ID, MONTH, YEAR);
 
         Assertions.assertNotNull(totalIncome1);
         Assertions.assertEquals(totalIncome, totalIncome1);
     }
 
     @Test
-    public void getTotalIncomeInMonthAndYearIncomeNullTest(){
-        int month = 5;
-        int year = 2025;
+    void getTotalIncomeInMonthAndYearIncomeNullTest(){
 
-        given(incomeCommonRepositoryMock.getTotalIncomeInMonthAndYear(anyLong(), anyInt(), anyInt())).willReturn(null);
+        given(incomeRepositoryMock.getTotalIncomeInMonthAndYear(anyLong(), anyInt(), anyInt())).willReturn(null);
 
-        BigDecimal totalIncome1 = incomeServiceInject.getTotalIncomeInMonthAndYear(userId, month, year);
+        BigDecimal totalIncome1 = incomeServiceInject.getTotalIncomeInMonthAndYear(USER_ID, MONTH, YEAR);
 
-        verify(incomeCommonRepositoryMock, times(1)).getTotalIncomeInMonthAndYear(userId, month, year);
+        verify(incomeRepositoryMock, times(1)).getTotalIncomeInMonthAndYear(USER_ID, MONTH, YEAR);
 
         Assertions.assertNotNull(totalIncome1);
         Assertions.assertEquals(BigDecimal.ZERO, totalIncome1);
@@ -337,14 +342,13 @@ public class IncomeServiceImplementationTest {
     void incomeRevertFunctionTest(){
         IncomeDeleted incomeDeleted = setIncomeDeleted();
         IncomeModel income = setIncomeModel();
-        Long incomeId = 10L;
 
         given(incomeDeletedRepositoryMock.findByIncomeId(anyLong())).willReturn(incomeDeleted);
         given(incomeRepositoryMock.findById(anyLong())).willReturn(Optional.of(income));
         given(incomeRepositoryMock.save(any())).willReturn(income);
         doNothing().when(incomeDeletedRepositoryMock).deleteByIncomeId(anyLong());
 
-        boolean flag = incomeServiceInject.incomeRevertFunction(incomeId, userId);
+        boolean flag = incomeServiceInject.incomeRevertFunction(INCOME_ID, USER_ID);
 
         verify(incomeDeletedRepositoryMock, times(1)).findByIncomeId(anyLong());
         verify(incomeRepositoryMock, times(1)).findById(anyLong());
@@ -358,12 +362,11 @@ public class IncomeServiceImplementationTest {
     void incomeRevertFunctionUserIdConditionMismatchTest(){
         IncomeDeleted incomeDeleted = setIncomeDeleted();
         IncomeModel income = setIncomeModel();
-        Long incomeId = 10L;
 
         given(incomeDeletedRepositoryMock.findByIncomeId(anyLong())).willReturn(incomeDeleted);
         given(incomeRepositoryMock.findById(anyLong())).willReturn(Optional.of(income));
 
-        boolean flag = incomeServiceInject.incomeRevertFunction(incomeId, 2L);
+        boolean flag = incomeServiceInject.incomeRevertFunction(INCOME_ID, 2L);
 
         verify(incomeDeletedRepositoryMock, times(1)).findByIncomeId(anyLong());
         verify(incomeRepositoryMock, times(1)).findById(anyLong());
@@ -374,12 +377,11 @@ public class IncomeServiceImplementationTest {
     @Test
     void incomeRevertFunctionIncomeNullTest(){
         IncomeDeleted incomeDeleted = setIncomeDeleted();
-        Long incomeId = 10L;
 
         given(incomeDeletedRepositoryMock.findByIncomeId(anyLong())).willReturn(incomeDeleted);
         given(incomeRepositoryMock.findById(anyLong())).willReturn(Optional.empty());
 
-        boolean flag = incomeServiceInject.incomeRevertFunction(incomeId, 2L);
+        boolean flag = incomeServiceInject.incomeRevertFunction(INCOME_ID, 2L);
 
         verify(incomeDeletedRepositoryMock, times(1)).findByIncomeId(anyLong());
         verify(incomeRepositoryMock, times(1)).findById(anyLong());
@@ -391,33 +393,106 @@ public class IncomeServiceImplementationTest {
     void incomeRevertFunctionNumberOfDaysZeroTest(){
         IncomeDeleted incomeDeleted = setIncomeDeleted();
         incomeDeleted.setExpiryDateTime(LocalDateTime.now());
-        Long incomeId = 10L;
 
         given(incomeDeletedRepositoryMock.findByIncomeId(anyLong())).willReturn(incomeDeleted);
 
-        boolean flag = incomeServiceInject.incomeRevertFunction(incomeId, 2L);
+        boolean flag = incomeServiceInject.incomeRevertFunction(INCOME_ID, 2L);
 
         verify(incomeDeletedRepositoryMock, times(1)).findByIncomeId(anyLong());
 
         Assertions.assertFalse(flag);
     }
 
-//    @Test
-//    void updateBySourceTest(){
-//        IncomeModel income = setIncomeModel();
-//        IncomeModel updatedIncome = income;
-//        updatedIncome.setSource("Business");
-//
-//        given(incomeRepositoryMock.findById(income.getId())).willReturn(Optional.of(income));
-//
-//        incomeServiceInject.updateBySource(income.getId(), userId, updatedIncome);
-//    }
+    @Test
+    void updateBySourceTest(){
+        IncomeModel updatedIncome = setIncomeModel();
+        updatedIncome.setSource("Business");
+
+        given(incomeRepositoryMock.findById(anyLong())).willReturn(Optional.of(setIncomeModel()));
+        given(incomeRepositoryMock.save(any())).willReturn(updatedIncome);
+
+        ResponseEntity<IncomeDetailsDto> fetchedUpdatedIncome = incomeServiceInject.updateBySource(anyLong(), USER_ID, updatedIncome);
+
+        verify(incomeRepositoryMock, times(1)).findById(anyLong());
+        verify(incomeRepositoryMock, times(1)).save(any());
+
+        Assertions.assertNotNull(fetchedUpdatedIncome);
+        Assertions.assertEquals(HttpStatus.CREATED, fetchedUpdatedIncome.getStatusCode());
+    }
+
+    @Test
+    void updateBySourceNoContentTest(){
+        IncomeModel income = setIncomeModel();
+
+        given(incomeRepositoryMock.findById(anyLong())).willReturn(Optional.of(income));
+
+        ResponseEntity<IncomeDetailsDto> fetchedUpdatedIncome = incomeServiceInject.updateBySource(anyLong(), USER_ID, income);
+
+        verify(incomeRepositoryMock, times(1)).findById(anyLong());
+
+        Assertions.assertNotNull(fetchedUpdatedIncome);
+        Assertions.assertEquals(HttpStatus.NO_CONTENT, fetchedUpdatedIncome.getStatusCode());
+    }
+
+    @Test
+    void updateBySourceIncomeModelNullTest(){
+        IncomeModel income = setIncomeModel();
+
+        given(incomeRepositoryMock.findById(anyLong())).willReturn(Optional.empty());
+
+        ResponseEntity<IncomeDetailsDto> fetchedUpdatedIncome = incomeServiceInject.updateBySource(anyLong(), USER_ID, income);
+
+        verify(incomeRepositoryMock, times(1)).findById(anyLong());
+
+        Assertions.assertNotNull(fetchedUpdatedIncome);
+        Assertions.assertEquals(HttpStatus.CONFLICT, fetchedUpdatedIncome.getStatusCode());
+    }
+
+    @Test
+    void deleteIncomeByIdTest(){
+        IncomeModel income = setIncomeModel();
+
+        given(incomeRepositoryMock.findById(anyLong())).willReturn(Optional.of(income));
+        given(incomeDeletedRepositoryMock.save(any())).willReturn(new IncomeDeleted());
+
+        boolean flag = incomeServiceInject.deleteIncomeById(INCOME_ID, USER_ID);
+
+        verify(incomeRepositoryMock, times(1)).findById(anyLong());
+        verify(incomeDeletedRepositoryMock, times(1)).save(any());
+
+        Assertions.assertTrue(flag);
+    }
+
+    @Test
+    void deleteIncomeByIdFalseTest(){
+        given(incomeRepositoryMock.findById(anyLong())).willReturn(Optional.empty());
+
+        boolean flag = incomeServiceInject.deleteIncomeById(INCOME_ID, USER_ID);
+
+        verify(incomeRepositoryMock, times(1)).findById(anyLong());
+
+        Assertions.assertFalse(flag);
+    }
+
+    @Test
+    void getAvailableBalanceOfUserTest(){
+        BigDecimal availableBalance = new BigDecimal("2343433");
+
+        given(incomeRepositoryMock.getAvailableBalanceOfUser(USER_ID)).willReturn(availableBalance);
+
+        BigDecimal fetchedAvailableBalance = incomeServiceInject.getAvailableBalanceOfUser(USER_ID);
+
+        verify(incomeRepositoryMock, times(1)).getAvailableBalanceOfUser(USER_ID);
+
+        Assertions.assertNotNull(fetchedAvailableBalance);
+        Assertions.assertEquals(availableBalance, fetchedAvailableBalance);
+    }
 
     private IncomeModel setIncomeModel(){
         IncomeModel incomeModel = new IncomeModel();
         LocalDate date = LocalDate.of(2025, 4, 4);
 
-        incomeModel.setUserId(1L);;
+        incomeModel.setUserId(1L);
         incomeModel.setSource("ust-salary");
         incomeModel.setCategory("salary");
         incomeModel.setAmount(new BigDecimal("58400"));
