@@ -2,6 +2,7 @@ package com.moneyfi.income.service.impl;
 
 import com.moneyfi.income.exceptions.ResourceNotFoundException;
 import com.moneyfi.income.service.IncomeService;
+import com.moneyfi.income.service.dto.response.AccountStatementDto;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeDeleted;
 import com.moneyfi.income.model.IncomeModel;
@@ -9,6 +10,9 @@ import com.moneyfi.income.repository.IncomeDeletedRepository;
 import com.moneyfi.income.repository.IncomeRepository;
 import com.moneyfi.income.repository.common.IncomeCommonRepository;
 import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
+import com.moneyfi.income.service.dto.response.UserDetailsForStatementDto;
+import com.moneyfi.income.utils.GeneratePdfTemplate;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -23,6 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -263,6 +268,37 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
+    public BigDecimal getAvailableBalanceOfUser(Long userId) {
+        return incomeRepository.getAvailableBalanceOfUser(userId);
+    }
+
+    @Override
+    public List<AccountStatementDto> getAccountStatementOfUser(Long userId, LocalDate fromDate, LocalDate toDate) {
+        return incomeCommonRepository.getAccountStatementOfUser(userId, fromDate, toDate);
+    }
+
+    @Override
+    public void generatePdfForAccountStatement(Long userId, LocalDate fromDate, LocalDate toDate, HttpServletResponse response) throws IOException {
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=statement.pdf");
+
+        List<AccountStatementDto> transactions = getAccountStatementOfUser(userId, fromDate, toDate);
+        UserDetailsForStatementDto userDetails = incomeCommonRepository.getUserDetailsForAccountStatement(userId);
+        userDetails.setUsername(makeUsernamePrivate(userDetails.getUsername()));
+        GeneratePdfTemplate.generatePdf(transactions, userDetails, response, fromDate, toDate,
+                generateDocumentPasswordForUser(userDetails));
+    }
+    private String makeUsernamePrivate(String username){
+        int index = username.indexOf('@');
+        return username.substring(0, index/3) +
+                "x".repeat(index - index/3) + username.substring(index);
+    }
+    private String generateDocumentPasswordForUser(UserDetailsForStatementDto userDetails){
+        return userDetails.getName().substring(0,4).toUpperCase() +
+                userDetails.getUsername().substring(0,4).toLowerCase();
+    }
+
+    @Override
     public ResponseEntity<IncomeDetailsDto> updateBySource(Long id, Long userId, IncomeModel income) {
 
         income.setUserId(userId);
@@ -322,12 +358,6 @@ public class IncomeServiceImpl implements IncomeService {
             return false;
         }
     }
-
-    @Override
-    public BigDecimal getAvailableBalanceOfUser(Long userId) {
-        return incomeRepository.getAvailableBalanceOfUser(userId);
-    }
-
     private void saveIncomeDeletedDetails(Long id){
         IncomeDeleted incomeDeleted = new IncomeDeleted();
         LocalDateTime expiryTime = LocalDateTime.now().plusDays(30);

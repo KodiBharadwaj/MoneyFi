@@ -1,11 +1,15 @@
 package com.moneyfi.income.service;
 
+import com.moneyfi.income.service.dto.response.AccountStatementDto;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface IncomeService {
@@ -39,4 +43,8 @@ public interface IncomeService {
     boolean deleteIncomeById(Long id, Long userId);
 
     BigDecimal getAvailableBalanceOfUser(Long userId);
+
+    List<AccountStatementDto> getAccountStatementOfUser(Long userId, LocalDate fromDate, LocalDate toDate);
+
+    void generatePdfForAccountStatement(Long userId, LocalDate fromDate, LocalDate toDate, HttpServletResponse response) throws IOException;
 }

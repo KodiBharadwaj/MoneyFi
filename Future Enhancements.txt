@@ -11,6 +11,17 @@ Minor Changes:
 - Replace double with BigDecimal in amount (frontend pending)
 - Put a name in the network section for every api.
 
+New Feature
+- Account statement generation feature between particular dates.
+ -- Create reports section in side nav
+ -- user should also able to generate the pdf for the respective grid
+ -- user should also have an option to send the details as an email with pdf in encrypted format.
+constraints:
+- modify localdate to localdatetime in income, expense, goal models.
+- reduce big decimal precision to 2
+
+
+
 
 
 Defects:
