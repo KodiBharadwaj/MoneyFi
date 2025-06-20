@@ -9,7 +9,6 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,36 +40,6 @@ public class GoalCommonRepositoryImpl implements GoalCommonRepository {
 
         } catch (Exception e) {
             throw new QueryValidationException("Error occurred while fetching goal data");
-        }
-    }
-
-    @Override
-    public BigDecimal getCurrentTotalGoalIncome(Long userId) {
-        try {
-            Query query = entityManager.createNativeQuery(
-                            "exec [getTotalCurrentGoalIncome] " +
-                                    "@userId = :userId")
-                    .setParameter(USER_ID, userId);
-
-            return (BigDecimal) query.getSingleResult();
-
-        } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching total goal income");
-        }
-    }
-
-    @Override
-    public BigDecimal getTotalTargetGoalIncome(Long userId) {
-        try {
-            Query query = entityManager.createNativeQuery(
-                            "exec [getTotalTargetGoalIncome] " +
-                                    "@userId = :userId")
-                    .setParameter(USER_ID, userId);
-
-            return (BigDecimal) query.getSingleResult();
-
-        } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching total target goal income");
         }
     }
 }

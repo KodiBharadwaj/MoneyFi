@@ -10,7 +10,6 @@ Minor Changes:
 - Landing page, so may buttons are there in the footer. Add the necessary info.
 - Replace double with BigDecimal in amount (frontend pending)
 - Put a name in the network section for every api.
-- Add frontend baseurl api's in separate component.
 
 
 
