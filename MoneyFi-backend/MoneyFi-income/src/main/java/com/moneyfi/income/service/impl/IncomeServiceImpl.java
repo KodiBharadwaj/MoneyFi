@@ -288,6 +288,14 @@ public class IncomeServiceImpl implements IncomeService {
         GeneratePdfTemplate.generatePdf(transactions, userDetails, response, fromDate, toDate,
                 generateDocumentPasswordForUser(userDetails));
     }
+
+    @Override
+    public void sendAccountStatementEmailToUser(Long userId, LocalDate fromDate, LocalDate toDate, HttpServletResponse response) {
+        /**
+          In development
+         **/
+    }
+
     private String makeUsernamePrivate(String username){
         int index = username.indexOf('@');
         return username.substring(0, index/3) +
@@ -335,7 +343,7 @@ public class IncomeServiceImpl implements IncomeService {
     private IncomeDetailsDto updateIncomeDtoConversion(IncomeModel updatedIncome){
         IncomeDetailsDto incomeDetailsDto = new IncomeDetailsDto();
         BeanUtils.copyProperties(updatedIncome, incomeDetailsDto);
-        incomeDetailsDto.setDate(Date.valueOf(updatedIncome.getDate()));
+        incomeDetailsDto.setDate(Date.valueOf(updatedIncome.getDate().toLocalDate()));
         return incomeDetailsDto;
     }
 

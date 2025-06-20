@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
@@ -21,7 +22,7 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
 
     @Query(nativeQuery = true, value = "exec getIncomeBySourceAndCategory @userId = :userId, " +
             "@source = :source, @category = :category, @date = :date")
-    IncomeModel getIncomeBySourceAndCategory(Long userId, String source, String category, LocalDate date);
+    IncomeModel getIncomeBySourceAndCategory(Long userId, String source, String category, LocalDateTime date);
 
 
     @Query(nativeQuery = true, value = "exec getIncomeByIncomeId @incomeId = :incomeId")

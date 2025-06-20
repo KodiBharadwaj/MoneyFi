@@ -18,7 +18,6 @@ New Feature
  -- user should also have an option to send the details as an email with pdf in encrypted format.
 constraints:
 - modify localdate to localdatetime in income, expense, goal models.
-- reduce big decimal precision to 2
 
 
 

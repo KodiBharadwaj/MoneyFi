@@ -157,7 +157,7 @@ public class GoalServiceImpl implements GoalService {
     private GoalDetailsDto updatedGoalDtoConversion(GoalModel updatedGoal){
         GoalDetailsDto goalDetailsDto = new GoalDetailsDto();
         BeanUtils.copyProperties(updatedGoal, goalDetailsDto);
-        goalDetailsDto.setDeadLine(Date.valueOf(updatedGoal.getDeadLine()));
+        goalDetailsDto.setDeadLine(Date.valueOf(updatedGoal.getDeadLine().toLocalDate()));
         return goalDetailsDto;
     }
 

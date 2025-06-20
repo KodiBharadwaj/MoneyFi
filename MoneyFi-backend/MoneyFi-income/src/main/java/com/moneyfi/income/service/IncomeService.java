@@ -47,4 +47,6 @@ public interface IncomeService {
     List<AccountStatementDto> getAccountStatementOfUser(Long userId, LocalDate fromDate, LocalDate toDate);
 
     void generatePdfForAccountStatement(Long userId, LocalDate fromDate, LocalDate toDate, HttpServletResponse response) throws IOException;
+
+    void sendAccountStatementEmailToUser(Long userId, LocalDate fromDate, LocalDate toDate, HttpServletResponse response);
 }
