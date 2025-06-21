@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Map;
 
-public interface UserServiceRepository {
+public interface UserService {
 
     UserAuthModel registerUser(UserProfile userProfile);
 
@@ -25,4 +25,6 @@ public interface UserServiceRepository {
     Map<String, String> logout(String token);
 
     boolean getUsernameByDetails(ForgotUsernameDto userDetails);
+
+    void sendAccountStatementEmail(String username, byte[] pdfBytes);
 }

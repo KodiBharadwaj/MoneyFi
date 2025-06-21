@@ -71,6 +71,7 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching monthly income data");
         }
     }
@@ -95,6 +96,7 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
             incomeListDeleted.addAll(query.getResultList());
             return incomeListDeleted;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching deleted income data");
         }
     }
@@ -138,6 +140,7 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching yearly income data");
         }
     }
@@ -147,8 +150,6 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
 
         Date startDate = Date.valueOf(fromDate);
         Date endDate = Date.valueOf(toDate);
-        System.out.println("checking dates: " + startDate);
-        System.out.println(endDate);
         List<AccountStatementDto> accountStatement = new ArrayList<>();
 
         try {

@@ -15,7 +15,7 @@ interface Goal {
   goalName: string;
   currentAmount: number;
   targetAmount: number;
-  deadLine: Date;
+  deadLine: string;
   category: string;
   goalStatus : string;
   daysRemaining : number;
@@ -29,7 +29,7 @@ interface inputGoal {
   goalName: string;
   currentAmount: number;
   targetAmount: number;
-  deadLine: Date;
+  deadLine: string;
   category: string;
   goalStatus: string;
   daysRemaining : number;
@@ -291,12 +291,16 @@ export class GoalsComponent {
   }
 
 
-  formatDate(date: string): string {
+  formatDate(date: string | Date): string {
     const d = new Date(date);
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-based
     const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}`;
   }
 
  
@@ -338,7 +342,7 @@ export class GoalsComponent {
       goalName: data.goalName,
       currentAmount: data.currentAmount,
       targetAmount: data.targetAmount,
-      deadLine: new Date(data.deadLine),
+      deadLine: new Date(data.deadLine).toISOString().slice(0, 19), // "YYYY-MM-DDTHH:mm:ss"
       category: data.category,
       goalStatus : data.goalStatus,
       daysRemaining : data.daysRemaining,

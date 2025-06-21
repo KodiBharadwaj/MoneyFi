@@ -19,7 +19,6 @@ public class ProfileModel {
     private Long id;
     private Long userId;
     private String name;
-    private String email;
     private LocalDate createdDate;
     private String phone;
     private String gender;

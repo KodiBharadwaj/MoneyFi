@@ -8,7 +8,7 @@ import com.moneyfi.income.service.dto.response.AccountStatementDto;
 import com.moneyfi.income.service.dto.response.UserDetailsForStatementDto;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -16,13 +16,14 @@ public class GeneratePdfTemplate {
 
     private GeneratePdfTemplate() {}
 
-    public static void generatePdf(List<AccountStatementDto> transactions, UserDetailsForStatementDto userDetails,
-                                   HttpServletResponse response, LocalDate fromDate, LocalDate toDate, String userPassword) throws IOException {
+    public static byte[] generatePdf(List<AccountStatementDto> transactions, UserDetailsForStatementDto userDetails,
+                                   HttpServletResponse response, LocalDate fromDate, LocalDate toDate, String userPassword) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         Document document = new Document(PageSize.A4);
-        PdfWriter writer = PdfWriter.getInstance(document, response.getOutputStream());
+        PdfWriter writer = PdfWriter.getInstance(document, out);
 
         // Set encryption BEFORE opening the document
-        String ownerPassword = "moneyfi.owner";
+        String ownerPassword = "moneyfi.owner.KODI.93811";
         writer.setEncryption(
                 userPassword.getBytes(),
                 ownerPassword.getBytes(),
@@ -108,6 +109,7 @@ public class GeneratePdfTemplate {
         document.add(footerTwo);
 
         document.close();
+        return out.toByteArray();
     }
     private static void addCell(PdfPTable table, String text) {
         table.addCell(new PdfPCell(new Phrase(text)));

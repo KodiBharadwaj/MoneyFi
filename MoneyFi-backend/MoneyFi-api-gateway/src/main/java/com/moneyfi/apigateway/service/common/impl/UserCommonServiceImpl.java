@@ -8,7 +8,7 @@ import com.moneyfi.apigateway.repository.auth.SessionTokenRepository;
 import com.moneyfi.apigateway.repository.auth.TokenBlackListRepository;
 import com.moneyfi.apigateway.repository.auth.UserRepository;
 import com.moneyfi.apigateway.repository.common.ProfileRepository;
-import com.moneyfi.apigateway.service.common.UserCommonRepository;
+import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.util.EmailFilter;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import jakarta.transaction.Transactional;
@@ -23,17 +23,17 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class UserCommonRepositoryImpl implements UserCommonRepository {
+public class UserCommonServiceImpl implements UserCommonService {
 
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final SessionTokenRepository sessionTokenRepository;
     private final TokenBlackListRepository tokenBlacklistRepository;
 
-    public UserCommonRepositoryImpl(UserRepository userRepository,
-                                    ProfileRepository profileRepository,
-                                    SessionTokenRepository sessionTokenRepository,
-                                    TokenBlackListRepository tokenBlacklistRepository){
+    public UserCommonServiceImpl(UserRepository userRepository,
+                                 ProfileRepository profileRepository,
+                                 SessionTokenRepository sessionTokenRepository,
+                                 TokenBlackListRepository tokenBlacklistRepository){
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
         this.sessionTokenRepository = sessionTokenRepository;

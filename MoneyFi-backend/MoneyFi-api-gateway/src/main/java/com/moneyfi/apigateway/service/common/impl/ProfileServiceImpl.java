@@ -6,20 +6,20 @@ import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.repository.common.ContactUsRepository;
 import com.moneyfi.apigateway.repository.common.FeedbackRepository;
 import com.moneyfi.apigateway.repository.common.ProfileRepository;
-import com.moneyfi.apigateway.service.common.ProfileServiceRepository;
+import com.moneyfi.apigateway.service.common.ProfileService;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProfileServiceRepositoryImpl implements ProfileServiceRepository {
+public class ProfileServiceImpl implements ProfileService {
 
     private final ProfileRepository profileRepository;
     private final ContactUsRepository contactUsRepository;
     private final FeedbackRepository feedbackRepository;
 
-    public ProfileServiceRepositoryImpl(ProfileRepository profileRepository,
-                                        ContactUsRepository contactUsRepository,
-                                        FeedbackRepository feedbackRepository){
+    public ProfileServiceImpl(ProfileRepository profileRepository,
+                              ContactUsRepository contactUsRepository,
+                              FeedbackRepository feedbackRepository){
         this.profileRepository = profileRepository;
         this.contactUsRepository = contactUsRepository;
         this.feedbackRepository = feedbackRepository;
@@ -30,7 +30,6 @@ public class ProfileServiceRepositoryImpl implements ProfileServiceRepository {
         ProfileModel fetchProfile = profileRepository.findByUserId(userId);
 
         fetchProfile.setName(profile.getName());
-        fetchProfile.setEmail(profile.getEmail());
         fetchProfile.setPhone(profile.getPhone());
         fetchProfile.setGender(profile.getGender());
         fetchProfile.setDateOfBirth(profile.getDateOfBirth());
@@ -45,11 +44,6 @@ public class ProfileServiceRepositoryImpl implements ProfileServiceRepository {
     @Override
     public ProfileModel getUserDetailsByUserId(Long userId) {
         return profileRepository.findByUserId(userId);
-    }
-
-    @Override
-    public String getNameByUserId(Long userId) {
-        return profileRepository.findByUserId(userId).getName();
     }
 
     @Override

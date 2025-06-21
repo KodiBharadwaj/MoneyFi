@@ -23,7 +23,7 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
                 + "<br>"
                 + "<p style='font-size: 14px;'>Best regards,</p>"
-                + "<p style='font-size: 14px;'>The Support Team</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
         EmailFilter.sendEmail(email, subject, body);
@@ -42,7 +42,7 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
                 + "<br>"
                 + "<p style='font-size: 14px;'>Best regards,</p>"
-                + "<p style='font-size: 14px;'>The Support Team</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
         return EmailFilter.sendEmail(email, subject, body);
@@ -60,7 +60,7 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
                 + "<br>"
                 + "<p style='font-size: 14px;'>Best regards,</p>"
-                + "<p style='font-size: 14px;'>The Support Team</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
         return EmailFilter.sendEmail(username, subject, body);
@@ -79,7 +79,7 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
                 + "<br>"
                 + "<p style='font-size: 14px;'>Best regards,</p>"
-                + "<p style='font-size: 14px;'>The Support Team</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
         return EmailFilter.sendEmail(email, subject, body);
@@ -121,5 +121,28 @@ public class EmailTemplates {
                 + "<p style='font-size: 16px;'>" + feedback.getComments() + "</p>";
 
         EmailFilter.sendEmail(feedback.getEmail(), subject, body);
+    }
+
+    public static void sendAccountStatementAsEmail(String name, String username, byte[] pdfBytes) {
+        String subject = "MoneyFi - Account Statement";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ", </p>"
+                + "<p style='font-size: 16px;'>You have requested for account statement. Kindly find the attached PDF.</p>"
+                + "<p style='font-size: 16px;'>The format for the password is: </p>"
+                + "<p style='font-size: 16px;'>First four characters in your name in capital + First four characters in username in small letters </p> <br>"
+                + "<p style='font-size: 16px;'>Lets say the name and username are: ManiKanta, manaikanta123@gmail.com. Then the password will be <strong> MANImani </strong> </p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL + "</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+
+        int index = name.indexOf(' ');
+        String fileName = name.substring(0, index)+"_statement.pdf";
+
+        EmailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, fileName);
     }
 }

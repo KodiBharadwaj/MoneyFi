@@ -8,8 +8,8 @@ import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.repository.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.common.ProfileRepository;
 import com.moneyfi.apigateway.repository.auth.UserRepository;
-import com.moneyfi.apigateway.service.common.UserCommonRepository;
-import com.moneyfi.apigateway.service.userservice.UserServiceRepository;
+import com.moneyfi.apigateway.service.common.UserCommonService;
+import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.userservice.dto.*;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 
 @Service
 @Slf4j
-public class UserServiceRepositoryImpl implements UserServiceRepository {
+public class UserServiceImpl implements UserService {
 
     private static final String MESSAGE = "message";
 
@@ -45,20 +45,20 @@ public class UserServiceRepositoryImpl implements UserServiceRepository {
     private final OtpTempRepository otpTempRepository;
     private final JwtService jwtService;
     private final ProfileRepository profileRepository;
-    private final UserCommonRepository userCommonRepository;
+    private final UserCommonService userCommonService;
     private AuthenticationManager authenticationManager;
 
-    public UserServiceRepositoryImpl(UserRepository userRepository,
-                                     OtpTempRepository otpTempRepository,
-                                     JwtService jwtService,
-                                     ProfileRepository profileRepository,
-                                     UserCommonRepository userCommonRepository,
-                                     AuthenticationManager authenticationManager){
+    public UserServiceImpl(UserRepository userRepository,
+                           OtpTempRepository otpTempRepository,
+                           JwtService jwtService,
+                           ProfileRepository profileRepository,
+                           UserCommonService userCommonService,
+                           AuthenticationManager authenticationManager){
         this.userRepository = userRepository;
         this.otpTempRepository = otpTempRepository;
         this.jwtService = jwtService;
         this.profileRepository = profileRepository;
-        this.userCommonRepository = userCommonRepository;
+        this.userCommonService = userCommonService;
         this.authenticationManager = authenticationManager;
     }
 
@@ -85,7 +85,6 @@ public class UserServiceRepositoryImpl implements UserServiceRepository {
         ProfileModel profile = new ProfileModel();
         profile.setUserId(userId);
         profile.setName(userProfile.getName());
-        profile.setEmail(userProfile.getUsername());
         profile.setCreatedDate(LocalDate.now());
         profileRepository.save(profile);
     }
@@ -134,7 +133,7 @@ public class UserServiceRepositoryImpl implements UserServiceRepository {
     }
     private void makeOldSessionInActiveOfUserForNewLogin(UserAuthModel userAuthModel){
 
-        SessionTokenModel sessionTokenUser = userCommonRepository.getUserByUsername(userAuthModel.getUsername());
+        SessionTokenModel sessionTokenUser = userCommonService.getUserByUsername(userAuthModel.getUsername());
         if(sessionTokenUser != null && sessionTokenUser.getIsActive()){
             String oldToken = sessionTokenUser.getToken();
 
@@ -142,25 +141,25 @@ public class UserServiceRepositoryImpl implements UserServiceRepository {
             blackListedToken.setToken(oldToken);
             Date expiryDate = new Date(System.currentTimeMillis() + 3600000);
             blackListedToken.setExpiry(expiryDate);
-            userCommonRepository.blacklistToken(blackListedToken);
+            userCommonService.blacklistToken(blackListedToken);
         }
     }
     private void functionToPreventMultipleLogins(UserAuthModel userAuthModel, JwtToken token){
         // Conditions to store the jwt token to prevent multiple logins of same account in different browsers
-        if(userCommonRepository.getUserByUsername(userAuthModel.getUsername()) != null){
-            SessionTokenModel sessionTokens = userCommonRepository.getUserByUsername(userAuthModel.getUsername());
+        if(userCommonService.getUserByUsername(userAuthModel.getUsername()) != null){
+            SessionTokenModel sessionTokens = userCommonService.getUserByUsername(userAuthModel.getUsername());
             sessionTokens.setUsername(userAuthModel.getUsername());
             sessionTokens.setCreatedTime(LocalDateTime.now());
             sessionTokens.setToken(token.getJwtToken());
             sessionTokens.setIsActive(true);
-            userCommonRepository.save(sessionTokens);
+            userCommonService.save(sessionTokens);
         } else {
             SessionTokenModel sessionTokens = new SessionTokenModel();
             sessionTokens.setUsername(userAuthModel.getUsername());
             sessionTokens.setCreatedTime(LocalDateTime.now());
             sessionTokens.setToken(token.getJwtToken());
             sessionTokens.setIsActive(true);
-            userCommonRepository.save(sessionTokens);
+            userCommonService.save(sessionTokens);
         }
     }
 
@@ -313,13 +312,13 @@ public class UserServiceRepositoryImpl implements UserServiceRepository {
         BlackListedToken blackListedToken = new BlackListedToken();
         blackListedToken.setToken(token);
         blackListedToken.setExpiry(expiryDate);
-        return userCommonRepository.blacklistToken(blackListedToken);
+        return userCommonService.blacklistToken(blackListedToken);
     }
     private SessionTokenModel makeUserSessionInActive(String token){
 
-        SessionTokenModel sessionTokens = userCommonRepository.getSessionDetailsByToken(token);
+        SessionTokenModel sessionTokens = userCommonService.getSessionDetailsByToken(token);
         sessionTokens.setIsActive(false);
-        return userCommonRepository.save(sessionTokens);
+        return userCommonService.save(sessionTokens);
     }
 
 
@@ -334,6 +333,13 @@ public class UserServiceRepositoryImpl implements UserServiceRepository {
         log.info("Username fetched: {}", username);
         return EmailTemplates.sendUserNameToUser(username);
     }
+
+    @Override
+    public void sendAccountStatementEmail(String username, byte[] pdfBytes) {
+        ProfileModel userProfileDetails = profileRepository.findByUserId(getUserIdByUsername(username));
+        EmailTemplates.sendAccountStatementAsEmail(userProfileDetails.getName(), username, pdfBytes);
+    }
+
     private String functionCallToRetrieveUsername(ForgotUsernameDto userDetails){
         String username = "";
 
@@ -343,7 +349,7 @@ public class UserServiceRepositoryImpl implements UserServiceRepository {
             List<ProfileModel> fetchedUsers = profileRepository.findByPhone(userDetails.getPhoneNumber());
 
             if(fetchedUsers.size() == 1){
-                return fetchedUsers.get(0).getEmail();
+                return userRepository.findById(fetchedUsers.get(0).getUserId()).get().getUsername();
             }
 
             fetchedUsers = fetchedUsers
@@ -351,7 +357,7 @@ public class UserServiceRepositoryImpl implements UserServiceRepository {
                     .filter(user -> user.getDateOfBirth().equals(userDetails.getDateOfBirth()))
                     .toList();
             if(fetchedUsers.size() == 1){
-                return fetchedUsers.get(0).getEmail();
+                return userRepository.findById(fetchedUsers.get(0).getUserId()).get().getUsername();
             }
 
             fetchedUsers = fetchedUsers
@@ -359,7 +365,7 @@ public class UserServiceRepositoryImpl implements UserServiceRepository {
                     .filter(user -> user.getName().equalsIgnoreCase(userDetails.getName()))
                     .toList();
             if(fetchedUsers.size() == 1){
-                return fetchedUsers.get(0).getEmail();
+                return userRepository.findById(fetchedUsers.get(0).getUserId()).get().getUsername();
             }
 
             fetchedUsers = fetchedUsers
@@ -368,7 +374,7 @@ public class UserServiceRepositoryImpl implements UserServiceRepository {
                             && user.getMaritalStatus().equalsIgnoreCase(userDetails.getMaritalStatus()))
                     .toList();
             if(fetchedUsers.size() == 1){
-                return fetchedUsers.get(0).getEmail();
+                return userRepository.findById(fetchedUsers.get(0).getUserId()).get().getUsername();
             }
 
             List<String> matchedUsernames = functionToFetchUserByPinCode(fetchedUsers, userDetails);
@@ -396,7 +402,7 @@ public class UserServiceRepositoryImpl implements UserServiceRepository {
                     pincode = matcher.group();
 
                     if (pincode.equals(userDetails.getPinCode())) {
-                        matchedUsernames.add(profile.getEmail());
+                        matchedUsernames.add(userRepository.findById(profile.getUserId()).get().getUsername());
                     }
                 }
             }
@@ -412,7 +418,7 @@ public class UserServiceRepositoryImpl implements UserServiceRepository {
                             userDetails.getMaritalStatus());
 
             if(fetchedUsersByAllDetails.size() == 1){
-                return fetchedUsersByAllDetails.get(0).getEmail();
+                return userRepository.findById(fetchedUsersByAllDetails.get(0).getUserId()).get().getUsername();
             }
 
             List<String> matchedUsernames = functionToFetchUserByPinCode(fetchedUsersByAllDetails, userDetails);

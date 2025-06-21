@@ -25,4 +25,7 @@ ALTER COLUMN target_amount DECIMAL(38,2)
 ALTER TABLE goal_table
 ALTER COLUMN dead_line DATETIME
 
+ALTER TABLE user_profile_details_table
+DROP COLUMN email
+
 

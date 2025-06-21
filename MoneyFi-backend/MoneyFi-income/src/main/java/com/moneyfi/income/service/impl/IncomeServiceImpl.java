@@ -12,16 +12,17 @@ import com.moneyfi.income.repository.common.IncomeCommonRepository;
 import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
 import com.moneyfi.income.service.dto.response.UserDetailsForStatementDto;
 import com.moneyfi.income.utils.GeneratePdfTemplate;
+import com.moneyfi.income.utils.StringConstants;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -40,13 +41,16 @@ public class IncomeServiceImpl implements IncomeService {
     private final IncomeRepository incomeRepository;
     private final IncomeCommonRepository incomeCommonRepository;
     private final IncomeDeletedRepository incomeDeletedRepository;
+    private final RestTemplate restTemplate;
 
     public IncomeServiceImpl(IncomeRepository incomeRepository,
                              IncomeCommonRepository incomeCommonRepository,
-                             IncomeDeletedRepository incomeDeletedRepository){
+                             IncomeDeletedRepository incomeDeletedRepository,
+                             RestTemplate restTemplate){
         this.incomeRepository = incomeRepository;
         this.incomeCommonRepository = incomeCommonRepository;
         this.incomeDeletedRepository = incomeDeletedRepository;
+        this.restTemplate = restTemplate;
     }
 
     @Override
@@ -132,12 +136,14 @@ public class IncomeServiceImpl implements IncomeService {
             throw new ResourceNotFoundException("Error in generating excel report");
         }
     }
+
     private CellStyle createDateStyle(Workbook workbook) {
         CellStyle dateStyle = workbook.createCellStyle();
         CreationHelper createHelper = workbook.getCreationHelper();
         dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy")); // Change format as needed
         return dateStyle;
     }
+
     private CellStyle createHeaderStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
@@ -219,6 +225,7 @@ public class IncomeServiceImpl implements IncomeService {
 **/
         return true;
     }
+
     private BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
         BigDecimal totalExpense = incomeRepository.getTotalExpenseInMonthAndYear(userId, month, year);
         if(totalExpense == null){
@@ -278,22 +285,15 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public void generatePdfForAccountStatement(Long userId, LocalDate fromDate, LocalDate toDate, HttpServletResponse response) throws IOException {
+    public byte[] generatePdfForAccountStatement(Long userId, LocalDate fromDate, LocalDate toDate, HttpServletResponse response) throws IOException {
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition", "attachment; filename=statement.pdf");
 
         List<AccountStatementDto> transactions = getAccountStatementOfUser(userId, fromDate, toDate);
         UserDetailsForStatementDto userDetails = incomeCommonRepository.getUserDetailsForAccountStatement(userId);
         userDetails.setUsername(makeUsernamePrivate(userDetails.getUsername()));
-        GeneratePdfTemplate.generatePdf(transactions, userDetails, response, fromDate, toDate,
+        return GeneratePdfTemplate.generatePdf(transactions, userDetails, response, fromDate, toDate,
                 generateDocumentPasswordForUser(userDetails));
-    }
-
-    @Override
-    public void sendAccountStatementEmailToUser(Long userId, LocalDate fromDate, LocalDate toDate, HttpServletResponse response) {
-        /**
-          In development
-         **/
     }
 
     private String makeUsernamePrivate(String username){
@@ -301,9 +301,45 @@ public class IncomeServiceImpl implements IncomeService {
         return username.substring(0, index/3) +
                 "x".repeat(index - index/3) + username.substring(index);
     }
+
     private String generateDocumentPasswordForUser(UserDetailsForStatementDto userDetails){
         return userDetails.getName().substring(0,4).toUpperCase() +
                 userDetails.getUsername().substring(0,4).toLowerCase();
+    }
+
+    @Override
+    public ResponseEntity<String> sendAccountStatementEmailToUser(Long userId, LocalDate fromDate, LocalDate toDate, HttpServletResponse response, String token) {
+
+        try {
+            byte[] pdfBytes = generatePdfForAccountStatement(userId, fromDate, toDate, response);
+            apiCallToGatewayServiceToSendEmail(pdfBytes, token);
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to send email: " + e.getMessage());
+        }
+    }
+
+    private void apiCallToGatewayServiceToSendEmail(byte[] pdfBytes, String authHeader){
+        String token = authHeader.substring(7);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setBearerAuth(token);
+
+        HttpEntity<byte[]> requestEntity = new HttpEntity<>(pdfBytes, headers);
+
+        ResponseEntity<Void> response = restTemplate.exchange(
+                StringConstants.ACCOUNT_STATEMENT_API_GATEWAY_URL,
+                HttpMethod.POST,
+                requestEntity,
+                Void.class
+        );
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Failed to send email: " + response.getStatusCode());
+        }
     }
 
     @Override
@@ -340,6 +376,7 @@ public class IncomeServiceImpl implements IncomeService {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(updateIncomeDtoConversion(incomeRepository.save(income)));
     }
+
     private IncomeDetailsDto updateIncomeDtoConversion(IncomeModel updatedIncome){
         IncomeDetailsDto incomeDetailsDto = new IncomeDetailsDto();
         BeanUtils.copyProperties(updatedIncome, incomeDetailsDto);
@@ -366,6 +403,7 @@ public class IncomeServiceImpl implements IncomeService {
             return false;
         }
     }
+
     private void saveIncomeDeletedDetails(Long id){
         IncomeDeleted incomeDeleted = new IncomeDeleted();
         LocalDateTime expiryTime = LocalDateTime.now().plusDays(30);

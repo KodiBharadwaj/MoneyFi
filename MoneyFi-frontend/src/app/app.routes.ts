@@ -16,6 +16,7 @@ import { AiAssistantComponent } from './ai-assistant/ai-assistant.component';
 import { ContactUsComponent } from './contact-us/contact-us.component';
 import { SignupOtpConfirmDialogComponent } from './signup-otp-confirm-dialog/signup-otp-confirm-dialog.component';
 import { ForgotUsernameComponent } from './forgot-username/forgot-username.component';
+import { ReportsInsightsComponent } from './reports-insights/reports-insights.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -34,6 +35,7 @@ export const routes: Routes = [
     {path:'analysis',component:AnalysisComponent},
     {path:'profile',component:ProfileComponent},
     {path: 'contact-us', component:ContactUsComponent},
-    { path: 'ai-assistant', component: AiAssistantComponent },
+    {path: 'ai-assistant', component: AiAssistantComponent},
+    {path: 'reports-insights', component:ReportsInsightsComponent},
   ]},
 ];

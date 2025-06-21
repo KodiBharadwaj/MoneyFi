@@ -1,8 +1,10 @@
 package com.moneyfi.apigateway.util;
 
-import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
 import jakarta.mail.*;
 import jakarta.mail.internet.*;
+import jakarta.mail.util.ByteArrayDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -14,9 +16,11 @@ import java.util.Random;
 public class EmailFilter {
     private EmailFilter(){}
 
+    private static final String FROM_EMAIL = "xxxxxx@gmail.com";
+    private static final String PASSWORD = "xxxx xxxx xxxx xxxx";
+
     public static boolean sendEmail(String toEmail, String subject, String body) {
-        String fromEmail = "moneyfi.owner@gmail.com";  // Sender's email
-        String password = "xxxx xxxx xxxx xxxx";  // Sender's email password (Make sure it's correct or use App password)
+
         String host = "smtp.gmail.com";  // Gmail SMTP server
         String port = "587";  // SMTP port for Gmail
 
@@ -38,14 +42,14 @@ public class EmailFilter {
         Session session = Session.getInstance(properties, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(fromEmail, password);
+                return new PasswordAuthentication(FROM_EMAIL, PASSWORD);
             }
         });
 
         try {
             // Create the email message
             Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(fromEmail));
+            message.setFrom(new InternetAddress(FROM_EMAIL));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             message.setSubject(subject);
 
@@ -62,6 +66,60 @@ public class EmailFilter {
             return false;
         }
     }
+
+    public static boolean sendEmailWithAttachment(String toEmail, String subject, String body, byte[] attachmentBytes, String fileName) {
+        String host = "smtp.gmail.com";
+        String port = "587";
+
+        Properties properties = new Properties();
+        properties.put("mail.smtp.host", host);
+        properties.put("mail.smtp.port", port);
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.smtp.starttls.enable", "true");
+        properties.put("mail.smtp.ssl.enable", "false");
+
+        Session session = Session.getInstance(properties, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(FROM_EMAIL, PASSWORD);
+            }
+        });
+
+        try {
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(FROM_EMAIL));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+            message.setSubject(subject);
+
+            // Create the email body part
+            MimeBodyPart messageBodyPart = new MimeBodyPart();
+            messageBodyPart.setContent(body, "text/html; charset=UTF-8");
+
+            // Create the PDF attachment part
+            MimeBodyPart attachmentPart = new MimeBodyPart();
+            DataSource dataSource = new ByteArrayDataSource(attachmentBytes, "application/pdf");
+            attachmentPart.setDataHandler(new DataHandler(dataSource));
+            attachmentPart.setFileName(fileName);
+
+            // Combine parts into a multipart
+            Multipart multipart = new MimeMultipart();
+            multipart.addBodyPart(messageBodyPart);
+            multipart.addBodyPart(attachmentPart);
+
+            // Set the complete message parts
+            message.setContent(multipart);
+
+            // Send email
+            Transport.send(message);
+            log.info("Email with attachment sent successfully!");
+            return true;
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            log.error("Failed to send email with attachment", e);
+            return false;
+        }
+    }
+
 
     public static String generateVerificationCode() {
         Random random = new Random();

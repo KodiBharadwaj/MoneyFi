@@ -176,22 +176,22 @@ public class IncomeApiController {
 
     @Operation(summary = "Api to generate pdf for the account statement")
     @GetMapping("/account-statement/report/{fromDate}/{toDate}")
-    public void generatePdfForAccountStatement(@RequestHeader("Authorization") String authHeader,
+    public byte[] generatePdfForAccountStatement(@RequestHeader("Authorization") String authHeader,
                                                @PathVariable("fromDate") LocalDate fromDate,
                                                @PathVariable("toDate") LocalDate toDate,
                                                HttpServletResponse response) throws IOException {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        incomeService.generatePdfForAccountStatement(userId, fromDate, toDate, response);
+        return incomeService.generatePdfForAccountStatement(userId, fromDate, toDate, response);
     }
 
     @Operation(summary = "Api to send account statement of a user as email")
     @GetMapping("/account-statement-report/email/{fromDate}/{toDate}")
-    public void sendAccountStatementEmailToUser(@RequestHeader("Authorization") String authHeader,
-                                               @PathVariable("fromDate") LocalDate fromDate,
-                                               @PathVariable("toDate") LocalDate toDate,
-                                               HttpServletResponse response) throws IOException {
+    public ResponseEntity<String> sendAccountStatementEmailToUser(@RequestHeader("Authorization") String authHeader,
+                                                                  @PathVariable("fromDate") LocalDate fromDate,
+                                                                  @PathVariable("toDate") LocalDate toDate,
+                                                                  HttpServletResponse response) throws IOException {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        incomeService.sendAccountStatementEmailToUser(userId, fromDate, toDate, response);
+        return incomeService.sendAccountStatementEmailToUser(userId, fromDate, toDate, response, authHeader);
     }
 
     @Operation(summary = "Method to update the income details")
