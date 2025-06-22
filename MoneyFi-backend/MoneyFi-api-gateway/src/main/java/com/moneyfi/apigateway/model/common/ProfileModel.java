@@ -1,6 +1,5 @@
 package com.moneyfi.apigateway.model.common;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,6 +27,4 @@ public class ProfileModel {
     private String maritalStatus;
     private String address;
     private double incomeRange;
-    @Column(columnDefinition = "TEXT")
-    private String profileImage;
 }

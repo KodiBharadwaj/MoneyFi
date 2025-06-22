@@ -31,4 +31,7 @@ DROP COLUMN email
 ALTER TABLE user_profile_details_table
 ALTER COLUMN created_date DATETIME
 
+ALTER TABLE user_profile_details_table
+DROP COLUMN profile_image;
+
 

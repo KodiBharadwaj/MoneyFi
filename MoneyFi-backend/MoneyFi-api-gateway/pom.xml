@@ -132,6 +132,13 @@
             <artifactId>mssql-jdbc</artifactId>
             <version>12.8.1.jre11</version>
         </dependency>
+
+        <!-- aws s3 -->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>1.12.742</version> <!-- or latest stable -->
+        </dependency>
     </dependencies>
 
     <dependencyManagement>

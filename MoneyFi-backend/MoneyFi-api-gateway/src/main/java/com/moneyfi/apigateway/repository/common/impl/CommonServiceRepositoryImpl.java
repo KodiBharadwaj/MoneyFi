@@ -13,8 +13,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class CommonServiceRepositoryImpl implements CommonServiceRepository {
 
-    @Autowired
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
+
+    public CommonServiceRepositoryImpl(EntityManager entityManager){
+        this.entityManager = entityManager;
+    }
 
     @Override
     public ProfileDetailsDto getProfileDetailsOfUser(Long userId) {

@@ -2,8 +2,11 @@ package com.moneyfi.apigateway.service.userservice;
 
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.service.userservice.dto.*;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Map;
 
 public interface UserService {
@@ -27,4 +30,10 @@ public interface UserService {
     boolean getUsernameByDetails(ForgotUsernameDto userDetails);
 
     void sendAccountStatementEmail(String username, byte[] pdfBytes);
+
+    String uploadUserProfilePictureToS3(String username, MultipartFile file) throws IOException;
+
+    ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username);
+
+    ResponseEntity<String> deleteProfilePictureFromS3(String username);
 }

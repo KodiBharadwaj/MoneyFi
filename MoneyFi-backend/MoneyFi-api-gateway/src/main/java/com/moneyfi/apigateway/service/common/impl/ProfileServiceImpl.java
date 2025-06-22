@@ -44,7 +44,6 @@ public class ProfileServiceImpl implements ProfileService {
         fetchProfile.setMaritalStatus(profile.getMaritalStatus());
         fetchProfile.setAddress(profile.getAddress());
         fetchProfile.setIncomeRange(profile.getIncomeRange());
-        fetchProfile.setProfileImage(profile.getProfileImage());
 
         ProfileModel savedProfile = profileRepository.save(fetchProfile);
         return convertProfileModelToProfileDetailsDto(savedProfile);
