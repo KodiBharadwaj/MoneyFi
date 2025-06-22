@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
     private final JwtService jwtService;
     private final ProfileRepository profileRepository;
     private final UserCommonService userCommonService;
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
     public UserServiceImpl(UserRepository userRepository,
                            OtpTempRepository otpTempRepository,
@@ -76,16 +76,17 @@ public class UserServiceImpl implements UserService {
         userAuthModel.setOtpCount(0);
         userAuthModel.setDeleted(false);
         userAuthModel.setBlocked(false);
-        UserAuthModel user =  userRepository.save(userAuthModel);
+        UserAuthModel user = userRepository.save(userAuthModel);
 
         saveUserProfileDetails(user.getId(), userProfile);
         return user;
     }
+
     private void saveUserProfileDetails(Long userId, UserProfile userProfile){
         ProfileModel profile = new ProfileModel();
         profile.setUserId(userId);
         profile.setName(userProfile.getName());
-        profile.setCreatedDate(LocalDate.now());
+        profile.setCreatedDate(LocalDateTime.now());
         profileRepository.save(profile);
     }
 
@@ -131,6 +132,7 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during login");
         }
     }
+
     private void makeOldSessionInActiveOfUserForNewLogin(UserAuthModel userAuthModel){
 
         SessionTokenModel sessionTokenUser = userCommonService.getUserByUsername(userAuthModel.getUsername());
@@ -144,6 +146,7 @@ public class UserServiceImpl implements UserService {
             userCommonService.blacklistToken(blackListedToken);
         }
     }
+
     private void functionToPreventMultipleLogins(UserAuthModel userAuthModel, JwtToken token){
         // Conditions to store the jwt token to prevent multiple logins of same account in different browsers
         if(userCommonService.getUserByUsername(userAuthModel.getUsername()) != null){
@@ -306,6 +309,7 @@ public class UserServiceImpl implements UserService {
 
         return response;
     }
+
     private BlackListedToken makeUserTokenBlacklisted(String token){
 
         Date expiryDate = new Date(System.currentTimeMillis()); // current date and time
@@ -314,13 +318,13 @@ public class UserServiceImpl implements UserService {
         blackListedToken.setExpiry(expiryDate);
         return userCommonService.blacklistToken(blackListedToken);
     }
+
     private SessionTokenModel makeUserSessionInActive(String token){
 
         SessionTokenModel sessionTokens = userCommonService.getSessionDetailsByToken(token);
         sessionTokens.setIsActive(false);
         return userCommonService.save(sessionTokens);
     }
-
 
     @Override
     public boolean getUsernameByDetails(ForgotUsernameDto userDetails) {
@@ -387,6 +391,7 @@ public class UserServiceImpl implements UserService {
 
         return functionCallToFetchUsernameByUserDetailsWithoutPhoneNumber(username, userDetails);
     }
+
     private List<String> functionToFetchUserByPinCode(List<ProfileModel> fetchedUsers, ForgotUsernameDto userDetails){
         List<String> matchedUsernames = new ArrayList<>();
 
@@ -409,6 +414,7 @@ public class UserServiceImpl implements UserService {
         }
         return matchedUsernames;
     }
+
     private String functionCallToFetchUsernameByUserDetailsWithoutPhoneNumber(String username, ForgotUsernameDto userDetails){
 
         if(username.isEmpty() || username.equalsIgnoreCase("null")){
@@ -433,7 +439,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Scheduled(fixedRate = 3600000) // Method Runs for every 1 hour
-    public void removeOtpCountOfPreviousDay1(){
+    public void removeOtpCountOfPreviousDay(){
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
         List<UserAuthModel>  userAuthModelList = userRepository.getUserListWhoseOtpCountGreaterThanThree(startOfToday);
 

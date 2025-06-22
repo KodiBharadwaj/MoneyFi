@@ -1,5 +1,6 @@
 package com.moneyfi.apigateway.controller;
 
+import com.moneyfi.apigateway.service.common.dto.ProfileDetailsDto;
 import com.moneyfi.apigateway.service.userservice.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.service.userservice.dto.ProfileChangePassword;
 import com.moneyfi.apigateway.model.common.ContactUs;
@@ -41,7 +42,7 @@ public class ProfileApiController {
 
     @Operation(summary = "Method to save/update the profile details of a user")
     @PostMapping("saveProfile")
-    public ResponseEntity<ProfileModel> saveProfile(Authentication authentication,
+    public ResponseEntity<ProfileDetailsDto> saveProfile(Authentication authentication,
                                     @RequestBody ProfileModel profile){
 
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -61,7 +62,7 @@ public class ProfileApiController {
 
     @Operation(summary = "Method to get the profile details of a user")
     @GetMapping("/getProfile")
-    public ResponseEntity<ProfileModel> getProfile(Authentication authentication){
+    public ResponseEntity<ProfileDetailsDto> getProfile(Authentication authentication){
 
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -71,10 +72,10 @@ public class ProfileApiController {
         if (principal instanceof UserDetails userDetails) {
             String username = userDetails.getUsername();
             Long userId = userService.getUserIdByUsername(username);
-            ProfileModel profile = profileService.getUserDetailsByUserId(userId);
+            ProfileDetailsDto profileDetails = profileService.getProfileDetailsOfUser(userId);
 
-            if (profile != null) {
-                return ResponseEntity.ok(profile);
+            if (profileDetails != null) {
+                return ResponseEntity.ok(profileDetails);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }

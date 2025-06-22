@@ -1,11 +1,13 @@
 package com.moneyfi.apigateway.model.common;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -19,7 +21,7 @@ public class ProfileModel {
     private Long id;
     private Long userId;
     private String name;
-    private LocalDate createdDate;
+    private LocalDateTime createdDate;
     private String phone;
     private String gender;
     private LocalDate dateOfBirth;

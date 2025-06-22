@@ -3,6 +3,8 @@ package com.moneyfi.apigateway.util;
 import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.Feedback;
 
+import java.util.Base64;
+
 public class EmailTemplates {
 
     private EmailTemplates() {
@@ -94,18 +96,18 @@ public class EmailTemplates {
                 + "<p style='font-size: 16px;'>You received the Report/defect by a user: </p>"
                 + "<br>"
                 + "<p style='font-size: 16px;'>" + contactUsDetails.getMessage() + "</p>"
-                + "<br>";
+                + "<br> <hr>"
+                + "<p style='font-size: 14px;'>" + contactUsDetails.getName() + "</p>"
+                + "<p style='font-size: 14px;'>" + contactUsDetails.getEmail() + "</p>"
+                + "</body>"
+                + "</html>";
 
-        String base64Image = images;
-        // If an image is provided, embed it in the email
-        if (base64Image != null && !base64Image.isEmpty()) {
-            body += "<p><b>Attached Image:</b></p>"
-                    + "<img src='" + base64Image + "' width='500px' height='auto'/>";
+
+        if (images.contains(",")) {
+            images = images.split(",")[1];  // Only the base64 part after the comma
         }
-
-        body += "</body></html>";
-
-        EmailFilter.sendEmail(contactUsDetails.getEmail(), subject, body);
+        byte[] imageBytes = Base64.getDecoder().decode(images);
+        EmailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, "user.jpg");
     }
 
     public static void feedbackAlertMail(Feedback feedback){
@@ -120,7 +122,7 @@ public class EmailTemplates {
                 + "<p style='font-size: 16px;'>Comment: </p>"
                 + "<p style='font-size: 16px;'>" + feedback.getComments() + "</p>";
 
-        EmailFilter.sendEmail(feedback.getEmail(), subject, body);
+        EmailFilter.sendEmail(ADMIN_EMAIL, subject, body);
     }
 
     public static void sendAccountStatementAsEmail(String name, String username, byte[] pdfBytes) {
