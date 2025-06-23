@@ -292,7 +292,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     private ExpenseDetailsDto updateExpenseDtoConversion(ExpenseModel updatedExpense){
         ExpenseDetailsDto expenseDetailsDto = new ExpenseDetailsDto();
         BeanUtils.copyProperties(updatedExpense, expenseDetailsDto);
-        expenseDetailsDto.setDate(Date.valueOf(updatedExpense.getDate()));
+        expenseDetailsDto.setDate(Date.valueOf(updatedExpense.getDate().toLocalDate()));
         return expenseDetailsDto;
     }
 

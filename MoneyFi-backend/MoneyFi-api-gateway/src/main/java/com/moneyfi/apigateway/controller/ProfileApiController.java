@@ -1,86 +1,73 @@
 package com.moneyfi.apigateway.controller;
 
+import com.moneyfi.apigateway.service.common.dto.ProfileDetailsDto;
 import com.moneyfi.apigateway.service.userservice.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.service.userservice.dto.ProfileChangePassword;
 import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.Feedback;
 import com.moneyfi.apigateway.model.common.ProfileModel;
-import com.moneyfi.apigateway.service.common.ProfileServiceRepository;
-import com.moneyfi.apigateway.service.userservice.UserServiceRepository;
+import com.moneyfi.apigateway.service.common.ProfileService;
+import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/userProfile")
 public class ProfileApiController {
 
-    private final ProfileServiceRepository profileServiceRepository;
-    private final UserServiceRepository userServiceRepository;
+    private final ProfileService profileService;
+    private final UserService userService;
 
-    public ProfileApiController(ProfileServiceRepository profileServiceRepository,
-                                UserServiceRepository userServiceRepository){
-        this.profileServiceRepository = profileServiceRepository;
-        this.userServiceRepository = userServiceRepository;
+    public ProfileApiController(ProfileService profileService,
+                                UserService userService){
+        this.profileService = profileService;
+        this.userService = userService;
     }
 
     @GetMapping("/test")
     public Long testFunction(Authentication authentication){
         if(authentication.isAuthenticated()){
             String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-            return  userServiceRepository.getUserIdByUsername(username);
+            return  userService.getUserIdByUsername(username);
         }
-
         return null;
     }
 
     @Operation(summary = "Method to save/update the profile details of a user")
     @PostMapping("saveProfile")
-    public ResponseEntity<ProfileModel> saveProfile(Authentication authentication,
-                                    @RequestBody ProfileModel profile){
-
+    public ResponseEntity<ProfileDetailsDto> saveProfile(Authentication authentication,
+                                                         @RequestBody ProfileModel profile){
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails userDetails) {
-            String username = userDetails.getUsername();
-            Long userId = userServiceRepository.getUserIdByUsername(username);
-
-            return ResponseEntity.ok(profileServiceRepository.saveUserDetails(userId, profile));
-        }
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        return ResponseEntity.ok(profileService.saveUserDetails(userId, profile));
     }
 
     @Operation(summary = "Method to get the profile details of a user")
     @GetMapping("/getProfile")
-    public ResponseEntity<ProfileModel> getProfile(Authentication authentication){
-
+    public ResponseEntity<ProfileDetailsDto> getProfile(Authentication authentication){
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails userDetails) {
-            String username = userDetails.getUsername();
-            Long userId = userServiceRepository.getUserIdByUsername(username);
-            ProfileModel profile = profileServiceRepository.getUserDetailsByUserId(userId);
+        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        ProfileDetailsDto profileDetails = profileService.getProfileDetailsOfUser(userId);
 
-            if (profile != null) {
-                return ResponseEntity.ok(profile);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
+        if (profileDetails != null) {
+            return ResponseEntity.ok(profileDetails);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @Operation(summary = "Method to get the name of a user")
@@ -90,67 +77,43 @@ public class ProfileApiController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails userDetails) {
-            String username = userDetails.getUsername();
-            Long userId = userServiceRepository.getUserIdByUsername(username);
-            ProfileModel profile = profileServiceRepository.getUserDetailsByUserId(userId);
-
-            if (profile != null) {
-                return ResponseEntity.ok(profile.getName());
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
+        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        ProfileModel profile = profileService.getUserDetailsByUserId(userId);
+        if (profile != null) {
+            return ResponseEntity.ok(profile.getName());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @Operation(summary = "Method which deals with user contact/report details")
     @PostMapping("/contactUs")
-    public ResponseEntity<ContactUs> saveContactUsDetails(@RequestBody ContactUs contactUsDetails,
-                                          Authentication authentication){
+    public ResponseEntity<ContactUs> saveContactUsDetails(Authentication authentication,
+                                                          @RequestBody ContactUs contactUsDetails){
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails userDetails) {
-            String username = userDetails.getUsername();
-            Long userId = userServiceRepository.getUserIdByUsername(username);
-            contactUsDetails.setUserId(userId);
-
-            return ResponseEntity.ok(profileServiceRepository.saveContactUsDetails(contactUsDetails));
-        }
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        contactUsDetails.setUserId(userId);
+        return ResponseEntity.ok(profileService.saveContactUsDetails(contactUsDetails));
     }
 
     @Operation(summary = "Method which deals with user feedback")
     @PostMapping("/feedback")
     public ResponseEntity<Feedback> saveFeedback(Authentication authentication,
-                                 @RequestBody Feedback feedback){
-
+                                                 @RequestBody Feedback feedback){
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails userDetails) {
-            String username = userDetails.getUsername();
-            Long userId = userServiceRepository.getUserIdByUsername(username);
-            feedback.setUserId(userId);
-
-            return ResponseEntity.ok(profileServiceRepository.saveFeedback(feedback));
-        }
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        feedback.setUserId(userId);
+        return ResponseEntity.ok(profileService.saveFeedback(feedback));
     }
 
     @Operation(summary = "Method to get the user id from user's email")
     @GetMapping("/getUserId/{email}")
     public Long getUserId(@PathVariable("email") String email){
-        return userServiceRepository.getUserIdByUsername(email);
+        return userService.getUserIdByUsername(email);
     }
 
     @Operation(summary = "Method to change the password for the logged in user in the profile section")
@@ -158,14 +121,58 @@ public class ProfileApiController {
     public ProfileChangePassword changePassword(Authentication authentication,
                                                 @RequestBody ChangePasswordDto changePasswordDto) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        Long userId = userServiceRepository.getUserIdByUsername(username);
+        Long userId = userService.getUserIdByUsername(username);
         changePasswordDto.setUserId(userId);
-        return userServiceRepository.changePassword(changePasswordDto);
+        return userService.changePassword(changePasswordDto);
+    }
+
+    @Operation(summary = "API to send user's account statement as email")
+    @PostMapping("/account-statement/email")
+    public ResponseEntity<Void> sendAccountStatementEmail(Authentication authentication,
+                                                          @RequestBody byte[] pdfBytes) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        userService.sendAccountStatementEmail(username, pdfBytes);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Api to upload profile pic to aws s3")
+    @PostMapping("/upload/profile-picture")
+    public ResponseEntity<String> uploadUserProfilePictureToS3(Authentication authentication,
+                                                           @RequestParam(value = "file") MultipartFile file) throws IOException {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        return ResponseEntity.ok(userService.uploadUserProfilePictureToS3(username, file));
+    }
+
+    @Operation(summary = "Api to fetch the user profile picture from aws s3")
+    @GetMapping("/fetch/profile-picture")
+    public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        return userService.fetchUserProfilePictureFromS3(username);
+    }
+
+    @Operation(summary = "Api to delete the user profile picture from aws s3")
+    @DeleteMapping("/delete/profile-picture")
+    public ResponseEntity<String> deleteProfilePictureFromS3(Authentication authentication) {
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        return userService.deleteProfilePictureFromS3(username);
     }
 
     @Operation(summary = "Method to logout/making the token blacklist")
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader("Authorization") String token) {
-        return ResponseEntity.ok(userServiceRepository.logout(token));
+        return ResponseEntity.ok(userService.logout(token));
     }
 }

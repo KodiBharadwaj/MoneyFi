@@ -8,6 +8,7 @@ import com.moneyfi.goal.repository.GoalRepository;
 import com.moneyfi.goal.repository.common.GoalCommonRepository;
 import com.moneyfi.goal.service.GoalService;
 import com.moneyfi.goal.service.dto.response.GoalDetailsDto;
+import com.moneyfi.goal.utils.StringConstants;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -18,7 +19,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.sql.Date;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,15 +64,14 @@ public class GoalServiceImpl implements GoalService {
         ExpenseModelDto expenseModelDto = new ExpenseModelDto();
         expenseModelDto.setDescription(goal.getGoalName());
         expenseModelDto.setCategory("Goal");
-        if(amountToBeAdded == BigDecimal.ZERO){
+        if(amountToBeAdded.compareTo(BigDecimal.ZERO) == 0){
             expenseModelDto.setAmount(goal.getCurrentAmount());
         } else {
             expenseModelDto.setAmount(amountToBeAdded);
         }
-        expenseModelDto.setDate(LocalDate.now());
+        expenseModelDto.setDate(LocalDateTime.now());
         expenseModelDto.setRecurring(true);
 
-        String url = "http://localhost:8200/api/v1/expense/saveExpense";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + token);
@@ -79,7 +79,7 @@ public class GoalServiceImpl implements GoalService {
         HttpEntity<ExpenseModelDto> requestEntity = new HttpEntity<>(expenseModelDto, headers);
 
         ResponseEntity<ExpenseModelDto> response = restTemplate.exchange(
-                url,
+                StringConstants.SAVE_EXPENSE_EXPENSE_URL,
                 HttpMethod.POST,
                 requestEntity,
                 ExpenseModelDto.class
@@ -157,7 +157,7 @@ public class GoalServiceImpl implements GoalService {
     private GoalDetailsDto updatedGoalDtoConversion(GoalModel updatedGoal){
         GoalDetailsDto goalDetailsDto = new GoalDetailsDto();
         BeanUtils.copyProperties(updatedGoal, goalDetailsDto);
-        goalDetailsDto.setDeadLine(Date.valueOf(updatedGoal.getDeadLine()));
+        goalDetailsDto.setDeadLine(Date.valueOf(updatedGoal.getDeadLine().toLocalDate()));
         return goalDetailsDto;
     }
 
@@ -183,7 +183,7 @@ public class GoalServiceImpl implements GoalService {
     }
     private Boolean functionCallToExpenseServiceToDeleteExpense(String expenseIds, String authHeader){
         String token = authHeader.substring(7);
-        String url = "http://localhost:8200/api/v1/expense";
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + token);
@@ -195,7 +195,7 @@ public class GoalServiceImpl implements GoalService {
         HttpEntity<List<Long>> requestEntity = new HttpEntity<>(expenseIdsList, headers);
 
         ResponseEntity<Void> response = restTemplate.exchange(
-                url,
+                StringConstants.DELETE_EXPENSE_EXPENSE_URL,
                 HttpMethod.DELETE,
                 requestEntity,
                 Void.class

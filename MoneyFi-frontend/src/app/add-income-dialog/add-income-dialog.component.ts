@@ -12,7 +12,6 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../environments/environment';
 
@@ -59,7 +58,6 @@ export class AddIncomeDialogComponent {
 
   constructor(
     private httpClient:HttpClient,
-    private router:Router,
     private toastr:ToastrService,
     public dialogRef: MatDialogRef<AddIncomeDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -67,6 +65,7 @@ export class AddIncomeDialogComponent {
     const dialogData = data || {};
 
     if (dialogData.isUpdate) {
+
       this.dialogTitle = 'Update Income';
       this.incomeSource = { ...dialogData };
       this.flag = true;
@@ -112,16 +111,17 @@ export class AddIncomeDialogComponent {
 
   onSave() {
     if (this.isValid()) {
-
-      const incomeDataUpdated = {
-        ...this.incomeData,
-        amount:this.incomeSource.amount
-      };
       
       if(this.flag == false){
         this.dialogRef.close(this.incomeSource);
       }
       else {
+        const incomeDataUpdated = {
+          ...this.incomeData,
+          amount:this.incomeSource.amount,
+          date: this.formatDate(this.incomeData.date),
+        };
+
         this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/v1/income/incomeUpdateCheck`, incomeDataUpdated).subscribe({
           next: (result) => {
             if (result) {
@@ -144,5 +144,17 @@ export class AddIncomeDialogComponent {
 
   onCancel() {
     this.dialogRef.close();
+  }
+
+  formatDate(date: string | Date): string {
+    const d = new Date(date);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}`;
   }
 }

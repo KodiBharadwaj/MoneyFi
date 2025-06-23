@@ -3,7 +3,7 @@ package com.moneyfi.apigateway.service.common;
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 
-public interface UserCommonRepository {
+public interface UserCommonService {
 
     String forgotPassword(String email);
 

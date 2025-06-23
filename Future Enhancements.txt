@@ -10,12 +10,17 @@ Minor Changes:
 - Landing page, so may buttons are there in the footer. Add the necessary info.
 - Replace double with BigDecimal in amount (frontend pending)
 - Put a name in the network section for every api.
+- Use local cache for user's name and some to avoid multiple api calls.
+
+New Feature
+- Account statement generation feature between particular dates.
+ -- Create reports section in side nav
+
 
 
 
 Defects:
 - update functionality is not working in all services.
-- User feedback mail images are not sending as images in mail to admin.
 
 
 

@@ -39,6 +39,7 @@ public class GoalCommonRepositoryImpl implements GoalCommonRepository {
             return goalList;
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching goal data");
         }
     }

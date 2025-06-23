@@ -1,15 +1,19 @@
 package com.moneyfi.income.repository.common.impl;
 
+import com.moneyfi.income.service.dto.response.AccountStatementDto;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.exceptions.QueryValidationException;
 import com.moneyfi.income.repository.common.IncomeCommonRepository;
 import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
+import com.moneyfi.income.service.dto.response.UserDetailsForStatementDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,7 +61,7 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                         .setParameter(USER_ID, userId)
                         .setParameter(MONTH, month)
                         .setParameter(YEAR, year)
-                        .setParameter("category", category)
+                        .setParameter(CATEGORY, category)
                         .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
@@ -67,6 +71,7 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching monthly income data");
         }
     }
@@ -91,6 +96,7 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
             incomeListDeleted.addAll(query.getResultList());
             return incomeListDeleted;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching deleted income data");
         }
     }
@@ -124,7 +130,7 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                                         "@deleteStatus = :deleteStatus")
                         .setParameter(USER_ID, userId)
                         .setParameter(YEAR, year)
-                        .setParameter("category", category)
+                        .setParameter(CATEGORY, category)
                         .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
@@ -134,7 +140,53 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching yearly income data");
+        }
+    }
+
+    @Override
+    public List<AccountStatementDto> getAccountStatementOfUser(Long userId, LocalDate fromDate, LocalDate toDate) {
+
+        Date startDate = Date.valueOf(fromDate);
+        Date endDate = Date.valueOf(toDate);
+        List<AccountStatementDto> accountStatement = new ArrayList<>();
+
+        try {
+            Query query = entityManager.createNativeQuery(
+                    "exec getAccountStatementOfUser " +
+                            "@userId = :userId, " +
+                            "@startDate = :startDate, " +
+                            "@endDate = :endDate ")
+                    .setParameter(USER_ID, userId)
+                    .setParameter(START_DATE, startDate)
+                    .setParameter(END_DATE, endDate)
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(AccountStatementDto.class));
+
+            accountStatement.addAll(query.getResultList());
+            return accountStatement;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user's account statement");
+        }
+    }
+
+    @Override
+    public UserDetailsForStatementDto getUserDetailsForAccountStatement(Long userId) {
+        try {
+            Query query = entityManager.createNativeQuery(
+                    "exec getUserDetailsForAccountStatement " +
+                            "@userId = :userId ")
+                    .setParameter(USER_ID, userId)
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserDetailsForStatementDto.class));
+
+            return (UserDetailsForStatementDto) query.getSingleResult();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user's details");
         }
     }
 }

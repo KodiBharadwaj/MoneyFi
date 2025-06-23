@@ -334,13 +334,18 @@ export class IncomeComponent {
     });
   }
 
-  formatDate(date: string): string {
+  formatDate(date: string | Date): string {
     const d = new Date(date);
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-based
     const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}`;
   }
+
   
 
   deleteIncome(incomeId: number): void {
@@ -354,6 +359,7 @@ export class IncomeComponent {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         const incomeSource = this.incomeSources.find(i => i.id === incomeId);
+        incomeSource.date = this.formatDate(incomeSource.date);
 
         this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/v1/income/incomeDeleteCheck`, incomeSource).subscribe({
           next: (result) => {

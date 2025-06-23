@@ -66,6 +66,7 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching monthly expense data");
         }
     }
@@ -109,6 +110,7 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching yearly expense data");
         }
     }

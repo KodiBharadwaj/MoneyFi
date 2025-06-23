@@ -1,5 +1,6 @@
 package com.moneyfi.expense.config;
 
+import com.moneyfi.expense.utils.StringConstants;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,13 +27,17 @@ public class JwtService {
                 .getBody()
                 .getSubject(); // Assuming username is stored as the subject
 
-        String url = "http://localhost:8765/api/v1/userProfile/getUserId/" + username;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<Long> response = restTemplate.exchange(url, HttpMethod.GET, entity, Long.class);
+        ResponseEntity<Long> response = restTemplate.exchange(
+                StringConstants.JWT_SERVICE_API_GATEWAY_URL + username,
+                HttpMethod.GET,
+                entity,
+                Long.class
+        );
         return response.getBody();
     }
 }

@@ -20,9 +20,9 @@ public class BudgetModel {
     private Long id;
     private Long userId;
     private String category;
-    @Column(precision = 38, scale = 5)
+    @Column(precision = 38, scale = 2)
     private BigDecimal currentSpending;
-    @Column(precision = 38, scale = 5)
+    @Column(precision = 38, scale = 2)
     private BigDecimal moneyLimit;
 
 }

@@ -1,18 +1,22 @@
 package com.moneyfi.income.controller;
 
 import com.moneyfi.income.config.JwtService;
+import com.moneyfi.income.service.dto.response.AccountStatementDto;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.service.IncomeService;
 import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -159,6 +163,35 @@ public class IncomeApiController {
     public BigDecimal getAvailableBalanceOfUser(@RequestHeader("Authorization") String authHeader){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return incomeService.getAvailableBalanceOfUser(userId);
+    }
+
+    @Operation(summary = "Api to get overall transactions in the selected period")
+    @GetMapping("/account-statement/{fromDate}/{toDate}")
+    public List<AccountStatementDto> getAccountStatementOfUser(@RequestHeader("Authorization") String authHeader,
+                                                               @PathVariable("fromDate") LocalDate fromDate,
+                                                               @PathVariable("toDate") LocalDate toDate){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return incomeService.getAccountStatementOfUser(userId, fromDate, toDate);
+    }
+
+    @Operation(summary = "Api to generate pdf for the account statement")
+    @GetMapping("/account-statement/report/{fromDate}/{toDate}")
+    public byte[] generatePdfForAccountStatement(@RequestHeader("Authorization") String authHeader,
+                                               @PathVariable("fromDate") LocalDate fromDate,
+                                               @PathVariable("toDate") LocalDate toDate,
+                                               HttpServletResponse response) throws IOException {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return incomeService.generatePdfForAccountStatement(userId, fromDate, toDate, response);
+    }
+
+    @Operation(summary = "Api to send account statement of a user as email")
+    @GetMapping("/account-statement-report/email/{fromDate}/{toDate}")
+    public ResponseEntity<String> sendAccountStatementEmailToUser(@RequestHeader("Authorization") String authHeader,
+                                                                  @PathVariable("fromDate") LocalDate fromDate,
+                                                                  @PathVariable("toDate") LocalDate toDate,
+                                                                  HttpServletResponse response) throws IOException {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return incomeService.sendAccountStatementEmailToUser(userId, fromDate, toDate, response, authHeader);
     }
 
     @Operation(summary = "Method to update the income details")

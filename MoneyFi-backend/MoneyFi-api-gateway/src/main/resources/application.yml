@@ -24,11 +24,6 @@ spring:
     gateway:
       mvc:
         routes:
-#          - id: MoneyFi-user
-#            uri:
-#              lb://MoneyFi-user
-#            predicates:
-#              - Path=/api/user/**, /api/profile/**, /api/contact/**
 
           - id: MoneyFi-income
             uri:
@@ -53,3 +48,19 @@ spring:
               lb://MoneyFi-goal
             predicates:
               - Path=/api/v1/goal/**
+
+
+# aws s3 connection details
+cloud:
+  aws:
+    credentials:
+      access-key:
+      secret-key:
+    region:
+      static: us-east-1
+    stack:
+      auto:false
+
+application:
+  bucket:
+    name: moneyfi-users-profile-pictures
