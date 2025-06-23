@@ -50,7 +50,7 @@ spring:
               - Path=/api/v1/goal/**
 
 
-# aws s3 connection details
+# aws s3 and ses connection details
 cloud:
   aws:
     credentials:
@@ -63,4 +63,4 @@ cloud:
 
 application:
   bucket:
-    name: moneyfi-users-profile-pictures
+    name:
