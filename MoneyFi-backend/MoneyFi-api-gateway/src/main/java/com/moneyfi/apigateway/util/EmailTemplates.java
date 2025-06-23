@@ -5,12 +5,12 @@ import com.moneyfi.apigateway.model.common.Feedback;
 
 import java.util.Base64;
 
+import static com.moneyfi.apigateway.util.StringUtils.ADMIN_EMAIL;
+
 public class EmailTemplates {
 
     private EmailTemplates() {
     }
-
-    private static final String ADMIN_EMAIL = "moneyfi.owner@gmail.com";
 
     public static void sendPasswordAlertMail(String userName, String email){
 

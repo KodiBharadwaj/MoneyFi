@@ -5,6 +5,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
+import com.amazonaws.services.simpleemail.model.*;
 import com.amazonaws.util.IOUtils;
 import com.moneyfi.apigateway.exceptions.S3AwsErrorThrowException;
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
@@ -28,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -48,14 +51,15 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.moneyfi.apigateway.util.StringUtils.ADMIN_EMAIL;
+import static com.moneyfi.apigateway.util.StringUtils.MESSAGE;
+
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
 
     @Value("${application.bucket.name}")
     private String bucketName;
-
-    private static final String MESSAGE = "message";
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
     private final UserRepository userRepository;
@@ -65,6 +69,7 @@ public class UserServiceImpl implements UserService {
     private final UserCommonService userCommonService;
     private final AuthenticationManager authenticationManager;
     private final AmazonS3 s3Client;
+    private final AmazonSimpleEmailService amazonSimpleEmailService;
 
     public UserServiceImpl(UserRepository userRepository,
                            OtpTempRepository otpTempRepository,
@@ -72,7 +77,8 @@ public class UserServiceImpl implements UserService {
                            ProfileRepository profileRepository,
                            UserCommonService userCommonService,
                            AuthenticationManager authenticationManager,
-                           AmazonS3 s3Client){
+                           AmazonS3 s3Client,
+                           AmazonSimpleEmailService amazonSimpleEmailService){
         this.userRepository = userRepository;
         this.otpTempRepository = otpTempRepository;
         this.jwtService = jwtService;
@@ -80,6 +86,7 @@ public class UserServiceImpl implements UserService {
         this.userCommonService = userCommonService;
         this.authenticationManager = authenticationManager;
         this.s3Client = s3Client;
+        this.amazonSimpleEmailService = amazonSimpleEmailService;
     }
 
     @Override
@@ -99,6 +106,10 @@ public class UserServiceImpl implements UserService {
         UserAuthModel user = userRepository.save(userAuthModel);
 
         saveUserProfileDetails(user.getId(), userProfile);
+        new Thread(() ->
+                sendEmailToUserForSuccessfulSignupUsingAwsSes(userProfile.getUsername())
+        ).start();
+
         return user;
     }
 
@@ -108,6 +119,40 @@ public class UserServiceImpl implements UserService {
         profile.setName(userProfile.getName());
         profile.setCreatedDate(LocalDateTime.now());
         profileRepository.save(profile);
+    }
+
+    private void sendEmailToUserForSuccessfulSignupUsingAwsSes(String email){
+        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+        simpleMailMessage.setFrom(ADMIN_EMAIL);
+        simpleMailMessage.setTo(email);
+        simpleMailMessage.setSubject("MoneyFi - Signup Successful");
+        simpleMailMessage.setText("Welcome to our app! Enjoy the benefits of MoneyFi with exclusive features");
+        sendEmailToUserUsingAwsSes(simpleMailMessage);
+    }
+
+    private void sendEmailToUserUsingAwsSes(SimpleMailMessage simpleMailMessage) {
+        Destination destination =  new Destination();
+        destination.setToAddresses(Arrays.asList(simpleMailMessage.getTo()));
+
+        Content content = new Content();
+        content.setData(simpleMailMessage.getText());
+
+        Content subject = new Content();
+        subject.setData(simpleMailMessage.getSubject());
+
+        Body body = new Body();
+        body.setText(content);
+
+        Message msg = new Message();
+        msg.setBody(body);
+        msg.setSubject(subject);
+
+        SendEmailRequest emailRequest = new SendEmailRequest();
+        emailRequest.setSource(simpleMailMessage.getFrom());
+        emailRequest.setDestination(destination);
+        emailRequest.setMessage(msg);
+
+        amazonSimpleEmailService.sendEmail(emailRequest);
     }
 
     @Override
@@ -296,6 +341,11 @@ public class UserServiceImpl implements UserService {
     public boolean checkEnteredOtp(String email, String inputOtp) {
         OtpTempModel user = otpTempRepository.findByEmail(email);
 
+        if(user != null){
+            new Thread(()->
+                    otpTempRepository.deleteByEmail(email)
+            ).start();
+        }
         return !(user == null || !user.getOtp().equals(inputOtp) ||
                 user.getExpirationTime().isBefore(LocalDateTime.now()));
     }
