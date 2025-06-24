@@ -98,7 +98,6 @@ export class ProfileComponent implements OnInit {
     this.userProfileDetails.createdDate = this.formatDate(this.userProfileDetails.createdDate);
     this.userProfileDetails.dateOfBirth = this.formatDateOnly(this.userProfileDetails.dateOfBirth);
 
-    console.log(this.userProfileDetails.dateOfBirth)
     this.http.post<UserProfileDetails>(`${this.baseUrl}/api/v1/userProfile/saveProfile`, this.userProfileDetails).subscribe(
       (data) => {
         this.userProfileDetails = data;
