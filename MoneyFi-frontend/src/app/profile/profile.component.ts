@@ -66,6 +66,7 @@ export class ProfileComponent implements OnInit {
   baseUrl = environment.BASE_URL;
   ngOnInit(): void {
     this.getProfile();
+    this.toastr.info("Profile image can't be uploaded in local")
   }
 
   isImageLoading: boolean = true;

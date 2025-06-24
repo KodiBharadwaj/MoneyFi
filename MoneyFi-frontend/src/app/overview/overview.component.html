@@ -88,9 +88,9 @@
       <!-- <p>Budget Left : {{summary.budget - summary.expenses}} </p> -->
        <p>
         Budget Left: 
-        {{ summary.budget - summary.expenses >= 0 ? (summary.budget - summary.expenses) : 0 }} 
+        {{ (summary.budget - summary.expenses >= 0 ? (summary.budget - summary.expenses) : 0) | number:'1.2-2' }}
         <span *ngIf="summary.budget - summary.expenses < 0">
-          ({{ (summary.expenses - summary.budget) | number }} spent more 🔺)
+          ({{ (summary.expenses - summary.budget) | number:'1.2-2' }} spent more 🔺)
         </span>
       </p>
     </div>
