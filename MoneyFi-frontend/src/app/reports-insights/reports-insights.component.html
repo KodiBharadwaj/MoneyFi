@@ -1,4 +1,44 @@
-<p>reports-insights works!</p>
+<h2> Can use the below services. Ui is still in development! </h2>
+<form>
+  <span>
+    <label for="fromDate">From Date:</label>
+    <input type="date" id="fromDate" name="fromDate" [(ngModel)]="fromDate">
+  </span>
+  <span>
+    <label for="toDate">To Date:</label>
+    <input type="date" id="toDate" name="toDate" [(ngModel)]="toDate">
+  </span>
+</form>
 
+<br>
+<br>
 
-<button (click) = "generateStatement()">account statement</button>
+<button (click) = "generateStatement()">Get Statement </button> 
+<button (click) = "downloadStatement()">Download Statement</button>
+<button (click) = "sendStatementEmail()">Send Email</button>
+
+<table *ngIf="accountStatementGenerated.length > 0">
+      <thead>
+        <tr>
+          <th>date</th>
+          <th>description</th>
+          <th>credit</th> 
+          <th>debit</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr *ngFor="let statement of accountStatementGenerated">
+          <td>{{ statement.transactionDate }}</td> 
+          <td>
+            <span class="category-badge">{{ statement.description }}</span>
+          </td>
+          <td>
+            {{ statement.creditOrDebit === 'credit' ? statement.amount : '-' }}
+          </td> <br> 
+          <td>
+            {{ statement.creditOrDebit === 'debit' ? statement.amount : '-' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>

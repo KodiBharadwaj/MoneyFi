@@ -53,9 +53,7 @@ export class DashboardComponent {
 
         this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/logout`, {}, { responseType: 'text' }).subscribe({
           next: (response) => {
-            console.log(response)
             const jsonResponse = JSON.parse(response);
-            console.log(jsonResponse)
             if(jsonResponse.message === 'Logged out successfully'){
                 this.toastr.success(jsonResponse.message, '', {
                 timeOut: 1500  // time in milliseconds (3 seconds)
