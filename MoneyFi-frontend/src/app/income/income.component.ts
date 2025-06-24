@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -8,7 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { AddIncomeDialogComponent } from '../add-income-dialog/add-income-dialog.component';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { ChartConfiguration, ChartData, TimeScale } from 'chart.js';
+import { ChartConfiguration, ChartData } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
 import { MatSelectModule } from '@angular/material/select';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
@@ -177,7 +177,6 @@ export class IncomeComponent {
     const url = `${this.baseUrl}/api/v1/income/getDeletedIncomeDetails/${this.selectedMonth}/${this.selectedYear}`;
     this.httpClient.get<incomeDeleted[]>(url).subscribe({
       next: (data) => {
-        console.log(data)
         if (data && data.length > 0) {
           const dialogRef = this.dialog.open(IncomeDeletedComponent, {
             width: '850px', // Makes dialog wider
