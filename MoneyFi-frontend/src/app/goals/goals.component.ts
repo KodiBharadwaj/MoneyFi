@@ -60,6 +60,7 @@ export class GoalsComponent {
 
   ngOnInit() {
     this.loadIncomeFunction();
+    this.loadGoalTileData();
     this.loadGoals();
   }
 
@@ -81,9 +82,7 @@ export class GoalsComponent {
 
           this.goals = data.map(goal => {
             const convertedGoal = this.modelConverterFunction(goal);
-            amount = amount + goal.currentAmount;
             this.loading = false;
-            // console.log(amount);
             return convertedGoal;
           });
         } else {
@@ -91,25 +90,6 @@ export class GoalsComponent {
           this.toastr.warning('No goal data is available.', 'No Data');
           this.loading = false;
         }
-        this.totalGoalSavings = amount;
-
-        this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/availableBalance`).subscribe({
-          next : (availableBalance) => {
-            this.availableBalance = availableBalance;
-          },
-          error : (error) => {
-            console.log('Failed to get the overall available income details', error);
-          }
-        })
-
-        this.httpClient.get<number>(`${this.baseUrl}/api/v1/goal/totalTargetGoalIncome`).subscribe({
-          next: (totalTargetGoalIncome) => {
-            this.totalGoalTargetAmount = totalTargetGoalIncome;
-          }, 
-          error : (error) => {
-            console.log('Failed to get the total goal target amount', error);
-          }
-        })
 
       },
       error: (error) => {
@@ -135,6 +115,21 @@ export class GoalsComponent {
     });
   }
 
+  private loadGoalTileData(){
+    this.httpClient.get<any>(`${this.baseUrl}/api/v1/goal/goal-tile-details`).subscribe({
+      next: (response) => {
+        this.availableBalance = response.goalTileDetails.availableIncome;
+        this.totalGoalSavings = response.goalTileDetails.totalGoalAmount;
+        this.totalGoalTargetAmount = response.goalTileDetails.totalGoalTargetAmount;
+      }, 
+      error : (error) => {
+        console.log('Failed to get the total goal target amount', error);
+        this.toastr.error("Failed to retrive values, try later")
+      }
+    })
+  }
+
+  
   addGoal() {
     const dialogRef = this.dialog.open(AddGoalDialogComponent, {
       width: '500px',

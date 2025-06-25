@@ -8,6 +8,7 @@ import com.moneyfi.goal.repository.GoalRepository;
 import com.moneyfi.goal.repository.common.GoalCommonRepository;
 import com.moneyfi.goal.service.GoalService;
 import com.moneyfi.goal.service.dto.response.GoalDetailsDto;
+import com.moneyfi.goal.service.dto.response.GoalTileDetailsDto;
 import com.moneyfi.goal.utils.StringConstants;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +22,11 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.moneyfi.goal.utils.StringConstants.*;
 
 @Service
 @Slf4j
@@ -60,6 +64,7 @@ public class GoalServiceImpl implements GoalService {
 
         return updatedGoalDtoConversion(goalRepository.save(goal));
     }
+
     private Long functionCallToExpenseServiceToSaveExpense(GoalModel goal, BigDecimal amountToBeAdded, String token){
         ExpenseModelDto expenseModelDto = new ExpenseModelDto();
         expenseModelDto.setDescription(goal.getGoalName());
@@ -127,6 +132,16 @@ public class GoalServiceImpl implements GoalService {
     }
 
     @Override
+    public GoalTileDetailsDto getGoalTileDetails(Long userId) {
+        GoalTileDetailsDto goalTileDetailsDto = new GoalTileDetailsDto(new HashMap<>());
+
+        goalTileDetailsDto.getGoalTileDetails().put(TOTAL_GOAL_AMOUNT, getCurrentTotalGoalIncome(userId));
+        goalTileDetailsDto.getGoalTileDetails().put(TOTAL_GOAL_TARGET_AMOUNT, getTargetTotalGoalIncome(userId));
+        goalTileDetailsDto.getGoalTileDetails().put(TOTAL_AVAILABLE_INCOME, goalRepository.getAvailableBalanceOfUser(userId));
+        return goalTileDetailsDto;
+    }
+
+    @Override
     public ResponseEntity<GoalDetailsDto> updateByGoalName(Long id, GoalModel goal, String authHeader) {
         String token = authHeader.substring(7);
         Long userId = jwtService.extractUserIdFromToken(token);
@@ -154,6 +169,7 @@ public class GoalServiceImpl implements GoalService {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(updatedGoalDtoConversion(goalRepository.save(goalModel)));
     }
+
     private GoalDetailsDto updatedGoalDtoConversion(GoalModel updatedGoal){
         GoalDetailsDto goalDetailsDto = new GoalDetailsDto();
         BeanUtils.copyProperties(updatedGoal, goalDetailsDto);
@@ -181,9 +197,9 @@ public class GoalServiceImpl implements GoalService {
             return false;
         }
     }
+
     private Boolean functionCallToExpenseServiceToDeleteExpense(String expenseIds, String authHeader){
         String token = authHeader.substring(7);
-
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + token);
@@ -200,7 +216,6 @@ public class GoalServiceImpl implements GoalService {
                 requestEntity,
                 Void.class
         );
-
         return response.getStatusCode().is2xxSuccessful();
     }
 }

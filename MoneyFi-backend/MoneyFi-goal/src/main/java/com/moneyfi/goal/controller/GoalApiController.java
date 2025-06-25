@@ -4,11 +4,10 @@ import com.moneyfi.goal.config.JwtService;
 import com.moneyfi.goal.model.GoalModel;
 import com.moneyfi.goal.service.GoalService;
 import com.moneyfi.goal.service.dto.response.GoalDetailsDto;
+import com.moneyfi.goal.service.dto.response.GoalTileDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -69,6 +68,13 @@ public class GoalApiController {
     public BigDecimal getTargetTotalGoalIncome(@RequestHeader("Authorization") String authHeader){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return goalService.getTargetTotalGoalIncome(userId);
+    }
+
+    @Operation(summary = "Api to get the goal details tiles in goal ui")
+    @GetMapping("/goal-tile-details")
+    public GoalTileDetailsDto getGoalTileDetails(@RequestHeader("Authorization") String authHeader){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return goalService.getGoalTileDetails(userId);
     }
 
     @Operation(summary = "Method to update the goal details")

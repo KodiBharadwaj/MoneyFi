@@ -26,10 +26,6 @@ interface UserProfileDetails {
   createdDate: string;
 }
 
-interface ProfileDetails {
-  createdDate: Date | null;
-}
-
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',

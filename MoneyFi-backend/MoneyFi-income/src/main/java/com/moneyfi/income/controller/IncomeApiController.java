@@ -7,6 +7,7 @@ import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.service.IncomeService;
 import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
+import com.moneyfi.income.service.dto.response.OverviewPageDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -187,6 +187,15 @@ public class IncomeApiController {
                                                                   @RequestBody AccountStatementInputDto inputDto) throws IOException {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return incomeService.sendAccountStatementEmailToUser(userId, inputDto, authHeader);
+    }
+
+    @Operation(summary = "Api to get the overview page tile details")
+    @GetMapping("/overview-details/{month}/{year}")
+    public OverviewPageDetailsDto getOverviewPageTileDetails(@RequestHeader("Authorization") String authHeader,
+                                                             @PathVariable("month") int month,
+                                                             @PathVariable("year") int year){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return incomeService.getOverviewPageTileDetails(userId, month, year);
     }
 
     @Operation(summary = "Method to update the income details")
