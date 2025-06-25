@@ -1,5 +1,6 @@
 package com.moneyfi.income.repository.common;
 
+import com.moneyfi.income.service.dto.request.AccountStatementInputDto;
 import com.moneyfi.income.service.dto.response.AccountStatementDto;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
@@ -16,7 +17,7 @@ public interface IncomeCommonRepository {
 
     List<IncomeDetailsDto> getAllIncomesByYear(Long userId, int year, String category, boolean deleteStatus);
 
-    List<AccountStatementDto> getAccountStatementOfUser(Long userId, LocalDate fromDate, LocalDate toDate);
+    List<AccountStatementDto> getAccountStatementOfUser(Long userId, AccountStatementInputDto inputDto);
 
     UserDetailsForStatementDto getUserDetailsForAccountStatement(Long userId);
 }

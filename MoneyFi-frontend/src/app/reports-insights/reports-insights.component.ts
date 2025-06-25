@@ -6,6 +6,7 @@ import { ToastrService } from 'ngx-toastr';
 import { FormsModule } from '@angular/forms';
 
 interface accountStatement {
+  id : number;
   transactionDate : Date;
   description : string;
   amount : number;
@@ -24,13 +25,23 @@ export class ReportsInsightsComponent {
 
   fromDate: string = ''; 
   toDate: string = '';
+  startIndex : number = 0;
+  threshold : number = -1;
+
   constructor(private httpClient : HttpClient, private toastr:ToastrService) {}
   accountStatementGenerated: any[] = [];
 
   baseUrl = environment.BASE_URL;
 
   generateStatement(){
-    this.httpClient.get<accountStatement[]>(`${this.baseUrl}/api/v1/income/account-statement/${this.fromDate}/${this.toDate}`).subscribe({
+    const obj = {
+      fromDate : this.fromDate,
+      toDate : this.toDate,
+      startIndex : this.startIndex,
+      threshold : this.threshold
+    };
+
+    this.httpClient.post<accountStatement[]>(`${this.baseUrl}/api/v1/income/account-statement`, obj).subscribe({
       next : (statement) => {
         this.accountStatementGenerated = statement;
       }
@@ -39,7 +50,7 @@ export class ReportsInsightsComponent {
 
   downloadStatement(){
 
-    this.httpClient.get(`${this.baseUrl}/api/v1/income/account-statement/report/${this.fromDate}/${this.toDate}`, {
+    this.httpClient.get(`${this.baseUrl}/api/v1/income/account-statement/report`, {
       responseType: 'blob'
     }).subscribe(blob => {
         const fileURL = URL.createObjectURL(blob);
@@ -53,7 +64,7 @@ export class ReportsInsightsComponent {
 
   sendStatementEmail(){
 
-    this.httpClient.get(`${this.baseUrl}/api/v1/income/account-statement-report/email/${this.fromDate}/${this.toDate}`, { responseType: 'text' })
+    this.httpClient.get(`${this.baseUrl}/api/v1/income/account-statement-report/email`, { responseType: 'text' })
     .subscribe({
       next: (response: string) => {
         if (response === 'Email sent successfully') {

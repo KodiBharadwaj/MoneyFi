@@ -20,6 +20,7 @@
 <table *ngIf="accountStatementGenerated.length > 0">
       <thead>
         <tr>
+          <th> id </th>
           <th>date</th>
           <th>description</th>
           <th>credit</th> 
@@ -29,6 +30,7 @@
       <tbody>
 
         <tr *ngFor="let statement of accountStatementGenerated">
+          <td>{{statement.id}}</td>
           <td>{{ statement.transactionDate }}</td> 
           <td>
             <span class="category-badge">{{ statement.description }}</span>
