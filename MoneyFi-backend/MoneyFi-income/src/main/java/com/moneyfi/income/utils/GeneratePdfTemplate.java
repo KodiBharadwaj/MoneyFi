@@ -6,7 +6,6 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.moneyfi.income.service.dto.response.AccountStatementDto;
 import com.moneyfi.income.service.dto.response.UserDetailsForStatementDto;
-import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
@@ -16,8 +15,7 @@ public class GeneratePdfTemplate {
 
     private GeneratePdfTemplate() {}
 
-    public static byte[] generatePdf(List<AccountStatementDto> transactions, UserDetailsForStatementDto userDetails,
-                                   HttpServletResponse response, LocalDate fromDate, LocalDate toDate, String userPassword) {
+    public static byte[] generatePdf(List<AccountStatementDto> transactions, UserDetailsForStatementDto userDetails, LocalDate fromDate, LocalDate toDate, String userPassword) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Document document = new Document(PageSize.A4);
         PdfWriter writer = PdfWriter.getInstance(document, out);

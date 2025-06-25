@@ -2,6 +2,7 @@ package com.moneyfi.income.service.impl;
 
 import com.moneyfi.income.exceptions.ResourceNotFoundException;
 import com.moneyfi.income.service.IncomeService;
+import com.moneyfi.income.service.dto.request.AccountStatementInputDto;
 import com.moneyfi.income.service.dto.response.AccountStatementDto;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeDeleted;
@@ -13,7 +14,6 @@ import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
 import com.moneyfi.income.service.dto.response.UserDetailsForStatementDto;
 import com.moneyfi.income.utils.GeneratePdfTemplate;
 import com.moneyfi.income.utils.StringConstants;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -28,11 +28,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
@@ -280,19 +280,22 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public List<AccountStatementDto> getAccountStatementOfUser(Long userId, LocalDate fromDate, LocalDate toDate) {
-        return incomeCommonRepository.getAccountStatementOfUser(userId, fromDate, toDate);
+    public List<AccountStatementDto> getAccountStatementOfUser(Long userId, AccountStatementInputDto inputDto) {
+        List<AccountStatementDto> accountStatementList = incomeCommonRepository.getAccountStatementOfUser(userId, inputDto);
+
+        AtomicInteger i = new AtomicInteger(1);
+        accountStatementList.forEach(statement -> statement.setId(i.getAndIncrement()));
+
+        return accountStatementList;
     }
 
     @Override
-    public byte[] generatePdfForAccountStatement(Long userId, LocalDate fromDate, LocalDate toDate, HttpServletResponse response) throws IOException {
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; filename=statement.pdf");
-
-        List<AccountStatementDto> transactions = getAccountStatementOfUser(userId, fromDate, toDate);
+    public byte[] generatePdfForAccountStatement(Long userId, AccountStatementInputDto inputDto) throws IOException {
+        inputDto.setThreshold(-1); /** to get all the transactions without pagination **/
+        List<AccountStatementDto> transactions = getAccountStatementOfUser(userId, inputDto);
         UserDetailsForStatementDto userDetails = incomeCommonRepository.getUserDetailsForAccountStatement(userId);
         userDetails.setUsername(makeUsernamePrivate(userDetails.getUsername()));
-        return GeneratePdfTemplate.generatePdf(transactions, userDetails, response, fromDate, toDate,
+        return GeneratePdfTemplate.generatePdf(transactions, userDetails, inputDto.getFromDate(), inputDto.getToDate(),
                 generateDocumentPasswordForUser(userDetails));
     }
 
@@ -308,10 +311,10 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public ResponseEntity<String> sendAccountStatementEmailToUser(Long userId, LocalDate fromDate, LocalDate toDate, HttpServletResponse response, String token) {
+    public ResponseEntity<String> sendAccountStatementEmailToUser(Long userId, AccountStatementInputDto inputDto, String token) {
 
         try {
-            byte[] pdfBytes = generatePdfForAccountStatement(userId, fromDate, toDate, response);
+            byte[] pdfBytes = generatePdfForAccountStatement(userId, inputDto);
             apiCallToGatewayServiceToSendEmail(pdfBytes, token);
             return ResponseEntity.ok("Email sent successfully");
         } catch (Exception e) {

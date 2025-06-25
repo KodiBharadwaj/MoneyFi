@@ -11,6 +11,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountStatementDto {
+    private int id;
     private Date transactionDate;
     private String description;
     private BigDecimal amount;

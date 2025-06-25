@@ -1,5 +1,6 @@
 package com.moneyfi.income.repository.common.impl;
 
+import com.moneyfi.income.service.dto.request.AccountStatementInputDto;
 import com.moneyfi.income.service.dto.response.AccountStatementDto;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.exceptions.QueryValidationException;
@@ -146,10 +147,10 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
     }
 
     @Override
-    public List<AccountStatementDto> getAccountStatementOfUser(Long userId, LocalDate fromDate, LocalDate toDate) {
+    public List<AccountStatementDto> getAccountStatementOfUser(Long userId, AccountStatementInputDto inputDto) {
 
-        Date startDate = Date.valueOf(fromDate);
-        Date endDate = Date.valueOf(toDate);
+        Date startDate = Date.valueOf(inputDto.getFromDate());
+        Date endDate = Date.valueOf(inputDto.getToDate());
         List<AccountStatementDto> accountStatement = new ArrayList<>();
 
         try {
@@ -157,10 +158,14 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                     "exec getAccountStatementOfUser " +
                             "@userId = :userId, " +
                             "@startDate = :startDate, " +
-                            "@endDate = :endDate ")
+                            "@endDate = :endDate, " +
+                            "@offset = :offset, " +
+                            "@limit = :limit ")
                     .setParameter(USER_ID, userId)
                     .setParameter(START_DATE, startDate)
                     .setParameter(END_DATE, endDate)
+                    .setParameter(OFFSET, inputDto.getStartIndex())
+                    .setParameter(LIMIT, inputDto.getThreshold())
                     .unwrap(NativeQuery.class)
                     .setResultTransformer(Transformers.aliasToBean(AccountStatementDto.class));
 
