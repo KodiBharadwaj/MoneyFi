@@ -1,12 +1,8 @@
 package com.moneyfi.income.repository.common;
 
 import com.moneyfi.income.service.dto.request.AccountStatementInputDto;
-import com.moneyfi.income.service.dto.response.AccountStatementDto;
-import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
-import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
-import com.moneyfi.income.service.dto.response.UserDetailsForStatementDto;
+import com.moneyfi.income.service.dto.response.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public interface IncomeCommonRepository {
@@ -20,4 +16,6 @@ public interface IncomeCommonRepository {
     List<AccountStatementDto> getAccountStatementOfUser(Long userId, AccountStatementInputDto inputDto);
 
     UserDetailsForStatementDto getUserDetailsForAccountStatement(Long userId);
+
+    OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year);
 }

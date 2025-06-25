@@ -17,4 +17,7 @@ public interface GoalRepository extends JpaRepository<GoalModel, Long> {
 
     @Query(nativeQuery = true, value = "exec getTotalTargetGoalIncome @userId = :userId")
     BigDecimal getTotalTargetGoalIncome(Long userId);
+
+    @Query(nativeQuery = true, value = "exec getAvailableBalanceOfUser @userId = :userId")
+    BigDecimal getAvailableBalanceOfUser(Long userId);
 }

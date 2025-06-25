@@ -170,7 +170,6 @@ export class ExpensesComponent {
     this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalIncome/${this.selectedMonth}/${this.selectedYear}`).subscribe({
       next: (totalIncome) => {
         this.totalIncome = totalIncome;
-        this.calculateSpentPercentage();
       },
       error: (error) => {
         console.error('Failed to load total income:', error);

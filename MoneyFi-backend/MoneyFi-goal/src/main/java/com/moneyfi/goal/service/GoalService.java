@@ -2,6 +2,7 @@ package com.moneyfi.goal.service;
 
 import com.moneyfi.goal.model.GoalModel;
 import com.moneyfi.goal.service.dto.response.GoalDetailsDto;
+import com.moneyfi.goal.service.dto.response.GoalTileDetailsDto;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
@@ -22,4 +23,6 @@ public interface GoalService {
     ResponseEntity<GoalDetailsDto> updateByGoalName(Long id, GoalModel goal, String authHeader);
 
     boolean deleteGoalById(Long id, String authHeader);
+
+    GoalTileDetailsDto getGoalTileDetails(Long userId);
 }

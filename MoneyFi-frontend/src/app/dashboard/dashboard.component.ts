@@ -59,6 +59,7 @@ export class DashboardComponent {
                 timeOut: 1500  // time in milliseconds (3 seconds)
               });
               sessionStorage.removeItem('moneyfi.auth');
+              sessionStorage.removeItem('Name');
               this.router.navigate(['']);
             } else if(jsonResponse.message === 'Phone number is empty'){
               alert('Kindly fill Phone number before log out')

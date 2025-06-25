@@ -3,15 +3,12 @@ package com.moneyfi.income.service.impl;
 import com.moneyfi.income.exceptions.ResourceNotFoundException;
 import com.moneyfi.income.service.IncomeService;
 import com.moneyfi.income.service.dto.request.AccountStatementInputDto;
-import com.moneyfi.income.service.dto.response.AccountStatementDto;
-import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
+import com.moneyfi.income.service.dto.response.*;
 import com.moneyfi.income.model.IncomeDeleted;
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.repository.IncomeDeletedRepository;
 import com.moneyfi.income.repository.IncomeRepository;
 import com.moneyfi.income.repository.common.IncomeCommonRepository;
-import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
-import com.moneyfi.income.service.dto.response.UserDetailsForStatementDto;
 import com.moneyfi.income.utils.GeneratePdfTemplate;
 import com.moneyfi.income.utils.StringConstants;
 import jakarta.transaction.Transactional;
@@ -322,6 +319,11 @@ public class IncomeServiceImpl implements IncomeService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to send email: " + e.getMessage());
         }
+    }
+
+    @Override
+    public OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year) {
+        return incomeCommonRepository.getOverviewPageTileDetails(userId, month, year);
     }
 
     private void apiCallToGatewayServiceToSendEmail(byte[] pdfBytes, String authHeader){

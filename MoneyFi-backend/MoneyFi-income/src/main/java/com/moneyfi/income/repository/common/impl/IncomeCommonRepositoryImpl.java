@@ -1,12 +1,9 @@
 package com.moneyfi.income.repository.common.impl;
 
 import com.moneyfi.income.service.dto.request.AccountStatementInputDto;
-import com.moneyfi.income.service.dto.response.AccountStatementDto;
-import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
+import com.moneyfi.income.service.dto.response.*;
 import com.moneyfi.income.exceptions.QueryValidationException;
 import com.moneyfi.income.repository.common.IncomeCommonRepository;
-import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
-import com.moneyfi.income.service.dto.response.UserDetailsForStatementDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.hibernate.query.NativeQuery;
@@ -14,7 +11,6 @@ import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Date;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -192,6 +188,27 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
         } catch (Exception e) {
             e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching user's details");
+        }
+    }
+
+    @Override
+    public OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year) {
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getOverviewPageDetails " +
+                                    "@userId = :userId, " +
+                                    "@month = :month, " +
+                                    "@year = :year ")
+                    .setParameter(USER_ID, userId)
+                    .setParameter(MONTH, month)
+                    .setParameter(YEAR, year)
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(OverviewPageDetailsDto.class));
+
+            return (OverviewPageDetailsDto) query.getSingleResult();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user's overview page details");
         }
     }
 }
