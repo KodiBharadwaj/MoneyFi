@@ -5,6 +5,7 @@ import com.moneyfi.income.service.dto.response.*;
 import com.moneyfi.income.exceptions.QueryValidationException;
 import com.moneyfi.income.repository.common.IncomeCommonRepository;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.Transformers;
@@ -19,11 +20,8 @@ import static com.moneyfi.income.utils.StringConstants.*;
 @Repository
 public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
 
-    private final EntityManager entityManager;
-
-    public IncomeCommonRepositoryImpl(EntityManager entityManager){
-        this.entityManager = entityManager;
-    }
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public List<IncomeDetailsDto> getAllIncomesByDate(Long userId, int month, int year, String category, boolean deleteStatus) {

@@ -4,6 +4,7 @@ import com.moneyfi.expense.exceptions.QueryValidationException;
 import com.moneyfi.expense.repository.common.ExpenseCommonRepository;
 import com.moneyfi.expense.service.dto.response.ExpenseDetailsDto;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.Transformers;
@@ -17,11 +18,8 @@ import static com.moneyfi.expense.utils.StringConstants.*;
 @Repository
 public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
 
-    private final EntityManager entityManager;
-
-    public ExpenseCommonRepositoryImpl(EntityManager entityManager){
-        this.entityManager = entityManager;
-    }
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public List<ExpenseDetailsDto> getAllExpensesByDate(Long userId, int month, int year, String category, boolean deleteStatus) {

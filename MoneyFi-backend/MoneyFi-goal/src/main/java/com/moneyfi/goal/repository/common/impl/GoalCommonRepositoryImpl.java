@@ -4,6 +4,7 @@ import com.moneyfi.goal.exceptions.QueryValidationException;
 import com.moneyfi.goal.repository.common.GoalCommonRepository;
 import com.moneyfi.goal.service.dto.response.GoalDetailsDto;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.Transformers;
@@ -17,11 +18,8 @@ import static com.moneyfi.goal.utils.StringConstants.USER_ID;
 @Repository
 public class GoalCommonRepositoryImpl implements GoalCommonRepository {
 
-    private final EntityManager entityManager;
-
-    public GoalCommonRepositoryImpl(EntityManager entityManager){
-        this.entityManager = entityManager;
-    }
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public List<GoalDetailsDto> getAllGoalsByUserId(Long userId) {

@@ -4,6 +4,7 @@ import com.moneyfi.budget.exceptions.QueryValidationException;
 import com.moneyfi.budget.repository.common.BudgetCommonRepository;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.Transformers;
@@ -15,11 +16,8 @@ import java.util.List;
 @Repository
 public class BudgetCommonRepositoryImpl implements BudgetCommonRepository {
 
-    private final EntityManager entityManager;
-
-    public BudgetCommonRepositoryImpl(EntityManager entityManager){
-        this.entityManager = entityManager;
-    }
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public List<BudgetDetailsDto> getBudgetsByUserId(Long userId, int month, int year, String category) {
