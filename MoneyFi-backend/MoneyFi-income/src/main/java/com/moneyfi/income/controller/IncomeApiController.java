@@ -174,7 +174,7 @@ public class IncomeApiController {
     }
 
     @Operation(summary = "Api to generate pdf for the account statement")
-    @GetMapping("/account-statement/report")
+    @PostMapping("/account-statement/report")
     public byte[] generatePdfForAccountStatement(@RequestHeader("Authorization") String authHeader,
                                                  @RequestBody AccountStatementInputDto inputDto) throws IOException {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
@@ -182,7 +182,7 @@ public class IncomeApiController {
     }
 
     @Operation(summary = "Api to send account statement of a user as email")
-    @GetMapping("/account-statement-report/email")
+    @PostMapping("/account-statement-report/email")
     public ResponseEntity<String> sendAccountStatementEmailToUser(@RequestHeader("Authorization") String authHeader,
                                                                   @RequestBody AccountStatementInputDto inputDto) throws IOException {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));

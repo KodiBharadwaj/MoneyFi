@@ -505,7 +505,7 @@ BEGIN
 		,et.date AS date
 		,et.recurring AS recurring
 		,et.description AS description
-		,et.is_deleted AS is_deleted
+		,et.is_deleted AS isDeleted
 	FROM expense_table et WITH (NOLOCK)
 	WHERE et.user_id = @userId
 		AND MONTH(et.date) = @month
@@ -541,7 +541,7 @@ BEGIN
 		,et.date AS date
 		,et.recurring AS recurring
 		,et.description AS description
-		,et.is_deleted AS is_deleted
+		,et.is_deleted AS isDeleted
 	FROM expense_table et WITH (NOLOCK)
 	WHERE et.user_id = @userId
 		AND MONTH(et.date) = @month

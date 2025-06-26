@@ -49,8 +49,14 @@ export class ReportsInsightsComponent {
   }
 
   downloadStatement(){
+    const obj = {
+      fromDate : this.fromDate,
+      toDate : this.toDate,
+      startIndex : this.startIndex,
+      threshold : this.threshold
+    };
 
-    this.httpClient.get(`${this.baseUrl}/api/v1/income/account-statement/report`, {
+    this.httpClient.post(`${this.baseUrl}/api/v1/income/account-statement/report`, obj, {
       responseType: 'blob'
     }).subscribe(blob => {
         const fileURL = URL.createObjectURL(blob);
@@ -63,8 +69,14 @@ export class ReportsInsightsComponent {
   }
 
   sendStatementEmail(){
+    const obj = {
+      fromDate : this.fromDate,
+      toDate : this.toDate,
+      startIndex : this.startIndex,
+      threshold : this.threshold
+    };
 
-    this.httpClient.get(`${this.baseUrl}/api/v1/income/account-statement-report/email`, { responseType: 'text' })
+    this.httpClient.post(`${this.baseUrl}/api/v1/income/account-statement-report/email`, obj, { responseType: 'text' })
     .subscribe({
       next: (response: string) => {
         if (response === 'Email sent successfully') {
