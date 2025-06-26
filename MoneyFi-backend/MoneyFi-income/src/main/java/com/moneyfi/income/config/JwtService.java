@@ -17,8 +17,12 @@ public class JwtService {
 
     @Value("${jwt.secret}")
     private String jwtSecret;
-    @Autowired
-    private RestTemplate restTemplate;
+
+    private final RestTemplate restTemplate;
+
+    public JwtService(RestTemplate restTemplate){
+        this.restTemplate = restTemplate;
+    }
 
     public Long extractUserIdFromToken(String token) {
 

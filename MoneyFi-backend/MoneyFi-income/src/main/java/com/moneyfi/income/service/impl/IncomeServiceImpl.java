@@ -328,7 +328,6 @@ public class IncomeServiceImpl implements IncomeService {
 
     private void apiCallToGatewayServiceToSendEmail(byte[] pdfBytes, String authHeader){
         String token = authHeader.substring(7);
-
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         headers.setBearerAuth(token);
@@ -343,7 +342,7 @@ public class IncomeServiceImpl implements IncomeService {
         );
 
         if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Failed to send email: " + response.getStatusCode());
+            throw new ResourceNotFoundException("Failed to send email: " + response.getStatusCode());
         }
     }
 

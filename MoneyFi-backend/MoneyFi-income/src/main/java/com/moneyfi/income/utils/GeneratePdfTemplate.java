@@ -81,7 +81,7 @@ public class GeneratePdfTemplate {
             if(transaction.getCreditOrDebit().equalsIgnoreCase(CreditOrDebit.CREDIT.name())){
                 addCell(table, transaction.getAmount().toString());
                 addCell(table, "-");
-            } else {
+            } else if (transaction.getCreditOrDebit().equalsIgnoreCase(CreditOrDebit.DEBIT.name())){
                 addCell(table, "-");
                 addCell(table, transaction.getAmount().toString());
             }
