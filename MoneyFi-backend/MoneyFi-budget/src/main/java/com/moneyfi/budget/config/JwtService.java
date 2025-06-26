@@ -1,7 +1,6 @@
 package com.moneyfi.budget.config;
 
 import io.jsonwebtoken.Jwts;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -15,8 +14,12 @@ public class JwtService {
 
     @Value("${jwt.secret}")
     private String jwtSecret;
-    @Autowired
-    private RestTemplate restTemplate;
+
+    private final RestTemplate restTemplate;
+
+    public JwtService(RestTemplate restTemplate){
+        this.restTemplate = restTemplate;
+    }
 
     public Long extractUserIdFromToken(String token) {
 

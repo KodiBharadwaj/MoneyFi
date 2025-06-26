@@ -3,7 +3,6 @@ package com.moneyfi.budget.service;
 import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
-import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.util.List;
