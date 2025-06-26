@@ -12,11 +12,9 @@ public interface ExpenseRepository extends JpaRepository<ExpenseModel, Long> {
     @Query(nativeQuery = true, value = "exec getAllExpensesByUserId @userId = :userId")
     List<ExpenseModel> findExpensesByUserId(Long userId);
 
-
     @Query(nativeQuery = true, value = "exec getMonthlyExpensesListInAYear @userId = :userId, " +
             "@year = :year, @deleteStatus = :deleteStatus")
     List<Object[]> findMonthlyExpenses(Long userId, int year, boolean deleteStatus);
-
 
     @Query(nativeQuery = true, value = "exec getMonthlyIncomesListInAYear @userId = :userId, " +
             "@year = :year, @deleteStatus = :deleteStatus")
