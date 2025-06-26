@@ -184,7 +184,7 @@ public class IncomeApiController {
     @Operation(summary = "Api to send account statement of a user as email")
     @PostMapping("/account-statement-report/email")
     public ResponseEntity<String> sendAccountStatementEmailToUser(@RequestHeader("Authorization") String authHeader,
-                                                                  @RequestBody AccountStatementInputDto inputDto) throws IOException {
+                                                                  @RequestBody AccountStatementInputDto inputDto) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return incomeService.sendAccountStatementEmailToUser(userId, inputDto, authHeader);
     }
