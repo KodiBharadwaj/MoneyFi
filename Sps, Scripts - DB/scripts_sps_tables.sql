@@ -1,6 +1,6 @@
 ﻿USE [master]
 GO
-/****** Object:  Database [moneyfi_db]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  Database [moneyfi_db]    Script Date: 28-06-2025 21:56:22 ******/
 CREATE DATABASE [moneyfi_db]
  CONTAINMENT = NONE
  ON  PRIMARY 
@@ -84,7 +84,7 @@ ALTER DATABASE [moneyfi_db] SET QUERY_STORE (OPERATION_MODE = READ_WRITE, CLEANU
 GO
 USE [moneyfi_db]
 GO
-/****** Object:  Table [dbo].[blacklist_token_table]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  Table [dbo].[blacklist_token_table]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -99,7 +99,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[budget_table]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  Table [dbo].[budget_table]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -116,7 +116,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[contact_us_table]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  Table [dbo].[contact_us_table]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -134,7 +134,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[expense_table]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  Table [dbo].[expense_table]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -154,7 +154,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[feedback_table]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  Table [dbo].[feedback_table]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -172,7 +172,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[goal_table]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  Table [dbo].[goal_table]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -193,7 +193,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[income_table]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  Table [dbo].[income_table]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -213,7 +213,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[income_table_deleted]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  Table [dbo].[income_table_deleted]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -229,7 +229,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[otp_temp_table]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  Table [dbo].[otp_temp_table]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -245,7 +245,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[session_token_table]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  Table [dbo].[session_token_table]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -263,7 +263,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[user_auth_table]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  Table [dbo].[user_auth_table]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -283,7 +283,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[user_profile_details_table]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  Table [dbo].[user_profile_details_table]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -306,7 +306,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  StoredProcedure [dbo].[getAccountStatementOfUser]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAccountStatementOfUser]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -388,7 +388,7 @@ END
 
 
 GO
-/****** Object:  StoredProcedure [dbo].[getAllBudgetsByUserId]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAllBudgetsByUserId]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -420,11 +420,11 @@ BEGIN
 		,bt.money_limit AS moneyLimit
 		FROM budget_table bt WITH (NOLOCK)
 		LEFT JOIN expense_table et WITH (NOLOCK) ON et.user_id = bt.user_id 
-			AND bt.user_id = @userId
-			AND et.is_deleted = 0
-			AND bt.category = et.category
 			AND MONTH(et.date) = @month
 			AND YEAR(et.date) = @year
+			AND et.is_deleted = 0
+			AND bt.category = et.category
+		WHERE bt.user_id = @userId
 		GROUP BY 
         bt.id, bt.category, bt.money_limit
 				) AS tempTable
@@ -432,7 +432,7 @@ BEGIN
 		ORDER BY id
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllBudgetsByUserIdAndByCategory]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAllBudgetsByUserIdAndByCategory]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -478,7 +478,7 @@ BEGIN
 		ORDER BY id
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllExpensesByMonthAndYear]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAllExpensesByMonthAndYear]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -514,7 +514,7 @@ BEGIN
 		
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllExpensesByMonthAndYearAndByCategory]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAllExpensesByMonthAndYearAndByCategory]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -546,7 +546,7 @@ BEGIN
 		AND YEAR(et.date) = @year
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllExpensesByUserId]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAllExpensesByUserId]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -563,7 +563,7 @@ BEGIN
 	WHERE et.user_id = @userId;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllExpensesByYear]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAllExpensesByYear]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -591,7 +591,7 @@ BEGIN
 		AND YEAR(et.date) = @year
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllExpensesByYearAndByCategory]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAllExpensesByYearAndByCategory]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -621,7 +621,7 @@ BEGIN
 		AND YEAR(et.date) = @year
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllGoalsByUserId]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAllGoalsByUserId]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -680,7 +680,7 @@ BEGIN
 	ORDER BY id
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllIncomesByMonthAndYear]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAllIncomesByMonthAndYear]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -711,7 +711,7 @@ BEGIN
 	ORDER BY id
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllIncomesByMonthAndYearAndByCategory]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAllIncomesByMonthAndYearAndByCategory]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -744,7 +744,7 @@ BEGIN
 	ORDER BY id
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllIncomesByYear]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAllIncomesByYear]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -773,7 +773,7 @@ BEGIN
 	ORDER BY id
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllIncomesByYearAndByCategory]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAllIncomesByYearAndByCategory]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -804,7 +804,7 @@ BEGIN
 	ORDER BY id
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllIncomesOfUser]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAllIncomesOfUser]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -822,7 +822,7 @@ BEGIN
 	WHERE it.user_id = @userId;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAvailableBalanceOfUser]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getAvailableBalanceOfUser]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -860,7 +860,7 @@ BEGIN
 
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getBlackListTokenDetailsByToken]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getBlackListTokenDetailsByToken]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -879,7 +879,7 @@ BEGIN
 	WHERE btt.token = @token;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getDeletedIncomesInAMonth]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getDeletedIncomesInAMonth]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -914,7 +914,7 @@ BEGIN
 		AND YEAR(it.date) = @year
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getIncomeByIncomeId]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getIncomeByIncomeId]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -932,7 +932,7 @@ BEGIN
 	WHERE it.id = @incomeId;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getIncomeBySourceAndCategory]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getIncomeBySourceAndCategory]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -958,7 +958,7 @@ BEGIN
 		AND YEAR(it.date) = YEAR(@date);
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getMonthlyExpensesListInAYear]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getMonthlyExpensesListInAYear]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -984,7 +984,7 @@ BEGIN
 	ORDER BY month ASC;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getMonthlyIncomesListInAYear]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getMonthlyIncomesListInAYear]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1010,7 +1010,7 @@ BEGIN
 	ORDER BY month ASC;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getOverviewPageDetails]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getOverviewPageDetails]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1068,25 +1068,36 @@ BEGIN
 	);
 
 	DECLARE @goalProgress NUMERIC(38,2) = (
-		select (currentAmount/targetAmount) * 100 from (
-			SELECT ISNULL(SUM(gt.current_amount),0) as currentAmount
-				,ISNULL(SUM(gt.target_amount),0) as targetAmount
-			FROM goal_table gt WITH (NOLOCK) 
-			WHERE gt.user_id = @userId
-				AND gt.is_deleted = 0
+		SELECT CASE 
+			WHEN targetAmount = 0
+				THEN 0
+			ELSE  (currentAmount/targetAmount) * 100 
+			END
+		FROM (
+				SELECT ISNULL(SUM(gt.current_amount),0) as currentAmount
+					,ISNULL(SUM(gt.target_amount),0) as targetAmount
+				FROM goal_table gt WITH (NOLOCK) 
+				WHERE gt.user_id = @userId
+					AND gt.is_deleted = 0
 			) as temp
 	);
 
     SELECT @availableBalance AS availableBalance
 		,@totalExpenseInMonth AS totalExpense 
 		,@totalBudget AS totalBudget
-		,(@totalExpenseInMonth/@totalBudget) * 100 AS budgetProgress
+		,CASE 
+			WHEN @totalBudget = 0
+				THEN 0
+			ELSE (@totalExpenseInMonth/@totalBudget) * 100 
+			END AS budgetProgress
 		,@toalGoalIncome AS totalGoalIncome
 		,@goalProgress AS goalProgress
 
 END
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[getProfileDetailsByUserId]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getProfileDetailsByUserId]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1105,7 +1116,7 @@ BEGIN
 	WHERE updt.user_id = @userId;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getProfileDetailsOfUser]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getProfileDetailsOfUser]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1140,7 +1151,7 @@ BEGIN
 END
 
 GO
-/****** Object:  StoredProcedure [dbo].[getSessionTokenModelByToken]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getSessionTokenModelByToken]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1158,7 +1169,7 @@ BEGIN
 	WHERE stt.token = @token;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getSessionTokenModelByUsername]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getSessionTokenModelByUsername]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1176,7 +1187,7 @@ BEGIN
 	WHERE stt.username = @username;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getTotalCurrentGoalIncome]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getTotalCurrentGoalIncome]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1200,7 +1211,7 @@ BEGIN
 		AND gt.is_deleted = 0
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getTotalExpenseInMonthAndYear]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getTotalExpenseInMonthAndYear]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1223,7 +1234,7 @@ BEGIN
 		AND YEAR(et.date) = @year
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getTotalIncomeInMonthAndYear]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getTotalIncomeInMonthAndYear]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1246,7 +1257,7 @@ BEGIN
 		AND YEAR(it.date) = @year
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getTotalTargetGoalIncome]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getTotalTargetGoalIncome]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1270,7 +1281,7 @@ BEGIN
 		AND gt.is_deleted = 0
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getUserAuthDetailsByUsername]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getUserAuthDetailsByUsername]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1290,7 +1301,7 @@ BEGIN
 		AND uat.is_deleted = 0
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getUserAuthDetailsListWhoseOtpCountGreaterThanThree]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getUserAuthDetailsListWhoseOtpCountGreaterThanThree]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1309,7 +1320,7 @@ BEGIN
 		AND uat.verification_code_expiration < @startOfToday;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getUserDetailsForAccountStatement]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getUserDetailsForAccountStatement]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1333,7 +1344,7 @@ BEGIN
 		AND uat.is_deleted = 0
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getUsersByUsingUserProfileDetails]    Script Date: 28-06-2025 12:19:38 ******/
+/****** Object:  StoredProcedure [dbo].[getUsersByUsingUserProfileDetails]    Script Date: 28-06-2025 21:56:22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
