@@ -190,6 +190,10 @@ export class IncomeComponent {
               this.deleted = false;
               this.loadIncomeData();
             }
+            else {
+              this.deleted = false;
+              this.loadIncomeData();
+            }
           });
 
         } else {
@@ -242,7 +246,7 @@ export class IncomeComponent {
       this.httpClient.post<IncomeSource>(`${this.baseUrl}/api/v1/income/saveIncome`, incomeData).subscribe({
         next: (newIncome) => {
           if(newIncome != null){
-            this.incomeSources.push(newIncome);
+            this.loadIncomeData();
             this.calculateTotalIncome();
             this.updateChartData();
             this.resetFilters();
@@ -334,13 +338,16 @@ export class IncomeComponent {
   }
 
   formatDate(date: string | Date): string {
-    const d = new Date(date);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const dd = String(d.getDate()).padStart(2, '0');
-    const hh = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    const ss = String(d.getSeconds()).padStart(2, '0');
+    const inputDate = new Date(date);
+    const now = new Date(); // current time
+    inputDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+
+    const yyyy = inputDate.getFullYear();
+    const mm = String(inputDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(inputDate.getDate()).padStart(2, '0');
+    const hh = String(inputDate.getHours()).padStart(2, '0');
+    const min = String(inputDate.getMinutes()).padStart(2, '0');
+    const ss = String(inputDate.getSeconds()).padStart(2, '0');
 
     return `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}`;
   }
@@ -484,7 +491,9 @@ export class IncomeComponent {
       },
       error: (error) => {
         console.error('Failed to generate report:', error);
-        alert("Failed to generate the report. Please try again.");
+        // alert("Failed to generate the report. Please try again.");
+        console.log(error.status)
+        console.log(error.error?.message);
 
         if(error.status === 401){
             if (error.error === 'TokenExpired') {
@@ -501,6 +510,8 @@ export class IncomeComponent {
             }
           } else if (error.status === 503){
             alert('Service Unavailable!! Please try later');
+          } else if (error.status === 404 && error?.message === 'No income data found to generate excel'){
+            this.toastr.error('Failed to generate report due to no data');
           }
       }
     });

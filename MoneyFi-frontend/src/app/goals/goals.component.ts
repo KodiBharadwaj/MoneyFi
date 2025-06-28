@@ -152,6 +152,7 @@ export class GoalsComponent {
                 // const newGoalConverted = this.modelConverterFunction(newGoal); 
                 // this.goals.push(newGoalConverted); 
                 this.loadGoals();
+                this.loadGoalTileData();
                 this.toastr.success('Goal ' + newGoal.goalName + ' added successfully');
               },
               error: (error) => {
@@ -287,13 +288,16 @@ export class GoalsComponent {
 
 
   formatDate(date: string | Date): string {
-    const d = new Date(date);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const dd = String(d.getDate()).padStart(2, '0');
-    const hh = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    const ss = String(d.getSeconds()).padStart(2, '0');
+    const inputDate = new Date(date);
+    const now = new Date(); // current time
+    inputDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+
+    const yyyy = inputDate.getFullYear();
+    const mm = String(inputDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(inputDate.getDate()).padStart(2, '0');
+    const hh = String(inputDate.getHours()).padStart(2, '0');
+    const min = String(inputDate.getMinutes()).padStart(2, '0');
+    const ss = String(inputDate.getSeconds()).padStart(2, '0');
 
     return `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}`;
   }

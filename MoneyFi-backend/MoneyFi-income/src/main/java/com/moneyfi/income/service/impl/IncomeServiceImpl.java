@@ -80,6 +80,9 @@ public class IncomeServiceImpl implements IncomeService {
     public byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category) {
 
         List<IncomeDetailsDto> monthlyIncomeList = getAllIncomesByMonthYearAndCategory(userId, month, year, category,false);
+        if(monthlyIncomeList.isEmpty()){
+            throw new ResourceNotFoundException("No income data found to generate excel");
+        }
         return generateExcelReport(monthlyIncomeList);
     }
 
@@ -170,6 +173,9 @@ public class IncomeServiceImpl implements IncomeService {
     public byte[] generateYearlyExcelReport(Long userId, int year, String category) {
 
         List<IncomeDetailsDto> yearlyIncomeList = getAllIncomesByYear(userId, year, category, false);
+        if(yearlyIncomeList.isEmpty()){
+            throw new ResourceNotFoundException("No income data found to generate excel");
+        }
         return generateExcelReport(yearlyIncomeList);
     }
 

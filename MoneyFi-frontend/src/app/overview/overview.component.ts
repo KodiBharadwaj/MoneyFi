@@ -93,6 +93,11 @@ export class OverviewComponent implements OnInit {
         this.summary.budgetProgress = parseFloat((response.budgetProgress).toFixed(2));
         this.summary.netWorth = response.totalGoalIncome;
         this.summary.goalsProgress = parseFloat((response.goalProgress).toFixed(2))
+        
+        if(this.summary.availableBalance === 0 && this.summary.expenses === 0 && this.summary.budget === 0 
+            && this.summary.budgetProgress === 0 && this.summary.netWorth === 0 && this.summary.goalsProgress === 0){
+              this.toastr.warning("No data found!");
+            }
       },
       error : (error) => {
         console.log('Failed to get the income details', error);
