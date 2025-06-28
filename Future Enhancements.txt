@@ -2,23 +2,15 @@ Project MoneyFi:
 
 Major Changes:
 - Google authentication
-- Use s3 for profile upload.
 
 
 Minor Changes:
 - Write junit test cases for income service (ongoing)
 - Landing page, so may buttons are there in the footer. Add the necessary info.
-- Replace double with BigDecimal in amount (frontend pending)
-- Put a name in the network section for every api.
-- Use local cache for user's name and some to avoid multiple api calls.
-- Implement Pagination for the account statement section.
-- Implement Atomic Number generation in backend for all the existing grid data.
+
 
 New Feature
-- Account statement generation feature between particular dates.
- -- Create reports section in side nav
-
-
+- Account statement - ui in progress
 
 
 Defects:
@@ -78,3 +70,7 @@ cleared defects:
 - Text should not be acceptable in the profile phone number input.
 - DOB in profile is showing current date before loading and in server error time.
 - user id exposing during updating a transaction in all services.
+- Use s3 for profile upload.
+- Use local cache for user's name and some to avoid multiple api calls.
+- Implement Pagination for the account statement section.
+- Implement Atomic Number generation in backend for all the existing grid data.
