@@ -1,6 +1,6 @@
 ﻿USE [master]
 GO
-/****** Object:  Database [moneyfi_db]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  Database [moneyfi_db]    Script Date: 28-06-2025 12:19:38 ******/
 CREATE DATABASE [moneyfi_db]
  CONTAINMENT = NONE
  ON  PRIMARY 
@@ -84,7 +84,7 @@ ALTER DATABASE [moneyfi_db] SET QUERY_STORE (OPERATION_MODE = READ_WRITE, CLEANU
 GO
 USE [moneyfi_db]
 GO
-/****** Object:  Table [dbo].[blacklist_token_table]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  Table [dbo].[blacklist_token_table]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -99,7 +99,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[budget_table]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  Table [dbo].[budget_table]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -116,7 +116,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[contact_us_table]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  Table [dbo].[contact_us_table]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -134,7 +134,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[expense_table]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  Table [dbo].[expense_table]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -154,7 +154,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[feedback_table]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  Table [dbo].[feedback_table]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -172,7 +172,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[goal_table]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  Table [dbo].[goal_table]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -193,7 +193,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[income_table]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  Table [dbo].[income_table]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -213,7 +213,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[income_table_deleted]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  Table [dbo].[income_table_deleted]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -229,7 +229,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[otp_temp_table]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  Table [dbo].[otp_temp_table]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -245,7 +245,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[session_token_table]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  Table [dbo].[session_token_table]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -263,7 +263,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[user_auth_table]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  Table [dbo].[user_auth_table]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -283,7 +283,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[user_profile_details_table]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  Table [dbo].[user_profile_details_table]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -306,7 +306,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  StoredProcedure [dbo].[getAccountStatementOfUser]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAccountStatementOfUser]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -317,7 +317,7 @@ GO
 -- Description:	<Description,,>
 -- =============================================
 
-CREATE PROCEDURE [dbo].[getAccountStatementOfUser] (
+CREATE procedure [dbo].[getAccountStatementOfUser] (
 	@userId BIGINT,
 	@startDate DATE,
 	@endDate DATE,
@@ -388,7 +388,7 @@ END
 
 
 GO
-/****** Object:  StoredProcedure [dbo].[getAllBudgetsByUserId]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAllBudgetsByUserId]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -398,7 +398,7 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE PROCEDURE [dbo].[getAllBudgetsByUserId] (
+CREATE   PROCEDURE [dbo].[getAllBudgetsByUserId] (
 	@userId BIGINT,
 	@month INT,
 	@year INT
@@ -420,11 +420,11 @@ BEGIN
 		,bt.money_limit AS moneyLimit
 		FROM budget_table bt WITH (NOLOCK)
 		LEFT JOIN expense_table et WITH (NOLOCK) ON et.user_id = bt.user_id 
+			AND bt.user_id = @userId
+			AND et.is_deleted = 0
 			AND bt.category = et.category
 			AND MONTH(et.date) = @month
 			AND YEAR(et.date) = @year
-			AND et.is_deleted = 0
-		WHERE bt.user_id = @userId
 		GROUP BY 
         bt.id, bt.category, bt.money_limit
 				) AS tempTable
@@ -432,7 +432,7 @@ BEGIN
 		ORDER BY id
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllBudgetsByUserIdAndByCategory]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAllBudgetsByUserIdAndByCategory]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -442,7 +442,7 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE PROCEDURE [dbo].[getAllBudgetsByUserIdAndByCategory] (
+CREATE procedure [dbo].[getAllBudgetsByUserIdAndByCategory] (
 	@userId BIGINT,
 	@month INT,
 	@year INT,
@@ -478,7 +478,7 @@ BEGIN
 		ORDER BY id
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllExpensesByMonthAndYear]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAllExpensesByMonthAndYear]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -488,7 +488,7 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE PROCEDURE [dbo].[getAllExpensesByMonthAndYear] (
+CREATE procedure [dbo].[getAllExpensesByMonthAndYear] (
 	@userId BIGINT,
 	@month INT,
 	@year INT,
@@ -508,22 +508,18 @@ BEGIN
 		,et.is_deleted AS isDeleted
 	FROM expense_table et WITH (NOLOCK)
 	WHERE et.user_id = @userId
+		AND et.is_deleted = @deleteStatus
 		AND MONTH(et.date) = @month
 		AND YEAR(et.date) = @year
-		AND et.is_deleted = @deleteStatus
+		
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllExpensesByMonthAndYearAndByCategory]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAllExpensesByMonthAndYearAndByCategory]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getAllExpensesByMonthAndYearAndByCategory] (
+CREATE procedure [dbo].[getAllExpensesByMonthAndYearAndByCategory] (
 	@userId BIGINT,
 	@month INT,
 	@year INT,
@@ -544,45 +540,35 @@ BEGIN
 		,et.is_deleted AS isDeleted
 	FROM expense_table et WITH (NOLOCK)
 	WHERE et.user_id = @userId
-		AND MONTH(et.date) = @month
-		AND YEAR(et.date) = @year
 		AND et.is_deleted = @deleteStatus
 		AND et.category = @category
+		AND MONTH(et.date) = @month
+		AND YEAR(et.date) = @year
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllExpensesByUserId]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAllExpensesByUserId]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getAllExpensesByUserId] (
+CREATE procedure [dbo].[getAllExpensesByUserId] (
 	@userId BIGINT
 	)
 AS
 BEGIN
 	SET NOCOUNT ON;
 
-        SELECT et.* 
+    SELECT et.* 
 	FROM expense_table et WITH (NOLOCK)
 	WHERE et.user_id = @userId;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllExpensesByYear]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAllExpensesByYear]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getAllExpensesByYear] (
+CREATE procedure [dbo].[getAllExpensesByYear] (
 	@userId BIGINT,
 	@year INT,
 	@deleteStatus BIT
@@ -598,24 +584,19 @@ BEGIN
 		,et.date AS date
 		,et.recurring AS recurring
 		,et.description AS description
-		,et.is_deleted AS is_deleted
+		,et.is_deleted AS isDeleted
 	FROM expense_table et WITH (NOLOCK)
 	WHERE et.user_id = @userId
-		AND YEAR(et.date) = @year
 		AND et.is_deleted = @deleteStatus
+		AND YEAR(et.date) = @year
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllExpensesByYearAndByCategory]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAllExpensesByYearAndByCategory]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getAllExpensesByYearAndByCategory] (
+CREATE procedure [dbo].[getAllExpensesByYearAndByCategory] (
 	@userId BIGINT,
 	@year INT,
 	@deleteStatus BIT,
@@ -632,15 +613,15 @@ BEGIN
 		,et.date AS date
 		,et.recurring AS recurring
 		,et.description AS description
-		,et.is_deleted AS is_deleted
+		,et.is_deleted AS isDeleted
 	FROM expense_table et WITH (NOLOCK)
 	WHERE et.user_id = @userId
-		AND YEAR(et.date) = @year
 		AND et.is_deleted = @deleteStatus
 		AND et.category = @category
+		AND YEAR(et.date) = @year
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllGoalsByUserId]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAllGoalsByUserId]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -650,7 +631,7 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE PROCEDURE [dbo].[getAllGoalsByUserId] (
+CREATE procedure [dbo].[getAllGoalsByUserId] (
 	@userId BIGINT
 	)
 AS
@@ -699,17 +680,12 @@ BEGIN
 	ORDER BY id
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllIncomesByMonthAndYear]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAllIncomesByMonthAndYear]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getAllIncomesByMonthAndYear] (
+CREATE procedure [dbo].[getAllIncomesByMonthAndYear] (
 	@userId BIGINT,
 	@month INT,
 	@year INT,
@@ -728,24 +704,19 @@ BEGIN
 		,it.recurring AS recurring
 	FROM income_table it WITH (NOLOCK)
 	WHERE it.user_id = @userId
+		AND it.is_deleted = @deleteStatus
 		AND MONTH(it.date) = @month
 		AND YEAR(it.date) = @year
-		AND it.is_deleted = @deleteStatus
 
 	ORDER BY id
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllIncomesByMonthAndYearAndByCategory]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAllIncomesByMonthAndYearAndByCategory]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getAllIncomesByMonthAndYearAndByCategory] (
+CREATE procedure [dbo].[getAllIncomesByMonthAndYearAndByCategory] (
 	@userId BIGINT,
 	@month INT,
 	@year INT,
@@ -765,25 +736,20 @@ BEGIN
 		,it.recurring AS recurring
 	FROM income_table it WITH (NOLOCK)
 	WHERE it.user_id = @userId
-		AND MONTH(it.date) = @month
-		AND YEAR(it.date) = @year
 		AND it.is_deleted = @deleteStatus
 		AND it.category = @category
+		AND MONTH(it.date) = @month
+		AND YEAR(it.date) = @year
 
 	ORDER BY id
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllIncomesByYear]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAllIncomesByYear]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getAllIncomesByYear] (
+CREATE procedure [dbo].[getAllIncomesByYear] (
 	@userId BIGINT,
 	@year INT,
 	@deleteStatus BIT
@@ -793,31 +759,26 @@ BEGIN
 
 	SET NOCOUNT ON;
 
-	SELECT it.id as id
-		,it.amount as amount
-		,it.source as source
-		,it.date as date
-		,it.category as category
-		,it.recurring as recurring
+	SELECT it.id AS id
+		,it.amount AS amount
+		,it.source AS source
+		,it.date AS date
+		,it.category AS category
+		,it.recurring AS recurring
 	FROM income_table it WITH (NOLOCK) 
 	WHERE it.user_id = @userId 
-		AND YEAR(it.date) = @year
 		AND it.is_deleted = @deleteStatus
+		AND YEAR(it.date) = @year
 
 	ORDER BY id
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllIncomesByYearAndByCategory]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAllIncomesByYearAndByCategory]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getAllIncomesByYearAndByCategory] (
+CREATE procedure [dbo].[getAllIncomesByYearAndByCategory] (
 	@userId BIGINT,
 	@year INT,
 	@category VARCHAR(100),
@@ -828,45 +789,40 @@ BEGIN
 
 	SET NOCOUNT ON;
 
-	SELECT it.id as id
-		,it.amount as amount
-		,it.source as source
-		,it.date as date
-		,it.category as category
-		,it.recurring as recurring
+	SELECT it.id AS id
+		,it.amount AS amount
+		,it.source AS source
+		,it.date AS date
+		,it.category AS category
+		,it.recurring AS recurring
 	FROM income_table it WITH (NOLOCK) 
 	WHERE it.user_id = @userId 
-		AND YEAR(it.date) = @year
 		AND it.is_deleted = @deleteStatus
 		AND it.category = @category
+		AND YEAR(it.date) = @year
 
 	ORDER BY id
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAllIncomesOfUser]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAllIncomesOfUser]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getAllIncomesOfUser] (
+CREATE procedure [dbo].[getAllIncomesOfUser] (
 	@userId BIGINT
 	)
 AS
 BEGIN
-	-- SET NOCOUNT ON added to prevent extra result sets from
-	-- interfering with SELECT statements.
+
 	SET NOCOUNT ON;
 
-    SELECT * FROM income_table it WITH (NOLOCK)
+    SELECT * 
+	FROM income_table it WITH (NOLOCK)
 	WHERE it.user_id = @userId;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getAvailableBalanceOfUser]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getAvailableBalanceOfUser]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -876,7 +832,7 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE PROCEDURE [dbo].[getAvailableBalanceOfUser] (
+CREATE procedure [dbo].[getAvailableBalanceOfUser] (
 	@userId BIGINT
 	)
 AS
@@ -904,17 +860,12 @@ BEGIN
 
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getBlackListTokenDetailsByToken]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getBlackListTokenDetailsByToken]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getBlackListTokenDetailsByToken] (
+CREATE procedure [dbo].[getBlackListTokenDetailsByToken] (
 	@token VARCHAR(1000)
 	)
 AS
@@ -923,21 +874,17 @@ BEGIN
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
 
-    SELECT * FROM blacklist_token_table btt WITH (NOLOCK)
+    SELECT btt.* 
+	FROM blacklist_token_table btt WITH (NOLOCK)
 	WHERE btt.token = @token;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getDeletedIncomesInAMonth]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getDeletedIncomesInAMonth]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getDeletedIncomesInAMonth] (
+CREATE procedure [dbo].[getDeletedIncomesInAMonth] (
 	@userId BIGINT,
 	@month INT,
 	@year INT
@@ -961,23 +908,18 @@ BEGIN
 	END AS daysRemained
 	FROM income_table it WITH (NOLOCK)
 	JOIN income_table_deleted itd WITH (NOLOCK) ON it.id = itd.income_id
-	WHERE it.user_id = @userId
-	AND MONTH(it.date) = @month
-	AND YEAR(it.date) = @year
-	AND it.is_deleted = 1
+		AND it.user_id = @userId
+		AND it.is_deleted = 1
+	WHERE MONTH(it.date) = @month
+		AND YEAR(it.date) = @year
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getIncomeByIncomeId]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getIncomeByIncomeId]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getIncomeByIncomeId] (
+CREATE procedure [dbo].[getIncomeByIncomeId] (
 	@incomeId BIGINT
 	)
 AS
@@ -985,21 +927,17 @@ BEGIN
 
 	SET NOCOUNT ON;
 
-    SELECT amount from income_table it WITH (NOLOCK)
+    SELECT it.amount 
+	FROM income_table it WITH (NOLOCK)
 	WHERE it.id = @incomeId;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getIncomeBySourceAndCategory]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getIncomeBySourceAndCategory]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getIncomeBySourceAndCategory] (
+CREATE procedure [dbo].[getIncomeBySourceAndCategory] (
 	@userId BIGINT,
 	@source VARCHAR(50),
 	@category VARCHAR(50),
@@ -1010,27 +948,22 @@ BEGIN
 
 	SET NOCOUNT ON;
 
-    SELECT * 
+    SELECT it.* 
 	FROM income_table it WITH (NOLOCK) 
 	WHERE it.user_id = @userId
-	AND it.source = @source
-	AND it.category = @category
-	AND it.is_deleted = 0
-	AND MONTH(it.date) = MONTH(@date)
-	AND YEAR(it.date) = YEAR(@date);
+		AND it.is_deleted = 0
+		AND it.source = @source
+		AND it.category = @category
+		AND MONTH(it.date) = MONTH(@date)
+		AND YEAR(it.date) = YEAR(@date);
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getMonthlyExpensesListInAYear]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getMonthlyExpensesListInAYear]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getMonthlyExpensesListInAYear] (
+CREATE procedure [dbo].[getMonthlyExpensesListInAYear] (
 	@userId BIGINT,
 	@year INT,
 	@deleteStatus BIT
@@ -1042,26 +975,21 @@ BEGIN
 	SET NOCOUNT ON;
 
     SELECT MONTH(et.date) as month
-	, SUM(et.amount)
+		,SUM(et.amount)
 	FROM expense_table et WITH (NOLOCK)
 	WHERE et.user_id = @userId
-	AND YEAR(et.date) = @year
-	AND et.is_deleted = @deleteStatus
+		AND YEAR(et.date) = @year
+		AND et.is_deleted = @deleteStatus
 	GROUP BY MONTH(et.date)
 	ORDER BY month ASC;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getMonthlyIncomesListInAYear]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getMonthlyIncomesListInAYear]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getMonthlyIncomesListInAYear] (
+CREATE procedure [dbo].[getMonthlyIncomesListInAYear] (
 	@userId BIGINT,
 	@year INT,
 	@deleteStatus BIT
@@ -1073,16 +1001,16 @@ BEGIN
 	SET NOCOUNT ON;
 
     SELECT MONTH(it.date) as month
-	, SUM(it.amount)
+		,SUM(it.amount)
 	FROM income_table it WITH (NOLOCK)
 	WHERE it.user_id = @userId
-	AND YEAR(it.date) = @year
-	AND it.is_deleted = @deleteStatus
+		AND YEAR(it.date) = @year
+		AND it.is_deleted = @deleteStatus
 	GROUP BY MONTH(it.date)
 	ORDER BY month ASC;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getNameFromProfileModelByUserId]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getOverviewPageDetails]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1092,30 +1020,7 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE PROCEDURE [dbo].[getNameFromProfileModelByUserId] (
-	@userId BIGINT
-	)
-AS
-BEGIN
-	-- SET NOCOUNT ON added to prevent extra result sets from
-	-- interfering with SELECT statements.
-	SET NOCOUNT ON;
-
-    SELECT updt.name FROM user_profile_details_table updt WITH (NOLOCK)
-	WHERE updt.user_id = @userId;
-END
-GO
-/****** Object:  StoredProcedure [dbo].[getOverviewPageDetails]    Script Date: 25-06-2025 23:25:20 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getOverviewPageDetails] (
+CREATE procedure [dbo].[getOverviewPageDetails] (
 	@userId BIGINT,
 	@month INT,
 	@year INT
@@ -1181,17 +1086,12 @@ BEGIN
 
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getProfileDetailsByUserId]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getProfileDetailsByUserId]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getProfileDetailsByUserId] (
+CREATE procedure [dbo].[getProfileDetailsByUserId] (
 	@userId BIGINT
 	)
 AS
@@ -1200,11 +1100,12 @@ BEGIN
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
 
-    SELECT * FROM user_profile_details_table updt WITH (NOLOCK)
+    SELECT updt.* 
+	FROM user_profile_details_table updt WITH (NOLOCK)
 	WHERE updt.user_id = @userId;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getProfileDetailsOfUser]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getProfileDetailsOfUser]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1214,7 +1115,7 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE PROCEDURE [dbo].[getProfileDetailsOfUser] (
+CREATE procedure [dbo].[getProfileDetailsOfUser] (
 	@userId BIGINT
 	)
 AS
@@ -1239,53 +1140,43 @@ BEGIN
 END
 
 GO
-/****** Object:  StoredProcedure [dbo].[getSessionTokenModelByToken]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getSessionTokenModelByToken]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getSessionTokenModelByToken] (
+CREATE procedure [dbo].[getSessionTokenModelByToken] (
 	@token VARCHAR(1000)
 	)
 AS
 BEGIN
-	-- SET NOCOUNT ON added to prevent extra result sets from
-	-- interfering with SELECT statements.
+	
 	SET NOCOUNT ON;
 
-    SELECT stt.* FROM session_token_table stt WITH (NOLOCK)
-	where stt.token = @token;
+    SELECT stt.* 
+	FROM session_token_table stt WITH (NOLOCK)
+	WHERE stt.token = @token;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getSessionTokenModelByUsername]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getSessionTokenModelByUsername]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getSessionTokenModelByUsername] (
+CREATE procedure [dbo].[getSessionTokenModelByUsername] (
 	@username VARCHAR(1000)
 	)
 AS
 BEGIN
-	-- SET NOCOUNT ON added to prevent extra result sets from
-	-- interfering with SELECT statements.
+	
 	SET NOCOUNT ON;
 
-    SELECT * FROM session_token_table stt WITH (NOLOCK)
-	where stt.username = @username;
+    SELECT stt.* 
+	FROM session_token_table stt WITH (NOLOCK)
+	WHERE stt.username = @username;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getTotalCurrentGoalIncome]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getTotalCurrentGoalIncome]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1295,7 +1186,7 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE PROCEDURE [dbo].[getTotalCurrentGoalIncome] (
+CREATE procedure [dbo].[getTotalCurrentGoalIncome] (
 	@userId BIGINT
 	)
 AS
@@ -1309,17 +1200,12 @@ BEGIN
 		AND gt.is_deleted = 0
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getTotalExpenseInMonthAndYear]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getTotalExpenseInMonthAndYear]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getTotalExpenseInMonthAndYear] (
+CREATE procedure [dbo].[getTotalExpenseInMonthAndYear] (
 	@userId BIGINT,
 	@month INT,
 	@year INT
@@ -1329,24 +1215,20 @@ BEGIN
 
 	SET NOCOUNT ON;
 
-    SELECT SUM(et.amount) FROM expense_table et WITH (NOLOCK) 
+    SELECT SUM(et.amount) 
+	FROM expense_table et WITH (NOLOCK) 
 	WHERE et.user_id = @userId
-	AND MONTH(et.date) = @month
-	AND YEAR(et.date) = @year
-	AND et.is_deleted = 0;
+		AND et.is_deleted = 0
+		AND MONTH(et.date) = @month
+		AND YEAR(et.date) = @year
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getTotalIncomeInMonthAndYear]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getTotalIncomeInMonthAndYear]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getTotalIncomeInMonthAndYear] (
+CREATE procedure [dbo].[getTotalIncomeInMonthAndYear] (
 	@userId BIGINT,
 	@month INT,
 	@year INT
@@ -1359,12 +1241,12 @@ BEGIN
     SELECT SUM(it.amount) 
 	FROM income_table it WITH (NOLOCK) 
 	WHERE it.user_id = @userId
+		AND it.is_deleted = 0
 		AND MONTH(it.date) = @month
 		AND YEAR(it.date) = @year
-		AND it.is_deleted = 0;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getTotalTargetGoalIncome]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getTotalTargetGoalIncome]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1374,7 +1256,7 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE PROCEDURE [dbo].[getTotalTargetGoalIncome] (
+CREATE procedure [dbo].[getTotalTargetGoalIncome] (
 	@userId BIGINT
 	)
 AS
@@ -1388,64 +1270,51 @@ BEGIN
 		AND gt.is_deleted = 0
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getUserAuthDetailsByUsername]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getUserAuthDetailsByUsername]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getUserAuthDetailsByUsername] (
+CREATE procedure [dbo].[getUserAuthDetailsByUsername] (
 	@username VARCHAR(100)
 	)
 AS
 BEGIN
-	-- SET NOCOUNT ON added to prevent extra result sets from
-	-- interfering with SELECT statements.
+	
 	SET NOCOUNT ON;
 
-    SELECT * FROM user_auth_table uat WITH (NOLOCK)
-	WHERE uat.username = @username;
+    SELECT uat.* 
+	FROM user_auth_table uat WITH (NOLOCK)
+	WHERE uat.username = @username
+		AND uat.is_blocked = 0
+		AND uat.is_deleted = 0
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getUserAuthDetailsListWhoseOtpCountGreaterThanThree]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getUserAuthDetailsListWhoseOtpCountGreaterThanThree]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getUserAuthDetailsListWhoseOtpCountGreaterThanThree] (
+CREATE procedure [dbo].[getUserAuthDetailsListWhoseOtpCountGreaterThanThree] (
 	@startOfToday DATETIME2
 	)
 AS
 BEGIN
-	-- SET NOCOUNT ON added to prevent extra result sets from
-	-- interfering with SELECT statements.
+	
 	SET NOCOUNT ON;
 
-    SELECT * FROM user_auth_table uat WITH (NOLOCK)
-	WHERE uat.otp_count > 0 AND
-	uat.verification_code_expiration < @startOfToday;
+    SELECT uat.* 
+	FROM user_auth_table uat WITH (NOLOCK)
+	WHERE uat.otp_count > 0 
+		AND uat.verification_code_expiration < @startOfToday;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getUserDetailsForAccountStatement]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getUserDetailsForAccountStatement]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getUserDetailsForAccountStatement] (
+CREATE procedure [dbo].[getUserDetailsForAccountStatement] (
 	@userId BIGINT
 	)
 AS
@@ -1453,10 +1322,10 @@ BEGIN
 	
 	SET NOCOUNT ON;
 
-    SELECT updt.name as name
-		,uat.username as username
-		,updt.phone as phoneNumber
-		,updt.address as address
+    SELECT updt.name AS name
+		,uat.username AS username
+		,updt.phone AS phoneNumber
+		,updt.address AS address
 	FROM user_profile_details_table updt WITH (NOLOCK)
 	INNER JOIN user_auth_table uat WITH (NOLOCK) ON uat.id = updt.user_id
 	WHERE updt.user_id = @userId
@@ -1464,17 +1333,12 @@ BEGIN
 		AND uat.is_deleted = 0
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getUsersByUsingUserProfileDetails]    Script Date: 25-06-2025 23:25:20 ******/
+/****** Object:  StoredProcedure [dbo].[getUsersByUsingUserProfileDetails]    Script Date: 28-06-2025 12:19:38 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date,,>
--- Description:	<Description,,>
--- =============================================
-CREATE PROCEDURE [dbo].[getUsersByUsingUserProfileDetails] (
+CREATE procedure [dbo].[getUsersByUsingUserProfileDetails] (
 	@dateOfBirth DATE,
 	@name VARCHAR(255),
 	@gender VARCHAR(50),
@@ -1486,7 +1350,7 @@ BEGIN
 	SET NOCOUNT ON;
 
     SELECT updt.* 
-	FROM user_profile_details_table updt
+	FROM user_profile_details_table updt WITH (NOLOCK)
 	WHERE updt.date_of_birth = @dateOfBirth
 		AND updt.name = @name
 		AND updt.gender = @gender
