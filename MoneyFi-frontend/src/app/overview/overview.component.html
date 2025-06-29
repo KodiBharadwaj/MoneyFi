@@ -1,4 +1,15 @@
-<div class="overview-container">
+<!-- Loading Spinner -->
+<div class="loading-overlay" *ngIf="loading">
+  <div class="loading">
+    <i class="fas fa-spinner fa-spin"></i>
+    <p>Loading data...</p>
+  </div>
+</div>
+
+<!-- All other content -->
+<div [class.blurred]="loading" class="page-content">
+  <!-- Your tiles, blocks, charts, etc. -->
+   <div class="overview-container">
   <!-- Elegant Header Section -->
   <header class="header-section">
     <div class="greeting-container">
@@ -128,3 +139,5 @@
     </div>
   </div>
 </div>
+</div>
+
