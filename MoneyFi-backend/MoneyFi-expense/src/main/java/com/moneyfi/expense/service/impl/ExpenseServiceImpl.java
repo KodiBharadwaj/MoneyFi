@@ -6,6 +6,7 @@ import com.moneyfi.expense.repository.ExpenseRepository;
 import com.moneyfi.expense.repository.common.ExpenseCommonRepository;
 import com.moneyfi.expense.service.ExpenseService;
 import com.moneyfi.expense.service.dto.response.ExpenseDetailsDto;
+import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
@@ -36,6 +37,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @Transactional
     public ExpenseModel save(ExpenseModel expense) {
         expense.setDeleted(false);
         return expenseRepository.save(expense);
@@ -103,6 +105,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             return outputStream.toByteArray();
 
         } catch (IOException e) {
+            e.printStackTrace();
             throw new ResourceNotFoundException("Error in creating the Excel Report");
         }
     }
@@ -113,6 +116,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy")); // Change format as needed
         return dateStyle;
     }
+
     private CellStyle createHeaderStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
@@ -172,6 +176,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
         return savings;
     }
+
     private BigDecimal[] getMonthlyIncomesListInAYear(Long userId, int year) {
         List<Object[]> rawIncomes = expenseRepository.getMonthlyIncomesListInAYear(userId, year, false);
         BigDecimal[] monthlyTotals = new BigDecimal[12];
@@ -207,6 +212,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         return BigDecimal.ZERO;
     }
+
     private BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
         BigDecimal totalIncome = expenseRepository.getTotalIncomeInMonthAndYear(userId, month, year);
         if(totalIncome == null){
@@ -254,6 +260,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ExpenseDetailsDto> updateBySource(Long id, Long userId, ExpenseModel expense) {
         expense.setUserId(userId);
         expense.setDeleted(false);
@@ -289,6 +296,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(updateExpenseDtoConversion(save(expenseModel)));
     }
+
     private ExpenseDetailsDto updateExpenseDtoConversion(ExpenseModel updatedExpense){
         ExpenseDetailsDto expenseDetailsDto = new ExpenseDetailsDto();
         BeanUtils.copyProperties(updatedExpense, expenseDetailsDto);
@@ -297,6 +305,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @Transactional
     public boolean deleteExpenseById(List<Long> ids) {
 
         try {
@@ -309,6 +318,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
             return true;
         } catch (HttpClientErrorException.NotFound e) {
+            e.printStackTrace();
             return false;
         }
 
