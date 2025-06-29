@@ -59,6 +59,8 @@ export class OverviewComponent implements OnInit {
   thisMonth = new Date().getMonth() + 1; // Current month in 1-based index
   thisYear = new Date().getFullYear(); // Current year
 
+  loading: boolean = false;
+
   constructor(private router: Router, private httpClient:HttpClient, private toastr:ToastrService) {}
   baseUrl = environment.BASE_URL;
 
@@ -67,6 +69,7 @@ export class OverviewComponent implements OnInit {
   }
 
   private loadFinancialData() {
+    this.loading = true;
 
     const storedName = sessionStorage.getItem('Name');
     if (storedName !== null) {
@@ -87,6 +90,7 @@ export class OverviewComponent implements OnInit {
     
     this.httpClient.get<any>(`${this.baseUrl}/api/v1/income/overview-details/${this.thisMonth}/${this.thisYear}`).subscribe({
       next : (response) => {
+        this.loading = false;
         this.summary.availableBalance = response.availableBalance;
         this.summary.expenses = response.totalExpense;
         this.summary.budget = response.totalBudget;
