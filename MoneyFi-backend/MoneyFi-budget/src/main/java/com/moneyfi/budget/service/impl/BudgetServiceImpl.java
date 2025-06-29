@@ -58,6 +58,7 @@ public class BudgetServiceImpl implements BudgetService {
 
         return currentSpending.divide(moneyLimit, 5, RoundingMode.HALF_UP);
     }
+
     private BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
         BigDecimal totalExpense = budgetRepository.getTotalExpenseInMonthAndYear(userId, month, year);
         if(totalExpense == null){

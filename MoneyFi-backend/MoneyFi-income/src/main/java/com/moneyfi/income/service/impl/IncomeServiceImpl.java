@@ -51,6 +51,7 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
+    @Transactional
     public IncomeModel save(IncomeModel income) {
         IncomeModel incomeModel = incomeRepository.getIncomeBySourceAndCategory(income.getUserId(), income.getSource(), income.getCategory(), income.getDate());
 
@@ -133,6 +134,7 @@ public class IncomeServiceImpl implements IncomeService {
             return outputStream.toByteArray();
 
         } catch (IOException e) {
+            e.printStackTrace();
             throw new ResourceNotFoundException("Error in generating excel report");
         }
     }
@@ -207,24 +209,24 @@ public class IncomeServiceImpl implements IncomeService {
     @Override
     public boolean incomeUpdateCheckFunction(IncomeModel incomeModel, Long userId) {
 /**
-//        incomeModel.setUserId(userId);
-//        BigDecimal totalAvailableIncome = getAvailableBalanceOfUser(userId);
-//        System.out.println("totalAvailableIncome" + totalAvailableIncome);
-//        BigDecimal previousUpdatedIncome = incomeRepository.getIncomeByIncomeId(incomeModel.getId());
-//        if(previousUpdatedIncome == null){
-//            previousUpdatedIncome = BigDecimal.ZERO;
-//        }
-//        System.out.println("previousUpdatedIncome" + previousUpdatedIncome);
-//        BigDecimal updatedIncome = incomeModel.getAmount();
-//        BigDecimal currentNetIncome = totalAvailableIncome.subtract(previousUpdatedIncome).add(updatedIncome);
-//        System.out.println("currentNetIncome" + currentNetIncome);
-//        BigDecimal totalExpensesInMonth =
-//                getTotalExpenseInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
-//        System.out.println("totalExpensesInMonth" + totalExpensesInMonth);
-//        if(currentNetIncome.compareTo(totalExpensesInMonth) > 0){
-//            return true;
-//        }
-//        return false;
+        incomeModel.setUserId(userId);
+        BigDecimal totalAvailableIncome = getAvailableBalanceOfUser(userId);
+        System.out.println("totalAvailableIncome" + totalAvailableIncome);
+        BigDecimal previousUpdatedIncome = incomeRepository.getIncomeByIncomeId(incomeModel.getId());
+        if(previousUpdatedIncome == null){
+            previousUpdatedIncome = BigDecimal.ZERO;
+        }
+        System.out.println("previousUpdatedIncome" + previousUpdatedIncome);
+        BigDecimal updatedIncome = incomeModel.getAmount();
+        BigDecimal currentNetIncome = totalAvailableIncome.subtract(previousUpdatedIncome).add(updatedIncome);
+        System.out.println("currentNetIncome" + currentNetIncome);
+        BigDecimal totalExpensesInMonth =
+                getTotalExpenseInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
+        System.out.println("totalExpensesInMonth" + totalExpensesInMonth);
+        if(currentNetIncome.compareTo(totalExpensesInMonth) > 0){
+            return true;
+        }
+        return false;
 **/
         return true;
     }
@@ -353,6 +355,7 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<IncomeDetailsDto> updateBySource(Long id, Long userId, IncomeModel income) {
 
         income.setUserId(userId);
@@ -410,6 +413,7 @@ public class IncomeServiceImpl implements IncomeService {
             return true;
 
         } catch (HttpClientErrorException.NotFound e) {
+            e.printStackTrace();
             return false;
         }
     }

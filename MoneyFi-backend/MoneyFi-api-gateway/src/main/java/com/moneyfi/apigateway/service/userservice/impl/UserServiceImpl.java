@@ -189,11 +189,13 @@ public class UserServiceImpl implements UserService {
                     return ResponseEntity.ok(token);
                 }
             } catch (BadCredentialsException ex) {
+                ex.printStackTrace();
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect password");
             }
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during login");
         }
     }

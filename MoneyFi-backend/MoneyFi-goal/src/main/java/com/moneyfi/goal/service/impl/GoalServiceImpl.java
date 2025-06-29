@@ -97,6 +97,7 @@ public class GoalServiceImpl implements GoalService {
     }
 
     @Override
+    @Transactional
     public GoalDetailsDto addAmount(Long id, BigDecimal amount, String authHeader) {
         GoalModel goalModel = goalRepository.findById(id).orElse(null);
         if(goalModel == null){
@@ -142,6 +143,7 @@ public class GoalServiceImpl implements GoalService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<GoalDetailsDto> updateByGoalName(Long id, GoalModel goal, String authHeader) {
         String token = authHeader.substring(7);
         Long userId = jwtService.extractUserIdFromToken(token);
@@ -194,6 +196,7 @@ public class GoalServiceImpl implements GoalService {
             }
             return false;
         } catch (HttpClientErrorException.NotFound e) {
+            e.printStackTrace();
             return false;
         }
     }
