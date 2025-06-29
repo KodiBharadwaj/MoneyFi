@@ -104,6 +104,7 @@ export class OverviewComponent implements OnInit {
             }
       },
       error : (error) => {
+        this.loading = false;
         console.log('Failed to get the income details', error);
       }
     })
