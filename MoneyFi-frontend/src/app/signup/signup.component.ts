@@ -27,6 +27,7 @@ export class SignupComponent {
   isOtpLoading = false;
   showOtp = false;
   tempSignupCredentials!: SignupCredentials;
+  role : string = 'USER';
 
   public mixedChartData: ChartData<'bar' | 'line'> = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -137,6 +138,7 @@ onSubmit(signupCredentials: SignupCredentials) {
 onOtpValidated(success: boolean) {
   if (success) {
     this.isLoading = true;
+    this.tempSignupCredentials.role = this.role;
     this.authApiService.signupApiFunction(this.tempSignupCredentials)
     .subscribe(
       response => {

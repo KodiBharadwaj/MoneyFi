@@ -15,10 +15,12 @@ public class ContactUs {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long userId;
     private String name;
     private String email;
     private String message;
+
     @Column(columnDefinition = "TEXT")
     private String images;
+
+    private boolean isVerified;
 }

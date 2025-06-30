@@ -51,8 +51,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.moneyfi.apigateway.util.constants.StringUtils.ADMIN_EMAIL;
-import static com.moneyfi.apigateway.util.constants.StringUtils.MESSAGE;
+import static com.moneyfi.apigateway.util.constants.StringUtils.*;
 
 @Service
 @Slf4j
@@ -103,16 +102,23 @@ public class UserServiceImpl implements UserService {
         userAuthModel.setOtpCount(0);
         userAuthModel.setDeleted(false);
         userAuthModel.setBlocked(false);
-        userAuthModel.setRoleId(userProfile.getRoleId());
+
+        int roleId = 0;
+        for(Map.Entry<Integer, String> it: userRoleAssociation.entrySet()){
+            if(it.getValue().equalsIgnoreCase(userProfile.getRole())){
+                roleId = it.getKey();
+            }
+        }
+        userAuthModel.setRoleId(roleId);
         UserAuthModel user = userRepository.save(userAuthModel);
 
-        if(userProfile.getRoleId() != 1) saveUserProfileDetails(user.getId(), userProfile);
-
-        /** send successful email in a separate thread by aws ses **/
-        new Thread(() ->
-                sendEmailToUserForSuccessfulSignupUsingAwsSes(userProfile.getUsername())
-        ).start();
-
+        if(roleId != 1) {
+            saveUserProfileDetails(user.getId(), userProfile);
+            /** send successful email in a separate thread by aws ses **/
+            new Thread(() ->
+                    sendEmailToUserForSuccessfulSignupUsingAwsSes(userProfile.getUsername())
+            ).start();
+        }
         return user;
     }
 

@@ -11,5 +11,5 @@ public class UserProfile {
     private String name;
     private String username;
     private String password;
-    private int roleId;
+    private String role;
 }

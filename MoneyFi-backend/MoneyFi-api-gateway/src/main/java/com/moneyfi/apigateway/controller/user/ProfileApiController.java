@@ -93,8 +93,6 @@ public class ProfileApiController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        contactUsDetails.setUserId(userId);
         return ResponseEntity.ok(profileService.saveContactUsDetails(contactUsDetails));
     }
 
@@ -105,8 +103,6 @@ public class ProfileApiController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        feedback.setUserId(userId);
         return ResponseEntity.ok(profileService.saveFeedback(feedback));
     }
 
