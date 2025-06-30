@@ -51,8 +51,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.moneyfi.apigateway.util.StringUtils.ADMIN_EMAIL;
-import static com.moneyfi.apigateway.util.StringUtils.MESSAGE;
+import static com.moneyfi.apigateway.util.constants.StringUtils.ADMIN_EMAIL;
+import static com.moneyfi.apigateway.util.constants.StringUtils.MESSAGE;
 
 @Service
 @Slf4j
@@ -103,9 +103,12 @@ public class UserServiceImpl implements UserService {
         userAuthModel.setOtpCount(0);
         userAuthModel.setDeleted(false);
         userAuthModel.setBlocked(false);
+        userAuthModel.setRoleId(userProfile.getRoleId());
         UserAuthModel user = userRepository.save(userAuthModel);
 
-        saveUserProfileDetails(user.getId(), userProfile);
+        if(userProfile.getRoleId() != 1) saveUserProfileDetails(user.getId(), userProfile);
+
+        /** send successful email in a separate thread by aws ses **/
         new Thread(() ->
                 sendEmailToUserForSuccessfulSignupUsingAwsSes(userProfile.getUsername())
         ).start();
@@ -184,7 +187,7 @@ public class UserServiceImpl implements UserService {
                         .authenticate(new UsernamePasswordAuthenticationToken(userAuthModel.getUsername(), userAuthModel.getPassword()));
 
                 if (authentication.isAuthenticated()) {
-                    JwtToken token = jwtService.generateToken(userAuthModel.getUsername());
+                    JwtToken token = jwtService.generateToken(userAuthModel);
                     functionToPreventMultipleLogins(userAuthModel, token);
                     return ResponseEntity.ok(token);
                 }

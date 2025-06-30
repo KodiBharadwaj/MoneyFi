@@ -5,7 +5,7 @@ import com.moneyfi.apigateway.model.common.Feedback;
 
 import java.util.Base64;
 
-import static com.moneyfi.apigateway.util.StringUtils.ADMIN_EMAIL;
+import static com.moneyfi.apigateway.util.constants.StringUtils.ADMIN_EMAIL;
 
 public class EmailTemplates {
 

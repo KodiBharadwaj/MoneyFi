@@ -39,7 +39,7 @@ public class UserController {
         if(user == null){
             return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists"); //409
         } else {
-            return ResponseEntity.ok(jwtService.generateToken(userProfile.getUsername())); // 200
+            return ResponseEntity.ok(jwtService.generateToken(user)); // 200
         }
     }
 
