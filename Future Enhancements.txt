@@ -10,7 +10,25 @@ Minor Changes:
 
 
 New Feature
+1) (Account statement)
 - Account statement - ui in progress
+
+2) (New Role - Admin)
+- Add admin role in moneyfi application with special login.
+- Admin can see the accounts blocked/ accounts deleted so that he can enable them when request received by the user.
+- When user sends an defect/contact mail to admin, admin should get the notification in his ui.
+- Admin can able to see the accounts blocked/deleted based on the latest time.
+- Admin can only reactive the accounts if request received else no.
+- Admin should able to see Total count tile of actie user and inactive users. By cliking on the respective tile, Admin can able to see the active/inactive users with fields Name, Email, Phone, Created Date time, Active or not, Dob with pagination implemented. The users should be listed based on latest created account by default, can be changed in ui if needed.
+- At the top of the grid, Admin can filter users based on email, name, phone.
+- Admin can change the name of the user if only request received by the user regarding name issue. (implement dropdown of request change in contact us section)
+- Admin should able to see all the concerns recieved by the user
+- Admin should able to see the feedback submitted by the users with no user details.
+- As of now only one admin is required, if needed there can be multiple admins.
+- Admin should have right to disable features of the user. This can be done to all or to particular users.
+ -- Configuration for account statement.
+ -- Configuraton for Ai Analysis.
+
 
 
 Defects:
