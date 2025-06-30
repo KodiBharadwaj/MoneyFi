@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.controller;
+package com.moneyfi.apigateway.controller.user;
 
 import com.moneyfi.apigateway.service.common.dto.ProfileDetailsDto;
 import com.moneyfi.apigateway.service.userservice.dto.ChangePasswordDto;

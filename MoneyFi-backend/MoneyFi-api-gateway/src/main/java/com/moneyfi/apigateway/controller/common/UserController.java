@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.controller;
+package com.moneyfi.apigateway.controller.common;
 
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;

@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.repository.auth;
+package com.moneyfi.apigateway.repository.user.auth;
 
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import org.springframework.data.jpa.repository.JpaRepository;

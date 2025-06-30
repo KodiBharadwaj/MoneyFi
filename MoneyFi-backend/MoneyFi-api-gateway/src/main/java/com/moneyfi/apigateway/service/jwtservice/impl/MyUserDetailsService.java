@@ -1,7 +1,7 @@
 package com.moneyfi.apigateway.service.jwtservice.impl;
 
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
-import com.moneyfi.apigateway.repository.auth.UserRepository;
+import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.model.UserPrincipal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;

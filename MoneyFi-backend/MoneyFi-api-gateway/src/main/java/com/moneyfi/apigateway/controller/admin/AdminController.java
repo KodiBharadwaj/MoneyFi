@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.controller;
+package com.moneyfi.apigateway.controller.admin;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
