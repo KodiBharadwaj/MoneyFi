@@ -1,6 +1,7 @@
 package com.moneyfi.apigateway.controller.common;
 
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
+import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.userservice.UserService;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @CrossOrigin("http://localhost:4200")
 @RequestMapping("/api/auth")
@@ -19,7 +22,7 @@ public class UserController {
 
     private final UserService userService;
     private final JwtService jwtService;
-    private final UserCommonService passwordResetService;
+    private final UserCommonService userCommonService;
 
 
     public UserController(UserService userService,
@@ -27,7 +30,7 @@ public class UserController {
                           UserCommonService resetPassword){
         this.userService = userService;
         this.jwtService = jwtService;
-        this.passwordResetService = resetPassword;
+        this.userCommonService = resetPassword;
     }
 
 
@@ -53,13 +56,13 @@ public class UserController {
     @Operation(summary = "Method for password forgot")
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestParam String email) {
-        return ResponseEntity.ok(passwordResetService.forgotPassword(email));
+        return ResponseEntity.ok(userCommonService.forgotPassword(email));
     }
 
     @Operation(summary = "Method for verification of code/otp")
     @PostMapping("/verify-code")
     public String verifyCode(@RequestParam String email, @RequestParam String code) {
-        boolean isValid = passwordResetService.verifyCode(email, code);
+        boolean isValid = userCommonService.verifyCode(email, code);
         if (isValid) {
             return "Verification successful!";
         } else {
@@ -71,7 +74,7 @@ public class UserController {
     @PutMapping("/update-password")
     public String updatePassword(@RequestParam String email,@RequestParam String password)
     {
-        return passwordResetService.UpdatePassword(email,password);
+        return userCommonService.updatePassword(email,password);
     }
 
 
@@ -100,5 +103,17 @@ public class UserController {
     @PostMapping("/forgotUsername")
     public boolean forgotUsername(@RequestBody ForgotUsernameDto userDetails){
         return userService.getUsernameByDetails(userDetails);
+    }
+
+    @Operation(summary = "Api to send reference number to the user for account retrieval")
+    @GetMapping("/reference-number-request")
+    public String requestReferenceNumber(@RequestParam("email") String email){
+        return userCommonService.sendReferenceRequestNumberEmail(email);
+    }
+
+    @Operation(summary = "Api request to get account unblock")
+    @PostMapping("/account-unblock-request")
+    public Map<Boolean, String> accountUnblockRequestByUser(@RequestBody AccountRetrieveRequestDto requestDto){
+        return userCommonService.accountUnblockRequestByUser(requestDto);
     }
 }

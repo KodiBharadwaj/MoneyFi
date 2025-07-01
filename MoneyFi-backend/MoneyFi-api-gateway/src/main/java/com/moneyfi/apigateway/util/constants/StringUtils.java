@@ -10,4 +10,6 @@ public class StringUtils {
     public static final String MESSAGE = "message";
     public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name());
 
+    public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
+    public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 }

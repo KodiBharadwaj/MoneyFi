@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import java.util.Properties;
 import java.util.Random;
 
+import static com.moneyfi.apigateway.util.constants.StringUtils.ALPHABET;
+
 @Component
 @Slf4j
 public class EmailFilter {
@@ -126,4 +128,17 @@ public class EmailFilter {
         int verificationCode = 100000 + random.nextInt(900000);
         return String.valueOf(verificationCode);
     }
+
+    public static String generateAlphabetCode() {
+        StringBuilder code = new StringBuilder();
+        Random random = new Random();
+
+        for (int i = 0; i < 5; i++) {
+            int index = random.nextInt(ALPHABET.length());
+            code.append(ALPHABET.charAt(index));
+        }
+
+        return code.toString();
+    }
+
 }

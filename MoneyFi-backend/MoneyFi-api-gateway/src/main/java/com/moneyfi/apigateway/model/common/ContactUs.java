@@ -22,5 +22,7 @@ public class ContactUs {
     @Column(columnDefinition = "TEXT")
     private String images;
 
+    private String referenceNumber;
+    private boolean isRequestActive;
     private boolean isVerified;
 }

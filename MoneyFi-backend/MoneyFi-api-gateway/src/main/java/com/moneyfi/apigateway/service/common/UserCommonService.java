@@ -2,6 +2,9 @@ package com.moneyfi.apigateway.service.common;
 
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
+import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
+
+import java.util.Map;
 
 public interface UserCommonService {
 
@@ -9,7 +12,7 @@ public interface UserCommonService {
 
     boolean verifyCode(String email, String code);
 
-    String UpdatePassword(String email,String password);
+    String updatePassword(String email, String password);
 
     SessionTokenModel save(SessionTokenModel sessionTokenModel);
 
@@ -20,4 +23,8 @@ public interface UserCommonService {
     BlackListedToken blacklistToken(BlackListedToken blackListedToken);
 
     boolean isTokenBlacklisted(String token);
+
+    Map<Boolean, String> accountUnblockRequestByUser(AccountRetrieveRequestDto requestDto);
+
+    String sendReferenceRequestNumberEmail(String email);
 }

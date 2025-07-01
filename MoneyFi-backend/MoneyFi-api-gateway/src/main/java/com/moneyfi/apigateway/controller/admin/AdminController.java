@@ -3,12 +3,11 @@ package com.moneyfi.apigateway.controller.admin;
 import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.service.admin.AdminService;
 import com.moneyfi.apigateway.service.admin.dto.AdminOverviewPageDto;
+import com.moneyfi.apigateway.service.admin.dto.UserGridDto;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,7 +22,7 @@ public class AdminController {
         this.adminService = adminService;
     }
 
-    @GetMapping("/users")
+    @GetMapping("/test")
     public String getAllUsers() {
         return "Admin role is working";
     }
@@ -34,9 +33,22 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getAdminOverviewPageDetails());
     }
 
+    @Operation(summary = "Api to get active user grid details")
+    @GetMapping("/user-details/grid")
+    public List<UserGridDto> getUserDetailsGridForAdmin(@RequestParam("status") String status){
+        return adminService.getUserDetailsGridForAdmin(status);
+    }
+
     @Operation(summary = "Api to get the contact us details of the users")
     @GetMapping("/fetch-contact-us")
     public List<ContactUs> getContactUsDetailsOfUsers(){
         return adminService.getContactUsDetailsOfUsers();
+    }
+
+    @Operation(summary = "Api to unblock the user account with respective details")
+    @GetMapping("/account-reactivation/{email}/{referenceNumber}")
+    public boolean accountReactivationRequest(@PathVariable("email") String email,
+                                              @PathVariable("referenceNumber") String referenceNumber){
+        return adminService.accountReactivationRequest(email, referenceNumber);
     }
 }
