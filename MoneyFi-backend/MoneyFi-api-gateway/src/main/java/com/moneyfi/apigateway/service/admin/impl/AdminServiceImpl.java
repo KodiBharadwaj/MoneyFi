@@ -1,13 +1,17 @@
 package com.moneyfi.apigateway.service.admin.impl;
 
+import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.model.common.ContactUs;
+import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.repository.admin.AdminRepository;
 import com.moneyfi.apigateway.repository.user.ContactUsRepository;
+import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.admin.AdminService;
 import com.moneyfi.apigateway.service.admin.dto.AdminOverviewPageDto;
 import com.moneyfi.apigateway.service.admin.dto.UserGridDto;
+import com.moneyfi.apigateway.util.constants.RequestReason;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -20,13 +24,16 @@ public class AdminServiceImpl implements AdminService {
     private final AdminRepository adminRepository;
     private final ContactUsRepository contactUsRepository;
     private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
 
     public AdminServiceImpl(AdminRepository adminRepository,
                             ContactUsRepository contactUsRepository,
-                            UserRepository userRepository){
+                            UserRepository userRepository,
+                            ProfileRepository profileRepository){
         this.adminRepository = adminRepository;
         this.contactUsRepository = contactUsRepository;
         this.userRepository = userRepository;
+        this.profileRepository = profileRepository;
     }
 
     @Override
@@ -47,26 +54,43 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public boolean accountReactivationRequest(String email, String referenceNumber) {
+    public boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus) {
         return contactUsRepository.findByEmail(email)
                 .stream()
                 .filter(ContactUs::isRequestActive)
                 .filter(i -> i.getReferenceNumber().equals(referenceNumber))
                 .findFirst()
                 .map(i -> {
-                    functionCallToReactivateAccount(email, i);
+                    functionCallToChangeDetails(email, i, requestStatus);
                     return true;
                 })
                 .orElse(false);
     }
 
-    private void functionCallToReactivateAccount(String email, ContactUs contactUs){
-        UserAuthModel blockedUser = userRepository.getBlockedUsers(email);
-        blockedUser.setBlocked(false);
-        userRepository.save(blockedUser);
+    private void functionCallToChangeDetails(String email, ContactUs contactUs, String requestStatus){
+        UserAuthModel user = userRepository.getUserAuthDetailsByOnlyUsername(email);
 
-        contactUs.setRequestActive(false);
-        contactUsRepository.save(contactUs);
+        if(requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
+            user.setBlocked(false);
+            userRepository.save(user);
+
+            contactUs.setRequestActive(false);
+            contactUs.setVerified(true);
+            contactUsRepository.save(contactUs);
+        }
+        else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
+            ProfileModel userProfile = profileRepository.findByUserId(user.getId());
+            if(!userProfile.getName().toLowerCase().contains(contactUs.getMessage().toLowerCase())){
+                throw new ScenarioNotPossibleException("Old name didn't match");
+            }
+
+            userProfile.setName(contactUs.getName());
+            profileRepository.save(userProfile);
+
+            contactUs.setRequestActive(false);
+            contactUs.setVerified(true);
+            contactUsRepository.save(contactUs);
+        }
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.moneyfi.apigateway.service.common;
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
+import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
 
 import java.util.Map;
 
@@ -24,7 +25,9 @@ public interface UserCommonService {
 
     boolean isTokenBlacklisted(String token);
 
-    Map<Boolean, String> accountUnblockRequestByUser(AccountRetrieveRequestDto requestDto);
+    void accountUnblockRequestByUser(AccountRetrieveRequestDto requestDto);
 
-    String sendReferenceRequestNumberEmail(String email);
+    Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email);
+
+    void nameChangeRequestByUser(NameChangeRequestDto requestDto);
 }

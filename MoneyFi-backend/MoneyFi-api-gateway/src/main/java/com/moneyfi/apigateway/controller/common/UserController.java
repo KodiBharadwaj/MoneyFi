@@ -2,6 +2,7 @@ package com.moneyfi.apigateway.controller.common;
 
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
+import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.userservice.UserService;
@@ -106,14 +107,21 @@ public class UserController {
     }
 
     @Operation(summary = "Api to send reference number to the user for account retrieval")
-    @GetMapping("/reference-number-request")
-    public String requestReferenceNumber(@RequestParam("email") String email){
-        return userCommonService.sendReferenceRequestNumberEmail(email);
+    @GetMapping("/reference-number-request/{requestStatus}/{email}")
+    public Map<Boolean, String> requestReferenceNumber(@PathVariable("requestStatus") String requestStatus,
+                                                       @PathVariable("email") String email){
+        return userCommonService.sendReferenceRequestNumberEmail(requestStatus, email);
     }
 
     @Operation(summary = "Api request to get account unblock")
     @PostMapping("/account-unblock-request")
-    public Map<Boolean, String> accountUnblockRequestByUser(@RequestBody AccountRetrieveRequestDto requestDto){
-        return userCommonService.accountUnblockRequestByUser(requestDto);
+    public void accountUnblockRequestByUser(@RequestBody AccountRetrieveRequestDto requestDto){
+        userCommonService.accountUnblockRequestByUser(requestDto);
+    }
+
+    @Operation(summary = "Api request to save the user details to change name of the user")
+    @PostMapping("/name-change-request")
+    public void nameChangeRequestByUser(@RequestBody NameChangeRequestDto requestDto){
+        userCommonService.nameChangeRequestByUser(requestDto);
     }
 }

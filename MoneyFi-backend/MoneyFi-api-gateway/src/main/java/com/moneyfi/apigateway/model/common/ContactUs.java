@@ -24,5 +24,6 @@ public class ContactUs {
 
     private String referenceNumber;
     private boolean isRequestActive;
+    private String requestReason;
     private boolean isVerified;
 }

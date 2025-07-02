@@ -1,6 +1,6 @@
 package com.moneyfi.apigateway.controller.user;
 
-import com.moneyfi.apigateway.service.common.dto.ProfileDetailsDto;
+import com.moneyfi.apigateway.service.common.dto.response.ProfileDetailsDto;
 import com.moneyfi.apigateway.service.userservice.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.service.userservice.dto.ProfileChangePassword;
 import com.moneyfi.apigateway.model.common.ContactUs;

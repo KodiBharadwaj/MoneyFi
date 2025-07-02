@@ -148,12 +148,12 @@ public class EmailTemplates {
         EmailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, fileName);
     }
 
-    public static boolean sendReferenceNumberEmail(String name, String email, String referenceNumber) {
+    public static boolean sendReferenceNumberEmail(String name, String email, String description, String referenceNumber) {
         String subject = "MoneyFi - Account retrieval request";
         String body = "<html>"
                 + "<body>"
                 + "<p style='font-size: 16px;'>Hello " + name + "</p>"
-                + "<p style='font-size: 16px;'>You have requested for reference number for account retrieval. Here is you reference number: " + referenceNumber + "</p>"
+                + "<p style='font-size: 16px;'>You have requested for reference number to " + description + ". Here is you reference number: " + referenceNumber + "</p>"
                 + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
                 + "<p style='font-size: 16px;'>Kindly Ignore if it by you. If not, reply to this mail immediately to secure account.</p>"
                 + "<hr>"

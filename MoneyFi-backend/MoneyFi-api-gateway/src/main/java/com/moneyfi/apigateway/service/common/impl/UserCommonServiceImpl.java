@@ -1,5 +1,6 @@
 package com.moneyfi.apigateway.service.common.impl;
 
+import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
@@ -12,7 +13,9 @@ import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
+import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
+import com.moneyfi.apigateway.util.constants.RequestReason;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.moneyfi.apigateway.util.EmailFilter.generateAlphabetCode;
 import static com.moneyfi.apigateway.util.EmailFilter.generateVerificationCode;
@@ -128,43 +132,91 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    public String sendReferenceRequestNumberEmail(String email) {
-        UserAuthModel user = userRepository.findByUsername(email);
+    public Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email) {
+        Map<Boolean, String> response = new HashMap<>();
+
+        UserAuthModel user = userRepository.getUserAuthDetailsByOnlyUsername(email);
         if(user == null){
             throw new ResourceNotFoundException("User not found");
         }
 
+        List<ContactUs> contactUsDetails = contactUsRepository.findByEmail(email);
         String referenceNumber = generateAlphabetCode() + generateVerificationCode();
-        boolean isEmailSent = EmailTemplates.sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, referenceNumber);
 
-        if(isEmailSent){
-            return "Reference Number sent";
-        } else return "Failed to send";
-    }
+        if(requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
+            if(!user.isBlocked()){
+                throw new ScenarioNotPossibleException("User is not blocked to perform this operation");
+            }
 
-    @Override
-    @Transactional
-    public Map<Boolean, String> accountUnblockRequestByUser(AccountRetrieveRequestDto requestDto) {
-        Map<Boolean, String> response = new HashMap<>();
+            Optional<ContactUs> report = contactUsDetails
+                    .stream()
+                    .filter(ContactUs::isRequestActive)
+                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
+                    .findFirst();
+            if(report.isPresent()){
+                throw new ScenarioNotPossibleException("Account unblock request is already raised");
+            }
 
-        List<ContactUs> previousRequests = contactUsRepository.findByEmail(requestDto.getUsername());
-        for(var it : previousRequests){
-            if(it.isRequestActive()){
-                response.put(false, "Previous requests are active");
+            boolean isEmailSent = EmailTemplates
+                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account unblock", referenceNumber);
+
+            if(isEmailSent){
+                response.put(false, "Reference Number sent");
+                return response;
+            }
+        } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
+            if(user.isBlocked()){
+                throw new ScenarioNotPossibleException("Name change is not possible since user is blocked");
+            }
+
+            Optional<ContactUs> report = contactUsDetails
+                    .stream()
+                    .filter(ContactUs::isRequestActive)
+                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name()))
+                    .findFirst();
+            if(report.isPresent()){
+                throw new ScenarioNotPossibleException("Name change request is already raised");
+            }
+
+            boolean isEmailSent = EmailTemplates
+                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "change name", referenceNumber);
+
+            if(isEmailSent){
+                response.put(true, "Reference Number sent");
                 return response;
             }
         }
 
+        response.put(false, "Failed to send email");
+        return response;
+    }
+
+    @Override
+    @Transactional
+    public void accountUnblockRequestByUser(AccountRetrieveRequestDto requestDto) {
         ContactUs contactUs = new ContactUs();
         contactUs.setName(requestDto.getName());
         contactUs.setMessage(requestDto.getDescription());
         contactUs.setEmail(requestDto.getUsername());
         contactUs.setReferenceNumber(requestDto.getReferenceNumber());
         contactUs.setRequestActive(true);
+        contactUs.setVerified(false);
+        contactUs.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
         contactUsRepository.save(contactUs);
+    }
 
-        response.put(true, "Request sent to admin");
-        return response;
+    @Override
+    @Transactional
+    public void nameChangeRequestByUser(NameChangeRequestDto requestDto) {
+        ContactUs contactUs = new ContactUs();
+        contactUs.setName(requestDto.getNewName());
+        contactUs.setMessage(requestDto.getOldName());
+        contactUs.setEmail(requestDto.getEmail());
+        contactUs.setReferenceNumber(requestDto.getReferenceNumber());
+        contactUs.setRequestActive(true);
+        contactUs.setVerified(false);
+        contactUs.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
+        contactUsRepository.save(contactUs);
     }
 
 

@@ -13,5 +13,5 @@ public interface AdminService {
 
     List<UserGridDto> getUserDetailsGridForAdmin(String status);
 
-    boolean accountReactivationRequest(String email, String referenceNumber);
+    boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus);
 }

@@ -46,9 +46,10 @@ public class AdminController {
     }
 
     @Operation(summary = "Api to unblock the user account with respective details")
-    @GetMapping("/account-reactivation/{email}/{referenceNumber}")
+    @GetMapping("/account-reactivation/{email}/{referenceNumber}/{requestStatus}")
     public boolean accountReactivationRequest(@PathVariable("email") String email,
-                                              @PathVariable("referenceNumber") String referenceNumber){
-        return adminService.accountReactivationRequest(email, referenceNumber);
+                                              @PathVariable("referenceNumber") String referenceNumber,
+                                              @PathVariable("requestStatus") String requestStatus){
+        return adminService.accountReactivationAndNameChangeRequest(email, referenceNumber, requestStatus);
     }
 }

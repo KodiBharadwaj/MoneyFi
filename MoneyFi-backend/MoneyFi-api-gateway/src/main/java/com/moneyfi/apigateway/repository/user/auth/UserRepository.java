@@ -16,5 +16,5 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
     List<UserAuthModel> getUserListWhoseOtpCountGreaterThanThree(LocalDateTime startOfToday);
 
     @Query("select u from UserAuthModel u where u.username = :email")
-    UserAuthModel getBlockedUsers(String email);
+    UserAuthModel getUserAuthDetailsByOnlyUsername(String email);
 }
