@@ -56,14 +56,28 @@ export class RaiseRequestComponent {
     };
     const backendRequestType = requestTypeMap[this.selectedTab];
 
-    this.http.get(`${this.baseUrl}/api/auth/${backendRequestType}/${this.email}/reference-number-request`).subscribe({
-      next: () => {
+    this.http.get<{ [key: string]: string }>(`${this.baseUrl}/api/auth/${backendRequestType}/${this.email}/reference-number-request`).subscribe({
+      next: (response) => {
+        console.log('Response from backend:', response);
+        const [key, value] = Object.entries(response)[0];
+
+        if(key === 'true'){
+          this.toastr.success(value);
+          this.requestData.email = this.email;
+        } else {
+          this.toastr.error(value);
+        }
+
         this.loading = false;
-        this.referenceSent = true;
-        this.requestData.email = this.email;
+        this.referenceSent = key === 'true';
       },
-      error: () => {
-        this.toastr.error('Failed to send reference number');
+      error: (errorResponse) => {
+        const statusCode = errorResponse.status;
+        const errorMessage = errorResponse.error?.message || 'Failed to send reference number';
+
+        if(statusCode === 400)
+        this.toastr.error(`${errorMessage}`);
+
         this.loading = false;
         this.referenceSent = false;
       }

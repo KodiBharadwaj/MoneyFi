@@ -182,12 +182,12 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "change name", referenceNumber);
 
             if(isEmailSent){
-                response.put(true, "Reference Number sent");
+                response.put(true, "Reference Number sent to your email");
                 return response;
             }
         }
 
-        response.put(false, "Failed to send email");
+        response.put(false, "Failed to send email! Try later");
         return response;
     }
 

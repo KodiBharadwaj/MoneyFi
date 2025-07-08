@@ -30,6 +30,7 @@ if blocked, send it
  -- Configuration for account statement.
  -- Configuraton for Ai Analysis.
 
+3) Introduce cloud drive which stores the user data like his personal things like secure vault.
 
 
 Defects:
