@@ -17,6 +17,7 @@ import { ContactUsComponent } from './contact-us/contact-us.component';
 import { SignupOtpConfirmDialogComponent } from './signup-otp-confirm-dialog/signup-otp-confirm-dialog.component';
 import { ForgotUsernameComponent } from './forgot-username/forgot-username.component';
 import { ReportsInsightsComponent } from './reports-insights/reports-insights.component';
+import { RaiseRequestComponent } from './raise-request/raise-request.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -24,6 +25,7 @@ export const routes: Routes = [
   { path: 'signup', component: SignupComponent },
   { path: 'forgot-password',component:ForgotPasswordComponent },
   { path: 'forgot-username', component:ForgotUsernameComponent },
+  { path: 'raise-request', component:RaiseRequestComponent },
   { path: 'otp-confirm', component: SignupOtpConfirmDialogComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard],children:[
     {path:'',component:OverviewComponent},

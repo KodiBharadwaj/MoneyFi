@@ -161,7 +161,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account unblock", referenceNumber);
 
             if(isEmailSent){
-                response.put(false, "Reference Number sent");
+                response.put(true, "Reference Number sent");
                 return response;
             }
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){

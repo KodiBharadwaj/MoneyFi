@@ -107,7 +107,7 @@ public class UserController {
     }
 
     @Operation(summary = "Api to send reference number to the user for account retrieval")
-    @GetMapping("/reference-number-request/{requestStatus}/{email}")
+    @GetMapping("/{requestStatus}/{email}/reference-number-request")
     public Map<Boolean, String> requestReferenceNumber(@PathVariable("requestStatus") String requestStatus,
                                                        @PathVariable("email") String email){
         return userCommonService.sendReferenceRequestNumberEmail(requestStatus, email);
