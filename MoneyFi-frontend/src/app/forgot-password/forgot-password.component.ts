@@ -135,6 +135,12 @@ export class ForgotPasswordComponent {
         } else if(outputDto.result === false && outputDto.comment === 'Limit crossed for today!! Try tomorrow') {
           alert("Limit crossed for today!! Try tomorrow");
           this.isLoading = false;
+        } else if(outputDto.result === false && outputDto.comment === 'Account Blocked! Please contact admin') {
+          this.toastr.error(outputDto.comment)
+          this.isLoading = false;
+        } else if(outputDto.result === false && outputDto.comment === 'Account Deleted! Please contact admin') {
+          this.toastr.error(outputDto.comment)
+          this.isLoading = false;
         } 
         else {
           if(outputDto.remainingMinutes <= 1)

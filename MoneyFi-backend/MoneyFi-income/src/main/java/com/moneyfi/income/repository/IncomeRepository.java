@@ -34,4 +34,7 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
 
     @Query(nativeQuery = true, value = "exec getAvailableBalanceOfUser @userId = :userId")
     BigDecimal getAvailableBalanceOfUser(Long userId);
+
+    @Query(nativeQuery = true, value =  "exec getUserIdFromUsernameAndToken @username = :username, @token = :token")
+    Long getUserIdFromUsernameAndToken(String username, String token);
 }

@@ -68,7 +68,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     private void functionCallToChangeDetails(String email, ContactUs contactUs, String requestStatus){
-        UserAuthModel user = userRepository.getUserAuthDetailsByOnlyUsername(email);
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email);
 
         if(requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
             user.setBlocked(false);

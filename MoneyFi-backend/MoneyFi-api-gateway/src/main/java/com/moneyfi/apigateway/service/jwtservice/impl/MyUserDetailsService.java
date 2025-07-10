@@ -22,7 +22,7 @@ public class MyUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        UserAuthModel userAuthModel = userRepository.findByUsername(username);
+        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(username);
 
         if (userAuthModel == null) {
             log.info("No userAuthModel with this UserAuthModel Name: " + username);

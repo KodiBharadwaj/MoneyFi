@@ -59,9 +59,15 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Transactional
     public String forgotPassword(String email) {
 
-        UserAuthModel userAuthModel = userRepository.findByUsername(email);
+        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
         if(userAuthModel == null){
             throw new ResourceNotFoundException("No userAuthModel Found");
+        }
+        else if(userAuthModel.isBlocked()){
+            return "Account Blocked! Please contact admin";
+        }
+        else if(userAuthModel.isDeleted()){
+            return "Account Deleted! Please contact admin";
         }
 
         String verificationCode = generateVerificationCode();
@@ -84,7 +90,7 @@ public class UserCommonServiceImpl implements UserCommonService {
 
     @Override
     public boolean verifyCode(String email, String code) {
-        UserAuthModel userAuthModel = userRepository.findByUsername(email);
+        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
         if(userAuthModel == null){
              throw new ResourceNotFoundException("UserAuthModel not found");
         }
@@ -94,7 +100,7 @@ public class UserCommonServiceImpl implements UserCommonService {
 
     @Override
     public String updatePassword(String email, String password){
-        UserAuthModel userAuthModel = userRepository.findByUsername(email);
+        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
         if(userAuthModel ==null){
             return "userAuthModel not found for given email...";
         }
@@ -135,7 +141,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     public Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email) {
         Map<Boolean, String> response = new HashMap<>();
 
-        UserAuthModel user = userRepository.getUserAuthDetailsByOnlyUsername(email);
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email);
         if(user == null){
             throw new ResourceNotFoundException("User not found");
         }

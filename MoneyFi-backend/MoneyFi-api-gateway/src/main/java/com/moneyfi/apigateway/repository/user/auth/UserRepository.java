@@ -9,12 +9,9 @@ import java.util.List;
 
 public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
 
-    @Query(nativeQuery = true, value = "exec getUserAuthDetailsByUsername @username = :username")
-    UserAuthModel findByUsername(String username);
-
     @Query(nativeQuery = true, value = "exec getUserAuthDetailsListWhoseOtpCountGreaterThanThree @startOfToday = :startOfToday")
     List<UserAuthModel> getUserListWhoseOtpCountGreaterThanThree(LocalDateTime startOfToday);
 
-    @Query("select u from UserAuthModel u where u.username = :email")
-    UserAuthModel getUserAuthDetailsByOnlyUsername(String email);
+    @Query(nativeQuery = true, value = "exec getUserAuthDetailsByUsername @username = :email")
+    UserAuthModel getUserDetailsByUsername(String email);
 }

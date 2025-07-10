@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserAuthModel registerUser(UserProfile userProfile) {
-        UserAuthModel getUser = userRepository.findByUsername(userProfile.getUsername());
+        UserAuthModel getUser = userRepository.getUserDetailsByUsername(userProfile.getUsername());
         if(getUser != null){
             return null;
         }
@@ -177,7 +177,7 @@ public class UserServiceImpl implements UserService {
                 return ResponseEntity.badRequest().body("Username and password are required");
             }
 
-            UserAuthModel existingUser = userRepository.findByUsername(userAuthModel.getUsername());
+            UserAuthModel existingUser = userRepository.getUserDetailsByUsername(userAuthModel.getUsername());
             if (existingUser == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UserAuthModel not found. Please sign up.");
             }
@@ -244,7 +244,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Long getUserIdByUsername(String email) {
-        UserAuthModel userAuthModel = userRepository.findByUsername(email);
+        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
         if(userAuthModel == null){
             return null;
         }
@@ -290,9 +290,19 @@ public class UserServiceImpl implements UserService {
     public RemainingTimeCountDto checkOtpActiveMethod(String email){
         RemainingTimeCountDto remainingTimeCountDto = new RemainingTimeCountDto();
 
-        UserAuthModel userAuthModel = userRepository.findByUsername(email);
+        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
         if(userAuthModel == null){
             remainingTimeCountDto.setComment("User not exist");
+            remainingTimeCountDto.setResult(false);
+            return remainingTimeCountDto;
+        }
+        else if(userAuthModel.isBlocked()){
+            remainingTimeCountDto.setComment("Account Blocked! Please contact admin");
+            remainingTimeCountDto.setResult(false);
+            return remainingTimeCountDto;
+        }
+        else if(userAuthModel.isDeleted()){
+            remainingTimeCountDto.setComment("Account Deleted! Please contact admin");
             remainingTimeCountDto.setResult(false);
             return remainingTimeCountDto;
         }
@@ -319,7 +329,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String sendOtpForSignup(String email, String name) {
 
-        UserAuthModel userData = userRepository.findByUsername(email);
+        UserAuthModel userData = userRepository.getUserDetailsByUsername(email);
         if(userData != null){
             return "User already exists!";
         }
@@ -370,7 +380,7 @@ public class UserServiceImpl implements UserService {
             token = token.substring(7);
         }
 
-        Long userId = userRepository.findByUsername(jwtService.extractUserName(token)).getId();
+        Long userId = userRepository.getUserDetailsByUsername(jwtService.extractUserName(token)).getId();
         String phoneNumber = profileRepository.findByUserId(userId).getPhone();
 
         if(phoneNumber == null || phoneNumber.isEmpty()){
