@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.util.constants;
+package com.moneyfi.apigateway.util.enums;
 
 public enum RequestReason {
     ACCOUNT_UNBLOCK_REQUEST,

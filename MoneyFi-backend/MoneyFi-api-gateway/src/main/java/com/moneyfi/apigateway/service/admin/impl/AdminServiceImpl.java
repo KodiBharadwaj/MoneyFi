@@ -11,7 +11,7 @@ import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.admin.AdminService;
 import com.moneyfi.apigateway.service.admin.dto.AdminOverviewPageDto;
 import com.moneyfi.apigateway.service.admin.dto.UserGridDto;
-import com.moneyfi.apigateway.util.constants.RequestReason;
+import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 

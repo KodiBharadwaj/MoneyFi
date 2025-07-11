@@ -5,7 +5,7 @@ import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.repository.admin.AdminRepository;
 import com.moneyfi.apigateway.service.admin.dto.AdminOverviewPageDto;
 import com.moneyfi.apigateway.service.admin.dto.UserGridDto;
-import com.moneyfi.apigateway.util.constants.UserStatus;
+import com.moneyfi.apigateway.util.enums.UserStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;

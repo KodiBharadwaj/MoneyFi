@@ -61,11 +61,13 @@ public class UserServiceImpl implements UserService {
     private String bucketName;
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+
     private final UserRepository userRepository;
     private final OtpTempRepository otpTempRepository;
     private final JwtService jwtService;
     private final ProfileRepository profileRepository;
     private final UserCommonService userCommonService;
+
     private final AuthenticationManager authenticationManager;
     private final AmazonS3 s3Client;
     private final AmazonSimpleEmailService amazonSimpleEmailService;

@@ -15,7 +15,7 @@ import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
-import com.moneyfi.apigateway.util.constants.RequestReason;
+import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

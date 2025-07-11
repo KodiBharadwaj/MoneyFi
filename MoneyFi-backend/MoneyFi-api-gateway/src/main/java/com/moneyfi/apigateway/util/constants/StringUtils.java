@@ -1,5 +1,7 @@
 package com.moneyfi.apigateway.util.constants;
 
+import com.moneyfi.apigateway.util.enums.UserRoles;
+
 import java.util.Map;
 
 public class StringUtils {

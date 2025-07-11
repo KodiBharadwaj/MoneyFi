@@ -53,7 +53,6 @@ public class UserController {
         return userService.login(userAuthModel);
     }
 
-
     @Operation(summary = "Method for password forgot")
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestParam String email) {
@@ -62,7 +61,8 @@ public class UserController {
 
     @Operation(summary = "Method for verification of code/otp")
     @PostMapping("/verify-code")
-    public String verifyCode(@RequestParam String email, @RequestParam String code) {
+    public String verifyCode(@RequestParam String email,
+                             @RequestParam String code) {
         boolean isValid = userCommonService.verifyCode(email, code);
         if (isValid) {
             return "Verification successful!";
@@ -73,16 +73,15 @@ public class UserController {
 
     @Operation(summary = "Method to update the user's password")
     @PutMapping("/update-password")
-    public String updatePassword(@RequestParam String email,@RequestParam String password)
-    {
+    public String updatePassword(@RequestParam String email,
+                                 @RequestParam String password){
         return userCommonService.updatePassword(email,password);
     }
-
 
     @Operation(summary = "Method to send Otp for user verification during signup")
     @GetMapping("/sendOtpForSignup/{email}/{name}")
     public ResponseEntity<String> sendOtpForSignup(@PathVariable("email") String email,
-                                    @PathVariable("name") String name){
+                                                   @PathVariable("name") String name){
 
         return ResponseEntity.ok(userService.sendOtpForSignup(email, name));
     }
