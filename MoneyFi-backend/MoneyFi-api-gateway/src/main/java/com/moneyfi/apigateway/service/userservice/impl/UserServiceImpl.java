@@ -432,9 +432,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void sendAccountStatementEmail(String username, byte[] pdfBytes) {
-        ProfileModel userProfileDetails = profileRepository.findByUserId(getUserIdByUsername(username));
-        EmailTemplates.sendAccountStatementAsEmail(userProfileDetails.getName(), username, pdfBytes);
+    public boolean sendAccountStatementEmail(String username, byte[] pdfBytes) {
+        return EmailTemplates.sendAccountStatementAsEmail(profileRepository.findByUserId(getUserIdByUsername(username)).getName(), username, pdfBytes);
     }
 
     @Override
