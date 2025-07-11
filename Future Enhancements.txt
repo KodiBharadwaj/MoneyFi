@@ -8,6 +8,9 @@ Minor Changes:
 - Write junit test cases for income service (ongoing)
 - Landing page, so may buttons are there in the footer. Add the necessary info.
 
+- Create a new table called user_role instead of doing with role_id <> 1
+- avoid repeatition in sps. Try call other sp in existing sp.
+
 
 New Feature
 1) (Account statement)
