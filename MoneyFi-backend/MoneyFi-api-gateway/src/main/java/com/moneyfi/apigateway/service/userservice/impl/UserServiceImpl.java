@@ -336,7 +336,7 @@ public class UserServiceImpl implements UserService {
             return "User already exists!";
         }
 
-        String verificationCode = EmailFilter.generateVerificationCode();
+        String verificationCode = generateVerificationCode();
         boolean isMailsent = EmailTemplates.sendEmailToUserForSignup(email, name, verificationCode);
 
         if(isMailsent){
