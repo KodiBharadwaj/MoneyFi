@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.repository.common;
+package com.moneyfi.apigateway.repository.user;
 
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import org.springframework.data.jpa.repository.JpaRepository;

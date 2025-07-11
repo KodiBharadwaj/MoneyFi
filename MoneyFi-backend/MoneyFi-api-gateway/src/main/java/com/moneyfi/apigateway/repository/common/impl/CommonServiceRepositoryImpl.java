@@ -2,7 +2,7 @@ package com.moneyfi.apigateway.repository.common.impl;
 
 import com.moneyfi.apigateway.exceptions.QueryValidationException;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
-import com.moneyfi.apigateway.service.common.dto.ProfileDetailsDto;
+import com.moneyfi.apigateway.service.common.dto.response.ProfileDetailsDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;

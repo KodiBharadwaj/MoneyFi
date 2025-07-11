@@ -29,7 +29,7 @@ public interface UserService {
 
     boolean getUsernameByDetails(ForgotUsernameDto userDetails);
 
-    void sendAccountStatementEmail(String username, byte[] pdfBytes);
+    boolean sendAccountStatementEmail(String username, byte[] pdfBytes);
 
     String uploadUserProfilePictureToS3(String username, MultipartFile file) throws IOException;
 

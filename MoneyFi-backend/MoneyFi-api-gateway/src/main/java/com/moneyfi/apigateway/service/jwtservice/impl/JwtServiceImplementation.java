@@ -1,5 +1,6 @@
 package com.moneyfi.apigateway.service.jwtservice.impl;
 
+import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import io.jsonwebtoken.Claims;
@@ -14,6 +15,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.moneyfi.apigateway.util.constants.StringUtils.userRoleAssociation;
+
 @Service
 public class JwtServiceImplementation implements JwtService {
 
@@ -21,12 +24,13 @@ public class JwtServiceImplementation implements JwtService {
     private String secret;
 
     @Override
-    public JwtToken generateToken(String username) {
+    public JwtToken generateToken(UserAuthModel user) {
 
         Map<String, Object> claims = new HashMap<>();
+        claims.put("role", userRoleAssociation.get(user.getRoleId()));
         String token =  Jwts.builder()
                 .setClaims(claims)
-                .setSubject(username)
+                .setSubject(user.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date((System.currentTimeMillis() + 1000 * 60 * 60)))
                 .signWith(SignatureAlgorithm.HS256, secret)

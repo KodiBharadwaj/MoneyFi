@@ -14,9 +14,9 @@ import com.moneyfi.apigateway.model.auth.OtpTempModel;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
-import com.moneyfi.apigateway.repository.auth.OtpTempRepository;
-import com.moneyfi.apigateway.repository.common.ProfileRepository;
-import com.moneyfi.apigateway.repository.auth.UserRepository;
+import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
+import com.moneyfi.apigateway.repository.user.ProfileRepository;
+import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.userservice.dto.*;
@@ -51,8 +51,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.moneyfi.apigateway.util.StringUtils.ADMIN_EMAIL;
-import static com.moneyfi.apigateway.util.StringUtils.MESSAGE;
+import static com.moneyfi.apigateway.util.constants.StringUtils.*;
 
 @Service
 @Slf4j
@@ -62,11 +61,13 @@ public class UserServiceImpl implements UserService {
     private String bucketName;
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+
     private final UserRepository userRepository;
     private final OtpTempRepository otpTempRepository;
     private final JwtService jwtService;
     private final ProfileRepository profileRepository;
     private final UserCommonService userCommonService;
+
     private final AuthenticationManager authenticationManager;
     private final AmazonS3 s3Client;
     private final AmazonSimpleEmailService amazonSimpleEmailService;
@@ -92,7 +93,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserAuthModel registerUser(UserProfile userProfile) {
-        UserAuthModel getUser = userRepository.findByUsername(userProfile.getUsername());
+        UserAuthModel getUser = userRepository.getUserDetailsByUsername(userProfile.getUsername());
         if(getUser != null){
             return null;
         }
@@ -103,13 +104,23 @@ public class UserServiceImpl implements UserService {
         userAuthModel.setOtpCount(0);
         userAuthModel.setDeleted(false);
         userAuthModel.setBlocked(false);
+
+        int roleId = 0;
+        for(Map.Entry<Integer, String> it: userRoleAssociation.entrySet()){
+            if(it.getValue().equalsIgnoreCase(userProfile.getRole())){
+                roleId = it.getKey();
+            }
+        }
+        userAuthModel.setRoleId(roleId);
         UserAuthModel user = userRepository.save(userAuthModel);
 
-        saveUserProfileDetails(user.getId(), userProfile);
-        new Thread(() ->
-                sendEmailToUserForSuccessfulSignupUsingAwsSes(userProfile.getUsername())
-        ).start();
-
+        if(roleId != 1) {
+            saveUserProfileDetails(user.getId(), userProfile);
+            /** send successful email in a separate thread by aws ses **/
+            new Thread(() ->
+                    sendEmailToUserForSuccessfulSignupUsingAwsSes(userProfile.getUsername())
+            ).start();
+        }
         return user;
     }
 
@@ -168,7 +179,7 @@ public class UserServiceImpl implements UserService {
                 return ResponseEntity.badRequest().body("Username and password are required");
             }
 
-            UserAuthModel existingUser = userRepository.findByUsername(userAuthModel.getUsername());
+            UserAuthModel existingUser = userRepository.getUserDetailsByUsername(userAuthModel.getUsername());
             if (existingUser == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UserAuthModel not found. Please sign up.");
             }
@@ -184,7 +195,7 @@ public class UserServiceImpl implements UserService {
                         .authenticate(new UsernamePasswordAuthenticationToken(userAuthModel.getUsername(), userAuthModel.getPassword()));
 
                 if (authentication.isAuthenticated()) {
-                    JwtToken token = jwtService.generateToken(userAuthModel.getUsername());
+                    JwtToken token = jwtService.generateToken(userAuthModel);
                     functionToPreventMultipleLogins(userAuthModel, token);
                     return ResponseEntity.ok(token);
                 }
@@ -235,7 +246,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Long getUserIdByUsername(String email) {
-        UserAuthModel userAuthModel = userRepository.findByUsername(email);
+        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
         if(userAuthModel == null){
             return null;
         }
@@ -281,9 +292,19 @@ public class UserServiceImpl implements UserService {
     public RemainingTimeCountDto checkOtpActiveMethod(String email){
         RemainingTimeCountDto remainingTimeCountDto = new RemainingTimeCountDto();
 
-        UserAuthModel userAuthModel = userRepository.findByUsername(email);
+        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
         if(userAuthModel == null){
             remainingTimeCountDto.setComment("User not exist");
+            remainingTimeCountDto.setResult(false);
+            return remainingTimeCountDto;
+        }
+        else if(userAuthModel.isBlocked()){
+            remainingTimeCountDto.setComment("Account Blocked! Please contact admin");
+            remainingTimeCountDto.setResult(false);
+            return remainingTimeCountDto;
+        }
+        else if(userAuthModel.isDeleted()){
+            remainingTimeCountDto.setComment("Account Deleted! Please contact admin");
             remainingTimeCountDto.setResult(false);
             return remainingTimeCountDto;
         }
@@ -310,12 +331,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public String sendOtpForSignup(String email, String name) {
 
-        UserAuthModel userData = userRepository.findByUsername(email);
+        UserAuthModel userData = userRepository.getUserDetailsByUsername(email);
         if(userData != null){
             return "User already exists!";
         }
 
-        String verificationCode = EmailFilter.generateVerificationCode();
+        String verificationCode = generateVerificationCode();
         boolean isMailsent = EmailTemplates.sendEmailToUserForSignup(email, name, verificationCode);
 
         if(isMailsent){
@@ -361,7 +382,7 @@ public class UserServiceImpl implements UserService {
             token = token.substring(7);
         }
 
-        Long userId = userRepository.findByUsername(jwtService.extractUserName(token)).getId();
+        Long userId = userRepository.getUserDetailsByUsername(jwtService.extractUserName(token)).getId();
         String phoneNumber = profileRepository.findByUserId(userId).getPhone();
 
         if(phoneNumber == null || phoneNumber.isEmpty()){
@@ -411,9 +432,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void sendAccountStatementEmail(String username, byte[] pdfBytes) {
-        ProfileModel userProfileDetails = profileRepository.findByUserId(getUserIdByUsername(username));
-        EmailTemplates.sendAccountStatementAsEmail(userProfileDetails.getName(), username, pdfBytes);
+    public boolean sendAccountStatementEmail(String username, byte[] pdfBytes) {
+        return EmailTemplates.sendAccountStatementAsEmail(profileRepository.findByUserId(getUserIdByUsername(username)).getName(), username, pdfBytes);
     }
 
     @Override

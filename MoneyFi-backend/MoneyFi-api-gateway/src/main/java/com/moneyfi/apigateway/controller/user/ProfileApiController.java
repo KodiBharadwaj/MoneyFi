@@ -1,6 +1,7 @@
-package com.moneyfi.apigateway.controller;
+package com.moneyfi.apigateway.controller.user;
 
-import com.moneyfi.apigateway.service.common.dto.ProfileDetailsDto;
+import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
+import com.moneyfi.apigateway.service.common.dto.response.ProfileDetailsDto;
 import com.moneyfi.apigateway.service.userservice.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.service.userservice.dto.ProfileChangePassword;
 import com.moneyfi.apigateway.model.common.ContactUs;
@@ -93,8 +94,6 @@ public class ProfileApiController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        contactUsDetails.setUserId(userId);
         return ResponseEntity.ok(profileService.saveContactUsDetails(contactUsDetails));
     }
 
@@ -105,8 +104,6 @@ public class ProfileApiController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        feedback.setUserId(userId);
         return ResponseEntity.ok(profileService.saveFeedback(feedback));
     }
 
@@ -133,8 +130,9 @@ public class ProfileApiController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        userService.sendAccountStatementEmail(username, pdfBytes);
+        if(!userService.sendAccountStatementEmail(((UserDetails) authentication.getPrincipal()).getUsername(), pdfBytes)){
+            throw new ResourceNotFoundException("Error in sending email, internal error");
+        }
         return ResponseEntity.ok().build();
     }
 

@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Properties;
-import java.util.Random;
 
 @Component
 @Slf4j
@@ -120,10 +119,4 @@ public class EmailFilter {
         }
     }
 
-
-    public static String generateVerificationCode() {
-        Random random = new Random();
-        int verificationCode = 100000 + random.nextInt(900000);
-        return String.valueOf(verificationCode);
-    }
 }

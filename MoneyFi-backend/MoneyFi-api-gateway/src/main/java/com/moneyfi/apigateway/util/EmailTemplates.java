@@ -5,7 +5,7 @@ import com.moneyfi.apigateway.model.common.Feedback;
 
 import java.util.Base64;
 
-import static com.moneyfi.apigateway.util.StringUtils.ADMIN_EMAIL;
+import static com.moneyfi.apigateway.util.constants.StringUtils.ADMIN_EMAIL;
 
 public class EmailTemplates {
 
@@ -125,7 +125,7 @@ public class EmailTemplates {
         EmailFilter.sendEmail(ADMIN_EMAIL, subject, body);
     }
 
-    public static void sendAccountStatementAsEmail(String name, String username, byte[] pdfBytes) {
+    public static boolean sendAccountStatementAsEmail(String name, String username, byte[] pdfBytes) {
         String subject = "MoneyFi - Account Statement";
         String body = "<html>"
                 + "<body>"
@@ -133,7 +133,7 @@ public class EmailTemplates {
                 + "<p style='font-size: 16px;'>You have requested for account statement. Kindly find the attached PDF.</p>"
                 + "<p style='font-size: 16px;'>The format for the password is: </p>"
                 + "<p style='font-size: 16px;'>First four characters in your name in capital + First four characters in username in small letters </p> <br>"
-                + "<p style='font-size: 16px;'>Lets say the name and username are: ManiKanta, manaikanta123@gmail.com. Then the password will be <strong> MANImani </strong> </p>"
+                + "<p style='font-size: 16px;'>Lets say the name and username are: abcxyz, sample123@gmail.com. Then the password will be <strong> ABCXsamp </strong> </p>"
                 + "<hr>"
                 + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL + "</p>"
                 + "<br>"
@@ -145,6 +145,24 @@ public class EmailTemplates {
         int index = name.indexOf(' ');
         String fileName = name.substring(0, index)+"_statement.pdf";
 
-        EmailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, fileName);
+        return EmailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, fileName);
+    }
+
+    public static boolean sendReferenceNumberEmail(String name, String email, String description, String referenceNumber) {
+        String subject = "MoneyFi - Account retrieval request";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + "</p>"
+                + "<p style='font-size: 16px;'>You have requested for reference number to " + description + ". Here is you reference number: " + referenceNumber + "</p>"
+                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
+                + "<p style='font-size: 16px;'>Kindly Ignore if it by you. If not, reply to this mail immediately to secure account.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        return EmailFilter.sendEmail(email, subject, body);
     }
 }

@@ -8,14 +8,18 @@ Minor Changes:
 - Write junit test cases for income service (ongoing)
 - Landing page, so may buttons are there in the footer. Add the necessary info.
 
+- Create a new table called user_role instead of doing with role_id <> 1
+- avoid repeatition in sps. Try call other sp in existing sp.
+
 
 New Feature
 1) (Account statement)
 - Account statement - ui in progress
 
 2) (New Role - Admin)
-- Add admin role in moneyfi application with special login.
-- Admin can see the accounts blocked/ accounts deleted so that he can enable them when request received by the user.
+- while sending reference mail to user, check whether the account is blocked or not.
+if blocked, send it
+- Admin can see the accounts blocked/ accounts deleted so that he can enable them when request received by the user. 
 - When user sends an defect/contact mail to admin, admin should get the notification in his ui.
 - Admin can able to see the accounts blocked/deleted based on the latest time.
 - Admin can only reactive the accounts if request received else no.
@@ -29,6 +33,7 @@ New Feature
  -- Configuration for account statement.
  -- Configuraton for Ai Analysis.
 
+3) Introduce cloud drive which stores the user data like his personal things like secure vault.
 
 
 Defects:

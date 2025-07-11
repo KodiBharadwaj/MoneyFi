@@ -1,14 +1,10 @@
 package com.moneyfi.expense.config;
 
-import com.moneyfi.expense.utils.StringConstants;
+import com.moneyfi.expense.repository.ExpenseRepository;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 @Component
 public class JwtService {
@@ -16,10 +12,10 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    private final RestTemplate restTemplate;
+    private final ExpenseRepository expenseRepository;
 
-    public JwtService(RestTemplate restTemplate){
-        this.restTemplate = restTemplate;
+    public JwtService(ExpenseRepository expenseRepository){
+        this.expenseRepository = expenseRepository;
     }
 
     public Long extractUserIdFromToken(String token) {
@@ -30,16 +26,11 @@ public class JwtService {
                 .getBody()
                 .getSubject(); // Assuming username is stored as the subject
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        ResponseEntity<Long> response = restTemplate.exchange(
-                StringConstants.JWT_SERVICE_API_GATEWAY_URL + username,
-                HttpMethod.GET,
-                entity,
-                Long.class
-        );
-        return response.getBody();
+        try {
+            return expenseRepository.getUserIdFromUsernameAndToken(username, token);
+        } catch (DataAccessException ex) {
+            // Sql error when the token is blacklisted
+            throw new IllegalArgumentException("Token is blacklisted");
+        }
     }
 }

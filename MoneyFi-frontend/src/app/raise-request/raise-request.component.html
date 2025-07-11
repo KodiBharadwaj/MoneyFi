@@ -1,0 +1,61 @@
+<nav class="navbar">
+  <span class="brand-name" (click)="navigateHeader('')" role="button" tabindex="0">
+    <i class="fas fa-chart-pie"></i>
+    MoneyFi
+  </span>
+</nav>
+
+<div class="request-container">
+  <!-- Tabs -->
+  <div class="tab-buttons">
+    <button [class.active]="selectedTab === 'unblock'" (click)="selectTab('unblock')">Account Unblock</button>
+    <button [class.active]="selectedTab === 'retrieve'" (click)="selectTab('retrieve')">Account Retrieve</button>
+    <button [class.active]="selectedTab === 'rename'" (click)="selectTab('rename')">Name Change</button>
+  </div>
+
+  <!-- Email input and Reference flow -->
+<div class="step-one" *ngIf="!referenceSent">
+  <h3>Enter your email to get reference number</h3>
+  <input type="email" [(ngModel)]="email" placeholder="Enter Email" />
+  <button (click)="sendReference()" [disabled]="loading">
+    {{ loading ? 'Sending...' : 'Send Reference' }}
+  </button>
+
+  <!-- Spinner -->
+  <div class="spinner" *ngIf="loading"></div>
+</div>
+
+
+  <!-- Form -->
+  <div class="form-block" *ngIf="referenceSent">
+    <form (ngSubmit)="submitRequest()">
+      <ng-container [ngSwitch]="selectedTab">
+
+        <!-- Unblock / Retrieve Block -->
+        <div *ngSwitchCase="'unblock'">
+          <h3>Account Unblock Request</h3>
+          <input type="text" [(ngModel)]="requestData.name" name="name" placeholder="Name" required />
+          <textarea [(ngModel)]="requestData.description" name="description" placeholder="Description" required></textarea>
+          <input type="text" [(ngModel)]="requestData.referenceNumber" name="reference" placeholder="Reference Number" required />
+        </div>
+
+        <div *ngSwitchCase="'retrieve'">
+          <h3>Account Retrieve Request</h3>
+          <input type="text" [(ngModel)]="requestData.name" name="name" placeholder="Name" required />
+          <textarea [(ngModel)]="requestData.description" name="description" placeholder="Description" required></textarea>
+          <input type="text" [(ngModel)]="requestData.referenceNumber" name="reference" placeholder="Reference Number" required />
+        </div>
+
+        <!-- Name Change Block -->
+        <div *ngSwitchCase="'rename'">
+          <h3>Account Name Change Request</h3>
+          <input type="text" [(ngModel)]="requestData.oldName" name="oldName" placeholder="Old Name" required />
+          <input type="text" [(ngModel)]="requestData.newName" name="newName" placeholder="New Name" required />
+          <input type="text" [(ngModel)]="requestData.referenceNumber" name="reference" placeholder="Reference Number" required />
+        </div>
+      </ng-container>
+
+      <button type="submit">Submit Request</button>
+    </form>
+  </div>
+</div>

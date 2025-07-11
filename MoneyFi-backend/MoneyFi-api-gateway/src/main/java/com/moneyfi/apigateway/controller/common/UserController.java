@@ -1,6 +1,8 @@
-package com.moneyfi.apigateway.controller;
+package com.moneyfi.apigateway.controller.common;
 
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
+import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
+import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.userservice.UserService;
@@ -12,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @CrossOrigin("http://localhost:4200")
 @RequestMapping("/api/auth")
@@ -19,7 +23,7 @@ public class UserController {
 
     private final UserService userService;
     private final JwtService jwtService;
-    private final UserCommonService passwordResetService;
+    private final UserCommonService userCommonService;
 
 
     public UserController(UserService userService,
@@ -27,7 +31,7 @@ public class UserController {
                           UserCommonService resetPassword){
         this.userService = userService;
         this.jwtService = jwtService;
-        this.passwordResetService = resetPassword;
+        this.userCommonService = resetPassword;
     }
 
 
@@ -39,7 +43,7 @@ public class UserController {
         if(user == null){
             return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists"); //409
         } else {
-            return ResponseEntity.ok(jwtService.generateToken(userProfile.getUsername())); // 200
+            return ResponseEntity.ok(jwtService.generateToken(user)); // 200
         }
     }
 
@@ -49,17 +53,17 @@ public class UserController {
         return userService.login(userAuthModel);
     }
 
-
     @Operation(summary = "Method for password forgot")
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestParam String email) {
-        return ResponseEntity.ok(passwordResetService.forgotPassword(email));
+        return ResponseEntity.ok(userCommonService.forgotPassword(email));
     }
 
     @Operation(summary = "Method for verification of code/otp")
     @PostMapping("/verify-code")
-    public String verifyCode(@RequestParam String email, @RequestParam String code) {
-        boolean isValid = passwordResetService.verifyCode(email, code);
+    public String verifyCode(@RequestParam String email,
+                             @RequestParam String code) {
+        boolean isValid = userCommonService.verifyCode(email, code);
         if (isValid) {
             return "Verification successful!";
         } else {
@@ -69,16 +73,15 @@ public class UserController {
 
     @Operation(summary = "Method to update the user's password")
     @PutMapping("/update-password")
-    public String updatePassword(@RequestParam String email,@RequestParam String password)
-    {
-        return passwordResetService.UpdatePassword(email,password);
+    public String updatePassword(@RequestParam String email,
+                                 @RequestParam String password){
+        return userCommonService.updatePassword(email,password);
     }
-
 
     @Operation(summary = "Method to send Otp for user verification during signup")
     @GetMapping("/sendOtpForSignup/{email}/{name}")
     public ResponseEntity<String> sendOtpForSignup(@PathVariable("email") String email,
-                                    @PathVariable("name") String name){
+                                                   @PathVariable("name") String name){
 
         return ResponseEntity.ok(userService.sendOtpForSignup(email, name));
     }
@@ -100,5 +103,24 @@ public class UserController {
     @PostMapping("/forgotUsername")
     public boolean forgotUsername(@RequestBody ForgotUsernameDto userDetails){
         return userService.getUsernameByDetails(userDetails);
+    }
+
+    @Operation(summary = "Api to send reference number to the user for account retrieval")
+    @GetMapping("/{requestStatus}/{email}/reference-number-request")
+    public Map<Boolean, String> requestReferenceNumber(@PathVariable("requestStatus") String requestStatus,
+                                                       @PathVariable("email") String email){
+        return userCommonService.sendReferenceRequestNumberEmail(requestStatus, email);
+    }
+
+    @Operation(summary = "Api request to get account unblock")
+    @PostMapping("/account-unblock-request")
+    public void accountUnblockRequestByUser(@RequestBody AccountRetrieveRequestDto requestDto){
+        userCommonService.accountUnblockRequestByUser(requestDto);
+    }
+
+    @Operation(summary = "Api request to save the user details to change name of the user")
+    @PostMapping("/name-change-request")
+    public void nameChangeRequestByUser(@RequestBody NameChangeRequestDto requestDto){
+        userCommonService.nameChangeRequestByUser(requestDto);
     }
 }
