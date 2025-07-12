@@ -12,6 +12,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 export interface AccountStatement {
   id: number;
   transactionDate: Date;
+  transactionTime:string;
   description: string;
   amount: number;
   creditOrDebit: string;
@@ -40,14 +41,14 @@ export class ReportsInsightsComponent implements OnInit   {
   isDownloading: boolean = false;
   isSendingEmail: boolean = false;
 
-  ngOnInit() {
-    const today = new Date();
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(today.getDate() - 7);
+ ngOnInit() {
+  const today = new Date();
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(today.getDate() - 7);
 
-    this.toDate = today.toISOString().split('T')[0];      // Format: YYYY-MM-DD
-    this.fromDate = sevenDaysAgo.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-  }
+  this.toDate = today.toISOString().split('T')[0];      // Format: YYYY-MM-DD
+  this.fromDate = sevenDaysAgo.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+}
 
   constructor(private httpClient : HttpClient, private toastr:ToastrService) {}
   accountStatementGenerated: any[] = [];

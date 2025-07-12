@@ -1,5 +1,8 @@
 package com.moneyfi.income.utils;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
 public class StringConstants {
 
     private StringConstants() {}
@@ -16,4 +19,12 @@ public class StringConstants {
 
     public static final String JWT_SERVICE_API_GATEWAY_URL = "http://localhost:8765/api/v1/userProfile/getUserId/";
     public static final String ACCOUNT_STATEMENT_API_GATEWAY_URL = "http://localhost:8765/api/v1/userProfile/account-statement/email";
+
+    public static String changeTransactionTimeToTwelveHourFormat(String transactionTime) {
+        if (transactionTime == null) return null;
+
+        DateTimeFormatter input = DateTimeFormatter.ofPattern("HH:mm");
+        DateTimeFormatter output = DateTimeFormatter.ofPattern("hh:mm a");
+        return LocalTime.parse(transactionTime, input).format(output);
+    }
 }

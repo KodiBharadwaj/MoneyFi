@@ -2,7 +2,7 @@ package com.moneyfi.income.service.impl;
 
 import com.moneyfi.income.exceptions.ResourceNotFoundException;
 import com.moneyfi.income.service.IncomeService;
-import com.moneyfi.income.service.dto.request.AccountStatementInputDto;
+import com.moneyfi.income.service.dto.request.AccountStatementRequestDto;
 import com.moneyfi.income.service.dto.response.*;
 import com.moneyfi.income.model.IncomeDeleted;
 import com.moneyfi.income.model.IncomeModel;
@@ -285,8 +285,13 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public List<AccountStatementDto> getAccountStatementOfUser(Long userId, AccountStatementInputDto inputDto) {
-        List<AccountStatementDto> accountStatementList = incomeCommonRepository.getAccountStatementOfUser(userId, inputDto);
+    public List<AccountStatementResponseDto> getAccountStatementOfUser(Long userId, AccountStatementRequestDto inputDto) {
+        List<AccountStatementResponseDto> accountStatementList = incomeCommonRepository.getAccountStatementOfUser(userId, inputDto);
+        accountStatementList.forEach(transaction -> {
+            transaction.setTransactionTime(
+                    StringConstants.changeTransactionTimeToTwelveHourFormat(transaction.getTransactionTime())
+            );
+        });
 
         AtomicInteger i = new AtomicInteger(1);
         accountStatementList.forEach(statement -> statement.setId(i.getAndIncrement()));
@@ -295,9 +300,9 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public byte[] generatePdfForAccountStatement(Long userId, AccountStatementInputDto inputDto) throws IOException {
+    public byte[] generatePdfForAccountStatement(Long userId, AccountStatementRequestDto inputDto) throws IOException {
         inputDto.setThreshold(-1); /** to get all the transactions without pagination **/
-        List<AccountStatementDto> transactions = getAccountStatementOfUser(userId, inputDto);
+        List<AccountStatementResponseDto> transactions = getAccountStatementOfUser(userId, inputDto);
         UserDetailsForStatementDto userDetails = incomeCommonRepository.getUserDetailsForAccountStatement(userId);
         userDetails.setUsername(makeUsernamePrivate(userDetails.getUsername()));
         return GeneratePdfTemplate.generatePdf(transactions, userDetails, inputDto.getFromDate(), inputDto.getToDate(),
@@ -316,7 +321,7 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public ResponseEntity<String> sendAccountStatementEmailToUser(Long userId, AccountStatementInputDto inputDto, String token) {
+    public ResponseEntity<String> sendAccountStatementEmailToUser(Long userId, AccountStatementRequestDto inputDto, String token) {
 
         try {
             byte[] pdfBytes = generatePdfForAccountStatement(userId, inputDto);

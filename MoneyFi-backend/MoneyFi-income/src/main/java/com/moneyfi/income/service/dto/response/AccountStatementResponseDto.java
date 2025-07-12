@@ -10,9 +10,10 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountStatementDto {
+public class AccountStatementResponseDto {
     private int id;
     private Date transactionDate;
+    private String transactionTime;
     private String description;
     private BigDecimal amount;
     private BigDecimal totalExpenses;

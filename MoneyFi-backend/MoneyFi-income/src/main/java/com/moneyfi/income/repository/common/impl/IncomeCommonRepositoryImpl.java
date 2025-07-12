@@ -1,6 +1,6 @@
 package com.moneyfi.income.repository.common.impl;
 
-import com.moneyfi.income.service.dto.request.AccountStatementInputDto;
+import com.moneyfi.income.service.dto.request.AccountStatementRequestDto;
 import com.moneyfi.income.service.dto.response.*;
 import com.moneyfi.income.exceptions.QueryValidationException;
 import com.moneyfi.income.repository.common.IncomeCommonRepository;
@@ -141,11 +141,11 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
     }
 
     @Override
-    public List<AccountStatementDto> getAccountStatementOfUser(Long userId, AccountStatementInputDto inputDto) {
+    public List<AccountStatementResponseDto> getAccountStatementOfUser(Long userId, AccountStatementRequestDto inputDto) {
 
         Date startDate = Date.valueOf(inputDto.getFromDate());
         Date endDate = Date.valueOf(inputDto.getToDate());
-        List<AccountStatementDto> accountStatement = new ArrayList<>();
+        List<AccountStatementResponseDto> accountStatement = new ArrayList<>();
 
         try {
             Query query = entityManager.createNativeQuery(
@@ -161,7 +161,7 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                     .setParameter(OFFSET, inputDto.getStartIndex())
                     .setParameter(LIMIT, inputDto.getThreshold())
                     .unwrap(NativeQuery.class)
-                    .setResultTransformer(Transformers.aliasToBean(AccountStatementDto.class));
+                    .setResultTransformer(Transformers.aliasToBean(AccountStatementResponseDto.class));
 
             accountStatement.addAll(query.getResultList());
             return accountStatement;
