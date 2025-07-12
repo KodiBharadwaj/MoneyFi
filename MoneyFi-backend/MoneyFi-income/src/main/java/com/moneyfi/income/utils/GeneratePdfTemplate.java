@@ -4,18 +4,21 @@ import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
-import com.moneyfi.income.service.dto.response.AccountStatementDto;
+import com.moneyfi.income.service.dto.response.AccountStatementResponseDto;
 import com.moneyfi.income.service.dto.response.UserDetailsForStatementDto;
 
 import java.io.ByteArrayOutputStream;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.List;
+
+import static com.moneyfi.income.utils.StringConstants.changeTransactionTimeToTwelveHourFormat;
 
 public class GeneratePdfTemplate {
 
     private GeneratePdfTemplate() {}
 
-    public static byte[] generatePdf(List<AccountStatementDto> transactions, UserDetailsForStatementDto userDetails, LocalDate fromDate, LocalDate toDate, String userPassword) {
+    public static byte[] generatePdf(List<AccountStatementResponseDto> transactions, UserDetailsForStatementDto userDetails, LocalDate fromDate, LocalDate toDate, String userPassword) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Document document = new Document(PageSize.A4);
         PdfWriter writer = PdfWriter.getInstance(document, out);
@@ -64,19 +67,24 @@ public class GeneratePdfTemplate {
         document.add(userInfo);
 
         // Table header
-        PdfPTable table = new PdfPTable(4);
+        PdfPTable table = new PdfPTable(5);
         table.setWidthPercentage(100);
-        table.setWidths(new float[]{3f, 7f, 3f, 3f});
+        table.setWidths(new float[]{3f, 3f, 7f, 3f, 3f});
 
         Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD);
         addCell(table, "Date", headerFont);
+        addCell(table, "Time", headerFont);
         addCell(table, "Description", headerFont);
         addCell(table, "Amount Credited", headerFont);
         addCell(table, "Amount Debited", headerFont);
 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // or "dd MMM yyyy"
+
         // Table data
-        for (AccountStatementDto transaction : transactions) {
-            addCell(table, String.valueOf(transaction.getTransactionDate()));
+        for (AccountStatementResponseDto transaction : transactions) {
+            String formattedDate = sdf.format(transaction.getTransactionDate());
+            addCell(table, formattedDate);
+            addCell(table, changeTransactionTimeToTwelveHourFormat(transaction.getTransactionTime()));
             addCell(table, transaction.getDescription());
             if(transaction.getCreditOrDebit().equalsIgnoreCase(CreditOrDebit.CREDIT.name())){
                 addCell(table, transaction.getAmount().toString());

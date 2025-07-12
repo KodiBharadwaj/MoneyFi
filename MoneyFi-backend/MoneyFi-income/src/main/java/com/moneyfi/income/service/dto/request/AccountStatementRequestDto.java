@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountStatementInputDto {
+public class AccountStatementRequestDto {
     private LocalDate fromDate;
     private LocalDate toDate;
     private int startIndex;

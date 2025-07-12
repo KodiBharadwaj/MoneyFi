@@ -144,6 +144,7 @@
           <tr>
             <th class="col-id">S.No</th>
             <th class="col-date">Date</th>
+            <th class="col-date">Time</th>
             <th class="col-description">Description</th>
             <th class="col-credit">Credit</th>
             <th class="col-debit">Debit</th>
@@ -159,6 +160,12 @@
             <td class="col-date">
               <span class="date-text">{{ statement.transactionDate | date:'dd/MM/yyyy' }}</span>
             </td>
+            <td class="col-date">
+              <span class="date-text">
+                {{ statement.transactionTime }}
+              </span>
+            </td>
+
             <td class="col-description">
               <div class="description-wrapper">
                 <span class="description-text">{{ statement.description }}</span>

@@ -1,8 +1,8 @@
 package com.moneyfi.income.controller;
 
 import com.moneyfi.income.config.JwtService;
-import com.moneyfi.income.service.dto.request.AccountStatementInputDto;
-import com.moneyfi.income.service.dto.response.AccountStatementDto;
+import com.moneyfi.income.service.dto.request.AccountStatementRequestDto;
+import com.moneyfi.income.service.dto.response.AccountStatementResponseDto;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.service.IncomeService;
@@ -167,8 +167,8 @@ public class IncomeApiController {
 
     @Operation(summary = "Api to get overall transactions in the selected period")
     @PostMapping("/account-statement")
-    public List<AccountStatementDto> getAccountStatementOfUser(@RequestHeader("Authorization") String authHeader,
-                                                               @RequestBody AccountStatementInputDto inputDto){
+    public List<AccountStatementResponseDto> getAccountStatementOfUser(@RequestHeader("Authorization") String authHeader,
+                                                                       @RequestBody AccountStatementRequestDto inputDto){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return incomeService.getAccountStatementOfUser(userId, inputDto);
     }
@@ -176,7 +176,7 @@ public class IncomeApiController {
     @Operation(summary = "Api to generate pdf for the account statement")
     @PostMapping("/account-statement/report")
     public byte[] generatePdfForAccountStatement(@RequestHeader("Authorization") String authHeader,
-                                                 @RequestBody AccountStatementInputDto inputDto) throws IOException {
+                                                 @RequestBody AccountStatementRequestDto inputDto) throws IOException {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return incomeService.generatePdfForAccountStatement(userId, inputDto);
     }
@@ -184,7 +184,7 @@ public class IncomeApiController {
     @Operation(summary = "Api to send account statement of a user as email")
     @PostMapping("/account-statement-report/email")
     public ResponseEntity<String> sendAccountStatementEmailToUser(@RequestHeader("Authorization") String authHeader,
-                                                                  @RequestBody AccountStatementInputDto inputDto) {
+                                                                  @RequestBody AccountStatementRequestDto inputDto) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return incomeService.sendAccountStatementEmailToUser(userId, inputDto, authHeader);
     }

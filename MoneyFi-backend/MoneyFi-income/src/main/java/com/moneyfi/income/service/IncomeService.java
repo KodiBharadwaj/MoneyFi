@@ -1,7 +1,7 @@
 package com.moneyfi.income.service;
 
-import com.moneyfi.income.service.dto.request.AccountStatementInputDto;
-import com.moneyfi.income.service.dto.response.AccountStatementDto;
+import com.moneyfi.income.service.dto.request.AccountStatementRequestDto;
+import com.moneyfi.income.service.dto.response.AccountStatementResponseDto;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeModel;
 import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
@@ -44,11 +44,11 @@ public interface IncomeService {
 
     BigDecimal getAvailableBalanceOfUser(Long userId);
 
-    List<AccountStatementDto> getAccountStatementOfUser(Long userId, AccountStatementInputDto inputDto);
+    List<AccountStatementResponseDto> getAccountStatementOfUser(Long userId, AccountStatementRequestDto inputDto);
 
-    byte[] generatePdfForAccountStatement(Long userId, AccountStatementInputDto inputDto) throws IOException;
+    byte[] generatePdfForAccountStatement(Long userId, AccountStatementRequestDto inputDto) throws IOException;
 
-    ResponseEntity<String> sendAccountStatementEmailToUser(Long userId, AccountStatementInputDto inputDto, String token);
+    ResponseEntity<String> sendAccountStatementEmailToUser(Long userId, AccountStatementRequestDto inputDto, String token);
 
     OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year);
 }
