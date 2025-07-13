@@ -11,6 +11,7 @@ import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.admin.AdminService;
 import com.moneyfi.apigateway.service.admin.dto.AdminOverviewPageDto;
 import com.moneyfi.apigateway.service.admin.dto.UserGridDto;
+import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -76,9 +77,19 @@ public class AdminServiceImpl implements AdminService {
 
             contactUs.setRequestActive(false);
             contactUs.setVerified(true);
+            contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
+            contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
             contactUsRepository.save(contactUs);
-        }
-        else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
+        } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
+            user.setDeleted(false);
+            userRepository.save(user);
+
+            contactUs.setRequestActive(false);
+            contactUs.setVerified(true);
+            contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
+            contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+            contactUsRepository.save(contactUs);
+        } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
             ProfileModel userProfile = profileRepository.findByUserId(user.getId());
             if(!userProfile.getName().toLowerCase().contains(contactUs.getMessage().toLowerCase())){
                 throw new ScenarioNotPossibleException("Old name didn't match");
@@ -89,6 +100,8 @@ public class AdminServiceImpl implements AdminService {
 
             contactUs.setRequestActive(false);
             contactUs.setVerified(true);
+            contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
+            contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
             contactUsRepository.save(contactUs);
         }
     }

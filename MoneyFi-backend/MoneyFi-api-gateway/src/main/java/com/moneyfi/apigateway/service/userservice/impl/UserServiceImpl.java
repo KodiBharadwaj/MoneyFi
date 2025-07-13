@@ -181,7 +181,7 @@ public class UserServiceImpl implements UserService {
 
             UserAuthModel existingUser = userRepository.getUserDetailsByUsername(userAuthModel.getUsername());
             if (existingUser == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UserAuthModel not found. Please sign up.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found. Please sign up.");
             }
             else if(existingUser.isBlocked()){
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Account Blocked! Please contact admin");

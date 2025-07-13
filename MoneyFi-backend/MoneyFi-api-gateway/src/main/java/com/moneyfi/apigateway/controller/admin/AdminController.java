@@ -45,11 +45,11 @@ public class AdminController {
         return adminService.getContactUsDetailsOfUsers();
     }
 
-    @Operation(summary = "Api to unblock the user account with respective details")
-    @GetMapping("/account-reactivation/{email}/{referenceNumber}/{requestStatus}")
-    public boolean accountReactivationRequest(@PathVariable("email") String email,
-                                              @PathVariable("referenceNumber") String referenceNumber,
-                                              @PathVariable("requestStatus") String requestStatus){
+    @Operation(summary = "Api to unblock/retrieve/name change of the user account with respective details")
+    @GetMapping("/admin-requests/{email}/{referenceNumber}/{requestStatus}")
+    public boolean accountReactivationAndNameChangeRequest(@PathVariable("email") String email,
+                                                           @PathVariable("referenceNumber") String referenceNumber,
+                                                           @PathVariable("requestStatus") String requestStatus){
         return adminService.accountReactivationAndNameChangeRequest(email, referenceNumber, requestStatus);
     }
 }

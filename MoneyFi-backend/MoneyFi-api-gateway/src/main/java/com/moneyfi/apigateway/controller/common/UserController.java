@@ -113,7 +113,7 @@ public class UserController {
     }
 
     @Operation(summary = "Api request to get account unblock")
-    @PostMapping("/account-unblock-request")
+    @PostMapping("/account-retrieve-request")
     public void accountUnblockRequestByUser(@RequestBody AccountRetrieveRequestDto requestDto){
         userCommonService.accountUnblockRequestByUser(requestDto);
     }

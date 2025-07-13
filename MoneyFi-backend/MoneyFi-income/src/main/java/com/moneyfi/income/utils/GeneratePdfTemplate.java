@@ -12,8 +12,6 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.moneyfi.income.utils.StringConstants.changeTransactionTimeToTwelveHourFormat;
-
 public class GeneratePdfTemplate {
 
     private GeneratePdfTemplate() {}
@@ -84,7 +82,7 @@ public class GeneratePdfTemplate {
         for (AccountStatementResponseDto transaction : transactions) {
             String formattedDate = sdf.format(transaction.getTransactionDate());
             addCell(table, formattedDate);
-            addCell(table, changeTransactionTimeToTwelveHourFormat(transaction.getTransactionTime()));
+            addCell(table, transaction.getTransactionTime());
             addCell(table, transaction.getDescription());
             if(transaction.getCreditOrDebit().equalsIgnoreCase(CreditOrDebit.CREDIT.name())){
                 addCell(table, transaction.getAmount().toString());

@@ -155,6 +155,8 @@ public class EmailTemplates {
                 + "<p style='font-size: 16px;'>Hello " + name + "</p>"
                 + "<p style='font-size: 16px;'>You have requested for reference number to " + description + ". Here is you reference number: " + referenceNumber + "</p>"
                 + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
+                + "<p style='font-size: 16px;'>Please save your reference number to track the status of your request.</p>"
+                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
                 + "<p style='font-size: 16px;'>Kindly Ignore if it by you. If not, reply to this mail immediately to secure account.</p>"
                 + "<hr>"
                 + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"

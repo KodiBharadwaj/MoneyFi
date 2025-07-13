@@ -12,4 +12,5 @@ public class AccountRetrieveRequestDto {
     private String name;
     private String description;
     private String referenceNumber;
+    private String requestReason;
 }

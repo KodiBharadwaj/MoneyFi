@@ -16,6 +16,7 @@ import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestD
 import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.constants.StringUtils;
+import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -138,6 +139,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
+    @Transactional
     public Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email) {
         Map<Boolean, String> response = new HashMap<>();
 
@@ -150,45 +152,101 @@ public class UserCommonServiceImpl implements UserCommonService {
         String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
 
         if(requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
-            if(!user.isBlocked()){
-                throw new ScenarioNotPossibleException("User is not blocked to perform this operation");
+            if(user.isDeleted() || !user.isBlocked()){
+                throw new ScenarioNotPossibleException(user.isDeleted()?"Account is deleted. Raise retrieval request" :
+                        "User is not blocked to perform this operation");
             }
 
             Optional<ContactUs> report = contactUsDetails
                     .stream()
                     .filter(ContactUs::isRequestActive)
                     .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
+                    .filter(i -> i.getReferenceNumber() != null)
                     .findFirst();
+
             if(report.isPresent()){
-                throw new ScenarioNotPossibleException("Account unblock request is already raised");
+                throw new ScenarioNotPossibleException(report.get().getName()!=null?"Account unblock request is already raised":
+                        "Reference already sent, Please submit your details");
             }
 
             boolean isEmailSent = EmailTemplates
                     .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account unblock", referenceNumber);
 
             if(isEmailSent){
-                response.put(true, "Reference Number sent");
+                ContactUs saveRequest = new ContactUs();
+                saveRequest.setEmail(email);
+                saveRequest.setReferenceNumber(referenceNumber);
+                saveRequest.setRequestActive(true);
+                saveRequest.setVerified(false);
+                saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
+                saveRequest.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
+                contactUsRepository.save(saveRequest);
+
+                response.put(true, "Reference Number sent to your email");
                 return response;
             }
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
-            if(user.isBlocked()){
-                throw new ScenarioNotPossibleException("Name change is not possible since user is blocked");
+            if(user.isDeleted() || user.isBlocked()){
+                throw new ScenarioNotPossibleException(user.isDeleted()?"Account is deleted. Raise retrieval request" :
+                        "Name change is not possible since user is blocked");
             }
 
             Optional<ContactUs> report = contactUsDetails
                     .stream()
                     .filter(ContactUs::isRequestActive)
                     .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name()))
+                    .filter(i -> i.getReferenceNumber() != null)
                     .findFirst();
             if(report.isPresent()){
-                throw new ScenarioNotPossibleException("Name change request is already raised");
+                throw new ScenarioNotPossibleException(report.get().getName()!=null?"Name change request is already raised":
+                        "Reference already sent, Please submit your details");
             }
 
             boolean isEmailSent = EmailTemplates
                     .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "change name", referenceNumber);
 
             if(isEmailSent){
+                ContactUs saveRequest = new ContactUs();
+                saveRequest.setEmail(email);
+                saveRequest.setReferenceNumber(referenceNumber);
+                saveRequest.setRequestActive(true);
+                saveRequest.setVerified(false);
+                saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
+                saveRequest.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
+                contactUsRepository.save(saveRequest);
+
                 response.put(true, "Reference Number sent to your email");
+                return response;
+            }
+        } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
+            if(!user.isDeleted()){
+                throw new ScenarioNotPossibleException("Account is already in active!");
+            }
+
+            Optional<ContactUs> report = contactUsDetails
+                    .stream()
+                    .filter(ContactUs::isRequestActive)
+                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
+                    .filter(i -> i.getReferenceNumber() != null)
+                    .findFirst();
+            if(report.isPresent()){
+                throw new ScenarioNotPossibleException(report.get().getName()!=null?"Account retrieval request is already raised":
+                        "Reference already sent, Please submit your details");
+            }
+
+            boolean isEmailSent = EmailTemplates
+                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account retrieve", referenceNumber);
+
+            if(isEmailSent){
+                ContactUs saveRequest = new ContactUs();
+                saveRequest.setEmail(email);
+                saveRequest.setReferenceNumber(referenceNumber);
+                saveRequest.setRequestActive(true);
+                saveRequest.setVerified(false);
+                saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
+                saveRequest.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
+                contactUsRepository.save(saveRequest);
+                response.put(true, "Reference Number sent");
                 return response;
             }
         }
@@ -200,29 +258,62 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Override
     @Transactional
     public void accountUnblockRequestByUser(AccountRetrieveRequestDto requestDto) {
-        ContactUs contactUs = new ContactUs();
-        contactUs.setName(requestDto.getName());
-        contactUs.setMessage(requestDto.getDescription());
-        contactUs.setEmail(requestDto.getUsername());
-        contactUs.setReferenceNumber(requestDto.getReferenceNumber());
-        contactUs.setRequestActive(true);
-        contactUs.setVerified(false);
-        contactUs.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-        contactUsRepository.save(contactUs);
+        List<ContactUs> contactUsDetails = contactUsRepository.findByEmail(requestDto.getUsername());
+
+        if(requestDto.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
+            Optional<ContactUs> report = contactUsDetails
+                    .stream()
+                    .filter(ContactUs::isRequestActive)
+                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
+                    .findFirst();
+
+            ContactUs user = report.orElseThrow(() -> new RuntimeException("User not found. Please check your details"));
+
+            if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
+                throw new ScenarioNotPossibleException("Incorrect Reference Number!");
+
+            user.setName(requestDto.getName());
+            user.setMessage(requestDto.getDescription());
+            user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+            contactUsRepository.save(user);
+
+        } else if (requestDto.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
+            Optional<ContactUs> report = contactUsDetails
+                    .stream()
+                    .filter(ContactUs::isRequestActive)
+                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
+                    .findFirst();
+            ContactUs user = report.orElseThrow(() -> new RuntimeException("User not found. Please check your details"));
+
+            if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
+                throw new ScenarioNotPossibleException("Incorrect Reference Number!");
+            user.setName(requestDto.getName());
+            user.setMessage(requestDto.getDescription());
+            user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+            contactUsRepository.save(user);
+        }
+
     }
 
     @Override
     @Transactional
     public void nameChangeRequestByUser(NameChangeRequestDto requestDto) {
-        ContactUs contactUs = new ContactUs();
-        contactUs.setName(requestDto.getNewName());
-        contactUs.setMessage(requestDto.getOldName());
-        contactUs.setEmail(requestDto.getEmail());
-        contactUs.setReferenceNumber(requestDto.getReferenceNumber());
-        contactUs.setRequestActive(true);
-        contactUs.setVerified(false);
-        contactUs.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
-        contactUsRepository.save(contactUs);
+        List<ContactUs> contactUsDetails = contactUsRepository.findByEmail(requestDto.getEmail());
+        Optional<ContactUs> report = contactUsDetails
+                .stream()
+                .filter(ContactUs::isRequestActive)
+                .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name()))
+                .findFirst();
+
+        ContactUs user = report.orElseThrow(() -> new RuntimeException("User not found. Please check your details"));
+
+        if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
+            throw new ScenarioNotPossibleException("Incorrect Reference Number!");
+
+        user.setName(requestDto.getNewName());
+        user.setMessage(requestDto.getOldName());
+        user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+        contactUsRepository.save(user);
     }
 
 
