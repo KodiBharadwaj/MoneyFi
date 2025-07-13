@@ -3,6 +3,7 @@ package com.moneyfi.apigateway.controller.common;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
+import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.userservice.UserService;
@@ -122,5 +123,16 @@ public class UserController {
     @PostMapping("/name-change-request")
     public void nameChangeRequestByUser(@RequestBody NameChangeRequestDto requestDto){
         userCommonService.nameChangeRequestByUser(requestDto);
+    }
+
+    @Operation(summary = "Api to check the status of the user request using reference number")
+    @GetMapping("track-user-request")
+    public ResponseEntity<UserRequestStatusDto> trackUserRequestUsingReferenceNumber(@RequestParam("ref") String referenceNumber){
+        UserRequestStatusDto userRequestStatusDto = userCommonService.trackUserRequestUsingReferenceNumber(referenceNumber);
+        if(userRequestStatusDto != null){
+            return ResponseEntity.status(HttpStatus.OK).body(userRequestStatusDto);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 }

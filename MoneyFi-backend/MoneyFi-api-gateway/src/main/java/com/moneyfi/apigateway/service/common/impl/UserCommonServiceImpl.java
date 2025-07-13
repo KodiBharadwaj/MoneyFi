@@ -6,6 +6,7 @@ import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.model.common.ContactUs;
+import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
 import com.moneyfi.apigateway.repository.user.ContactUsRepository;
 import com.moneyfi.apigateway.repository.user.auth.SessionTokenRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
@@ -14,6 +15,7 @@ import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
+import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.constants.StringUtils;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
@@ -42,17 +44,20 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final SessionTokenRepository sessionTokenRepository;
     private final TokenBlackListRepository tokenBlacklistRepository;
     private final ContactUsRepository contactUsRepository;
+    private final CommonServiceRepository commonServiceRepository;
 
     public UserCommonServiceImpl(UserRepository userRepository,
                                  ProfileRepository profileRepository,
                                  SessionTokenRepository sessionTokenRepository,
                                  TokenBlackListRepository tokenBlacklistRepository,
-                                 ContactUsRepository contactUsRepository){
+                                 ContactUsRepository contactUsRepository,
+                                 CommonServiceRepository commonServiceRepository){
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
         this.sessionTokenRepository = sessionTokenRepository;
         this.tokenBlacklistRepository = tokenBlacklistRepository;
         this.contactUsRepository = contactUsRepository;
+        this.commonServiceRepository = commonServiceRepository;
     }
 
 
@@ -316,8 +321,28 @@ public class UserCommonServiceImpl implements UserCommonService {
         contactUsRepository.save(user);
     }
 
+    @Override
+    public UserRequestStatusDto trackUserRequestUsingReferenceNumber(String referenceNumber) {
+        UserRequestStatusDto userRequestResponse = commonServiceRepository.trackUserRequestUsingReferenceNumber(referenceNumber);
 
+        if(userRequestResponse.getRequestType().equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
+            userRequestResponse.setRequestType("Requested for Name change");
+        } else if(userRequestResponse.getRequestType().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
+            userRequestResponse.setRequestType("Requested to unblock the account");
+        } else if(userRequestResponse.getRequestType().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
+            userRequestResponse.setRequestType("Requested to retrieve the account");
+        }
 
+        if(userRequestResponse.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
+            userRequestResponse.setRequestStatus("User yet to submit the details - open");
+        } else if (userRequestResponse.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name())){
+            userRequestResponse.setRequestStatus("Admin approval is in progress");
+        } else if(userRequestResponse.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name())){
+            userRequestResponse.setRequestStatus("Request has been approved by admin");
+        }
+
+        return userRequestResponse;
+    }
 
 
     @Scheduled(fixedRate = 3600000) // Runs every 1 hour

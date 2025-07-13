@@ -4,6 +4,7 @@ import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
+import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
 
 import java.util.Map;
 
@@ -30,4 +31,6 @@ public interface UserCommonService {
     Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email);
 
     void nameChangeRequestByUser(NameChangeRequestDto requestDto);
+
+    UserRequestStatusDto trackUserRequestUsingReferenceNumber(String referenceNumber);
 }

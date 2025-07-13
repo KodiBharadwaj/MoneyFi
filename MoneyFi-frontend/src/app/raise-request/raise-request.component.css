@@ -514,3 +514,28 @@ textarea {
     padding: 1rem;
   }
 }
+
+
+
+
+.btn-signup {
+  background-color: #4CAF50; /* Green base */
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-signup:hover {
+  background-color: #45a049; /* Darker green on hover */
+  transform: scale(1.03);
+}
+
+.btn-signup:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.4);
+}
