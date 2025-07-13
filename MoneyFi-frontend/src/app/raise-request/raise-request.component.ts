@@ -7,6 +7,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgChartsModule } from 'ng2-charts';
 
+export interface RequestStatus {
+  userEmail: string;
+  name: string;
+  requestType: string;
+  active: string;
+  status: string;
+}
+export interface ApiError {
+  message: string;
+  code?: string;
+}
 @Component({
   selector: 'app-raise-request',
   standalone: true,
@@ -232,5 +243,9 @@ export class RaiseRequestComponent implements OnInit {
       rename: 'fas fa-edit'
     };
     return icons[this.selectedTab];
+  }
+
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
   }
 }

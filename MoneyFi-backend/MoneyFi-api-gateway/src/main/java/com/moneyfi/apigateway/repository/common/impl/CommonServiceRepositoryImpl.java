@@ -3,7 +3,9 @@ package com.moneyfi.apigateway.repository.common.impl;
 import com.moneyfi.apigateway.exceptions.QueryValidationException;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
 import com.moneyfi.apigateway.service.common.dto.response.ProfileDetailsDto;
+import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.hibernate.query.NativeQuery;
@@ -32,4 +34,27 @@ public class CommonServiceRepositoryImpl implements CommonServiceRepository {
             throw new QueryValidationException("Error occurred while fetching user profile data");
         }
     }
+
+    @Override
+    public UserRequestStatusDto trackUserRequestUsingReferenceNumber(String referenceNumber) {
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getStausOfUserRequestUsingReferenceNumber " +
+                                    "@referenceNumber = :referenceNumber ")
+                    .setParameter("referenceNumber", referenceNumber)
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserRequestStatusDto.class));
+
+            return (UserRequestStatusDto) query.getSingleResult();
+
+        } catch (NoResultException e) {
+            // Graceful fallback
+            return null;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user request status");
+        }
+    }
+
 }
