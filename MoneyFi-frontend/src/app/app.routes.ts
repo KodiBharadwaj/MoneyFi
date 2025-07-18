@@ -19,6 +19,8 @@ import { ForgotUsernameComponent } from './forgot-username/forgot-username.compo
 import { ReportsInsightsComponent } from './reports-insights/reports-insights.component';
 import { RaiseRequestComponent } from './raise-request/raise-request.component';
 import { RequestTrackerComponent } from './request-tracker/request-tracker.component';
+import { AdminHomeComponent } from './admin-home/admin-home.component';
+import { AdminUsersComponent } from './admin-users/admin-users.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -29,6 +31,11 @@ export const routes: Routes = [
   { path: 'raise-request', component:RaiseRequestComponent },
   { path: 'otp-confirm', component: SignupOtpConfirmDialogComponent },
   { path: 'track-request', component: RequestTrackerComponent },
+  { path: 'admin/home', component: AdminHomeComponent },
+  { path: 'admin/users/:status', component: AdminUsersComponent },
+  // { path: 'admin/requests', component: AdminRequestsComponent },
+  // { path: 'admin/feedbacks', component: AdminFeedbacksComponent },
+  // { path: 'admin/configuration', component: AdminConfigurationComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard],children:[
     {path:'',component:OverviewComponent},
     {path:'overview',component:OverviewComponent},

@@ -1,0 +1,16 @@
+/* admin-users.component.css */
+.user-grid-container {
+  padding: 1rem;
+}
+
+.grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.grid-table th, .grid-table td {
+  border: 1px solid #ccc;
+  padding: 0.75rem;
+  text-align: left;
+}

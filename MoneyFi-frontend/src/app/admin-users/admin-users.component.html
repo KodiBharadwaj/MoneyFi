@@ -1,0 +1,25 @@
+<div class="user-grid-container">
+  <h2>{{ status }} Users</h2>
+  <table class="grid-table">
+    <thead>
+      <tr>
+        <th>S No</th>
+        <th>Name</th>
+        <th>Username</th>
+        <th>Phone</th>
+        <th>Created Date</th>
+        <th>Date of Birth</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.slNo }}</td>
+        <td>{{ user.name }}</td>
+        <td>{{ user.username }}</td>
+        <td>{{ user.phone }}</td>
+        <td>{{ user.createdDateTime }}</td>
+        <td>{{ user.dateOfBirth }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

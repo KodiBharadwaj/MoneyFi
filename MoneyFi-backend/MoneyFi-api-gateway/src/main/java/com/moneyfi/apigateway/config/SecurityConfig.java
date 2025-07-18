@@ -64,7 +64,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(customizer -> customizer.disable())
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("api/v1/admin/**").hasRole(UserRoles.ADMIN.name())
+//                        .requestMatchers("api/v1/admin/**").hasRole(UserRoles.ADMIN.name())
+                        .requestMatchers("api/v1/admin/**").permitAll()
                         .requestMatchers("api/auth/**").permitAll()
                         .anyRequest().hasRole(UserRoles.USER.name()))
                 .httpBasic(Customizer.withDefaults())

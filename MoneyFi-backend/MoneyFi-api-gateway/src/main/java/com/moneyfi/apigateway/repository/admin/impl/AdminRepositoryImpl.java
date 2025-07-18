@@ -91,6 +91,42 @@ public class AdminRepositoryImpl implements AdminRepository {
                 e.printStackTrace();
                 throw new QueryValidationException("Error occurred while fetching fetching blocked user grid details");
             }
+        } else {
+            try {
+                Query query = entityManager.createNativeQuery(
+                                "exec getBlockedUserDetailsForAdmin ")
+                        .unwrap(NativeQuery.class)
+                        .setResultTransformer(Transformers.aliasToBean(UserGridDto.class));
+
+                userGridDetails.addAll(query.getResultList());
+            } catch (Exception e){
+                e.printStackTrace();
+                throw new QueryValidationException("Error occurred while fetching fetching blocked user grid details");
+            }
+
+            try {
+                Query query = entityManager.createNativeQuery(
+                                "exec getDeletedUserDetailsForAdmin ")
+                        .unwrap(NativeQuery.class)
+                        .setResultTransformer(Transformers.aliasToBean(UserGridDto.class));
+
+                userGridDetails.addAll(query.getResultList());
+            } catch (Exception e){
+                e.printStackTrace();
+                throw new QueryValidationException("Error occurred while fetching fetching deleted user grid details");
+            }
+
+            try {
+                Query query = entityManager.createNativeQuery(
+                                "exec getActiveUserDetailsForAdmin ")
+                        .unwrap(NativeQuery.class)
+                        .setResultTransformer(Transformers.aliasToBean(UserGridDto.class));
+
+                userGridDetails.addAll(query.getResultList());
+            } catch (Exception e){
+                e.printStackTrace();
+                throw new QueryValidationException("Error occurred while fetching fetching active user grid details");
+            }
         }
 
         return userGridDetails;

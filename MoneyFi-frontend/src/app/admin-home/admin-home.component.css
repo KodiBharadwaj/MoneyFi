@@ -1,0 +1,91 @@
+/* admin-home.component.css */
+.admin-container {
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.top-nav {
+  background-color: #1e293b;
+  color: white;
+  padding: 1rem;
+  font-size: 1.5rem;
+}
+
+.brand {
+  font-weight: bold;
+}
+
+.layout {
+  display: flex;
+}
+
+.side-nav {
+  width: 220px;
+  background-color: #f1f5f9;
+  height: calc(100vh - 64px);
+  padding-top: 1rem;
+}
+
+.side-nav ul {
+  list-style: none;
+  padding: 0;
+}
+
+.side-nav li {
+  padding: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.side-nav li:hover {
+  background-color: #e2e8f0;
+}
+
+.main-content {
+  flex: 1;
+  padding: 1rem;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.tile {
+  background-color: #3b82f6;
+  color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.tile:hover {
+  transform: scale(1.03);
+}
+
+.grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+}
+
+.grid-table th, .grid-table td {
+  border: 1px solid #ccc;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.extra-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+section {
+  background-color: #f8fafc;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
