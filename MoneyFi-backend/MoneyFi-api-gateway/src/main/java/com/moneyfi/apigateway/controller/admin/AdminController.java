@@ -2,29 +2,29 @@ package com.moneyfi.apigateway.controller.admin;
 
 import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.service.admin.AdminService;
-import com.moneyfi.apigateway.service.admin.dto.AdminOverviewPageDto;
-import com.moneyfi.apigateway.service.admin.dto.UserGridDto;
+import com.moneyfi.apigateway.service.admin.dto.response.AdminOverviewPageDto;
+import com.moneyfi.apigateway.service.admin.dto.response.UserGridDto;
+import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/admin")
-//@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     private final AdminService adminService;
+    private final UserService userService;
 
-    public AdminController(AdminService adminService){
+    public AdminController(AdminService adminService,
+                           UserService userService){
         this.adminService = adminService;
-    }
-
-    @GetMapping("/test")
-    public String getAllUsers() {
-        return "Admin role is working";
+        this.userService = userService;
     }
 
     @Operation(summary = "Api to get the user count home page of admin")
@@ -51,5 +51,11 @@ public class AdminController {
                                                            @PathVariable("referenceNumber") String referenceNumber,
                                                            @PathVariable("requestStatus") String requestStatus){
         return adminService.accountReactivationAndNameChangeRequest(email, referenceNumber, requestStatus);
+    }
+
+    @Operation(summary = "Api to logout/making the token blacklist for admin")
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader("Authorization") String token) {
+        return ResponseEntity.ok(userService.logout(token));
     }
 }

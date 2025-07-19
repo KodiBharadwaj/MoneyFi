@@ -382,12 +382,13 @@ public class UserServiceImpl implements UserService {
             token = token.substring(7);
         }
 
-        Long userId = userRepository.getUserDetailsByUsername(jwtService.extractUserName(token)).getId();
-        String phoneNumber = profileRepository.findByUserId(userId).getPhone();
-
-        if(phoneNumber == null || phoneNumber.isEmpty()){
-            response.put(MESSAGE, "Phone number is empty");
-            return response;
+        UserAuthModel user = userRepository.getUserDetailsByUsername(jwtService.extractUserName(token));
+        if(userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase("USER")){
+            String phoneNumber = profileRepository.findByUserId(user.getId()).getPhone();
+            if(phoneNumber == null || phoneNumber.isEmpty()){
+                response.put(MESSAGE, "Phone number is empty");
+                return response;
+            }
         }
 
         BlackListedToken blackListedToken = makeUserTokenBlacklisted(token);

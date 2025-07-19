@@ -1,25 +1,59 @@
-<div class="user-grid-container">
-  <h2>{{ status }} Users</h2>
-  <table class="grid-table">
-    <thead>
-      <tr>
-        <th>S No</th>
-        <th>Name</th>
-        <th>Username</th>
-        <th>Phone</th>
-        <th>Created Date</th>
-        <th>Date of Birth</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let user of users">
-        <td>{{ user.slNo }}</td>
-        <td>{{ user.name }}</td>
-        <td>{{ user.username }}</td>
-        <td>{{ user.phone }}</td>
-        <td>{{ user.createdDateTime }}</td>
-        <td>{{ user.dateOfBirth }}</td>
-      </tr>
-    </tbody>
-  </table>
+<div class="admin-container">
+  <nav class="top-nav">
+    <div class="brand">MoneyFi Admin</div>
+  </nav>
+
+    <div class="user-grid-container">
+
+    <!-- Filter Inputs -->
+    <div class="filters">
+      <div class="filter-field">
+        <label for="name">Name:</label>
+        <input id="name" type="text" placeholder="Filter by Name" [(ngModel)]="nameFilter" />
+      </div>
+
+      <div class="filter-field">
+        <label for="username">Username:</label>
+        <input id="username" type="text" placeholder="Filter by Username" [(ngModel)]="usernameFilter" />
+      </div>
+
+      <div class="filter-field">
+        <label for="phone">Phone:</label>
+        <input id="phone" type="text" placeholder="Filter by Phone" [(ngModel)]="phoneFilter" />
+      </div>
+    </div>
+
+      <table class="grid-table">
+        <thead>
+          <tr>
+            <th>S No</th>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Phone</th>
+            <th>
+              Created Date
+              <span 
+                class="toggle-icon"
+                (click)="toggleOrder()" 
+                title="Toggle Order"
+              >
+                ⇅
+              </span>
+            </th>
+            <th> Date of Birth </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of filteredUsers(); let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ user.name }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.phone }}</td>
+            <td>{{ user.createdDateTime }}</td>
+            <td>{{ user.dateOfBirth }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
 </div>

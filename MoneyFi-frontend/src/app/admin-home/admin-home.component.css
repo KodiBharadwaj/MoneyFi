@@ -89,3 +89,26 @@ section {
   padding: 1rem;
   border-radius: 0.5rem;
 }
+
+
+
+
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  height: 93vh; /* Full height sidebar */
+  justify-content: space-between;
+  padding: 0;
+}
+
+.nav-list,
+.logout-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.side-nav li {
+  padding: 1rem;
+  cursor: pointer;
+}

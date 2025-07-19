@@ -21,10 +21,12 @@ import { RaiseRequestComponent } from './raise-request/raise-request.component';
 import { RequestTrackerComponent } from './request-tracker/request-tracker.component';
 import { AdminHomeComponent } from './admin-home/admin-home.component';
 import { AdminUsersComponent } from './admin-users/admin-users.component';
+import { AdminLoginComponent } from './admin-login/admin-login.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'login', component: LoginComponent },
+  { path: 'admin/login', component: AdminLoginComponent },
   { path: 'signup', component: SignupComponent },
   { path: 'forgot-password',component:ForgotPasswordComponent },
   { path: 'forgot-username', component:ForgotUsernameComponent },

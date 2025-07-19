@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.service.admin.dto;
+package com.moneyfi.apigateway.service.admin.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

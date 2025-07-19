@@ -7,7 +7,6 @@ import { LoginCredentials } from '../model/LoginCredentials';
 import { ToastrService } from 'ngx-toastr';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
-import { timeout } from 'rxjs';
 
 @Component({
   selector: 'app-login',

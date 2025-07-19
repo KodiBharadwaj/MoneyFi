@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.service.admin.dto;
+package com.moneyfi.apigateway.service.admin.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,4 +12,8 @@ public class AdminOverviewPageDto {
     private Long blockedUsers;
     private Long deletedUsers;
     private Long totalUsers;
+
+    private Long accountUnblockRequests;
+    private Long nameChangeRequests;
+    private Long accountReactivateRequests;
 }
