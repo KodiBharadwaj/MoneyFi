@@ -11,6 +11,7 @@ import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.admin.AdminService;
 import com.moneyfi.apigateway.service.admin.dto.response.AdminOverviewPageDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserGridDto;
+import com.moneyfi.apigateway.service.admin.dto.response.UserRequestsGridDto;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
@@ -74,21 +75,12 @@ public class AdminServiceImpl implements AdminService {
         if(requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
             user.setBlocked(false);
             userRepository.save(user);
-
-            contactUs.setRequestActive(false);
-            contactUs.setVerified(true);
-            contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
-            contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
-            contactUsRepository.save(contactUs);
+            methodToUpdateContactUsTable(contactUs);
         } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
+
             user.setDeleted(false);
             userRepository.save(user);
-
-            contactUs.setRequestActive(false);
-            contactUs.setVerified(true);
-            contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
-            contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
-            contactUsRepository.save(contactUs);
+            methodToUpdateContactUsTable(contactUs);
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
             ProfileModel userProfile = profileRepository.findByUserId(user.getId());
             if(!userProfile.getName().toLowerCase().contains(contactUs.getMessage().toLowerCase())){
@@ -97,17 +89,39 @@ public class AdminServiceImpl implements AdminService {
 
             userProfile.setName(contactUs.getName());
             profileRepository.save(userProfile);
-
-            contactUs.setRequestActive(false);
-            contactUs.setVerified(true);
-            contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
-            contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
-            contactUsRepository.save(contactUs);
+            methodToUpdateContactUsTable(contactUs);
         }
     }
 
+    private void methodToUpdateContactUsTable(ContactUs contactUs){
+        contactUs.setRequestActive(false);
+        contactUs.setVerified(true);
+        contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
+        contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+        contactUsRepository.save(contactUs);
+    }
+
     @Override
-    public List<ContactUs> getContactUsDetailsOfUsers() {
-        return adminRepository.getContactUsDetailsOfUsers();
+    public List<UserRequestsGridDto> getUserRequestsGridForAdmin(String status) {
+        String requestReason = null;
+        if(status.equalsIgnoreCase("Rename")){
+            requestReason = RequestReason.NAME_CHANGE_REQUEST.name();
+        } else if(status.equalsIgnoreCase("Unblock")){
+            requestReason = RequestReason.ACCOUNT_UNBLOCK_REQUEST.name();
+        } else if(status.equalsIgnoreCase("Retrieve")){
+            requestReason = RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name();
+        } else {
+            requestReason = "All";
+        }
+
+        List<UserRequestsGridDto> userRequestsGridDtoList = adminRepository.getUserRequestsGridForAdmin(requestReason);
+        userRequestsGridDtoList.forEach(userGrid -> {
+            if((status.equalsIgnoreCase("Rename") || status.equalsIgnoreCase("All"))
+                    && userGrid.getRequestType().equalsIgnoreCase("Name Change")){
+                userGrid.setDescription("My old name: " + userGrid.getDescription());
+                userGrid.setName("New Name: " + userGrid.getName());
+            }
+        });
+        return userRequestsGridDtoList;
     }
 }

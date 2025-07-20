@@ -7,7 +7,7 @@
     <aside class="side-nav">
       <ul class="nav-list">
         <li routerLink="/admin/home">Dashboard</li>
-        <li routerLink="/admin/requests">User Requests</li>
+        <li [routerLink]="['/admin/requests', 'All']">User Requests</li>
         <li routerLink="/admin/feedbacks">User Feedbacks</li>
         <li routerLink="/admin/configuration">Configuration</li>
       </ul>
@@ -16,42 +16,47 @@
       </ul>
     </aside>
 
-
     <main class="main-content">
-      <div class="tiles">
-        <div class="tile" [routerLink]="['/admin/users', 'totalUsers']">
-          <h3>Total Users</h3>
-          <h1>{{ totalUsers }}</h1>
+      <fieldset class="tile-group">
+        <legend class="group-title">Users Summary</legend>
+        <div class="tiles">
+          <div class="tile" [routerLink]="['/admin/users', 'totalUsers']">
+            <h3>Total Users</h3>
+            <h1>{{ totalUsers }}</h1>
+          </div>
+          <div class="tile" [routerLink]="['/admin/users', 'ACTIVE']">
+            <h3>Active Users</h3>
+            <h1>{{ activeUsers }}</h1>
+          </div>
+          <div class="tile" [routerLink]="['/admin/users', 'BLOCKED']">
+            <h3>Blocked Users</h3>
+            <h1>{{ blockedUsers }}</h1>
+          </div>
+          <div class="tile" [routerLink]="['/admin/users', 'DELETED']">
+            <h3>Deleted Users</h3>
+            <h1>{{ deletedUsers }}</h1>
+          </div>
         </div>
-        <div class="tile" [routerLink]="['/admin/users', 'ACTIVE']">
-          <h3>Active Users</h3>
-          <h1>{{ activeUsers }}</h1>
-        </div>
-        <div class="tile" [routerLink]="['/admin/users', 'BLOCKED']">
-          <h3>Blocked Users</h3>
-          <h1>{{ blockedUsers }}</h1>
-        </div>
-        <div class="tile" [routerLink]="['/admin/users', 'DELETED']">
-          <h3>Deleted Users</h3>
-          <h1>{{ deletedUsers }}</h1>
-        </div>
-      </div>
+      </fieldset>
 
-
-      <div class="tiles">
-        <div class="tile" [routerLink]="['/admin/users', 'totalUsers']">
-          <h3>Account Unblock Requests</h3>
-          <h1>{{ accountUnblockRequests }}</h1>
+      <br>
+      <fieldset class="tile-group">
+        <legend class="group-title">User Requests Summary</legend>
+        <div class="tiles tiles-3">
+          <div class="tile" [routerLink]="['/admin/requests', 'Unblock']">
+            <h3>Account Unblock Requests</h3>
+            <h1>{{ accountUnblockRequests }}</h1>
+          </div>
+          <div class="tile" [routerLink]="['/admin/requests', 'Rename']">
+            <h3>Name Change Requests</h3>
+            <h1>{{ nameChangeRequests }}</h1>
+          </div>
+          <div class="tile" [routerLink]="['/admin/requests', 'Retrieve']">
+            <h3>Account Reactivate Requests</h3>
+            <h1>{{ accountReactivateRequests }}</h1>
+          </div>
         </div>
-        <div class="tile" [routerLink]="['/admin/users', 'ACTIVE']">
-          <h3>Name Change Requests</h3>
-          <h1>{{ nameChangeRequests }}</h1>
-        </div>
-        <div class="tile" [routerLink]="['/admin/users', 'BLOCKED']">
-          <h3>Accounnt Reactivate Requests</h3>
-          <h1>{{ accountReactivateRequests }}</h1>
-        </div>
-      </div>
+      </fieldset>
     </main>
   </div>
 </div>

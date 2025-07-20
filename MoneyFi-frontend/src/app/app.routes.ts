@@ -22,6 +22,7 @@ import { RequestTrackerComponent } from './request-tracker/request-tracker.compo
 import { AdminHomeComponent } from './admin-home/admin-home.component';
 import { AdminUsersComponent } from './admin-users/admin-users.component';
 import { AdminLoginComponent } from './admin-login/admin-login.component';
+import { AdminRequestsComponent } from './admin-requests/admin-requests.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -35,7 +36,7 @@ export const routes: Routes = [
   { path: 'track-request', component: RequestTrackerComponent },
   { path: 'admin/home', component: AdminHomeComponent },
   { path: 'admin/users/:status', component: AdminUsersComponent },
-  // { path: 'admin/requests', component: AdminRequestsComponent },
+  { path: 'admin/requests/:status', component: AdminRequestsComponent },
   // { path: 'admin/feedbacks', component: AdminFeedbacksComponent },
   // { path: 'admin/configuration', component: AdminConfigurationComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard],children:[

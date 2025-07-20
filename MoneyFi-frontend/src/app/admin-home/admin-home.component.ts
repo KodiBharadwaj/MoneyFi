@@ -30,7 +30,7 @@ import { environment } from '../../environments/environment';
   styleUrl: './admin-home.component.css'
 })
 export class AdminHomeComponent implements OnInit {
-totalUsers = 0;
+  totalUsers = 0;
   activeUsers = 0;
   blockedUsers = 0;
   deletedUsers = 0;

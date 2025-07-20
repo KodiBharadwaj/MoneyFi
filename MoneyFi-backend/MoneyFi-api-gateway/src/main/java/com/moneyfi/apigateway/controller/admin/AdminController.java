@@ -1,9 +1,9 @@
 package com.moneyfi.apigateway.controller.admin;
 
-import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.service.admin.AdminService;
 import com.moneyfi.apigateway.service.admin.dto.response.AdminOverviewPageDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserGridDto;
+import com.moneyfi.apigateway.service.admin.dto.response.UserRequestsGridDto;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
@@ -39,10 +39,10 @@ public class AdminController {
         return adminService.getUserDetailsGridForAdmin(status);
     }
 
-    @Operation(summary = "Api to get the contact us details of the users")
-    @GetMapping("/fetch-contact-us")
-    public List<ContactUs> getContactUsDetailsOfUsers(){
-        return adminService.getContactUsDetailsOfUsers();
+    @Operation(summary = "Api to get the user requests for admin")
+    @GetMapping("/fetch-user-requests/grid")
+    public List<UserRequestsGridDto> getUserRequestsGridForAdmin(@RequestParam("status") String status){
+        return adminService.getUserRequestsGridForAdmin(status);
     }
 
     @Operation(summary = "Api to unblock/retrieve/name change of the user account with respective details")

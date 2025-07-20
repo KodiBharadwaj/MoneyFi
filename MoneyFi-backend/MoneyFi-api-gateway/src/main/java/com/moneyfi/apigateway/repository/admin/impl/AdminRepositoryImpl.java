@@ -1,10 +1,10 @@
 package com.moneyfi.apigateway.repository.admin.impl;
 
 import com.moneyfi.apigateway.exceptions.QueryValidationException;
-import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.repository.admin.AdminRepository;
 import com.moneyfi.apigateway.service.admin.dto.response.AdminOverviewPageDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserGridDto;
+import com.moneyfi.apigateway.service.admin.dto.response.UserRequestsGridDto;
 import com.moneyfi.apigateway.util.enums.UserStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -38,12 +38,14 @@ public class AdminRepositoryImpl implements AdminRepository {
     }
 
     @Override
-    public List<ContactUs> getContactUsDetailsOfUsers() {
+    public List<UserRequestsGridDto> getUserRequestsGridForAdmin(String requestReason) {
         try {
             Query query = entityManager.createNativeQuery(
-                            "exec getContactUsDetailsOfUsers ")
-                    .unwrap(NativeQuery.class);
-
+                            "exec getUserRequestsGridForAdmin " +
+                                    "@requestReason = :requestReason")
+                    .setParameter("requestReason", requestReason)
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserRequestsGridDto.class));
             return query.getResultList();
         } catch (Exception e){
             e.printStackTrace();

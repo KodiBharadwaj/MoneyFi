@@ -1,0 +1,40 @@
+<div class="admin-container">
+  <nav class="top-nav">
+    <div class="brand">MoneyFi Admin</div>
+  </nav>
+
+  <div class="table-container">
+    <table class="user-table" *ngIf="requests.length > 0; else noRequests">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Request Type</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Reference Number</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let request of requests">
+          <td>{{ request.username }}</td>
+          <td>{{ request.requestType }}</td>
+          <td>{{ request.name }}</td>
+          <td>{{ request.description }}</td>
+          <td>
+            <span class="ref-text">{{ request.referenceNumber }}</span>
+            <button class="copy-btn" (click)="copyToClipboard(request.referenceNumber)">📋</button>
+          </td>
+          <td>
+            <button class="approve-btn" (click)="approveUserRequest(request, status)">Approve</button>
+          </td>
+
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #noRequests>
+    <div class="no-data">No user requests found.</div>
+  </ng-template>
+</div>
