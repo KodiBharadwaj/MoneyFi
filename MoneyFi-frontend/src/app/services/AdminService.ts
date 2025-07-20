@@ -17,4 +17,8 @@ export class AdminService {
   getUsersByStatus(status: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/api/v1/admin/user-details/grid?status=${status}`);
   }
+
+  getUserRequestsByStatus(status: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/api/v1/admin/fetch-user-requests/grid?status=${status}`);
+  }
 }
