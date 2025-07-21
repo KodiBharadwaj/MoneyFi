@@ -57,6 +57,21 @@
           </div>
         </div>
       </fieldset>
+
+      <br>
+      <fieldset class="tile-group">
+        <legend class="group-title">User Requests Summary</legend>
+        <div class="tiles tiles-2">
+          <div class="tile" [routerLink]="['/admin/requests', 'Unblock']">
+            <h3>Issues/Defects</h3>
+            <h1>{{ userDefectRaises }}</h1>
+          </div>
+          <div class="tile" [routerLink]="['/admin/requests', 'Rename']">
+            <h3>User feedback</h3>
+            <h1>{{ userFeedbacks }}</h1>
+          </div>
+        </div>
+      </fieldset>
     </main>
   </div>
 </div>

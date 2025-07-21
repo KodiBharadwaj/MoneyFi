@@ -76,6 +76,11 @@
   grid-template-columns: repeat(3, 1fr);
 }
 
+.tiles-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+
 /* --- INDIVIDUAL TILE --- */
 .tile {
   background-color: #3b82f6;
