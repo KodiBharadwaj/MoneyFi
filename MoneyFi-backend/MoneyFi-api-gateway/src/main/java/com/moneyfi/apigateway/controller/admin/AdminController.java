@@ -3,6 +3,7 @@ package com.moneyfi.apigateway.controller.admin;
 import com.moneyfi.apigateway.service.admin.AdminService;
 import com.moneyfi.apigateway.service.admin.dto.response.AdminOverviewPageDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserGridDto;
+import com.moneyfi.apigateway.service.admin.dto.response.UserProfileAndRequestDetailsDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserRequestsGridDto;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -68,8 +69,14 @@ public class AdminController {
     @Operation(summary = "Api to the user count in every month for chart")
     @GetMapping("/{year}/user-monthly-count")
     public Map<Integer, Integer> getUserMonthlyCountInAYear(@PathVariable("year") int year,
-                                                                @RequestParam("status") String status){
+                                                            @RequestParam("status") String status){
         return adminService.getUserMonthlyCountInAYear(year, status);
+    }
+
+    @Operation(summary = "Api to get the user profile details for admin")
+    @GetMapping("user-profile-details")
+    public UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(@RequestParam("username") String username){
+        return adminService.getCompleteUserDetailsForAdmin(username);
     }
 
     @Operation(summary = "Api to logout/making the token blacklist for admin")

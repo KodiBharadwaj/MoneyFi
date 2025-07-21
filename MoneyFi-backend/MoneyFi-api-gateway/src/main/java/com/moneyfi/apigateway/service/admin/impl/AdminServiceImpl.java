@@ -12,6 +12,7 @@ import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.admin.AdminService;
 import com.moneyfi.apigateway.service.admin.dto.response.AdminOverviewPageDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserGridDto;
+import com.moneyfi.apigateway.service.admin.dto.response.UserProfileAndRequestDetailsDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserRequestsGridDto;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
@@ -220,5 +221,10 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status) {
         return adminRepository.getUserMonthlyCountInAYear(year, status);
+    }
+
+    @Override
+    public UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username) {
+        return adminRepository.getCompleteUserDetailsForAdmin(username);
     }
 }

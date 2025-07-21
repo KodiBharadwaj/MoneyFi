@@ -51,14 +51,15 @@ export class FeedbackFormComponent {
 
   submitFeedback() {
     if (this.feedback.name && this.feedback.email && this.feedback.rating) {
-      const contactDto = {
-        name : this.feedback.name,
-        email : this.feedback.email,
-        rating : this.feedback.rating,
-        comments : this.feedback.comments
-      }
 
-      this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/feedback`, contactDto).subscribe(
+      const contactData = {
+        name: this.feedback.name,
+        email: this.feedback.email,
+        message: this.feedback.rating + '/' + this.feedback.comments,
+        images: '',
+      };
+
+      this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/feedback`, contactData).subscribe(
         (response) => {
           this.toastr.success('Feedback submitted successfully!', '', {
             timeOut: 1500  // toast visible for 3 seconds

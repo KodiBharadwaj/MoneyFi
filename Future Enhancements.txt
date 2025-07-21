@@ -9,6 +9,7 @@ Minor Changes:
 - Write Junit test cases for income service (ongoing)
 - Implement block account feature in user profile with mail confirmation.
 - Restrict admin login in user login page.
+- Add variables during defect sending and feedback sending.
 
 
 

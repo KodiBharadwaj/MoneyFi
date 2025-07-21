@@ -1,7 +1,6 @@
 package com.moneyfi.apigateway.util;
 
 import com.moneyfi.apigateway.model.common.ContactUs;
-import com.moneyfi.apigateway.model.common.Feedback;
 
 import java.util.Base64;
 
@@ -99,6 +98,8 @@ public class EmailTemplates {
                 + "<br> <hr>"
                 + "<p style='font-size: 14px;'>" + contactUsDetails.getName() + "</p>"
                 + "<p style='font-size: 14px;'>" + contactUsDetails.getEmail() + "</p>"
+                + "<br>"
+                + "<p style='font-size: 16px;'>Please login for more details</p>"
                 + "</body>"
                 + "</html>";
 
@@ -110,17 +111,17 @@ public class EmailTemplates {
         EmailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, "user.jpg");
     }
 
-    public static void feedbackAlertMail(Feedback feedback){
+    public static void feedbackAlertMail(String rating, String message){
         String subject = "MoneyFi's User Feedback";
 
         String body = "<html>"
                 + "<body>"
                 + "<p style='font-size: 16px;'>Hello Admin,</p>"
                 + "<br>"
-                + "<p style='font-size: 16px;'> You received feedback: " + feedback.getRating() + "/5 </p>"
+                + "<p style='font-size: 16px;'> You received feedback: " + rating + "/5 </p>"
                 + "<br>"
                 + "<p style='font-size: 16px;'>Comment: </p>"
-                + "<p style='font-size: 16px;'>" + feedback.getComments() + "</p>";
+                + "<p style='font-size: 16px;'>" + message + "</p>";
 
         EmailFilter.sendEmail(ADMIN_EMAIL, subject, body);
     }

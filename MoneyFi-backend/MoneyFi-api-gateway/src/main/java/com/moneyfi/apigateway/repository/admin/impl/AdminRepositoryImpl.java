@@ -4,6 +4,7 @@ import com.moneyfi.apigateway.exceptions.QueryValidationException;
 import com.moneyfi.apigateway.repository.admin.AdminRepository;
 import com.moneyfi.apigateway.service.admin.dto.response.AdminOverviewPageDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserGridDto;
+import com.moneyfi.apigateway.service.admin.dto.response.UserProfileAndRequestDetailsDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserRequestsGridDto;
 import com.moneyfi.apigateway.util.enums.UserStatus;
 import jakarta.persistence.EntityManager;
@@ -157,6 +158,23 @@ public class AdminRepositoryImpl implements AdminRepository {
         } catch (Exception e){
             e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching user monthly count in a year");
+        }
+    }
+
+    @Override
+    public UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username) {
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getCompleteUserDetailsForAdmin " +
+                                    "@username = :username")
+                    .setParameter("username", username)
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserProfileAndRequestDetailsDto.class));
+
+            return (UserProfileAndRequestDetailsDto) query.getSingleResult();
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user complete details for admin");
         }
     }
 }

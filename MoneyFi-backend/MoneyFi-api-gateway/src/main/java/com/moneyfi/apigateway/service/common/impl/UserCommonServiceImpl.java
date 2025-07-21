@@ -331,6 +331,8 @@ public class UserCommonServiceImpl implements UserCommonService {
             userRequestResponse.setRequestType("Requested to unblock the account");
         } else if(userRequestResponse.getRequestType().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
             userRequestResponse.setRequestType("Requested to retrieve the account");
+        } else if(userRequestResponse.getRequestType().equalsIgnoreCase(RequestReason.USER_DEFECT_UPDATE.name())){
+            userRequestResponse.setRequestType("Issue raised");
         }
 
         if(userRequestResponse.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){

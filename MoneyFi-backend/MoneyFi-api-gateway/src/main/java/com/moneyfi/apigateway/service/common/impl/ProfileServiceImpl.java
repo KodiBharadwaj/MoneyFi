@@ -1,35 +1,35 @@
 package com.moneyfi.apigateway.service.common.impl;
 
 import com.moneyfi.apigateway.model.common.ContactUs;
-import com.moneyfi.apigateway.model.common.Feedback;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
 import com.moneyfi.apigateway.repository.user.ContactUsRepository;
-import com.moneyfi.apigateway.repository.user.FeedbackRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.service.common.ProfileService;
 import com.moneyfi.apigateway.service.common.dto.response.ProfileDetailsDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
+import com.moneyfi.apigateway.util.constants.StringUtils;
+import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
+import com.moneyfi.apigateway.util.enums.RequestReason;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+
+import static com.moneyfi.apigateway.util.constants.StringUtils.generateVerificationCode;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
 
     private final ProfileRepository profileRepository;
     private final ContactUsRepository contactUsRepository;
-    private final FeedbackRepository feedbackRepository;
     private final CommonServiceRepository commonServiceRepository;
 
     public ProfileServiceImpl(ProfileRepository profileRepository,
                               ContactUsRepository contactUsRepository,
-                              FeedbackRepository feedbackRepository,
                               CommonServiceRepository commonServiceRepository){
         this.profileRepository = profileRepository;
         this.contactUsRepository = contactUsRepository;
-        this.feedbackRepository = feedbackRepository;
         this.commonServiceRepository = commonServiceRepository;
     }
 
@@ -68,16 +68,32 @@ public class ProfileServiceImpl implements ProfileService {
                 EmailTemplates.sendContactAlertMail(contactUsDetails, contactUsDetails.getImages())
         ).start();
 
+        contactUsDetails.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
+        contactUsDetails.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+        contactUsDetails.setRequestActive(true);
+        contactUsDetails.setVerified(false);
+
+        String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
+        new Thread(() ->
+                EmailTemplates.sendReferenceNumberEmail(contactUsDetails.getName(), contactUsDetails.getEmail(), "resolve issue", referenceNumber)
+        ).start();
+        contactUsDetails.setReferenceNumber(referenceNumber);
         return contactUsRepository.save(contactUsDetails);
     }
 
     @Override
-    public Feedback saveFeedback(Feedback feedback) {
+    public ContactUs saveFeedback(ContactUs feedback) {
+        String rating = feedback.getMessage().substring(0,1);
+        String message = feedback.getMessage().substring(2);
         new Thread(() ->
-                EmailTemplates.feedbackAlertMail(feedback)
+                EmailTemplates.feedbackAlertMail(rating , message)
         ).start();
 
-        return feedbackRepository.save(feedback);
+        feedback.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
+        feedback.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+        feedback.setRequestActive(true);
+        feedback.setVerified(false);
+        return contactUsRepository.save(feedback);
     }
 
     @Override
