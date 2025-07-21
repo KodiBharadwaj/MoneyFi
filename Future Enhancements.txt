@@ -1,37 +1,26 @@
 Project MoneyFi:
 
 Major Changes:
+- Admin role implementation (progress)
 - Google authentication
 
 
 Minor Changes:
-- Write junit test cases for income service (ongoing)
-- Landing page, so may buttons are there in the footer. Add the necessary info.
+- Write Junit test cases for income service (ongoing)
+- Implement block account feature in user profile with mail confirmation.
+- Restrict admin login in user login page.
 
-- Create a new table called user_role instead of doing with role_id <> 1
-- avoid repeatition in sps. Try call other sp in existing sp.
 
 
 New Feature
-1) (Account statement)
-- Account statement - ui in progress
-
 2) (New Role - Admin)
-- while sending reference mail to user, check whether the account is blocked or not.
-if blocked, send it
-- Admin can see the accounts blocked/ accounts deleted so that he can enable them when request received by the user. 
-- When user sends an defect/contact mail to admin, admin should get the notification in his ui.
-- Admin can able to see the accounts blocked/deleted based on the latest time.
-- Admin can only reactive the accounts if request received else no.
-- Admin should able to see Total count tile of actie user and inactive users. By cliking on the respective tile, Admin can able to see the active/inactive users with fields Name, Email, Phone, Created Date time, Active or not, Dob with pagination implemented. The users should be listed based on latest created account by default, can be changed in ui if needed.
-- At the top of the grid, Admin can filter users based on email, name, phone.
-- Admin can change the name of the user if only request received by the user regarding name issue. (implement dropdown of request change in contact us section)
-- Admin should able to see all the concerns recieved by the user
-- Admin should able to see the feedback submitted by the users with no user details.
-- As of now only one admin is required, if needed there can be multiple admins.
+- When user sends an defect/contact mail to admin, admin should get the notification in his UI.
+- Implement dropdown when admin sees all the requests in one page to filter out based on request type.
+- Admin should able to see the feedback submitted by the users with no user details & defects.
 - Admin should have right to disable features of the user. This can be done to all or to particular users.
  -- Configuration for account statement.
- -- Configuraton for Ai Analysis.
+ -- Configuration for Ai Analysis.
+- While seeing user grid, username should be clickable and when clicked, all the details along with profile pic should be visible in a dialog. It should contains all the requests (ongoing, completed) etc.
 
 3) Introduce cloud drive which stores the user data like his personal things like secure vault.
 
@@ -54,7 +43,7 @@ cleared changes:
 - Add remaining time for further otp and make only 3 otp's in a day. (ongoing) and if 3 otp's crossed, user should get the message in frontend.
 - In the confirm delete dialog box, it should show the income/expense/goal source name.
 - while deleting a transaction(income/expense/goal), the toast should display source name.
-- Change all Autowired to constructor based while calling the other servce.
+- Change all Autowired to constructor based while calling the other service.
 - Excel export generation of income and expenses of a user.
 - Add some more fields in profile, Also it should show for a user ex: member since nov, 2024.
 - Put contact us section. and feedback section.
@@ -66,6 +55,9 @@ cleared changes:
 - check with sonar for code quality and sonar fixes.
 - Modify Budget Promise bunch api calls to singe api while adding or modifying a budget.
 - Implement forgot username feature (user should receive mail by providing necessary details like dob, phn No)
+- Create a new table called user_role instead of doing with role_id <> 1
+- avoid repetition in sps. Try call other sp in existing sp.
+- (Account statement) Account statement generation for the user in a specific period
 
 
 
@@ -88,8 +80,8 @@ cleared defects:
 - When a service is failed or stopped working, it should show service unavailable, should not throw error.
 - category section is not working properly in income, expense and budget services.
 - User should not be able to add the future transactions in income, expense.
-- Implement @Transactional for the methods which deals with greater than two jpa save operation to avoid half implmentation.
-- Implement dto feature to fetch data to exclue user id - data bleach
+- Implement @Transactional for the methods which deals with greater than two jpa save operation to avoid half implementation.
+- Implement dto feature to fetch data to exclude user id - data bleach
 - Text should not be acceptable in the profile phone number input.
 - DOB in profile is showing current date before loading and in server error time.
 - user id exposing during updating a transaction in all services.
