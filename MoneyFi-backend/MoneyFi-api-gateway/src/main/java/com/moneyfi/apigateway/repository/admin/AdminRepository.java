@@ -1,11 +1,11 @@
 package com.moneyfi.apigateway.repository.admin;
 
-import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.service.admin.dto.response.AdminOverviewPageDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserGridDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserRequestsGridDto;
 
 import java.util.List;
+import java.util.Map;
 
 public interface AdminRepository {
     AdminOverviewPageDto getAdminOverviewPageDetails();
@@ -13,4 +13,6 @@ public interface AdminRepository {
     List<UserRequestsGridDto> getUserRequestsGridForAdmin(String requestReason);
 
     List<UserGridDto> getUserDetailsGridForAdmin(String status);
+
+    Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status);
 }

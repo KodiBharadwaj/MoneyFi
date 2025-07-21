@@ -430,6 +430,23 @@ BEGIN
 
 END
 GO
+
+CREATE PROCEDURE getUserMonthlyCountInAYear (
+	@year INT
+	)
+AS
+BEGIN
+	
+	SET NOCOUNT ON;
+
+    SELECT MONTH(updt.created_date) AS month
+		,COUNT(uat.id) AS userCount
+	FROM user_auth_table uat WITH (NOLOCK)
+	INNER JOIN user_profile_details_table updt WITH (NOLOCK) ON updt.user_id = uat.id
+	GROUP BY MONTH(updt.created_date)
+END
+GO
+
 /****** Object:  StoredProcedure [dbo].[getAllBudgetsByUserId]    Script Date: 20-07-2025 22:13:42 ******/
 SET ANSI_NULLS ON
 GO

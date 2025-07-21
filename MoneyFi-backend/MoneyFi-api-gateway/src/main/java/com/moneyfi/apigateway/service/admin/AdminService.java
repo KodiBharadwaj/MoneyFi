@@ -5,6 +5,7 @@ import com.moneyfi.apigateway.service.admin.dto.response.UserGridDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserRequestsGridDto;
 
 import java.util.List;
+import java.util.Map;
 
 public interface AdminService {
     AdminOverviewPageDto getAdminOverviewPageDetails();
@@ -16,4 +17,6 @@ public interface AdminService {
     byte[] getUserDetailsExcelForAdmin(String status);
 
     boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus);
+
+    Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status);
 }

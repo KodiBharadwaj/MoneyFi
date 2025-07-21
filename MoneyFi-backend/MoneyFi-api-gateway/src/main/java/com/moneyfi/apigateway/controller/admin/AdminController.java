@@ -65,6 +65,13 @@ public class AdminController {
         return adminService.accountReactivationAndNameChangeRequest(email, referenceNumber, requestStatus);
     }
 
+    @Operation(summary = "Api to the user count in every month for chart")
+    @GetMapping("/{year}/user-monthly-count")
+    public Map<Integer, Integer> getUserMonthlyCountInAYear(@PathVariable("year") int year,
+                                                                @RequestParam("status") String status){
+        return adminService.getUserMonthlyCountInAYear(year, status);
+    }
+
     @Operation(summary = "Api to logout/making the token blacklist for admin")
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader("Authorization") String token) {

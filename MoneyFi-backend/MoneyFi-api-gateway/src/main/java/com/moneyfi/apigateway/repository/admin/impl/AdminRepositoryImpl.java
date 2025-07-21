@@ -14,7 +14,9 @@ import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class AdminRepositoryImpl implements AdminRepository {
@@ -132,5 +134,29 @@ public class AdminRepositoryImpl implements AdminRepository {
         }
 
         return userGridDetails;
+    }
+
+    @Override
+    public Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status) {
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getUserMonthlyCountInAYear " +
+                                    "@year = :year")
+                    .setParameter("year", year)
+                    .unwrap(NativeQuery.class);
+
+            List<Object[]> resultList = query.getResultList();
+
+            Map<Integer, Integer> resultMap = new HashMap<>();
+            for (Object[] row : resultList) {
+                Integer month = (Integer) row[0];
+                Integer count = (Integer) row[1];
+                resultMap.put(month, count);
+            }
+            return resultMap;
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user monthly count in a year");
+        }
     }
 }

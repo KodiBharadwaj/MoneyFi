@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -214,5 +215,10 @@ public class AdminServiceImpl implements AdminService {
             }
         });
         return userRequestsGridDtoList;
+    }
+
+    @Override
+    public Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status) {
+        return adminRepository.getUserMonthlyCountInAYear(year, status);
     }
 }
