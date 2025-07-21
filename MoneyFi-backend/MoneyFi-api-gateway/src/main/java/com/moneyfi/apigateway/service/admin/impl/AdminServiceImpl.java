@@ -1,5 +1,6 @@
 package com.moneyfi.apigateway.service.admin.impl;
 
+import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.model.common.ContactUs;
@@ -15,8 +16,12 @@ import com.moneyfi.apigateway.service.admin.dto.response.UserRequestsGridDto;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -52,6 +57,92 @@ public class AdminServiceImpl implements AdminService {
         AtomicInteger i = new AtomicInteger(1);
         userGridDtoList.forEach(user -> user.setSlNo(i.getAndIncrement()));
         return userGridDtoList;
+    }
+
+    @Override
+    public byte[] getUserDetailsExcelForAdmin(String status) {
+        List<UserGridDto> userGridDtoList = getUserDetailsGridForAdmin(status);
+        if(userGridDtoList.isEmpty()){
+            throw new ResourceNotFoundException("No user data found to generate excel");
+        }
+        return generateExcelReport(userGridDtoList);
+    }
+
+    private byte[] generateExcelReport(List<UserGridDto> userGridDtoList){
+        try(Workbook workbook = new XSSFWorkbook()){
+            Sheet sheet = workbook.createSheet("User Details Report");
+
+            // Create Header Row
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"S No", "Name", "Username", "Phone", "Created Time", "Date of Birth"};
+            for(int i=0; i< headers.length; i++){
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(createHeaderStyle(workbook));
+            }
+
+            // Create a Date Style
+            CellStyle dateStyle = createDateStyle(workbook);
+
+            // Populate Data Rows
+            int rowIndex = 1;
+            for (UserGridDto data : userGridDtoList) {
+                Row row = sheet.createRow(rowIndex++);
+                row.createCell(0).setCellValue(data.getSlNo());
+                row.createCell(1).setCellValue(data.getName());
+                row.createCell(2).setCellValue(data.getUsername());
+                row.createCell(3).setCellValue(data.getPhone());
+                // Format Date Properly
+                Cell dateCell = row.createCell(4);
+                dateCell.setCellValue(data.getCreatedDateTime()); // Assuming data.getDate() is `java.util.Date`
+                dateCell.setCellStyle(dateStyle); // Apply formatting
+
+                Cell dateCell2 = row.createCell(5);
+                dateCell2.setCellValue(data.getDateOfBirth()); // Assuming data.getDate() is `java.util.Date`
+                dateCell2.setCellStyle(dateStyle); // Apply formatting
+            }
+
+            // Auto-size columns
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            // Convert to byte array
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            return outputStream.toByteArray();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new ResourceNotFoundException("Error in generating excel report");
+        }
+    }
+
+    private CellStyle createDateStyle(Workbook workbook) {
+        CellStyle dateStyle = workbook.createCellStyle();
+        CreationHelper createHelper = workbook.getCreationHelper();
+        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy")); // Change format as needed
+        return dateStyle;
+    }
+
+    private CellStyle createHeaderStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+
+        font.setBold(true);
+        style.setFont(font);
+
+        // Set Background Color
+        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex()); // Yellow background
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND); // Apply solid fill
+
+        // Set Border (Optional)
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+
+        return style;
     }
 
     @Override

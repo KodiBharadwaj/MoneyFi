@@ -6,6 +6,8 @@ import com.moneyfi.apigateway.service.admin.dto.response.UserGridDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserRequestsGridDto;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +39,16 @@ public class AdminController {
     @GetMapping("/user-details/grid")
     public List<UserGridDto> getUserDetailsGridForAdmin(@RequestParam("status") String status){
         return adminService.getUserDetailsGridForAdmin(status);
+    }
+
+    @Operation(summary = "Api to get active user grid details as excel report")
+    @GetMapping("/user-details/excel")
+    public ResponseEntity<byte[]> getUserDetailsExcelForAdmin(@RequestParam("status") String status){
+        byte[] excelData = adminService.getUserDetailsExcelForAdmin(status);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+status+"_user_list.xlsx")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(excelData);
     }
 
     @Operation(summary = "Api to get the user requests for admin")

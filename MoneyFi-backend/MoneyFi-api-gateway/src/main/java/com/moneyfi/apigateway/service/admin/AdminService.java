@@ -13,5 +13,7 @@ public interface AdminService {
 
     List<UserGridDto> getUserDetailsGridForAdmin(String status);
 
+    byte[] getUserDetailsExcelForAdmin(String status);
+
     boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus);
 }

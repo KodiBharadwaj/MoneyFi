@@ -21,6 +21,9 @@ New Feature
  -- Configuration for account statement.
  -- Configuration for Ai Analysis.
 - While seeing user grid, username should be clickable and when clicked, all the details along with profile pic should be visible in a dialog. It should contains all the requests (ongoing, completed) etc.
+- Implement schedule notifications for admin to send notifications to users (useful when downtime of app)
+- Introduce chart which shows users creation count with each month in a year. Year can be set in filter.(bar)
+- Introduce excel generation for current user grids. (total, active, blocked, deleted)
 
 3) Introduce cloud drive which stores the user data like his personal things like secure vault.
 
