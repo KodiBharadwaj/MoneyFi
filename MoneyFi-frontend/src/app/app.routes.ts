@@ -23,6 +23,7 @@ import { AdminHomeComponent } from './admin-home/admin-home.component';
 import { AdminUsersComponent } from './admin-users/admin-users.component';
 import { AdminLoginComponent } from './admin-login/admin-login.component';
 import { AdminRequestsComponent } from './admin-requests/admin-requests.component';
+import { AdminInsightsComponent } from './admin-insights/admin-insights.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -37,6 +38,7 @@ export const routes: Routes = [
   { path: 'admin/home', component: AdminHomeComponent },
   { path: 'admin/users/:status', component: AdminUsersComponent },
   { path: 'admin/requests/:status', component: AdminRequestsComponent },
+  { path: 'admin/insights', component: AdminInsightsComponent },
   // { path: 'admin/feedbacks', component: AdminFeedbacksComponent },
   // { path: 'admin/configuration', component: AdminConfigurationComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard],children:[

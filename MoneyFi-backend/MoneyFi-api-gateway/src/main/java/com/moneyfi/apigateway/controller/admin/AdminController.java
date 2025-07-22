@@ -67,7 +67,7 @@ public class AdminController {
     }
 
     @Operation(summary = "Api to the user count in every month for chart")
-    @GetMapping("/{year}/user-monthly-count")
+    @GetMapping("/{year}/user-monthly-count/chart")
     public Map<Integer, Integer> getUserMonthlyCountInAYear(@PathVariable("year") int year,
                                                             @RequestParam("status") String status){
         return adminService.getUserMonthlyCountInAYear(year, status);

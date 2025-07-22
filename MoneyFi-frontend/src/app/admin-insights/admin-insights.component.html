@@ -1,0 +1,17 @@
+<div class="chart-container">
+  <div class="chart-box">
+    <canvas baseChart
+            [data]="userMonthlyChartData"
+            [options]="userMonthlyChartOptions"
+            chartType="bar">
+    </canvas>
+  </div>
+
+  <div class="chart-box">
+  <canvas baseChart
+          [data]="dummyChartData"
+          [options]="dummyChartOptions"
+          [type]="'bar'">
+  </canvas>
+</div>
+
