@@ -14,6 +14,7 @@ import com.moneyfi.apigateway.service.admin.dto.response.AdminOverviewPageDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserGridDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserProfileAndRequestDetailsDto;
 import com.moneyfi.apigateway.service.admin.dto.response.UserRequestsGridDto;
+import com.moneyfi.apigateway.service.common.S3AwsService;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
@@ -34,15 +35,18 @@ public class AdminServiceImpl implements AdminService {
     private final ContactUsRepository contactUsRepository;
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
+    private final S3AwsService s3AwsService;
 
     public AdminServiceImpl(AdminRepository adminRepository,
                             ContactUsRepository contactUsRepository,
                             UserRepository userRepository,
-                            ProfileRepository profileRepository){
+                            ProfileRepository profileRepository,
+                            S3AwsService s3AwsService){
         this.adminRepository = adminRepository;
         this.contactUsRepository = contactUsRepository;
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
+        this.s3AwsService = s3AwsService;
     }
 
     @Override
@@ -225,6 +229,10 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username) {
-        return adminRepository.getCompleteUserDetailsForAdmin(username);
+        UserProfileAndRequestDetailsDto userDetails = adminRepository.getCompleteUserDetailsForAdmin(username);
+        new Thread(
+                () -> userDetails.setImageFromS3(s3AwsService.fetchUserProfilePictureFromS3(userDetails.getUserId(), username))
+        ).start();
+        return userDetails;
     }
 }

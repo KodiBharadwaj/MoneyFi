@@ -1,14 +1,7 @@
 package com.moneyfi.apigateway.service.userservice.impl;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.model.*;
-import com.amazonaws.util.IOUtils;
-import com.moneyfi.apigateway.exceptions.S3AwsErrorThrowException;
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.OtpTempModel;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
@@ -17,16 +10,15 @@ import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
+import com.moneyfi.apigateway.service.common.S3AwsService;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.userservice.dto.*;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
-import com.moneyfi.apigateway.util.EmailFilter;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,10 +32,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -57,9 +45,6 @@ import static com.moneyfi.apigateway.util.constants.StringUtils.*;
 @Slf4j
 public class UserServiceImpl implements UserService {
 
-    @Value("${application.bucket.name}")
-    private String bucketName;
-
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     private final UserRepository userRepository;
@@ -67,9 +52,9 @@ public class UserServiceImpl implements UserService {
     private final JwtService jwtService;
     private final ProfileRepository profileRepository;
     private final UserCommonService userCommonService;
+    private final S3AwsService s3AwsService;
 
     private final AuthenticationManager authenticationManager;
-    private final AmazonS3 s3Client;
     private final AmazonSimpleEmailService amazonSimpleEmailService;
 
     public UserServiceImpl(UserRepository userRepository,
@@ -78,16 +63,16 @@ public class UserServiceImpl implements UserService {
                            ProfileRepository profileRepository,
                            UserCommonService userCommonService,
                            AuthenticationManager authenticationManager,
-                           AmazonS3 s3Client,
-                           AmazonSimpleEmailService amazonSimpleEmailService){
+                           AmazonSimpleEmailService amazonSimpleEmailService,
+                           S3AwsService s3AwsService){
         this.userRepository = userRepository;
         this.otpTempRepository = otpTempRepository;
         this.jwtService = jwtService;
         this.profileRepository = profileRepository;
         this.userCommonService = userCommonService;
         this.authenticationManager = authenticationManager;
-        this.s3Client = s3Client;
         this.amazonSimpleEmailService = amazonSimpleEmailService;
+        this.s3AwsService = s3AwsService;
     }
 
     @Override
@@ -438,82 +423,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String uploadUserProfilePictureToS3(String username, MultipartFile file) throws IOException {
-        File fileObj = null;
-
-        try {
-            fileObj = convertMultiPartFileToFile(file);
-            String fileName = generateFileNameForUserProfilePicture(getUserIdByUsername(username), username);
-
-            s3Client.putObject(new PutObjectRequest(bucketName, fileName, fileObj));
-            return "Profile Picture Uploaded!";
-        } catch (AmazonServiceException e) {
-            e.printStackTrace();
-            throw new S3AwsErrorThrowException("Exception occurred while uploading profile picture");
-        } finally {
-            if (fileObj != null && fileObj.exists()) {
-                try {
-                    Files.delete(fileObj.toPath());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+    public String uploadUserProfilePictureToS3(String username, MultipartFile file) {
+        return s3AwsService.uploadUserProfilePictureToS3(getUserIdByUsername(username), username, file);
     }
 
     @Override
     public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username) {
-
-        try {
-            S3Object s3Object = s3Client.getObject(bucketName,
-                    generateFileNameForUserProfilePicture(getUserIdByUsername(username), username));
-            S3ObjectInputStream inputStream = s3Object.getObjectContent();
-
-            byte[] data = IOUtils.toByteArray(inputStream);
-            ByteArrayResource resource = new ByteArrayResource(data);
-            return ResponseEntity
-                    .ok()
-                    .contentLength(data.length)
-                    .header("Content-type", "application/octet-stream")
-                    .header("Content-disposition", "attachment; filename=\"" + "profile_picture" + ".jpg" + "\"")
-                    .body(resource);
-        } catch (AmazonServiceException e) {
-            e.printStackTrace();
-            throw new S3AwsErrorThrowException("Exception occurred while fetching profile picture");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return null;
+        return s3AwsService.fetchUserProfilePictureFromS3(getUserIdByUsername(username), username);
     }
 
     @Override
     public ResponseEntity<String> deleteProfilePictureFromS3(String username) {
-
-        try {
-            s3Client.deleteObject(bucketName,
-                    generateFileNameForUserProfilePicture(getUserIdByUsername(username), username));
-            return ResponseEntity.ok().body("profile_picture_removed");
-        } catch (AmazonServiceException e) {
-            e.printStackTrace();
-            throw new S3AwsErrorThrowException("Exception occurred while deleting the profile picture");
-        }
-    }
-
-    private String generateFileNameForUserProfilePicture(Long userId, String username){
-        return "profile_pic_" + (userId+143) +
-                username.substring(0,username.indexOf('@'));
-    }
-
-    private File convertMultiPartFileToFile(MultipartFile file){
-        File convertedFile = new File(file.getOriginalFilename());
-
-        try (FileOutputStream fos = new FileOutputStream(convertedFile)){
-            fos.write(file.getBytes());
-        } catch (IOException e){
-            e.printStackTrace();
-        }
-        return convertedFile;
+        return s3AwsService.deleteProfilePictureFromS3(getUserIdByUsername(username), username);
     }
 
     private String functionCallToRetrieveUsername(ForgotUsernameDto userDetails){

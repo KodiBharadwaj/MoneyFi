@@ -76,8 +76,9 @@ public class ProfileApiController {
 
     @Operation(summary = "Api to save the user defect request details")
     @PostMapping("/contactUs")
-    public ResponseEntity<ContactUs> saveContactUsDetails(@RequestBody ContactUs contactUsDetails){
-        return ResponseEntity.ok(profileService.saveContactUsDetails(contactUsDetails));
+    public ResponseEntity<ContactUs> saveContactUsDetails(@RequestBody ContactUs contactUsDetails,
+                                                          @RequestParam(value = "file") MultipartFile file){
+        return ResponseEntity.ok(profileService.saveContactUsDetails(contactUsDetails, file));
     }
 
     @Operation(summary = "Method which deals with user feedback")

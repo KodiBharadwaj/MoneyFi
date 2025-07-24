@@ -18,10 +18,7 @@ public class ContactUs {
     private String name;
     private String email;
     private String message;
-
-    @Column(columnDefinition = "TEXT")
-    private String images;
-
+    private String imageId;
     private String referenceNumber;
     private boolean isRequestActive;
     private String requestReason;
