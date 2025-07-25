@@ -8,7 +8,6 @@ Major Changes:
 Minor Changes:
 - Write Junit test cases for income service (ongoing)
 - Implement block account feature in user profile with mail confirmation.
-- Restrict admin login in user login page.
 - Add variables during defect sending and feedback sending.
 - Implement triggers (birthday, recurring income saving)
 
@@ -94,3 +93,4 @@ cleared defects:
 - Use local cache for user's name and some to avoid multiple api calls.
 - Implement Pagination for the account statement section.
 - Implement Atomic Number generation in backend for all the existing grid data.
+- Restrict admin login in user login page.
