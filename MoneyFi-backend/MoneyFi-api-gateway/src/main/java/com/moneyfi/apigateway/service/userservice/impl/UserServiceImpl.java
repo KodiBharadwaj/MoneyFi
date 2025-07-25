@@ -153,26 +153,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> login(UserAuthModel userAuthModel) {
+    public ResponseEntity<Map<String,String>> login(UserAuthModel userAuthModel) {
+        Map<String,String> userRoleToken = new HashMap<>();
 
         makeOldSessionInActiveOfUserForNewLogin(userAuthModel);
 
         try {
             if (userAuthModel.getUsername() == null || userAuthModel.getUsername().isEmpty() ||
                     userAuthModel.getPassword() == null || userAuthModel.getPassword().isEmpty()) {
-
-                return ResponseEntity.badRequest().body("Username and password are required");
+                userRoleToken.put(ERROR, USERNAME_PASSWORD_REQUIRED);
+                return ResponseEntity.badRequest().body(userRoleToken);
             }
 
             UserAuthModel existingUser = userRepository.getUserDetailsByUsername(userAuthModel.getUsername());
             if (existingUser == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found. Please sign up.");
+                userRoleToken.put(ERROR, USER_NOT_FOUND);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userRoleToken);
             }
             else if(existingUser.isBlocked()){
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Account Blocked! Please contact admin");
+                userRoleToken.put(ERROR, ACCOUNT_BLOCKED);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
             }
             else if(existingUser.isDeleted()){
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Account Deleted! Please contact admin");
+                userRoleToken.put(ERROR, ACCOUNT_DELETED);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
             }
 
             try {
@@ -182,17 +186,21 @@ public class UserServiceImpl implements UserService {
                 if (authentication.isAuthenticated()) {
                     JwtToken token = jwtService.generateToken(userAuthModel);
                     functionToPreventMultipleLogins(userAuthModel, token);
-                    return ResponseEntity.ok(token);
+                    userRoleToken.put(userRoleAssociation.get(existingUser.getRoleId()), token.getJwtToken());
+                    return ResponseEntity.ok(userRoleToken);
                 }
             } catch (BadCredentialsException ex) {
                 ex.printStackTrace();
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect password");
+                userRoleToken.put(ERROR, INCORRECT_PASSWORD);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
             }
 
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+            userRoleToken.put(ERROR, INVALID_CREDENTIALS);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during login");
+            userRoleToken.put(ERROR, LOGIN_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(userRoleToken);
         }
     }
 

@@ -13,7 +13,7 @@ public interface UserService {
 
     UserAuthModel registerUser(UserProfile userProfile);
 
-    ResponseEntity<?> login(UserAuthModel userAuthModel);
+    ResponseEntity<Map<String, String>> login(UserAuthModel userAuthModel);
 
     Long getUserIdByUsername(String email);
 

@@ -61,7 +61,7 @@ private DataSource dataSource;
 
     @Operation(summary = "Method for the user to login")
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserAuthModel userAuthModel) {
+    public ResponseEntity<Map<String, String>> login(@RequestBody UserAuthModel userAuthModel) {
         return userService.login(userAuthModel);
     }
 
