@@ -11,10 +11,20 @@ import com.moneyfi.apigateway.service.userservice.dto.ForgotUsernameDto;
 import com.moneyfi.apigateway.service.userservice.dto.RemainingTimeCountDto;
 import com.moneyfi.apigateway.service.userservice.dto.UserProfile;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import javax.sql.DataSource;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.util.Map;
 
 @RestController
@@ -26,7 +36,8 @@ public class UserController {
     private final JwtService jwtService;
     private final UserCommonService userCommonService;
 
-
+@Autowired
+private DataSource dataSource;
     public UserController(UserService userService,
                           JwtService jwtService,
                           UserCommonService resetPassword){
@@ -50,7 +61,7 @@ public class UserController {
 
     @Operation(summary = "Method for the user to login")
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserAuthModel userAuthModel) {
+    public ResponseEntity<Map<String, String>> login(@RequestBody UserAuthModel userAuthModel) {
         return userService.login(userAuthModel);
     }
 
@@ -135,4 +146,44 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
+    @GetMapping("/stream-large-data")
+    public StreamingResponseBody streamLargeData(HttpServletResponse response) {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        return outputStream -> {
+            try (
+                    Connection conn = dataSource.getConnection();
+                    CallableStatement stmt = conn.prepareCall("exec getTestValuesForStreaming");
+                    ResultSet rs = stmt.executeQuery();
+                    PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
+            ) {
+                writer.print("["); // start of JSON array
+                boolean first = true;
+
+                while (rs.next()) {
+                    if (!first) {
+                        writer.print(",");
+                    }
+                    first = false;
+
+                    // Build JSON manually or use Jackson
+                    String json = String.format("{\"id\": %d, \"name\": \"%s\"}",
+                            rs.getInt("id"),
+                            rs.getString("name"));
+
+                    writer.print(json);
+                    writer.flush(); // send chunk immediately
+                }
+
+                writer.print("]"); // end of JSON array
+                writer.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
+    }
+
+
 }

@@ -1,0 +1,139 @@
+/* admin-home.component.css */
+.admin-container {
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.top-nav {
+  background-color: #1e293b;
+  color: white;
+  padding: 1rem;
+  font-size: 1.5rem;
+}
+
+.brand {
+  font-weight: bold;
+}
+
+
+.layout {
+  display: flex;
+  height: calc(100vh - 64px); /* to match side-nav height */
+}
+
+.side-nav {
+  width: 220px;
+  background-color: #f1f5f9;
+  height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.nav-list,
+.logout-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.side-nav li {
+  padding: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.side-nav li:hover {
+  background-color: #e2e8f0;
+}
+
+
+.user-grid-container {
+  flex-grow: 1;
+  padding: 1.5rem;
+  overflow-x: auto;
+  box-sizing: border-box;
+}
+
+h2 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.grid-table {
+  width: 100%;
+  min-width: 800px; /* optional: to avoid squeezing */
+  border-collapse: collapse;
+}
+
+
+.grid-table th, .grid-table td {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.grid-table th {
+  background-color: #f5f5f5;
+}
+
+
+.filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 180px;
+}
+
+.filter-field label {
+  margin-bottom: 0.25rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.button-container {
+  align-self: flex-end;
+}
+
+.filters input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+
+.toggle-icon {
+  cursor: pointer;
+  margin-left: 0.5rem;
+  font-size: 1.2rem;
+  user-select: none;
+  color: #555;
+}
+
+.toggle-icon:hover {
+  color: #000;
+}
+
+
+
+.report-btn {
+  margin-top: 23px;
+  background: #2b8df5;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  font-size: 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.report-btn:hover {
+  background: #0056b3;
+}

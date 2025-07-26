@@ -16,10 +16,9 @@ export class AuthApiService {
 
   baseUrl = environment.BASE_URL;
   
-  loginApiFunction(loginCredentials:LoginCredentials):Observable<JwtToken>{
-    const token = this.authClient.post<JwtToken>(`${this.baseUrl}/api/auth/login`, loginCredentials);
+  loginApiFunction(loginCredentials:LoginCredentials):Observable<{ [key: string]: string }>{
+    return this.authClient.post<{ [key: string]: string }>(`${this.baseUrl}/api/auth/login`, loginCredentials);
     // console.log(token);
-    return token;
   }
 
   signupApiFunction(signupCredentials:SignupCredentials):Observable<JwtToken>{

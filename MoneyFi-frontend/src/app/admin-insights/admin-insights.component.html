@@ -1,0 +1,42 @@
+<div class="admin-container">
+  <nav class="top-nav">
+    <div class="brand">MoneyFi Admin</div>
+  </nav>
+  
+  <div class="layout">
+    <aside class="side-nav">
+      <ul class="nav-list">
+        <li routerLink="/admin/home">Dashboard</li>
+        <li [routerLink]="['/admin/users', 'All']">Total Users</li>
+        <li [routerLink]="['/admin/requests', 'All']">User Requests</li>
+        <li routerLink="/admin/user-defects">User Issues</li>
+        <li routerLink="/admin/feedbacks">User Feedbacks</li>
+        <li routerLink="/admin/insights">Insights/Charts</li>
+        <li routerLink="/admin/configuration">Configuration</li>
+      </ul>
+      <ul class="logout-list">
+        <li (click)="logoutUser()">Logout</li>
+      </ul>
+    </aside>
+
+      <div class="chart-container">
+        <div class="chart-box">
+          <canvas baseChart
+                  [data]="userMonthlyChartData"
+                  [options]="userMonthlyChartOptions"
+                  chartType="bar">
+          </canvas>
+        </div>
+        
+        <div class="chart-box clickable">
+          <canvas baseChart
+                  [data]="dummyChartData"
+                  [options]="dummyChartOptions"
+                  [type]="'bar'"
+                  (chartClick)="handleChartClick($event)">
+          </canvas>
+        </div>
+      </div>
+  </div>
+</div>
+

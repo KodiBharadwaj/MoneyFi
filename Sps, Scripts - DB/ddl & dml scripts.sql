@@ -19,3 +19,7 @@ CREATE TABLE dbo.user_role_table (
 INSERT INTO dbo.user_role_table (role_id, role_name)
 VALUES (1, 'ADMIN'), (2, 'USER');
 
+-- To add admin default login credentials
+INSERT INTO dbo.user_auth_table (username, password, is_deleted, is_blocked, role_id, otp_count)
+VALUES ('admin', '$2a$12$N1G9aEHD8QGhZBj3QC3TDOLpkOMMC2mDrka/YPjqEo2U0mhLwYVVy', 0, 0, 1, 0)
+

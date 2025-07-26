@@ -7,13 +7,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   const jwt = sessionStorage.getItem('moneyfi.auth')
-  if(jwt){
-    req = req.clone(
-     {
-      setHeaders : {Authorization: "Bearer "+jwt}
+    if(jwt){
+      req = req.clone(
+      {
+        setHeaders : { Authorization: "Bearer " + jwt }
       }
-    
-  )
-}
+      
+    )
+  }
   return next(req);
 };

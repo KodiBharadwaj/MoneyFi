@@ -1,15 +1,20 @@
 package com.moneyfi.apigateway.repository.admin;
 
-import com.moneyfi.apigateway.model.common.ContactUs;
-import com.moneyfi.apigateway.service.admin.dto.AdminOverviewPageDto;
-import com.moneyfi.apigateway.service.admin.dto.UserGridDto;
+import com.moneyfi.apigateway.service.admin.dto.response.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface AdminRepository {
     AdminOverviewPageDto getAdminOverviewPageDetails();
 
-    List<ContactUs> getContactUsDetailsOfUsers();
+    List<UserRequestsGridDto> getUserRequestsGridForAdmin(String requestReason);
 
     List<UserGridDto> getUserDetailsGridForAdmin(String status);
+
+    Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status);
+
+    UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username);
+
+    List<UserDefectResponseDto> getUserRaisedDefectsForAdmin();
 }

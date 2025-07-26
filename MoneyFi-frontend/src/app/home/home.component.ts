@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
@@ -9,7 +9,7 @@ import { ChartConfiguration, ChartData } from 'chart.js';
   standalone: true,
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
-  imports: [CommonModule, NgChartsModule]
+  imports: [CommonModule, NgChartsModule, RouterModule]
 })
 export class HomeComponent {
   isLoggedIn: boolean = false;

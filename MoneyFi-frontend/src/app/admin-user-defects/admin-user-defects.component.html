@@ -1,0 +1,49 @@
+<div class="admin-container">
+  <nav class="top-nav">
+    <div class="brand">MoneyFi Admin</div>
+  </nav>
+
+  <div class="layout">
+    <aside class="side-nav">
+      <ul class="nav-list">
+        <li routerLink="/admin/home">Dashboard</li>
+        <li [routerLink]="['/admin/users', 'All']">Total Users</li>
+        <li [routerLink]="['/admin/requests', 'All']">User Requests</li>
+        <li routerLink="/admin/user-defects">User Issues</li>
+        <li routerLink="/admin/feedbacks">User Feedbacks</li>
+        <li routerLink="/admin/insights">Insights/Charts</li>
+        <li routerLink="/admin/configuration">Configuration</li>
+      </ul>
+      <ul class="logout-list">
+        <li (click)="logoutUser()">Logout</li>
+      </ul>
+    </aside>
+
+    <!-- <main class="main-content">
+      
+    </main> -->
+    <main class="main-content">
+        <div class="defects-container" *ngIf="userDefects.length > 0">
+            <div class="defect-card" *ngFor="let defect of userDefects">
+            <h3>{{ defect.name }}</h3>
+            <p><strong>Username:</strong> {{ defect.username }}</p>
+            <p><strong>Reference No:</strong> {{ defect.referenceNumber }}</p>
+            <p><strong>Description:</strong> {{ defect.description }}</p>
+            
+            <div class="image-preview" (click)="viewImage(defect.imageId)">
+                <img src="assets/image-placeholder.png" alt="View" />
+                <p class="click-text">Click to view image</p>
+            </div>
+            </div>
+        </div>
+
+        <div *ngIf="selectedImage" class="image-modal">
+            <div class="modal-content">
+            <span class="close-btn" (click)="selectedImage = null">&times;</span>
+            <img [src]="selectedImage" alt="Defect Image" />
+            </div>
+        </div>
+        </main>
+
+  </div>
+</div>

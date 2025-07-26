@@ -186,9 +186,7 @@ export class RaiseRequestComponent implements OnInit {
       this.http.post(`${this.baseUrl}/api/auth/account-retrieve-request`, body).subscribe({
         next: (response) => {
           this.toastr.success('Request submitted successfully!');
-          setTimeout(() => {
-            this.resetForm();
-          }, 2000);
+          this.resetForm();
         },
         error: (errorResponse) => {
           this.updateProgress(2);

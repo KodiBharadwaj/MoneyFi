@@ -1,8 +1,8 @@
 package com.moneyfi.apigateway.service.common;
 
 import com.moneyfi.apigateway.model.common.ContactUs;
-import com.moneyfi.apigateway.model.common.Feedback;
 import com.moneyfi.apigateway.model.common.ProfileModel;
+import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.ProfileDetailsDto;
 
 public interface ProfileService {
@@ -11,9 +11,9 @@ public interface ProfileService {
 
     ProfileModel getUserDetailsByUserId(Long userId);
 
-    ContactUs saveContactUsDetails(ContactUs contactUsDetails);
+    ContactUs saveContactUsDetails(UserDefectRequestDto userDefectRequestDto);
 
-    Feedback saveFeedback(Feedback feedback);
+    ContactUs saveFeedback(ContactUs feedback);
 
     ProfileDetailsDto getProfileDetailsOfUser(Long userId);
 }
