@@ -1,17 +1,31 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ChartConfiguration } from 'chart.js';
+import { ActiveElement, ChartConfiguration, ChartEvent } from 'chart.js';
 import { BaseChartDirective, NgChartsModule } from 'ng2-charts';
 import { environment } from '../../environments/environment';
+import { ToastrService } from 'ngx-toastr';
+import { Router, RouterModule } from '@angular/router';
+import { ConfirmLogoutDialogComponent } from '../confirm-logout-dialog/confirm-logout-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-admin-insights',
   standalone: true,
-  imports: [NgChartsModule],
+  imports: [NgChartsModule, RouterModule],
   templateUrl: './admin-insights.component.html',
   styleUrl: './admin-insights.component.css'
 })
 export class AdminInsightsComponent implements OnInit{
+
+  constructor(private http: HttpClient, private router:Router, private dialog: MatDialog, private toastr:ToastrService) {}
+  baseUrl = environment.BASE_URL;
+
+  ngOnInit(): void {
+    this.loadUserMonthlyData();
+    this.loadUserCountChart();
+  }
+
+
 userMonthlyChartData: ChartConfiguration<'bar'>['data'] = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -57,13 +71,6 @@ userMonthlyChartData: ChartConfiguration<'bar'>['data'] = {
     }
   };
 
-  constructor(private http: HttpClient) {}
-  baseUrl = environment.BASE_URL;
-
-  ngOnInit(): void {
-    this.loadUserMonthlyData();
-    this.loadUserCountChart();
-  }
 
   loadUserMonthlyData(): void {
     const currentYear = new Date().getFullYear();
@@ -112,8 +119,39 @@ userMonthlyChartData: ChartConfiguration<'bar'>['data'] = {
   ]
 };
 
+handleChartClick(event: { event?: ChartEvent, active?: {}[] | undefined }) {
+  const activeElements = event.active as ActiveElement[] | undefined;
+  this.onChartClick(event.event, activeElements);
+}
+
+onChartClick(event: ChartEvent | undefined, activeElements: ActiveElement[] | undefined) {
+  if (activeElements && activeElements.length > 0) {
+    const chartElement = activeElements[0];
+    const datasetIndex = chartElement.datasetIndex;
+    const index = chartElement.index;
+
+    const label = this.dummyChartData.labels?.[index];
+
+    if (label === 'Active Users') {
+      this.router.navigate(['/admin/users', 'ACTIVE']);
+    } else if (label === 'Blocked Users') {
+      this.router.navigate(['/admin/users', 'BLOCKED']);
+    } else if (label === 'Deleted Users') {
+      this.router.navigate(['/admin/users', 'DELETED']);
+    }
+  }
+}
+
 dummyChartOptions: ChartConfiguration<'bar'>['options'] = {
   responsive: true,
+  interaction: {
+    mode: 'nearest', // Or 'index'
+    intersect: true
+  },
+  onClick: (event, elements) => {
+    // we'll use a separate method for this
+    this.onChartClick(event, elements);
+  },
   scales: {
     y: {
       beginAtZero: true,
@@ -167,4 +205,36 @@ dummyChartOptions: ChartConfiguration<'bar'>['options'] = {
       console.error('Error loading chart data', error);
     });
   }
+
+  logoutUser(): void {
+        const dialogRef = this.dialog.open(ConfirmLogoutDialogComponent, {
+          width: '400px',
+          panelClass: 'custom-dialog-container',
+        });
+      
+        dialogRef.afterClosed().subscribe((result) => {
+          if (result) {
+    
+            this.http.post(`${this.baseUrl}/api/v1/admin/logout`, {}, { responseType: 'text' }).subscribe({
+              next: (response) => {
+                const jsonResponse = JSON.parse(response);
+                if(jsonResponse.message === 'Logged out successfully'){
+                    this.toastr.success(jsonResponse.message, '', {
+                    timeOut: 1500  // time in milliseconds (3 seconds)
+                  });
+                  sessionStorage.removeItem('moneyfi.auth');
+                  this.router.navigate(['admin/login']);
+                } 
+                else {
+                  this.toastr.error('Failed to logout')
+                }
+              },
+              error: (error) => {
+                console.error(error);
+                this.toastr.error('Failed to logout')
+              }
+            });
+          }
+        });
+      }
 }

@@ -2,10 +2,7 @@ package com.moneyfi.apigateway.repository.admin.impl;
 
 import com.moneyfi.apigateway.exceptions.QueryValidationException;
 import com.moneyfi.apigateway.repository.admin.AdminRepository;
-import com.moneyfi.apigateway.service.admin.dto.response.AdminOverviewPageDto;
-import com.moneyfi.apigateway.service.admin.dto.response.UserGridDto;
-import com.moneyfi.apigateway.service.admin.dto.response.UserProfileAndRequestDetailsDto;
-import com.moneyfi.apigateway.service.admin.dto.response.UserRequestsGridDto;
+import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.util.enums.UserStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -175,6 +172,23 @@ public class AdminRepositoryImpl implements AdminRepository {
         } catch (Exception e){
             e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching user complete details for admin");
+        }
+    }
+
+    @Override
+    public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin() {
+        List<UserDefectResponseDto> userDefectResponseDtosList = new ArrayList<>();
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getUserRaisedDefectsForAdmin ")
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserDefectResponseDto.class));
+
+            userDefectResponseDtosList.addAll(query.getResultList());
+            return userDefectResponseDtosList;
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching fetching user defect details");
         }
     }
 }

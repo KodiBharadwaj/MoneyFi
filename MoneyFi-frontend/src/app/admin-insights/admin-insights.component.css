@@ -1,18 +1,78 @@
-.chart-container {
-  display: flex;
-  gap: 2rem;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  margin: 2rem 0;
+/* admin-home.component.css */
+.admin-container {
+  font-family: 'Segoe UI', sans-serif;
 }
 
+.top-nav {
+  background-color: #1e293b;
+  color: white;
+  padding: 1rem;
+  font-size: 1.5rem;
+}
+
+.brand {
+  font-weight: bold;
+}
+
+
+.layout {
+  display: flex;
+  height: calc(100vh - 64px); /* full height minus top nav */
+}
+
+
+.side-nav {
+  width: 220px;
+  background-color: #f1f5f9;
+  height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.nav-list,
+.logout-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.side-nav li {
+  padding: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.side-nav li:hover {
+  background-color: #e2e8f0;
+}
+
+.chart-container {
+  flex-grow: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  padding: 2rem;
+  justify-content: space-evenly;
+  align-items: flex-start;
+  box-sizing: border-box;
+}
+
+
 .chart-box {
-  width: 45%;
+  flex: 1 1 400px;
+  max-width: 600px;
   background: #ffffff;
   border-radius: 16px;
   padding: 1rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
+
+
+.chart-box.clickable canvas {
+  cursor: pointer;
+}
+
 
 .additional-info {
   margin-top: 3rem;
@@ -20,5 +80,4 @@
   padding: 1.5rem;
   border-radius: 10px;
 }
-
 

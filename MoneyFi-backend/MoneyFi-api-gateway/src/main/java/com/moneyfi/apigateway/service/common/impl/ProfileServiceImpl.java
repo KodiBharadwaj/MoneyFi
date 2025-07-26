@@ -7,11 +7,13 @@ import com.moneyfi.apigateway.repository.user.ContactUsRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.service.common.ProfileService;
 import com.moneyfi.apigateway.service.common.S3AwsService;
+import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.ProfileDetailsDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.constants.StringUtils;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -68,7 +70,12 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public ContactUs saveContactUsDetails(ContactUs contactUsDetails, MultipartFile file) {
+    @Transactional
+    public ContactUs saveContactUsDetails(UserDefectRequestDto userDefectRequestDto) {
+        ContactUs contactUsDetails = new ContactUs();
+        contactUsDetails.setName(userDefectRequestDto.getName());
+        contactUsDetails.setEmail(userDefectRequestDto.getEmail());
+        contactUsDetails.setMessage(userDefectRequestDto.getMessage());
         contactUsDetails.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
         contactUsDetails.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
         contactUsDetails.setRequestActive(true);
@@ -81,7 +88,7 @@ public class ProfileServiceImpl implements ProfileService {
         new Thread(() -> {
             EmailTemplates.sendContactAlertMail(contactUsDetails, contactUsDetails.getImageId());
             EmailTemplates.sendReferenceNumberEmail(contactUsDetails.getName(), contactUsDetails.getEmail(), "resolve issue", referenceNumber);
-            s3AwsService.uploadDefectPictureByUser(contactUsDetails.getImageId(), file);
+            s3AwsService.uploadDefectPictureByUser(contactUsDetails.getImageId(), userDefectRequestDto.getFile());
         }).start();
         return contactUsRepository.save(contactUsDetails);
     }

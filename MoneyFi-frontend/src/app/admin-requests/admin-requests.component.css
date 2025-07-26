@@ -14,10 +14,44 @@
   font-weight: bold;
 }
 
-.table-container {
-  margin-top: 2rem;
-  overflow-x: auto;
+.layout {
+  display: flex;
+  height: calc(100vh - 64px); /* to match side-nav height */
 }
+
+.side-nav {
+  width: 220px;
+  background-color: #f1f5f9;
+  height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.nav-list,
+.logout-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.side-nav li {
+  padding: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.side-nav li:hover {
+  background-color: #e2e8f0;
+}
+
+.table-container {
+  flex-grow: 1;
+  padding: 2rem;
+  overflow-x: auto;
+  box-sizing: border-box;
+}
+
 
 .user-table {
   width: 100%;

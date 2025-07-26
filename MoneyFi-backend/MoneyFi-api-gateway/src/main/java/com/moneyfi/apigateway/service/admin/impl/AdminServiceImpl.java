@@ -10,10 +10,7 @@ import com.moneyfi.apigateway.repository.user.ContactUsRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.admin.AdminService;
-import com.moneyfi.apigateway.service.admin.dto.response.AdminOverviewPageDto;
-import com.moneyfi.apigateway.service.admin.dto.response.UserGridDto;
-import com.moneyfi.apigateway.service.admin.dto.response.UserProfileAndRequestDetailsDto;
-import com.moneyfi.apigateway.service.admin.dto.response.UserRequestsGridDto;
+import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.S3AwsService;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
@@ -97,7 +94,7 @@ public class AdminServiceImpl implements AdminService {
                 row.createCell(0).setCellValue(data.getSlNo());
                 row.createCell(1).setCellValue(data.getName());
                 row.createCell(2).setCellValue(data.getUsername());
-                row.createCell(3).setCellValue(data.getPhone());
+                row.createCell(3).setCellValue(data.getPhone()!=null?data.getPhone():"-");
                 // Format Date Properly
                 Cell dateCell = row.createCell(4);
                 dateCell.setCellValue(data.getCreatedDateTime()); // Assuming data.getDate() is `java.util.Date`
@@ -220,6 +217,17 @@ public class AdminServiceImpl implements AdminService {
             }
         });
         return userRequestsGridDtoList;
+    }
+
+    @Override
+    public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status) {
+        return adminRepository.getUserRaisedDefectsForAdmin()
+                .stream()
+                .filter(response -> {
+                    if(status.equalsIgnoreCase("Active")){
+                        return response.isActive();
+                    } else return !response.isActive();
+                }).toList();
     }
 
     @Override

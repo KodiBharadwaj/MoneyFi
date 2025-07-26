@@ -1,15 +1,18 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AdminService } from '../services/AdminService';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
 import { AdminRequestDialogComponent } from '../admin-request-dialog/admin-request-dialog.component';
+import { ConfirmLogoutDialogComponent } from '../confirm-logout-dialog/confirm-logout-dialog.component';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-admin-requests',
-  imports : [CommonModule, FormsModule],
+  imports : [CommonModule, FormsModule, RouterModule],
     standalone : true,
   templateUrl: './admin-requests.component.html',
   styleUrl: './admin-requests.component.css'
@@ -17,8 +20,11 @@ import { AdminRequestDialogComponent } from '../admin-request-dialog/admin-reque
 export class AdminRequestsComponent implements OnInit {
 
   constructor(private route: ActivatedRoute, private adminService: AdminService,
-      private toastr: ToastrService, private dialog: MatDialog
+      private toastr: ToastrService, private dialog: MatDialog, private httpClient : HttpClient, private router:Router
   ) {}
+
+  baseUrl = environment.BASE_URL;
+
   status: string = '';
   requestType: string = '';
   requests: any[] = [];
@@ -66,6 +72,38 @@ export class AdminRequestsComponent implements OnInit {
       this.toastr.success("Copied to clipboard")
     }).catch(() => {
       this.toastr.error('Failed to copy!');
+    });
+  }
+
+  logoutUser(): void {
+    const dialogRef = this.dialog.open(ConfirmLogoutDialogComponent, {
+      width: '400px',
+      panelClass: 'custom-dialog-container',
+    });
+  
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+
+        this.httpClient.post(`${this.baseUrl}/api/v1/admin/logout`, {}, { responseType: 'text' }).subscribe({
+          next: (response) => {
+            const jsonResponse = JSON.parse(response);
+            if(jsonResponse.message === 'Logged out successfully'){
+                this.toastr.success(jsonResponse.message, '', {
+                timeOut: 1500  // time in milliseconds (3 seconds)
+              });
+              sessionStorage.removeItem('moneyfi.auth');
+              this.router.navigate(['admin/login']);
+            } 
+            else {
+              this.toastr.error('Failed to logout')
+            }
+          },
+          error: (error) => {
+            console.error(error);
+            this.toastr.error('Failed to logout')
+          }
+        });
+      }
     });
   }
 

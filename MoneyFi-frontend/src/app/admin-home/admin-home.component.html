@@ -7,7 +7,9 @@
     <aside class="side-nav">
       <ul class="nav-list">
         <li routerLink="/admin/home">Dashboard</li>
+        <li [routerLink]="['/admin/users', 'All']">Total Users</li>
         <li [routerLink]="['/admin/requests', 'All']">User Requests</li>
+        <li routerLink="/admin/user-defects">User Issues</li>
         <li routerLink="/admin/feedbacks">User Feedbacks</li>
         <li routerLink="/admin/insights">Insights/Charts</li>
         <li routerLink="/admin/configuration">Configuration</li>
@@ -21,7 +23,7 @@
       <fieldset class="tile-group">
         <legend class="group-title">Users Summary</legend>
         <div class="tiles">
-          <div class="tile" [routerLink]="['/admin/users', 'totalUsers']">
+          <div class="tile" [routerLink]="['/admin/users', 'All']">
             <h3>Total Users</h3>
             <h1>{{ totalUsers }}</h1>
           </div>
@@ -63,11 +65,11 @@
       <fieldset class="tile-group">
         <legend class="group-title">User Requests Summary</legend>
         <div class="tiles tiles-2">
-          <div class="tile" [routerLink]="['/admin/requests', 'Unblock']">
+          <div class="tile" [routerLink]="['/admin/user-defects']">
             <h3>Issues/Defects</h3>
             <h1>{{ userDefectRaises }}</h1>
           </div>
-          <div class="tile" [routerLink]="['/admin/requests', 'Rename']">
+          <div class="tile" [routerLink]="['/admin/requests/feedback', '']">
             <h3>User feedback</h3>
             <h1>{{ userFeedbacks }}</h1>
           </div>

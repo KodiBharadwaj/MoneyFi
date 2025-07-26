@@ -1,10 +1,7 @@
 package com.moneyfi.apigateway.controller.admin;
 
 import com.moneyfi.apigateway.service.admin.AdminService;
-import com.moneyfi.apigateway.service.admin.dto.response.AdminOverviewPageDto;
-import com.moneyfi.apigateway.service.admin.dto.response.UserGridDto;
-import com.moneyfi.apigateway.service.admin.dto.response.UserProfileAndRequestDetailsDto;
-import com.moneyfi.apigateway.service.admin.dto.response.UserRequestsGridDto;
+import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpHeaders;
@@ -42,7 +39,13 @@ public class AdminController {
         return adminService.getUserDetailsGridForAdmin(status);
     }
 
-    @Operation(summary = "Api to get active user grid details as excel report")
+    @Operation(summary = "Api to get active user defects raised details")
+    @GetMapping("/user-defects/grid")
+    public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(@RequestParam("status") String status){
+        return adminService.getUserRaisedDefectsForAdmin(status);
+    }
+
+    @Operation(summary = "Api to get user grid details as excel report")
     @GetMapping("/user-details/excel")
     public ResponseEntity<byte[]> getUserDetailsExcelForAdmin(@RequestParam("status") String status){
         byte[] excelData = adminService.getUserDetailsExcelForAdmin(status);

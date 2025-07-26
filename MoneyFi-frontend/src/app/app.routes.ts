@@ -24,6 +24,7 @@ import { AdminUsersComponent } from './admin-users/admin-users.component';
 import { AdminLoginComponent } from './admin-login/admin-login.component';
 import { AdminRequestsComponent } from './admin-requests/admin-requests.component';
 import { AdminInsightsComponent } from './admin-insights/admin-insights.component';
+import { AdminUserDefectsComponent } from './admin-user-defects/admin-user-defects.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -39,6 +40,7 @@ export const routes: Routes = [
   { path: 'admin/users/:status', component: AdminUsersComponent },
   { path: 'admin/requests/:status', component: AdminRequestsComponent },
   { path: 'admin/insights', component: AdminInsightsComponent },
+  { path: 'admin/user-defects', component: AdminUserDefectsComponent },
   // { path: 'admin/feedbacks', component: AdminFeedbacksComponent },
   // { path: 'admin/configuration', component: AdminConfigurationComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard],children:[

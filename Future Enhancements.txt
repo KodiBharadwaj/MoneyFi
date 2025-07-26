@@ -8,8 +8,9 @@ Major Changes:
 Minor Changes:
 - Write Junit test cases for income service (ongoing)
 - Implement block account feature in user profile with mail confirmation.
-- Add variables during defect sending and feedback sending.
-- Implement triggers (birthday, recurring income saving)
+- Implement triggers/scheduled (birthday, recurring income saving)
+- Implement caching policy in ui to avoid repetitive api calls.
+- Implement admin scheduling notifications to user.
 
 
 
@@ -24,7 +25,6 @@ New Feature
 - While seeing user grid, username should be clickable and when clicked, all the details along with profile pic should be visible in a dialog. It should contains all the requests (ongoing, completed) etc.
 - Implement schedule notifications for admin to send notifications to users (useful when downtime of app)
 - Introduce chart which shows users creation count with each month in a year. Year can be set in filter.(bar)
-- Introduce excel generation for current user grids. (total, active, blocked, deleted)
 
 3) Introduce cloud drive which stores the user data like his personal things like secure vault.
 
@@ -62,6 +62,7 @@ cleared changes:
 - Create a new table called user_role instead of doing with role_id <> 1
 - avoid repetition in sps. Try call other sp in existing sp.
 - (Account statement) Account statement generation for the user in a specific period
+- Implemented Kafka communication in goal to expense service to delete the expenses when a goal is deleted.
 
 
 

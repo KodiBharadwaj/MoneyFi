@@ -76,14 +76,23 @@ export class ContactFormComponent {
     }
 
 
-    const contactDto = {
-      name : this.contactData.name,
-      email : this.contactData.email,
-      message : this.contactData.message,
-      images : this.contactData.images || ""
-    }
+    const formData = new FormData();
 
-    this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/contactUs`, contactDto).subscribe(
+    formData.append('name', this.contactData.name);
+    formData.append('email', this.contactData.email);
+    formData.append('message', this.contactData.message);
+
+    if (this.selectedFile) {
+      formData.append('file', this.selectedFile); // This matches the `MultipartFile file` field
+    }
+    // const contactDto = {
+    //   name : this.contactData.name,
+    //   email : this.contactData.email,
+    //   message : this.contactData.message,
+    //   images : this.contactData.images || ""
+    // }
+
+    this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/report-issue`, formData).subscribe(
       (response) => {
         this.resetForm();
         this.toastr.success('Feedback submitted successfully!', '', {

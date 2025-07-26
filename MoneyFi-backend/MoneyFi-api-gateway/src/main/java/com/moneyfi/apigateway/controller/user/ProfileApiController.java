@@ -1,6 +1,7 @@
 package com.moneyfi.apigateway.controller.user;
 
 import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
+import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.ProfileDetailsDto;
 import com.moneyfi.apigateway.service.userservice.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.service.userservice.dto.ProfileChangePassword;
@@ -9,6 +10,7 @@ import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.service.common.ProfileService;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -75,10 +77,9 @@ public class ProfileApiController {
     }
 
     @Operation(summary = "Api to save the user defect request details")
-    @PostMapping("/contactUs")
-    public ResponseEntity<ContactUs> saveContactUsDetails(@RequestBody ContactUs contactUsDetails,
-                                                          @RequestParam(value = "file") MultipartFile file){
-        return ResponseEntity.ok(profileService.saveContactUsDetails(contactUsDetails, file));
+    @PostMapping("/report-issue")
+    public ResponseEntity<ContactUs> saveContactUsDetails(@Valid @ModelAttribute UserDefectRequestDto userDefectRequestDto){
+        return ResponseEntity.ok(profileService.saveContactUsDetails(userDefectRequestDto));
     }
 
     @Operation(summary = "Method which deals with user feedback")
