@@ -17,6 +17,7 @@ import com.moneyfi.apigateway.service.userservice.dto.*;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
 import com.moneyfi.apigateway.util.EmailTemplates;
+import com.moneyfi.apigateway.util.enums.UserRoles;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
@@ -99,7 +100,7 @@ public class UserServiceImpl implements UserService {
         userAuthModel.setRoleId(roleId);
         UserAuthModel user = userRepository.save(userAuthModel);
 
-        if(roleId != 1) {
+        if(!userRoleAssociation.get(roleId).equalsIgnoreCase(UserRoles.ADMIN.name())) {
             saveUserProfileDetails(user.getId(), userProfile);
             /** send successful email in a separate thread by aws ses **/
             new Thread(() ->

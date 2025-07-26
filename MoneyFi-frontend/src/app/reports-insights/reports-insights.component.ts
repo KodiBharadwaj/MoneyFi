@@ -80,6 +80,8 @@ export class ReportsInsightsComponent implements OnInit   {
     this.httpClient.post<AccountStatement[]>(`${this.baseUrl}/api/v1/income/account-statement`, obj)
       .subscribe({
         next: (statement) => {
+          if(statement.length === 0)
+            this.toastr.warning('No transactions found in this range')
           this.accountStatementGenerated = statement;
           this.isGenerating = false;
         },
