@@ -1,6 +1,7 @@
 package com.moneyfi.goal.service.impl;
 
 import com.moneyfi.goal.config.JwtService;
+import com.moneyfi.goal.service.common.KafkaGoalEventProducer;
 import com.moneyfi.goal.service.dto.response.ExpenseModelDto;
 import com.moneyfi.goal.exceptions.ResourceNotFoundException;
 import com.moneyfi.goal.model.GoalModel;
@@ -36,15 +37,18 @@ public class GoalServiceImpl implements GoalService {
     private final GoalCommonRepository goalCommonRepository;
     private final RestTemplate restTemplate;
     private final JwtService jwtService;
+    private final KafkaGoalEventProducer kafkaGoalEventProducer;
 
     public GoalServiceImpl(GoalRepository goalRepository,
                            GoalCommonRepository goalCommonRepository,
                            RestTemplate restTemplate,
-                           JwtService jwtService){
+                           JwtService jwtService,
+                           KafkaGoalEventProducer kafkaGoalEventProducer){
         this.goalRepository = goalRepository;
         this.goalCommonRepository = goalCommonRepository;
         this.restTemplate = restTemplate;
         this.jwtService = jwtService;
+        this.kafkaGoalEventProducer = kafkaGoalEventProducer;
     }
 
     @Override
@@ -118,7 +122,6 @@ public class GoalServiceImpl implements GoalService {
         if(totalGoalIncome == null){
             return BigDecimal.ZERO;
         }
-
         return totalGoalIncome;
     }
 
@@ -128,14 +131,12 @@ public class GoalServiceImpl implements GoalService {
         if(totalGoalTargetIncome == null){
             return BigDecimal.ZERO;
         }
-
         return totalGoalTargetIncome;
     }
 
     @Override
     public GoalTileDetailsDto getGoalTileDetails(Long userId) {
         GoalTileDetailsDto goalTileDetailsDto = new GoalTileDetailsDto(new HashMap<>());
-
         goalTileDetailsDto.getGoalTileDetails().put(TOTAL_GOAL_AMOUNT, getCurrentTotalGoalIncome(userId));
         goalTileDetailsDto.getGoalTileDetails().put(TOTAL_GOAL_TARGET_AMOUNT, getTargetTotalGoalIncome(userId));
         goalTileDetailsDto.getGoalTileDetails().put(TOTAL_AVAILABLE_INCOME, goalRepository.getAvailableBalanceOfUser(userId));
@@ -163,12 +164,10 @@ public class GoalServiceImpl implements GoalService {
         if(goal.getDeadLine() != null){
             goalModel.setDeadLine(goal.getDeadLine());
         }
-
         /**
          * IMPORTANT:
          * Meanwhile, the ssms trigger activates here to update expense row with respective goal data.
          */
-
         return ResponseEntity.status(HttpStatus.CREATED).body(updatedGoalDtoConversion(goalRepository.save(goalModel)));
     }
 
@@ -189,10 +188,13 @@ public class GoalServiceImpl implements GoalService {
                 goalModel.setDeleted(true);
                 goalRepository.save(goalModel);
 
+                kafkaGoalEventProducer.sendExpenseIds(goalModel.getExpenseIds());
+                return true;
+                /** Rest template approach same as Kafka
                 if(functionCallToExpenseServiceToDeleteExpense(goalModel.getExpenseIds(), authHeader)){
                     return true;
                 }
-                else return false;
+                else return false; **/
             }
             return false;
         } catch (HttpClientErrorException.NotFound e) {
