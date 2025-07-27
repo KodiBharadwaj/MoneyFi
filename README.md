@@ -29,6 +29,7 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 | File Storage  | AWS S3                         |
 | Service Communications  | Kafka, Rest Template   |
 | Reporting     | Apache POI (Excel), iText (PDF) |
+| Other Used   | Eureka, Postman, SonarQube, Feign, Git, Github, Postgres |
 
 ---
 
