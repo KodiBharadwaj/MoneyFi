@@ -12,6 +12,8 @@ public interface AdminService {
 
     List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status);
 
+    void updateDefectStatus(Long defectId, String status);
+
     List<UserGridDto> getUserDetailsGridForAdmin(String status);
 
     byte[] getUserDetailsExcelForAdmin(String status);

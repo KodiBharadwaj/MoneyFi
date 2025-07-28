@@ -45,6 +45,14 @@ public class AdminController {
         return adminService.getUserRaisedDefectsForAdmin(status);
     }
 
+    @Operation(summary = "Api to change the user defect status in contact us table")
+    @PutMapping("/{defectId}/update-defect-status")
+    public void updateDefectStatus(@PathVariable("defectId") Long defectId,
+                                                     @RequestBody Map<String, String> body) {
+        adminService.updateDefectStatus(defectId, body.get("status"));
+    }
+
+
     @Operation(summary = "Api to get user grid details as excel report")
     @GetMapping("/user-details/excel")
     public ResponseEntity<byte[]> getUserDetailsExcelForAdmin(@RequestParam("status") String status){

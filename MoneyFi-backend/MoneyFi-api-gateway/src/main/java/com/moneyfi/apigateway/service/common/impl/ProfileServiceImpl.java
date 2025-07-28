@@ -16,7 +16,6 @@ import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Date;
 
@@ -83,7 +82,7 @@ public class ProfileServiceImpl implements ProfileService {
 
         String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
         contactUsDetails.setReferenceNumber(referenceNumber);
-        contactUsDetails.setImageId("Defect_user_" +
+        contactUsDetails.setImageId("Defect_" + contactUsRepository.save(contactUsDetails).getId() + "_" +
                 contactUsDetails.getEmail().substring(0,contactUsDetails.getEmail().indexOf('@')));
         new Thread(() -> {
             EmailTemplates.sendContactAlertMail(contactUsDetails, contactUsDetails.getImageId());

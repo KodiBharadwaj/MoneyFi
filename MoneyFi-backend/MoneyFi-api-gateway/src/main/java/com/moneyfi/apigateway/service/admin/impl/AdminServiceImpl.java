@@ -223,11 +223,37 @@ public class AdminServiceImpl implements AdminService {
     public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status) {
         return adminRepository.getUserRaisedDefectsForAdmin()
                 .stream()
-                .filter(response -> {
-                    if(status.equalsIgnoreCase("Active")){
-                        return response.isActive();
-                    } else return !response.isActive();
-                }).toList();
+                .peek(defect -> {
+                    if (defect.getDefectStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) ||
+                                defect.getDefectStatus().equalsIgnoreCase(RaiseRequestStatus.IGNORED.name())) {
+                        defect.setReferenceNumber(defect.getReferenceNumber().substring(4));
+                    }
+                })
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void updateDefectStatus(Long defectId, String status) {
+        ContactUs userDefect = contactUsRepository.findById(defectId).orElse(null);
+        if(userDefect == null){
+            throw new ResourceNotFoundException("Not able to obtain the user defect details");
+        }
+
+        if(status.equalsIgnoreCase("Solved")){
+            userDefect.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+            userDefect.setRequestActive(false);
+            userDefect.setReferenceNumber("COM_" + userDefect.getReferenceNumber());
+            userDefect.setVerified(true);
+        } else if(status.equalsIgnoreCase("Pend")){
+            userDefect.setRequestStatus(RaiseRequestStatus.PENDED.name());
+        } else if (status.equalsIgnoreCase("Ignore")){
+            userDefect.setRequestStatus(RaiseRequestStatus.IGNORED.name());
+            userDefect.setRequestActive(false);
+            userDefect.setReferenceNumber("COM_" + userDefect.getReferenceNumber());
+            userDefect.setVerified(true);
+        }
+        contactUsRepository.save(userDefect);
     }
 
     @Override
