@@ -11,6 +11,7 @@ Minor Changes:
 - Implement triggers/scheduled (birthday, recurring income saving)
 - Implement caching policy in ui to avoid repetitive api calls.
 - Implement admin scheduling notifications to user.
+- Implement s3 file uploads with necessary paths.
 
 
 
