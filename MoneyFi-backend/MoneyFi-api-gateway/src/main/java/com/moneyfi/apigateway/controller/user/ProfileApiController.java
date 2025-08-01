@@ -9,6 +9,7 @@ import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.service.common.ProfileService;
 import com.moneyfi.apigateway.service.userservice.UserService;
+import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.core.io.ByteArrayResource;
@@ -133,6 +134,21 @@ public class ProfileApiController {
     public ResponseEntity<String> deleteProfilePictureFromS3(Authentication authentication) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         return userService.deleteProfilePictureFromS3(username);
+    }
+
+    @Operation(summary = "Api to send otp to block the account")
+    @GetMapping("/otp-request/block-account")
+    public ResponseEntity<String> sendOtpForSignup(Authentication authentication){
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        return userService.sendOtpToBlockAccount(username);
+    }
+
+    @Operation(summary = "Api to block the account based on user request")
+    @PostMapping("/block-account")
+    public ResponseEntity<String> blockAccountByUserRequest(Authentication authentication,
+                                                            @RequestBody AccountBlockRequestDto request) {
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        return userService.blockAccountByUserRequest(username, request);
     }
 
     @Operation(summary = "Method to logout/making the token blacklist")

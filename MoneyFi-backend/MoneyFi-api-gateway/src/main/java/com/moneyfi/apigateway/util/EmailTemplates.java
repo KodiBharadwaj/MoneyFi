@@ -49,6 +49,25 @@ public class EmailTemplates {
         return EmailFilter.sendEmail(email, subject, body);
     }
 
+    public static boolean sendOtpToUserForAccountBlock(String username, String name, String verificationCode){
+
+        String subject = "OTP to block account";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
+                + "<p style='font-size: 16px;'>You have requested otp for account unblock. Please use the following verification code:</p>"
+                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'>" + verificationCode + "</p>"
+                + "<p style='font-size: 16px;'>This code is valid for 5 minutes only. If you did not raise, please ignore this email.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        return EmailFilter.sendEmail(username, subject, body);
+    }
+
     public static boolean sendUserNameToUser(String username){
         String subject = "MoneyFi - Username request";
         String body = "<html>"

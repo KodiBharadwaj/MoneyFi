@@ -2,6 +2,7 @@ package com.moneyfi.apigateway.service.userservice;
 
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.service.userservice.dto.*;
+import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockRequestDto;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,4 +37,8 @@ public interface UserService {
     ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username);
 
     ResponseEntity<String> deleteProfilePictureFromS3(String username);
+
+    ResponseEntity<String> blockAccountByUserRequest(String username, AccountBlockRequestDto request);
+
+    ResponseEntity<String> sendOtpToBlockAccount(String username);
 }

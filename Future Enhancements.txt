@@ -13,6 +13,9 @@ Minor Changes:
 - Implement admin scheduling notifications to user.
 - Implement s3 file uploads with necessary paths.
 
+alter table otp_temp_table
+add otp_type varchar(30)
+
 
 
 New Feature

@@ -20,4 +20,5 @@ public class OtpTempModel {
     private String email;
     private String otp;
     private LocalDateTime expirationTime;
+    private String otpType;
 }
