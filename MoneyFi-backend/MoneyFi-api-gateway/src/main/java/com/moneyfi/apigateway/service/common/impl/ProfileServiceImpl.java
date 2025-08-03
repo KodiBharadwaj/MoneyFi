@@ -1,8 +1,10 @@
 package com.moneyfi.apigateway.service.common.impl;
 
 import com.moneyfi.apigateway.model.common.ContactUs;
+import com.moneyfi.apigateway.model.common.ContactUsHist;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
+import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
 import com.moneyfi.apigateway.repository.user.ContactUsRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.service.common.ProfileService;
@@ -27,15 +29,18 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final ContactUsRepository contactUsRepository;
     private final CommonServiceRepository commonServiceRepository;
+    private final ContactUsHistRepository contactUsHistRepository;
     private final S3AwsService s3AwsService;
 
     public ProfileServiceImpl(ProfileRepository profileRepository,
                               ContactUsRepository contactUsRepository,
                               CommonServiceRepository commonServiceRepository,
+                              ContactUsHistRepository contactUsHistRepository,
                               S3AwsService s3AwsService){
         this.profileRepository = profileRepository;
         this.contactUsRepository = contactUsRepository;
         this.commonServiceRepository = commonServiceRepository;
+        this.contactUsHistRepository = contactUsHistRepository;
         this.s3AwsService = s3AwsService;
     }
 
@@ -71,41 +76,46 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     @Transactional
     public ContactUs saveContactUsDetails(UserDefectRequestDto userDefectRequestDto) {
-        ContactUs contactUsDetails = new ContactUs();
-        contactUsDetails.setName(userDefectRequestDto.getName());
-        contactUsDetails.setEmail(userDefectRequestDto.getEmail());
-        contactUsDetails.setMessage(userDefectRequestDto.getMessage());
-        contactUsDetails.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
-        contactUsDetails.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-        contactUsDetails.setRequestActive(true);
-        contactUsDetails.setVerified(false);
+        ContactUs userDefect = new ContactUs();
+        userDefect.setEmail(userDefectRequestDto.getEmail());
+        userDefect.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
+        userDefect.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+        userDefect.setRequestActive(true);
+        userDefect.setVerified(false);
 
         String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
-        contactUsDetails.setReferenceNumber(referenceNumber);
-        contactUsDetails.setImageId("Defect_" + contactUsRepository.save(contactUsDetails).getId() + "_" +
-                contactUsDetails.getEmail().substring(0,contactUsDetails.getEmail().indexOf('@')));
+        userDefect.setReferenceNumber(referenceNumber);
+        userDefect.setImageId("Defect_" + contactUsRepository.save(userDefect).getId() + "_" +
+                userDefect.getEmail().substring(0,userDefect.getEmail().indexOf('@')));
         new Thread(() -> {
-            EmailTemplates.sendContactAlertMail(contactUsDetails, contactUsDetails.getImageId());
-            EmailTemplates.sendReferenceNumberEmail(contactUsDetails.getName(), contactUsDetails.getEmail(), "resolve issue", referenceNumber);
-            s3AwsService.uploadDefectPictureByUser(contactUsDetails.getImageId(), userDefectRequestDto.getFile());
+            EmailTemplates.sendContactAlertMail(userDefectRequestDto, userDefect.getImageId());
+            EmailTemplates.sendReferenceNumberEmail(userDefectRequestDto.getName(), userDefect.getEmail(), "resolve issue", referenceNumber);
+            s3AwsService.uploadDefectPictureByUser(userDefect.getImageId(), userDefectRequestDto.getFile());
         }).start();
-        return contactUsRepository.save(contactUsDetails);
+        ContactUs savedDefect = contactUsRepository.save(userDefect);
+
+        ContactUsHist userDefectHist = new ContactUsHist();
+        userDefectHist.setContactUsId(savedDefect.getId());
+        userDefectHist.setName(userDefectRequestDto.getName());
+        userDefectHist.setMessage(userDefectRequestDto.getMessage());
+        contactUsHistRepository.save(userDefectHist);
+        return savedDefect;
     }
 
-    @Override
-    public ContactUs saveFeedback(ContactUs feedback) {
-        String rating = feedback.getMessage().substring(0,1);
-        String message = feedback.getMessage().substring(2);
-        new Thread(() ->
-                EmailTemplates.feedbackAlertMail(rating , message)
-        ).start();
-
-        feedback.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
-        feedback.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-        feedback.setRequestActive(true);
-        feedback.setVerified(false);
-        return contactUsRepository.save(feedback);
-    }
+//    @Override
+//    public ContactUs saveFeedback(ContactUs feedback) {
+//        String rating = feedback.getMessage().substring(0,1);
+//        String message = feedback.getMessage().substring(2);
+//        new Thread(() ->
+//                EmailTemplates.feedbackAlertMail(rating , message)
+//        ).start();
+//
+//        feedback.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
+//        feedback.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+//        feedback.setRequestActive(true);
+//        feedback.setVerified(false);
+//        return contactUsRepository.save(feedback);
+//    }
 
     @Override
     public ProfileDetailsDto getProfileDetailsOfUser(Long userId) {

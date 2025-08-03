@@ -3,12 +3,15 @@ package com.moneyfi.apigateway.service.userservice.impl;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.model.*;
 import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
+import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.OtpTempModel;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.model.common.ContactUs;
+import com.moneyfi.apigateway.model.common.ContactUsHist;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
+import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
 import com.moneyfi.apigateway.repository.user.ContactUsRepository;
 import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
@@ -21,7 +24,6 @@ import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
 import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockRequestDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
-import com.moneyfi.apigateway.util.constants.StringUtils;
 import com.moneyfi.apigateway.util.enums.OtpType;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
@@ -62,6 +64,7 @@ public class UserServiceImpl implements UserService {
     private final ProfileRepository profileRepository;
     private final UserCommonService userCommonService;
     private final ContactUsRepository contactUsRepository;
+    private final ContactUsHistRepository contactUsHistRepository;
     private final S3AwsService s3AwsService;
 
     private final AuthenticationManager authenticationManager;
@@ -73,6 +76,7 @@ public class UserServiceImpl implements UserService {
                            ProfileRepository profileRepository,
                            UserCommonService userCommonService,
                            ContactUsRepository contactUsRepository,
+                           ContactUsHistRepository contactUsHistRepository,
                            AuthenticationManager authenticationManager,
                            AmazonSimpleEmailService amazonSimpleEmailService,
                            S3AwsService s3AwsService){
@@ -82,6 +86,7 @@ public class UserServiceImpl implements UserService {
         this.profileRepository = profileRepository;
         this.userCommonService = userCommonService;
         this.contactUsRepository = contactUsRepository;
+        this.contactUsHistRepository = contactUsHistRepository;
         this.authenticationManager = authenticationManager;
         this.amazonSimpleEmailService = amazonSimpleEmailService;
         this.s3AwsService = s3AwsService;
@@ -472,11 +477,14 @@ public class UserServiceImpl implements UserService {
         if(user == null){
             throw new ResourceNotFoundException("User not found");
         }
+        if(user.isBlocked() || user.isDeleted()){
+            throw new ScenarioNotPossibleException("User is not active to perform the operation");
+        }
 
         List<OtpTempModel> userList = otpTempRepository.findByEmail(username);
         Optional<OtpTempModel> tempModel = userList
                 .stream()
-                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.ACCOUNT_UNBLOCK.name()))
+                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.ACCOUNT_BLOCK.name()))
                 .findFirst();
 
         if(tempModel.isPresent()){
@@ -489,21 +497,31 @@ public class UserServiceImpl implements UserService {
             }
 
             ProfileModel userProfile = profileRepository.findByUserId(user.getId());
-            String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
+            String referenceNumber = "BL" + userProfile.getName().substring(0,2) + username.substring(0,2)
+                    + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
 
             user.setBlocked(true);
             userRepository.save(user);
 
             ContactUs blockAccountRequest = new ContactUs();
             blockAccountRequest.setEmail(username);
-            blockAccountRequest.setName(userProfile.getName());
-            blockAccountRequest.setMessage(request.getDescription());
             blockAccountRequest.setReferenceNumber(referenceNumber);
             blockAccountRequest.setRequestActive(true);
             blockAccountRequest.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
             blockAccountRequest.setVerified(false);
             blockAccountRequest.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-            contactUsRepository.save(blockAccountRequest);
+            blockAccountRequest.setStartTime(LocalDateTime.now());
+            ContactUs savedRequest = contactUsRepository.save(blockAccountRequest);
+
+            ContactUsHist blockAccountRequestHistory = new ContactUsHist();
+            blockAccountRequestHistory.setName(userProfile.getName());
+            blockAccountRequestHistory.setMessage(request.getDescription());
+            blockAccountRequestHistory.setContactUsId(savedRequest.getId());
+            blockAccountRequestHistory.setUpdatedTime(savedRequest.getStartTime());
+            blockAccountRequestHistory.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
+            blockAccountRequestHistory.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+            contactUsHistRepository.save(blockAccountRequestHistory);
+
             new Thread(
                     () -> {
                         otpTempRepository.deleteByEmail(username);
@@ -523,6 +541,9 @@ public class UserServiceImpl implements UserService {
         if(userData == null){
             throw new ResourceNotFoundException("User not found");
         }
+        if(userData.isBlocked() || userData.isDeleted()){
+            throw new ScenarioNotPossibleException("You are not allowed to perform this operation");
+        }
 
         String verificationCode = generateVerificationCode();
         boolean isMailsent = EmailTemplates.sendOtpToUserForAccountBlock(username, profileRepository.findByUserId(userData.getId()).getName(), verificationCode);
@@ -531,7 +552,7 @@ public class UserServiceImpl implements UserService {
             List<OtpTempModel> userList = otpTempRepository.findByEmail(username);
             Optional<OtpTempModel> tempModel = userList
                     .stream()
-                    .filter(user -> user.getOtpType().equalsIgnoreCase(OtpType.ACCOUNT_UNBLOCK.name()))
+                    .filter(user -> user.getOtpType().equalsIgnoreCase(OtpType.ACCOUNT_BLOCK.name()))
                     .findFirst();
 
             if(tempModel.isPresent()){
@@ -543,7 +564,7 @@ public class UserServiceImpl implements UserService {
                 otpTempModel.setEmail(username);
                 otpTempModel.setOtp(verificationCode);
                 otpTempModel.setExpirationTime(LocalDateTime.now().plusMinutes(5));
-                otpTempModel.setOtpType(OtpType.ACCOUNT_UNBLOCK.name());
+                otpTempModel.setOtpType(OtpType.ACCOUNT_BLOCK.name());
                 otpTempRepository.save(otpTempModel);
             }
 

@@ -8,22 +8,18 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Data
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "contact_us_table")
-public class ContactUs {
-
+@Entity
+@Table(name = "contact_us_table_hist")
+public class ContactUsHist {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String email;
-    private String imageId;
-    private String referenceNumber;
-    private boolean isRequestActive;
+    private Long contactUsId;
+    private String name;
+    private String message;
+    private LocalDateTime updatedTime;
     private String requestReason;
-    private boolean isVerified;
     private String requestStatus;
-    private LocalDateTime startTime;
-    private LocalDateTime completedTime;
 }

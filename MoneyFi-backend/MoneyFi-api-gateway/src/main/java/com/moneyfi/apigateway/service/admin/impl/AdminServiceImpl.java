@@ -4,8 +4,10 @@ import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.model.common.ContactUs;
+import com.moneyfi.apigateway.model.common.ContactUsHist;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.repository.admin.AdminRepository;
+import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
 import com.moneyfi.apigateway.repository.user.ContactUsRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,17 +35,20 @@ public class AdminServiceImpl implements AdminService {
     private final ContactUsRepository contactUsRepository;
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
+    private final ContactUsHistRepository contactUsHistRepository;
     private final S3AwsService s3AwsService;
 
     public AdminServiceImpl(AdminRepository adminRepository,
                             ContactUsRepository contactUsRepository,
                             UserRepository userRepository,
                             ProfileRepository profileRepository,
+                            ContactUsHistRepository contactUsHistRepository,
                             S3AwsService s3AwsService){
         this.adminRepository = adminRepository;
         this.contactUsRepository = contactUsRepository;
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
+        this.contactUsHistRepository = contactUsHistRepository;
         this.s3AwsService = s3AwsService;
     }
 
@@ -154,7 +160,8 @@ public class AdminServiceImpl implements AdminService {
         return contactUsRepository.findByEmail(email)
                 .stream()
                 .filter(ContactUs::isRequestActive)
-                .filter(i -> i.getReferenceNumber().equals(referenceNumber))
+                .filter(i -> i.getReferenceNumber() != null &&
+                        i.getReferenceNumber().trim().equalsIgnoreCase(referenceNumber.trim()))
                 .findFirst()
                 .map(i -> {
                     functionCallToChangeDetails(email, i, requestStatus);
@@ -165,34 +172,51 @@ public class AdminServiceImpl implements AdminService {
 
     private void functionCallToChangeDetails(String email, ContactUs contactUs, String requestStatus){
         UserAuthModel user = userRepository.getUserDetailsByUsername(email);
+        ContactUsHist requestUserHist = new ContactUsHist();
 
         if(requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
             user.setBlocked(false);
             userRepository.save(user);
-            methodToUpdateContactUsTable(contactUs);
-        } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
 
+            requestUserHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
+            methodToUpdateContactUsTable(contactUs, requestUserHist);
+        } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
             user.setDeleted(false);
             userRepository.save(user);
-            methodToUpdateContactUsTable(contactUs);
+
+            requestUserHist.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
+            methodToUpdateContactUsTable(contactUs, requestUserHist);
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
             ProfileModel userProfile = profileRepository.findByUserId(user.getId());
-            if(!userProfile.getName().toLowerCase().contains(contactUs.getMessage().toLowerCase())){
+            ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
+                    .stream()
+                    .findFirst()
+                    .get();
+            if(!userProfile.getName().toLowerCase().contains(requestDetailsHist.getMessage().toLowerCase())){
                 throw new ScenarioNotPossibleException("Old name didn't match");
             }
 
-            userProfile.setName(contactUs.getName());
+            userProfile.setName(requestDetailsHist.getName());
             profileRepository.save(userProfile);
-            methodToUpdateContactUsTable(contactUs);
+
+            requestUserHist.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
+            methodToUpdateContactUsTable(contactUs, requestUserHist);
         }
     }
 
-    private void methodToUpdateContactUsTable(ContactUs contactUs){
+    private void methodToUpdateContactUsTable(ContactUs contactUs, ContactUsHist requestUserHist){
         contactUs.setRequestActive(false);
         contactUs.setVerified(true);
         contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
         contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
-        contactUsRepository.save(contactUs);
+        contactUs.setCompletedTime(LocalDateTime.now());
+        ContactUs savedRequest = contactUsRepository.save(contactUs);
+
+        requestUserHist.setContactUsId(savedRequest.getId());
+        requestUserHist.setMessage("Admin has been approved");
+        requestUserHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+        requestUserHist.setUpdatedTime(LocalDateTime.now());
+        contactUsHistRepository.save(requestUserHist);
     }
 
     @Override

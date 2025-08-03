@@ -13,7 +13,7 @@ public interface ProfileService {
 
     ContactUs saveContactUsDetails(UserDefectRequestDto userDefectRequestDto);
 
-    ContactUs saveFeedback(ContactUs feedback);
+//    ContactUs saveFeedback(ContactUs feedback);
 
     ProfileDetailsDto getProfileDetailsOfUser(Long userId);
 }

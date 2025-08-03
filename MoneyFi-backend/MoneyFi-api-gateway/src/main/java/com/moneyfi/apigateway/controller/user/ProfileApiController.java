@@ -83,11 +83,11 @@ public class ProfileApiController {
         return ResponseEntity.ok(profileService.saveContactUsDetails(userDefectRequestDto));
     }
 
-    @Operation(summary = "Method which deals with user feedback")
-    @PostMapping("/feedback")
-    public ResponseEntity<ContactUs> saveFeedback(@RequestBody ContactUs feedback){
-        return ResponseEntity.ok(profileService.saveFeedback(feedback));
-    }
+//    @Operation(summary = "Method which deals with user feedback")
+//    @PostMapping("/feedback")
+//    public ResponseEntity<ContactUs> saveFeedback(@RequestBody ContactUs feedback){
+//        return ResponseEntity.ok(profileService.saveFeedback(feedback));
+//    }
 
     @Operation(summary = "Method to get the user id from user's email")
     @GetMapping("/getUserId/{email}")

@@ -6,7 +6,10 @@ import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.model.common.ContactUs;
+import com.moneyfi.apigateway.model.common.ContactUsHist;
+import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
+import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
 import com.moneyfi.apigateway.repository.user.ContactUsRepository;
 import com.moneyfi.apigateway.repository.user.auth.SessionTokenRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
@@ -44,6 +47,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final SessionTokenRepository sessionTokenRepository;
     private final TokenBlackListRepository tokenBlacklistRepository;
     private final ContactUsRepository contactUsRepository;
+    private final ContactUsHistRepository contactUsHistRepository;
     private final CommonServiceRepository commonServiceRepository;
 
     public UserCommonServiceImpl(UserRepository userRepository,
@@ -51,12 +55,14 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  SessionTokenRepository sessionTokenRepository,
                                  TokenBlackListRepository tokenBlacklistRepository,
                                  ContactUsRepository contactUsRepository,
+                                 ContactUsHistRepository contactUsHistRepository,
                                  CommonServiceRepository commonServiceRepository){
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
         this.sessionTokenRepository = sessionTokenRepository;
         this.tokenBlacklistRepository = tokenBlacklistRepository;
         this.contactUsRepository = contactUsRepository;
+        this.contactUsHistRepository = contactUsHistRepository;
         this.commonServiceRepository = commonServiceRepository;
     }
 
@@ -154,7 +160,6 @@ public class UserCommonServiceImpl implements UserCommonService {
         }
 
         List<ContactUs> contactUsDetails = contactUsRepository.findByEmail(email);
-        String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
 
         if(requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
             if(user.isDeleted() || !user.isBlocked()){
@@ -170,23 +175,31 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .findFirst();
 
             if(report.isPresent()){
-                throw new ScenarioNotPossibleException(report.get().getName()!=null?"Account unblock request is already raised":
+                throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).getName()!=null?"Account unblock request is already raised":
                         "Reference already sent, Please submit your details");
             }
 
+            Optional<ContactUs> requestDetails = contactUsDetails
+                    .stream()
+                    .filter(ContactUs::isRequestActive)
+                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_BLOCK_REQUEST.name()))
+                    .findFirst();
+
             boolean isEmailSent = EmailTemplates
-                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account unblock", referenceNumber);
+                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account unblock", requestDetails.get().getReferenceNumber());
 
             if(isEmailSent){
-                ContactUs saveRequest = new ContactUs();
-                saveRequest.setEmail(email);
-                saveRequest.setReferenceNumber(referenceNumber);
-                saveRequest.setRequestActive(true);
-                saveRequest.setVerified(false);
-                saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
-                saveRequest.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-                contactUsRepository.save(saveRequest);
+                requestDetails.get().setRequestStatus(RaiseRequestStatus.INITIATED.name());
+                requestDetails.get().setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
+                ContactUs savedRequest = contactUsRepository.save(requestDetails.get());
 
+                ContactUsHist requestDetailsHist = new ContactUsHist();
+                requestDetailsHist.setContactUsId(savedRequest.getId());
+                requestDetailsHist.setMessage("Reference number requested to unblock the account");
+                requestDetailsHist.setRequestStatus(RaiseRequestStatus.INITIATED.name());
+                requestDetailsHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
+                requestDetailsHist.setUpdatedTime(LocalDateTime.now());
+                contactUsHistRepository.save(requestDetailsHist);
                 response.put(true, "Reference Number sent to your email");
                 return response;
             }
@@ -203,9 +216,13 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .filter(i -> i.getReferenceNumber() != null)
                     .findFirst();
             if(report.isPresent()){
-                throw new ScenarioNotPossibleException(report.get().getName()!=null?"Name change request is already raised":
+                throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).getName()!=null?"Name change request is already raised":
                         "Reference already sent, Please submit your details");
             }
+
+            ProfileModel userProfile = profileRepository.findByUserId(user.getId());
+            String referenceNumber = "NA" + userProfile.getName().substring(0,2) + email.substring(0,2)
+                    + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
 
             boolean isEmailSent = EmailTemplates
                     .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "change name", referenceNumber);
@@ -218,8 +235,16 @@ public class UserCommonServiceImpl implements UserCommonService {
                 saveRequest.setVerified(false);
                 saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
                 saveRequest.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
-                contactUsRepository.save(saveRequest);
+                saveRequest.setStartTime(LocalDateTime.now());
+                ContactUs savedRequest = contactUsRepository.save(saveRequest);
 
+                ContactUsHist userRequestHist = new ContactUsHist();
+                userRequestHist.setContactUsId(savedRequest.getId());
+                userRequestHist.setRequestStatus(RaiseRequestStatus.INITIATED.name());
+                userRequestHist.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
+                userRequestHist.setMessage("Request Reference to change the name");
+                userRequestHist.setUpdatedTime(savedRequest.getStartTime());
+                contactUsHistRepository.save(userRequestHist);
                 response.put(true, "Reference Number sent to your email");
                 return response;
             }
@@ -235,10 +260,11 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .filter(i -> i.getReferenceNumber() != null)
                     .findFirst();
             if(report.isPresent()){
-                throw new ScenarioNotPossibleException(report.get().getName()!=null?"Account retrieval request is already raised":
+                throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).getName()!=null?"Account retrieval request is already raised":
                         "Reference already sent, Please submit your details");
             }
 
+            String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
             boolean isEmailSent = EmailTemplates
                     .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account retrieve", referenceNumber);
 
@@ -277,11 +303,17 @@ public class UserCommonServiceImpl implements UserCommonService {
             if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
                 throw new ScenarioNotPossibleException("Incorrect Reference Number!");
 
-            user.setName(requestDto.getName());
-            user.setMessage(requestDto.getDescription());
             user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-            contactUsRepository.save(user);
+            ContactUs savedRequest = contactUsRepository.save(user);
 
+            ContactUsHist userRequestHist = new ContactUsHist();
+            userRequestHist.setContactUsId(savedRequest.getId());
+            userRequestHist.setName(requestDto.getName());
+            userRequestHist.setMessage(requestDto.getDescription());
+            userRequestHist.setUpdatedTime(LocalDateTime.now());
+            userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+            userRequestHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
+            contactUsHistRepository.save(userRequestHist);
         } else if (requestDto.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
             Optional<ContactUs> report = contactUsDetails
                     .stream()
@@ -292,10 +324,15 @@ public class UserCommonServiceImpl implements UserCommonService {
 
             if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
                 throw new ScenarioNotPossibleException("Incorrect Reference Number!");
-            user.setName(requestDto.getName());
-            user.setMessage(requestDto.getDescription());
             user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-            contactUsRepository.save(user);
+            ContactUs savedRequest = contactUsRepository.save(user);
+
+            ContactUsHist userRequestHist = new ContactUsHist();
+            userRequestHist.setContactUsId(savedRequest.getId());
+            userRequestHist.setName(requestDto.getName());
+            userRequestHist.setMessage(requestDto.getDescription());
+            userRequestHist.setUpdatedTime(LocalDateTime.now());
+            contactUsHistRepository.save(userRequestHist);
         }
 
     }
@@ -315,10 +352,17 @@ public class UserCommonServiceImpl implements UserCommonService {
         if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
             throw new ScenarioNotPossibleException("Incorrect Reference Number!");
 
-        user.setName(requestDto.getNewName());
-        user.setMessage(requestDto.getOldName());
         user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-        contactUsRepository.save(user);
+        ContactUs savedRequest = contactUsRepository.save(user);
+
+        ContactUsHist userRequestHist = new ContactUsHist();
+        userRequestHist.setContactUsId(savedRequest.getId());
+        userRequestHist.setName(requestDto.getNewName());
+        userRequestHist.setMessage(requestDto.getOldName());
+        userRequestHist.setUpdatedTime(LocalDateTime.now());
+        userRequestHist.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
+        userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+        contactUsHistRepository.save(userRequestHist);
     }
 
     @Override
@@ -333,12 +377,16 @@ public class UserCommonServiceImpl implements UserCommonService {
             userRequestResponse.setRequestType("Requested to retrieve the account");
         } else if(userRequestResponse.getRequestType().equalsIgnoreCase(RequestReason.USER_DEFECT_UPDATE.name())){
             userRequestResponse.setRequestType("Issue raised");
+        } else if(userRequestResponse.getRequestType().equalsIgnoreCase(RequestReason.ACCOUNT_BLOCK_REQUEST.name())){
+            userRequestResponse.setRequestType("Request Raised to block account");
         }
 
         if(userRequestResponse.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
             userRequestResponse.setRequestStatus("User yet to submit the details - open");
         } else if (userRequestResponse.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name())){
-            userRequestResponse.setRequestStatus("Admin approval is in progress");
+            if(userRequestResponse.getRequestType().equalsIgnoreCase("Request Raised to block account"))
+                userRequestResponse.setRequestStatus("Account blocked, Raise request to unblock");
+            else userRequestResponse.setRequestStatus("Admin approval is in progress");
         } else if(userRequestResponse.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name())){
             userRequestResponse.setRequestStatus("Request has been approved by admin");
         }

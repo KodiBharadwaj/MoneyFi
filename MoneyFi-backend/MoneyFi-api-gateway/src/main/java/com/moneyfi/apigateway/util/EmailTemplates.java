@@ -1,6 +1,6 @@
 package com.moneyfi.apigateway.util;
 
-import com.moneyfi.apigateway.model.common.ContactUs;
+import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
 
 import java.util.Base64;
 
@@ -55,7 +55,7 @@ public class EmailTemplates {
         String body = "<html>"
                 + "<body>"
                 + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
-                + "<p style='font-size: 16px;'>You have requested otp for account unblock. Please use the following verification code:</p>"
+                + "<p style='font-size: 16px;'>You have requested otp for account block. Please use the following verification code:</p>"
                 + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'>" + verificationCode + "</p>"
                 + "<p style='font-size: 16px;'>This code is valid for 5 minutes only. If you did not raise, please ignore this email.</p>"
                 + "<hr>"
@@ -105,7 +105,7 @@ public class EmailTemplates {
         return EmailFilter.sendEmail(email, subject, body);
     }
 
-    public static void sendContactAlertMail(ContactUs contactUsDetails, String images){
+    public static void sendContactAlertMail(UserDefectRequestDto userDefectRequestDto, String images){
         String subject = "MoneyFi's User Report Alert!!";
 
         String body = "<html>"
@@ -113,10 +113,10 @@ public class EmailTemplates {
                 + "<p style='font-size: 16px;'>Hello Admin,</p>"
                 + "<p style='font-size: 16px;'>You received the Report/defect by a user: </p>"
                 + "<br>"
-                + "<p style='font-size: 16px;'>" + contactUsDetails.getMessage() + "</p>"
+                + "<p style='font-size: 16px;'>" + userDefectRequestDto.getMessage() + "</p>"
                 + "<br> <hr>"
-                + "<p style='font-size: 14px;'>" + contactUsDetails.getName() + "</p>"
-                + "<p style='font-size: 14px;'>" + contactUsDetails.getEmail() + "</p>"
+                + "<p style='font-size: 14px;'>" + userDefectRequestDto.getName() + "</p>"
+                + "<p style='font-size: 14px;'>" + userDefectRequestDto.getEmail() + "</p>"
                 + "<br>"
                 + "<p style='font-size: 16px;'>Please login for more details</p>"
                 + "</body>"
@@ -169,7 +169,7 @@ public class EmailTemplates {
     }
 
     public static boolean sendReferenceNumberEmail(String name, String email, String description, String referenceNumber) {
-        String subject = "MoneyFi - Account retrieval request";
+        String subject = "MoneyFi - user requests";
         String body = "<html>"
                 + "<body>"
                 + "<p style='font-size: 16px;'>Hello " + name + "</p>"
