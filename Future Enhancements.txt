@@ -12,9 +12,8 @@ Minor Changes:
 - Implement caching policy in ui to avoid repetitive api calls.
 - Implement admin scheduling notifications to user.
 - Implement s3 file uploads with necessary paths.
-
-alter table otp_temp_table
-add otp_type varchar(30)
+- Implement one external api in backend for any existing feature.
+- Change reference number which should consider user's name, phone, etc details.
 
 
 
