@@ -1,11 +1,14 @@
 package com.moneyfi.apigateway.service.common.impl;
 
+import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.ContactUsHist;
+import com.moneyfi.apigateway.model.common.ExcelTemplate;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
 import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
 import com.moneyfi.apigateway.repository.user.ContactUsRepository;
+import com.moneyfi.apigateway.repository.user.ExcelTemplateRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.service.common.ProfileService;
 import com.moneyfi.apigateway.service.common.S3AwsService;
@@ -16,12 +19,24 @@ import com.moneyfi.apigateway.util.constants.StringUtils;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
+import java.math.BigDecimal;
 import java.sql.Date;
+import java.time.ZoneId;
 
 import static com.moneyfi.apigateway.util.constants.StringUtils.generateVerificationCode;
+import static com.moneyfi.apigateway.util.constants.StringUtils.templateIdAssociation;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
@@ -30,17 +45,20 @@ public class ProfileServiceImpl implements ProfileService {
     private final ContactUsRepository contactUsRepository;
     private final CommonServiceRepository commonServiceRepository;
     private final ContactUsHistRepository contactUsHistRepository;
+    private final ExcelTemplateRepository excelTemplateRepository;
     private final S3AwsService s3AwsService;
 
     public ProfileServiceImpl(ProfileRepository profileRepository,
                               ContactUsRepository contactUsRepository,
                               CommonServiceRepository commonServiceRepository,
                               ContactUsHistRepository contactUsHistRepository,
+                              ExcelTemplateRepository excelTemplateRepository,
                               S3AwsService s3AwsService){
         this.profileRepository = profileRepository;
         this.contactUsRepository = contactUsRepository;
         this.commonServiceRepository = commonServiceRepository;
         this.contactUsHistRepository = contactUsHistRepository;
+        this.excelTemplateRepository = excelTemplateRepository;
         this.s3AwsService = s3AwsService;
     }
 
@@ -122,4 +140,45 @@ public class ProfileServiceImpl implements ProfileService {
         return commonServiceRepository.getProfileDetailsOfUser(userId);
     }
 
+    @Override
+    public ResponseEntity<String> parseUserProfileDataFromExcel(MultipartFile excel, Long userId) {
+        try (InputStream is = excel.getInputStream()) {
+            Workbook workbook = new XSSFWorkbook(is);
+            Sheet sheet = workbook.getSheetAt(0);
+            Row row = sheet.getRow(1);
+
+            java.util.Date dobDate = row.getCell(1).getDateCellValue();
+            double incomeRange = row.getCell(4).getNumericCellValue();
+
+            ProfileModel fetchProfile = profileRepository.findByUserId(userId);
+
+            if (fetchProfile != null) {
+                fetchProfile.setPhone(String.valueOf(BigDecimal.valueOf(row.getCell(0).getNumericCellValue()).toBigInteger()));
+                fetchProfile.setDateOfBirth(dobDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                fetchProfile.setGender(row.getCell(2).getStringCellValue());
+                fetchProfile.setMaritalStatus(row.getCell(3).getStringCellValue());
+                fetchProfile.setIncomeRange(incomeRange);
+                fetchProfile.setAddress(row.getCell(5).getStringCellValue());
+                profileRepository.save(fetchProfile);
+            } else {
+                throw new ResourceNotFoundException("User profile not found for userId: " + userId);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResourceNotFoundException("Invalid Excel format");
+        }
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<byte[]> downloadTemplateForUserProfile() {
+        ExcelTemplate template = excelTemplateRepository.findById(templateIdAssociation.get("profile-template"))
+                .orElseThrow(() -> new RuntimeException("Template not found"));
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + template.getName())
+                .contentType(MediaType.parseMediaType(template.getContentType()))
+                .body(template.getContent());
+    }
 }

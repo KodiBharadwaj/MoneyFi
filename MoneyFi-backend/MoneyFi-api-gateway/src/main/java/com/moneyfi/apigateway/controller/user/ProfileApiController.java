@@ -151,6 +151,20 @@ public class ProfileApiController {
         return userService.blockAccountByUserRequest(username, request);
     }
 
+    @Operation(summary = "Api to download the empty template of excel for user profile details to be saved")
+    @GetMapping("/profile-details-template/download")
+    public ResponseEntity<byte[]> downloadTemplateForUserProfile() {
+        return profileService.downloadTemplateForUserProfile();
+    }
+
+    @Operation(summary = "Api to parse the excel to extract the user's profile data and save into db")
+    @PostMapping("/user-profile/excel-upload")
+    public ResponseEntity<String> parseUserProfileDataFromExcel(Authentication authentication,
+                                                                @RequestParam("file") MultipartFile excel){
+        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        return profileService.parseUserProfileDataFromExcel(excel, userId);
+    }
+
     @Operation(summary = "Method to logout/making the token blacklist")
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader("Authorization") String token) {

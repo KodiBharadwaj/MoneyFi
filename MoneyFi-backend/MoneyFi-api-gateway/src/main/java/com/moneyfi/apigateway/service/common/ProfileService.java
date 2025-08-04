@@ -4,6 +4,8 @@ import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.ProfileDetailsDto;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ProfileService {
 
@@ -16,4 +18,8 @@ public interface ProfileService {
 //    ContactUs saveFeedback(ContactUs feedback);
 
     ProfileDetailsDto getProfileDetailsOfUser(Long userId);
+
+    ResponseEntity<String> parseUserProfileDataFromExcel(MultipartFile excel, Long userId);
+
+    ResponseEntity<byte[]> downloadTemplateForUserProfile();
 }
