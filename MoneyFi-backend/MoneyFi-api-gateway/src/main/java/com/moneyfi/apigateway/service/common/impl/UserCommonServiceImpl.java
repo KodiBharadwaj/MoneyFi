@@ -1,5 +1,8 @@
 package com.moneyfi.apigateway.service.common.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
@@ -18,6 +21,7 @@ import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
+import com.moneyfi.apigateway.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.constants.StringUtils;
@@ -29,6 +33,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -49,6 +54,9 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final ContactUsRepository contactUsRepository;
     private final ContactUsHistRepository contactUsHistRepository;
     private final CommonServiceRepository commonServiceRepository;
+    private final RestTemplate externalRestTemplate;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public UserCommonServiceImpl(UserRepository userRepository,
                                  ProfileRepository profileRepository,
@@ -56,7 +64,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  TokenBlackListRepository tokenBlacklistRepository,
                                  ContactUsRepository contactUsRepository,
                                  ContactUsHistRepository contactUsHistRepository,
-                                 CommonServiceRepository commonServiceRepository){
+                                 CommonServiceRepository commonServiceRepository,
+                                 RestTemplate externalRestTemplate){
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
         this.sessionTokenRepository = sessionTokenRepository;
@@ -64,6 +73,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.contactUsRepository = contactUsRepository;
         this.contactUsHistRepository = contactUsHistRepository;
         this.commonServiceRepository = commonServiceRepository;
+        this.externalRestTemplate = externalRestTemplate;
     }
 
 
@@ -392,6 +402,25 @@ public class UserCommonServiceImpl implements UserCommonService {
         }
 
         return userRequestResponse;
+    }
+
+    @Override
+    public QuoteResponseDto getTodayQuoteByExternalCall(String externalApiUrl) {
+        QuoteResponseDto quoteResponseDto = new QuoteResponseDto();
+        String jsonStringResponse = externalRestTemplate.getForObject(externalApiUrl, String.class);
+
+        try {
+            List<QuoteResponseDto> quoteList = objectMapper.readValue(jsonStringResponse, new TypeReference<List<QuoteResponseDto>>() {});
+            if(!quoteList.isEmpty()){
+                quoteResponseDto.setQuote(quoteList.get(0).getQuote());
+                quoteResponseDto.setAuthor(quoteList.get(0).getAuthor());
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new RuntimeException("Failed to parse the json response", e);
+        }
+
+        throw new ResourceNotFoundException("No quote response found from external api");
     }
 
 

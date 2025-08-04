@@ -1,9 +1,11 @@
 package com.moneyfi.apigateway.service.common;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
+import com.moneyfi.apigateway.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
 
 import java.util.Map;
@@ -33,4 +35,6 @@ public interface UserCommonService {
     void nameChangeRequestByUser(NameChangeRequestDto requestDto);
 
     UserRequestStatusDto trackUserRequestUsingReferenceNumber(String referenceNumber);
+
+    QuoteResponseDto getTodayQuoteByExternalCall(String externalApiUrl) throws JsonProcessingException;
 }

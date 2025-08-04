@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -45,7 +46,7 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
 
     public SecurityConfig(UserDetailsService userDetailsService,
-                          JwtFilter jwtFilter){
+                          @Lazy JwtFilter jwtFilter){
         this.userDetailsService = userDetailsService;
         this.jwtFilter = jwtFilter;
     }
@@ -93,10 +94,14 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
-
     @Bean
     @LoadBalanced
     public RestTemplate getRestTemplate(){
+        return new RestTemplate();
+    }
+
+    @Bean
+    public RestTemplate externalRestTemplate() {
         return new RestTemplate();
     }
 
