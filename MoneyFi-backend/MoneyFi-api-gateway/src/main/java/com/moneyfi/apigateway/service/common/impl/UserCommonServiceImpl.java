@@ -1,6 +1,5 @@
 package com.moneyfi.apigateway.service.common.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
@@ -41,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.moneyfi.apigateway.util.constants.StringUtils.DAILY_QUOTE_EXTERNAL_API_URL;
 import static com.moneyfi.apigateway.util.constants.StringUtils.generateVerificationCode;
 
 @Service
@@ -407,14 +407,18 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Override
     public QuoteResponseDto getTodayQuoteByExternalCall(String externalApiUrl) {
         QuoteResponseDto quoteResponseDto = new QuoteResponseDto();
-        String jsonStringResponse = externalRestTemplate.getForObject(externalApiUrl, String.class);
 
         try {
+            String jsonStringResponse = externalRestTemplate.getForObject(DAILY_QUOTE_EXTERNAL_API_URL, String.class);
+
             List<QuoteResponseDto> quoteList = objectMapper.readValue(jsonStringResponse, new TypeReference<List<QuoteResponseDto>>() {});
             if(!quoteList.isEmpty()){
                 quoteResponseDto.setQuote(quoteList.get(0).getQuote());
                 quoteResponseDto.setAuthor(quoteList.get(0).getAuthor());
+                quoteResponseDto.setDescription(quoteList.get(0).getDescription());
+                return quoteResponseDto;
             }
+
         } catch (Exception e){
             e.printStackTrace();
             throw new RuntimeException("Failed to parse the json response", e);

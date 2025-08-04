@@ -1,5 +1,6 @@
 package com.moneyfi.apigateway.service.common.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,6 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuoteResponseDto {
+    @JsonProperty("q")
     private String quote;
+    @JsonProperty("a")
     private String author;
+    @JsonProperty("h")
+    private String description;
 }

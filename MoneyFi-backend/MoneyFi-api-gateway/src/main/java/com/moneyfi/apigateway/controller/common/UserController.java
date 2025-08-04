@@ -1,13 +1,8 @@
 package com.moneyfi.apigateway.controller.common;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
-import com.moneyfi.apigateway.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.common.UserCommonService;
@@ -21,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.sql.DataSource;
@@ -31,18 +25,12 @@ import java.nio.charset.StandardCharsets;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.util.List;
 import java.util.Map;
-
-import static com.moneyfi.apigateway.util.constants.StringUtils.DAILY_QUOTE_EXTERNAL_API_URL;
 
 @RestController
 @CrossOrigin("http://localhost:4200")
 @RequestMapping("/api/auth")
 public class UserController {
-
-    private RestTemplate externalRestTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final UserService userService;
     private final JwtService jwtService;
@@ -162,33 +150,6 @@ private DataSource dataSource;
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-    }
-
-    @Operation(summary = "Api to make external api call from backend to get the daily quotes")
-    @GetMapping("/get-quote/today")
-    public QuoteResponseDto getTodayQuoteByExternalCall() throws JsonProcessingException {
-//        return userCommonService.getTodayQuoteByExternalCall(DAILY_QUOTE_EXTERNAL_API_URL);
-        System.out.println("Method entered");
-
-        QuoteResponseDto quoteResponseDto = new QuoteResponseDto();
-
-
-        try {
-            String jsonStringResponse = externalRestTemplate.getForObject(DAILY_QUOTE_EXTERNAL_API_URL, String.class);
-            System.out.println("checking: " + jsonStringResponse);
-            List<QuoteResponseDto> quoteList = objectMapper.readValue(jsonStringResponse, new TypeReference<List<QuoteResponseDto>>() {});
-            if(!quoteList.isEmpty()){
-                quoteResponseDto.setQuote(quoteList.get(0).getQuote());
-                quoteResponseDto.setAuthor(quoteList.get(0).getAuthor());
-                return quoteResponseDto;
-            }
-
-        } catch (Exception e){
-            e.printStackTrace();
-            throw new RuntimeException("Failed to parse the json response", e);
-        }
-
-        throw new ResourceNotFoundException("No quote response found from external api");
     }
 
     @GetMapping("/stream-large-data")
