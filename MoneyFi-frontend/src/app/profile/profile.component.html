@@ -31,6 +31,23 @@
             <mat-icon>lock</mat-icon>
             Change Password
           </button>
+          <button (click)="downloadProfileTemplate()">Download Profile Template</button>
+
+          <input type="file" (change)="onFileSelected($event)" accept=".xlsx" />
+<button (click)="uploadUserProfileExcel()" [disabled]="!selectedFile">Upload</button>
+
+
+<!-- Step 1: Block Account Button -->
+<button (click)="initiateAccountBlock()" [disabled]="blockRequestSent">Block Account</button>
+
+<!-- Step 2: Input fields (shown only after first response) -->
+<div *ngIf="blockRequestSent" style="display: flex; gap: 10px; margin-top: 10px;">
+  <input type="text" [(ngModel)]="otp" placeholder="Enter OTP" />
+  <input type="text" [(ngModel)]="description" placeholder="Enter Description" />
+  <button (click)="confirmAccountBlock()">Confirm</button>
+</div>
+
+
         </div>
       </div>
       <button class="edit-profile-btn" (click)="toggleEdit()">

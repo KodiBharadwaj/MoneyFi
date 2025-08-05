@@ -310,20 +310,24 @@ public class UserCommonServiceImpl implements UserCommonService {
 
             ContactUs user = report.orElseThrow(() -> new RuntimeException("User not found. Please check your details"));
 
-            if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
-                throw new ScenarioNotPossibleException("Incorrect Reference Number!");
+            if(user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
+                if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
+                    throw new ScenarioNotPossibleException("Incorrect Reference Number!");
 
-            user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-            ContactUs savedRequest = contactUsRepository.save(user);
+                user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+                ContactUs savedRequest = contactUsRepository.save(user);
 
-            ContactUsHist userRequestHist = new ContactUsHist();
-            userRequestHist.setContactUsId(savedRequest.getId());
-            userRequestHist.setName(requestDto.getName());
-            userRequestHist.setMessage(requestDto.getDescription());
-            userRequestHist.setUpdatedTime(LocalDateTime.now());
-            userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-            userRequestHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-            contactUsHistRepository.save(userRequestHist);
+                ContactUsHist userRequestHist = new ContactUsHist();
+                userRequestHist.setContactUsId(savedRequest.getId());
+                userRequestHist.setName(requestDto.getName());
+                userRequestHist.setMessage(requestDto.getDescription());
+                userRequestHist.setUpdatedTime(LocalDateTime.now());
+                userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+                userRequestHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
+                contactUsHistRepository.save(userRequestHist);
+            } else if(user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name())){
+                throw new ScenarioNotPossibleException("Request already raised");
+            }
         } else if (requestDto.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
             Optional<ContactUs> report = contactUsDetails
                     .stream()
