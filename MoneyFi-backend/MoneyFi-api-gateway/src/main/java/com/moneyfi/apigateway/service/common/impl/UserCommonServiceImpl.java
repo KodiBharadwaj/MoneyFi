@@ -425,7 +425,7 @@ public class UserCommonServiceImpl implements UserCommonService {
 
         } catch (Exception e){
             e.printStackTrace();
-            throw new RuntimeException("Failed to parse the json response", e);
+            throw new ScenarioNotPossibleException("Failed to parse the json response -> " + e);
         }
 
         throw new ResourceNotFoundException("No quote response found from external api");

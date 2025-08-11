@@ -29,7 +29,7 @@ interface UserProfileDetails {
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.scss'],
+  styleUrls: ['./profile.component.css'],
   standalone: true,
   imports: [FormsModule,
     CommonModule,
@@ -60,6 +60,7 @@ export class ProfileComponent implements OnInit {
   blockRequestSent = false;
   otp = '';
   description = '';
+  quote : string = '';
 
   constructor(private http: HttpClient, private toastr:ToastrService, private dialog:MatDialog, private router: Router) { }
 

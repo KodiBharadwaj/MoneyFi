@@ -473,6 +473,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public ResponseEntity<String> blockAccountByUserRequest(String username, AccountBlockRequestDto request) {
+        if(request.getOtp() == null || request.getOtp().isEmpty() || request.getDescription() == null || request.getDescription().isEmpty()){
+            throw new ScenarioNotPossibleException("Input fields should not be empty");
+        }
         UserAuthModel user = userRepository.getUserDetailsByUsername(username);
         if(user == null){
             throw new ResourceNotFoundException("User not found");
@@ -489,11 +492,11 @@ public class UserServiceImpl implements UserService {
 
         if(tempModel.isPresent()){
             if(!tempModel.get().getOtp().equals(request.getOtp())){
-                ResponseEntity.badRequest().body("Please enter otp correctly");
+                throw new ScenarioNotPossibleException("Please enter correct otp");
             }
 
             if(tempModel.get().getExpirationTime().isBefore(LocalDateTime.now())){
-                ResponseEntity.badRequest().body("Otp expired. Try fetching new otp");
+                throw new ScenarioNotPossibleException("Otp expired, Try new one");
             }
 
             ProfileModel userProfile = profileRepository.findByUserId(user.getId());

@@ -7,13 +7,13 @@ Major Changes:
 
 Minor Changes:
 - Write Junit test cases for income service (ongoing)
-- Implement block account feature in user profile with mail confirmation.
+- Implement block account feature in user profile with mail confirmation. (ui enhance pending)
 - Implement triggers/scheduled (birthday, recurring income saving)
 - Implement caching policy in ui to avoid repetitive api calls.
 - Implement admin scheduling notifications to user.
 - Implement s3 file uploads with necessary paths.
-- Implement template based parsing and saving of profile details. excel template download and fill and reupload to save in db.
 - Implement one external api in backend for any existing feature.
+- Frontend error handling for block acc in profile.
 
 
 New Feature
