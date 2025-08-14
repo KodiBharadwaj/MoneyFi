@@ -1,9 +1,11 @@
 package com.moneyfi.apigateway.controller.admin;
 
 import com.moneyfi.apigateway.service.admin.AdminService;
+import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -88,6 +90,12 @@ public class AdminController {
     @GetMapping("user-profile-details")
     public UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(@RequestParam("username") String username){
         return adminService.getCompleteUserDetailsForAdmin(username);
+    }
+
+    @Operation(summary = "Api to schedule a notification by admin")
+    @PostMapping("/schedule-notification")
+    public String scheduleNotification(@RequestBody @Valid ScheduleNotificationRequestDto requestDto){
+        return adminService.scheduleNotification(requestDto);
     }
 
     @Operation(summary = "Api to logout/making the token blacklist for admin")

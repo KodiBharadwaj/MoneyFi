@@ -3,15 +3,12 @@ package com.moneyfi.apigateway.service.admin.impl;
 import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
-import com.moneyfi.apigateway.model.common.ContactUs;
-import com.moneyfi.apigateway.model.common.ContactUsHist;
-import com.moneyfi.apigateway.model.common.ProfileModel;
+import com.moneyfi.apigateway.model.common.*;
 import com.moneyfi.apigateway.repository.admin.AdminRepository;
-import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
-import com.moneyfi.apigateway.repository.user.ContactUsRepository;
-import com.moneyfi.apigateway.repository.user.ProfileRepository;
+import com.moneyfi.apigateway.repository.user.*;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.admin.AdminService;
+import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.S3AwsService;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
@@ -19,11 +16,13 @@ import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,6 +35,8 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final ContactUsHistRepository contactUsHistRepository;
+    private final ScheduleNotificationRepository scheduleNotificationRepository;
+    private final UserNotificationRepository userNotificationRepository;
     private final S3AwsService s3AwsService;
 
     public AdminServiceImpl(AdminRepository adminRepository,
@@ -43,12 +44,16 @@ public class AdminServiceImpl implements AdminService {
                             UserRepository userRepository,
                             ProfileRepository profileRepository,
                             ContactUsHistRepository contactUsHistRepository,
+                            ScheduleNotificationRepository scheduleNotificationRepository,
+                            UserNotificationRepository userNotificationRepository,
                             S3AwsService s3AwsService){
         this.adminRepository = adminRepository;
         this.contactUsRepository = contactUsRepository;
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
         this.contactUsHistRepository = contactUsHistRepository;
+        this.scheduleNotificationRepository = scheduleNotificationRepository;
+        this.userNotificationRepository = userNotificationRepository;
         this.s3AwsService = s3AwsService;
     }
 
@@ -292,5 +297,30 @@ public class AdminServiceImpl implements AdminService {
                 () -> userDetails.setImageFromS3(s3AwsService.fetchUserProfilePictureFromS3(userDetails.getUserId(), username))
         ).start();
         return userDetails;
+    }
+
+    @Override
+    @Transactional
+    public String scheduleNotification(ScheduleNotificationRequestDto requestDto) {
+        ScheduleNotification scheduleNotification = new ScheduleNotification();
+        BeanUtils.copyProperties(requestDto, scheduleNotification);
+        scheduleNotification.setActive(true);
+        scheduleNotification.setCancelled(false);
+        scheduleNotification.setCreatedDate(LocalDateTime.now());
+        ScheduleNotification response = scheduleNotificationRepository.save(scheduleNotification);
+
+        if (!requestDto.getRecipients().equalsIgnoreCase("All")) {
+            Arrays.stream(requestDto.getRecipients().split(","))
+                    .map(String::trim)
+                    .map(username -> {
+                        UserNotification userNotification = new UserNotification();
+                        userNotification.setScheduleId(response.getId());
+                        userNotification.setUsername(username);
+                        userNotification.setRead(false);
+                        return userNotification;
+                    })
+                    .forEach(userNotificationRepository::save);
+        }
+        return "Notification set successfully";
     }
 }

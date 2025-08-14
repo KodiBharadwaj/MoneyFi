@@ -1,6 +1,8 @@
 package com.moneyfi.apigateway.service.admin;
 
+import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Map;
@@ -23,4 +25,6 @@ public interface AdminService {
     Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status);
 
     UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username);
+
+    String scheduleNotification(@Valid ScheduleNotificationRequestDto requestDto);
 }
