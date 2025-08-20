@@ -60,12 +60,24 @@ export class OverviewComponent implements OnInit {
   thisYear = new Date().getFullYear(); // Current year
 
   loading: boolean = false;
+  quote : string = '';
+  author : string = '';
 
   constructor(private router: Router, private httpClient:HttpClient, private toastr:ToastrService) {}
   baseUrl = environment.BASE_URL;
 
   ngOnInit() {
     this.loadFinancialData();
+    this.getQuoteFunction();
+  }
+
+  getQuoteFunction(){
+    this.httpClient.get<any>(`${this.baseUrl}/api/v1/external-api/get-quote/today`).subscribe({
+      next : (data) => {
+        this.quote = data.q;
+        this.author = data.a;
+      }
+    })
   }
 
   private loadFinancialData() {

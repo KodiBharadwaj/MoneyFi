@@ -23,27 +23,89 @@
       
     </main> -->
     <main class="main-content">
-        <div class="defects-container" *ngIf="userDefects.length > 0">
-            <div class="defect-card" *ngFor="let defect of userDefects">
-            <h3>{{ defect.name }}</h3>
-            <p><strong>Username:</strong> {{ defect.username }}</p>
-            <p><strong>Reference No:</strong> {{ defect.referenceNumber }}</p>
-            <p><strong>Description:</strong> {{ defect.description }}</p>
-            
-            <div class="image-preview" (click)="viewImage(defect.imageId)">
-                <img src="assets/image-placeholder.png" alt="View" />
-                <p class="click-text">Click to view image</p>
-            </div>
-            </div>
+      <!-- Filter Controls -->
+      <div class="filter-bar">
+        <div
+          class="status-filter"
+          [class.selected]="selectedStatus === 'All'"
+          (click)="filterStatus('All')">
+          All
+        </div>
+        <div
+          class="status-filter"
+          [class.selected]="selectedStatus === 'COMPLETED'"
+          (click)="filterStatus('COMPLETED')">
+          Solved
+        </div>
+        <div
+          class="status-filter"
+          [class.selected]="selectedStatus === 'PENDED'"
+          (click)="filterStatus('PENDED')">
+          Pend
+        </div>
+        <div
+          class="status-filter"
+          [class.selected]="selectedStatus === 'IGNORED'"
+          (click)="filterStatus('IGNORED')">
+          Ignore
+        </div>
+        <div
+          class="status-filter"
+          [class.selected]="selectedStatus === 'All'"
+          style="margin-left: auto;"
+          (click)="resetFilterManually()">
+          Reset
         </div>
 
-        <div *ngIf="selectedImage" class="image-modal">
-            <div class="modal-content">
-            <span class="close-btn" (click)="selectedImage = null">&times;</span>
-            <img [src]="selectedImage" alt="Defect Image" />
-            </div>
-        </div>
-        </main>
+      </div>
 
+
+      <!-- Defects List -->
+      <div class="defects-container" *ngIf="filteredDefects.length > 0">
+        <div class="defect-card" *ngFor="let defect of filteredDefects">
+          <h3>{{ defect.name }}</h3>
+          <p><strong>Username:</strong> {{ defect.username }}</p>
+          <p><strong>Reference No:</strong> {{ defect.referenceNumber }}</p>
+          <p><strong>Description:</strong> {{ defect.description }}</p>
+          <p><strong>Status:</strong> {{ defect.defectStatus }}</p>
+
+          <!-- Image -->
+          <div class="image-preview" (click)="viewImage(defect.imageId)">
+            <img src="assets/image-placeholder.png" alt="View" />
+            <p class="click-text">Click to view image</p>
+          </div>
+
+          <!-- Status Update Buttons -->
+          <div class="status-buttons">
+            <button
+              [disabled]="defect.defectStatus === 'COMPLETED' || defect.defectStatus === 'IGNORED'"
+              (click)="updateDefectStatus(defect.defectId, 'Solved')">
+              Solve
+            </button>
+
+            <button
+              [disabled]="defect.defectStatus === 'COMPLETED' || defect.defectStatus === 'PENDED' || defect.defectStatus === 'IGNORED'"
+              (click)="updateDefectStatus(defect.defectId, 'Pend')">
+              Pend
+            </button>
+
+            <button
+              [disabled]="defect.defectStatus === 'COMPLETED' || defect.defectStatus === 'IGNORED'"
+              (click)="updateDefectStatus(defect.defectId, 'Ignore')">
+              Ignore
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Modal -->
+      <div *ngIf="selectedImage" class="image-modal">
+        <div class="modal-content">
+          <span class="close-btn" (click)="selectedImage = null">&times;</span>
+          <img [src]="selectedImage" alt="Defect Image" />
+        </div>
+      </div>
+    </main>
   </div>
 </div>

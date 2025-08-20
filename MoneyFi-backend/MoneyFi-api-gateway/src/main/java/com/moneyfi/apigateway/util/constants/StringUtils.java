@@ -22,10 +22,12 @@ public class StringUtils {
     public static final String LOGIN_ERROR = "An error occurred during login";
 
     public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name());
+    public static final Map<String, Integer> templateIdAssociation = Map.of("profile-template", 1);
 
     public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
     public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
+    public static final String DAILY_QUOTE_EXTERNAL_API_URL = "https://zenquotes.io/api/random";
 
     public static String generateVerificationCode() {
         Random random = new Random();

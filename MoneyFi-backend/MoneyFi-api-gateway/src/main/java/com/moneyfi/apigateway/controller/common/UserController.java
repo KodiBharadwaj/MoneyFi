@@ -46,6 +46,11 @@ private DataSource dataSource;
         this.userCommonService = resetPassword;
     }
 
+    @Operation(summary = "Api end point to test")
+    @GetMapping("/test")
+    public String testFunction(){
+        return "method entered";
+    }
 
     @Operation(summary = "Method for the user registration/signup")
     @PostMapping("/register")
@@ -117,7 +122,7 @@ private DataSource dataSource;
         return userService.getUsernameByDetails(userDetails);
     }
 
-    @Operation(summary = "Api to send reference number to the user for account retrieval")
+    @Operation(summary = "Api to send reference number to the user for account retrieval/name change")
     @GetMapping("/{requestStatus}/{email}/reference-number-request")
     public Map<Boolean, String> requestReferenceNumber(@PathVariable("requestStatus") String requestStatus,
                                                        @PathVariable("email") String email){

@@ -31,8 +31,10 @@ import { OverviewComponent } from '../overview/overview.component';
 })
 export class AdminUserDefectsComponent implements OnInit{
 
-  userDefects: any[] = [];
+  userDefects: any[] = []; // fetched from backend
+  filteredDefects: any[] = [];
   selectedImage: string | null = null;
+  selectedStatus: string = 'New';
 
   ngOnInit(): void {
     this.loadUserDefects();
@@ -48,6 +50,8 @@ export class AdminUserDefectsComponent implements OnInit{
       .subscribe({
         next: (data) => {
           this.userDefects = data;
+          this.filteredDefects = [...this.userDefects];
+          this.filterStatus('SUBMITTED');
         },
         error: (err) => {
           console.error('Error loading user defects:', err);
@@ -56,19 +60,50 @@ export class AdminUserDefectsComponent implements OnInit{
   }
 
   viewImage(imageId: string): void {
-    this.httpClient.get(`http://your-backend-url/api/admin/defect-image/${imageId}`, { responseType: 'blob' })
-      .subscribe({
-        next: (blob) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            this.selectedImage = reader.result as string;
-          };
-          reader.readAsDataURL(blob);
-        },
-        error: (err) => {
-          console.error('Error fetching image:', err);
+    // this.httpClient.get(`http://your-backend-url/api/admin/defect-image/${imageId}`, { responseType: 'blob' })
+    //   .subscribe({
+    //     next: (blob) => {
+    //       const reader = new FileReader();
+    //       reader.onload = () => {
+    //         this.selectedImage = reader.result as string;
+    //       };
+    //       reader.readAsDataURL(blob);
+    //     },
+    //     error: (err) => {
+    //       console.error('Error fetching image:', err);
+    //     }
+    //   });
+  }
+
+  filterStatus(status: string) {
+    this.selectedStatus = status;
+    if (status === 'All') {
+      this.filteredDefects = [...this.userDefects];
+    } else {
+      this.filteredDefects = this.userDefects.filter(defect => defect.defectStatus === status);
+    }
+  }
+
+  resetFilterManually() {
+    this.selectedStatus = 'All';
+    this.filteredDefects = [...this.userDefects];
+  }
+
+
+  updateDefectStatus(defectId: number, status: string) {
+    this.httpClient.put(`${this.baseUrl}/api/v1/admin/${defectId}/update-defect-status`, { status }).subscribe({
+      next: () => {
+        // Update local defect
+        const defect = this.userDefects.find(d => d.id === defectId);
+        if (defect) {
+          defect.defectStatus = status;
         }
-      });
+        this.filterStatus(this.selectedStatus); // Reapply current filter
+      },
+      error: err => {
+        console.error('Failed to update defect status:', err);
+      }
+    });
   }
 
   logoutUser(): void {

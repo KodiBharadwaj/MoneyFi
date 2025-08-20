@@ -2,11 +2,17 @@ package com.moneyfi.apigateway.service.userservice.impl;
 
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.model.*;
+import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
+import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.OtpTempModel;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
+import com.moneyfi.apigateway.model.common.ContactUs;
+import com.moneyfi.apigateway.model.common.ContactUsHist;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
+import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
+import com.moneyfi.apigateway.repository.user.ContactUsRepository;
 import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
@@ -16,7 +22,11 @@ import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.userservice.dto.*;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
+import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockRequestDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
+import com.moneyfi.apigateway.util.enums.OtpType;
+import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
+import com.moneyfi.apigateway.util.enums.RequestReason;
 import com.moneyfi.apigateway.util.enums.UserRoles;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +63,8 @@ public class UserServiceImpl implements UserService {
     private final JwtService jwtService;
     private final ProfileRepository profileRepository;
     private final UserCommonService userCommonService;
+    private final ContactUsRepository contactUsRepository;
+    private final ContactUsHistRepository contactUsHistRepository;
     private final S3AwsService s3AwsService;
 
     private final AuthenticationManager authenticationManager;
@@ -63,6 +75,8 @@ public class UserServiceImpl implements UserService {
                            JwtService jwtService,
                            ProfileRepository profileRepository,
                            UserCommonService userCommonService,
+                           ContactUsRepository contactUsRepository,
+                           ContactUsHistRepository contactUsHistRepository,
                            AuthenticationManager authenticationManager,
                            AmazonSimpleEmailService amazonSimpleEmailService,
                            S3AwsService s3AwsService){
@@ -71,6 +85,8 @@ public class UserServiceImpl implements UserService {
         this.jwtService = jwtService;
         this.profileRepository = profileRepository;
         this.userCommonService = userCommonService;
+        this.contactUsRepository = contactUsRepository;
+        this.contactUsHistRepository = contactUsHistRepository;
         this.authenticationManager = authenticationManager;
         this.amazonSimpleEmailService = amazonSimpleEmailService;
         this.s3AwsService = s3AwsService;
@@ -334,17 +350,22 @@ public class UserServiceImpl implements UserService {
         boolean isMailsent = EmailTemplates.sendEmailToUserForSignup(email, name, verificationCode);
 
         if(isMailsent){
-            OtpTempModel user = otpTempRepository.findByEmail(email);
+            List<OtpTempModel> userList = otpTempRepository.findByEmail(email);
+            Optional<OtpTempModel> tempModel = userList
+                    .stream()
+                    .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.USER_CREATION.name()))
+                    .findFirst();
 
-            if(user != null){
-                user.setOtp(verificationCode);
-                user.setExpirationTime(LocalDateTime.now().plusMinutes(5));
-                otpTempRepository.save(user);
+            if(tempModel.isPresent()){
+                tempModel.get().setOtp(verificationCode);
+                tempModel.get().setExpirationTime(LocalDateTime.now().plusMinutes(5));
+                otpTempRepository.save(tempModel.get());
             } else {
                 OtpTempModel otpTempModel = new OtpTempModel();
                 otpTempModel.setEmail(email);
                 otpTempModel.setOtp(verificationCode);
                 otpTempModel.setExpirationTime(LocalDateTime.now().plusMinutes(5));
+                otpTempModel.setOtpType(OtpType.USER_CREATION.name());
                 otpTempRepository.save(otpTempModel);
             }
             return "Email sent successfully!";
@@ -356,15 +377,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean checkEnteredOtp(String email, String inputOtp) {
-        OtpTempModel user = otpTempRepository.findByEmail(email);
+        List<OtpTempModel> userList = otpTempRepository.findByEmail(email);
+        Optional<OtpTempModel> tempModel = userList
+                .stream()
+                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.USER_CREATION.name()))
+                .findFirst();
 
-        if(user != null){
+        if(tempModel.isPresent()){
             new Thread(()->
                     otpTempRepository.deleteByEmail(email)
-            ).start();
-        }
-        return !(user == null || !user.getOtp().equals(inputOtp) ||
-                user.getExpirationTime().isBefore(LocalDateTime.now()));
+            ).start(); return true;
+        } else return !(!tempModel.get().getOtp().equals(inputOtp) ||
+                tempModel.get().getExpirationTime().isBefore(LocalDateTime.now()));
     }
 
     @Override
@@ -444,6 +468,114 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<String> deleteProfilePictureFromS3(String username) {
         return s3AwsService.deleteProfilePictureFromS3(getUserIdByUsername(username), username);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<String> blockAccountByUserRequest(String username, AccountBlockRequestDto request) {
+        if(request.getOtp() == null || request.getOtp().isEmpty() || request.getDescription() == null || request.getDescription().isEmpty()){
+            throw new ScenarioNotPossibleException("Input fields should not be empty");
+        }
+        UserAuthModel user = userRepository.getUserDetailsByUsername(username);
+        if(user == null){
+            throw new ResourceNotFoundException("User not found");
+        }
+        if(user.isBlocked() || user.isDeleted()){
+            throw new ScenarioNotPossibleException("User is not active to perform the operation");
+        }
+
+        List<OtpTempModel> userList = otpTempRepository.findByEmail(username);
+        Optional<OtpTempModel> tempModel = userList
+                .stream()
+                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.ACCOUNT_BLOCK.name()))
+                .findFirst();
+
+        if(tempModel.isPresent()){
+            if(!tempModel.get().getOtp().equals(request.getOtp())){
+                throw new ScenarioNotPossibleException("Please enter correct otp");
+            }
+
+            if(tempModel.get().getExpirationTime().isBefore(LocalDateTime.now())){
+                throw new ScenarioNotPossibleException("Otp expired, Try new one");
+            }
+
+            ProfileModel userProfile = profileRepository.findByUserId(user.getId());
+            String referenceNumber = "BL" + userProfile.getName().substring(0,2) + username.substring(0,2)
+                    + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
+
+            user.setBlocked(true);
+            userRepository.save(user);
+
+            ContactUs blockAccountRequest = new ContactUs();
+            blockAccountRequest.setEmail(username);
+            blockAccountRequest.setReferenceNumber(referenceNumber);
+            blockAccountRequest.setRequestActive(true);
+            blockAccountRequest.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
+            blockAccountRequest.setVerified(false);
+            blockAccountRequest.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+            blockAccountRequest.setStartTime(LocalDateTime.now());
+            ContactUs savedRequest = contactUsRepository.save(blockAccountRequest);
+
+            ContactUsHist blockAccountRequestHistory = new ContactUsHist();
+            blockAccountRequestHistory.setName(userProfile.getName());
+            blockAccountRequestHistory.setMessage(request.getDescription());
+            blockAccountRequestHistory.setContactUsId(savedRequest.getId());
+            blockAccountRequestHistory.setUpdatedTime(savedRequest.getStartTime());
+            blockAccountRequestHistory.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
+            blockAccountRequestHistory.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+            contactUsHistRepository.save(blockAccountRequestHistory);
+
+            new Thread(
+                    () -> {
+                        otpTempRepository.deleteByEmail(username);
+                        EmailTemplates.sendReferenceNumberEmail(userProfile.getName(), username, "account block", referenceNumber);
+                    }
+            ).start();
+            return ResponseEntity.ok("Account blocked successfully");
+        } else {
+            throw new ResourceNotFoundException("Otp request not found");
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<String> sendOtpToBlockAccount(String username) {
+        UserAuthModel userData = userRepository.getUserDetailsByUsername(username);
+        if(userData == null){
+            throw new ResourceNotFoundException("User not found");
+        }
+        if(userData.isBlocked() || userData.isDeleted()){
+            throw new ScenarioNotPossibleException("You are not allowed to perform this operation");
+        }
+
+        String verificationCode = generateVerificationCode();
+        boolean isMailsent = EmailTemplates.sendOtpToUserForAccountBlock(username, profileRepository.findByUserId(userData.getId()).getName(), verificationCode);
+
+        if(isMailsent){
+            List<OtpTempModel> userList = otpTempRepository.findByEmail(username);
+            Optional<OtpTempModel> tempModel = userList
+                    .stream()
+                    .filter(user -> user.getOtpType().equalsIgnoreCase(OtpType.ACCOUNT_BLOCK.name()))
+                    .findFirst();
+
+            if(tempModel.isPresent()){
+                tempModel.get().setOtp(verificationCode);
+                tempModel.get().setExpirationTime(LocalDateTime.now().plusMinutes(5));
+                otpTempRepository.save(tempModel.get());
+            } else {
+                OtpTempModel otpTempModel = new OtpTempModel();
+                otpTempModel.setEmail(username);
+                otpTempModel.setOtp(verificationCode);
+                otpTempModel.setExpirationTime(LocalDateTime.now().plusMinutes(5));
+                otpTempModel.setOtpType(OtpType.ACCOUNT_BLOCK.name());
+                otpTempRepository.save(otpTempModel);
+            }
+
+            return ResponseEntity.ok("Email sent successfully!");
+
+        } else {
+            return ResponseEntity.internalServerError().body("Cant send email!");
+        }
     }
 
     private String functionCallToRetrieveUsername(ForgotUsernameDto userDetails){

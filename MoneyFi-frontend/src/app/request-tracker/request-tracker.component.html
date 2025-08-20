@@ -57,6 +57,12 @@
       <span class="status-value">{{ submittedRefNumber }}</span>
     </div>
     <div class="status-item">
+      <span class="status-label">Requested Date:</span>
+      <span class="status-value">
+        {{ requestStatus.requestedDate | date: 'MMM d, y, h:mm a' }}
+      </span>
+    </div>
+    <div class="status-item">
       <span class="status-label">User Email:</span>
       <span class="status-value">{{ requestStatus.email }}</span>
     </div>
@@ -67,6 +73,10 @@
     <div class="status-item">
       <span class="status-label">Request Type:</span>
       <span class="status-value">{{ requestStatus.requestType }}</span>
+    </div>
+    <div class="status-item" *ngIf="requestStatus.description">
+      <span class="status-label">Description:</span>
+      <span class="status-value">{{ requestStatus.description }}</span>
     </div>
     <div class="status-item">
       <span class="status-label">Active Status:</span>

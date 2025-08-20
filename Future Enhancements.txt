@@ -7,11 +7,13 @@ Major Changes:
 
 Minor Changes:
 - Write Junit test cases for income service (ongoing)
-- Implement block account feature in user profile with mail confirmation.
+- Implement block account feature in user profile with mail confirmation. (ui enhance pending)
 - Implement triggers/scheduled (birthday, recurring income saving)
 - Implement caching policy in ui to avoid repetitive api calls.
 - Implement admin scheduling notifications to user.
-
+- Implement s3 file uploads with necessary paths.
+- Implement one external api in backend for any existing feature.
+- Frontend error handling for block acc in profile.
 
 
 New Feature
@@ -63,6 +65,8 @@ cleared changes:
 - avoid repetition in sps. Try call other sp in existing sp.
 - (Account statement) Account statement generation for the user in a specific period
 - Implemented Kafka communication in goal to expense service to delete the expenses when a goal is deleted.
+- Change reference number which should consider user's name, phone, etc details.
+
 
 
 

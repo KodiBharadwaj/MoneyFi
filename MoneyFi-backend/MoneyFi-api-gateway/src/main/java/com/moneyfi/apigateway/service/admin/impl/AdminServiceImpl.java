@@ -3,13 +3,12 @@ package com.moneyfi.apigateway.service.admin.impl;
 import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
-import com.moneyfi.apigateway.model.common.ContactUs;
-import com.moneyfi.apigateway.model.common.ProfileModel;
+import com.moneyfi.apigateway.model.common.*;
 import com.moneyfi.apigateway.repository.admin.AdminRepository;
-import com.moneyfi.apigateway.repository.user.ContactUsRepository;
-import com.moneyfi.apigateway.repository.user.ProfileRepository;
+import com.moneyfi.apigateway.repository.user.*;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.admin.AdminService;
+import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.S3AwsService;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
@@ -17,10 +16,13 @@ import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,17 +34,26 @@ public class AdminServiceImpl implements AdminService {
     private final ContactUsRepository contactUsRepository;
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
+    private final ContactUsHistRepository contactUsHistRepository;
+    private final ScheduleNotificationRepository scheduleNotificationRepository;
+    private final UserNotificationRepository userNotificationRepository;
     private final S3AwsService s3AwsService;
 
     public AdminServiceImpl(AdminRepository adminRepository,
                             ContactUsRepository contactUsRepository,
                             UserRepository userRepository,
                             ProfileRepository profileRepository,
+                            ContactUsHistRepository contactUsHistRepository,
+                            ScheduleNotificationRepository scheduleNotificationRepository,
+                            UserNotificationRepository userNotificationRepository,
                             S3AwsService s3AwsService){
         this.adminRepository = adminRepository;
         this.contactUsRepository = contactUsRepository;
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
+        this.contactUsHistRepository = contactUsHistRepository;
+        this.scheduleNotificationRepository = scheduleNotificationRepository;
+        this.userNotificationRepository = userNotificationRepository;
         this.s3AwsService = s3AwsService;
     }
 
@@ -154,7 +165,8 @@ public class AdminServiceImpl implements AdminService {
         return contactUsRepository.findByEmail(email)
                 .stream()
                 .filter(ContactUs::isRequestActive)
-                .filter(i -> i.getReferenceNumber().equals(referenceNumber))
+                .filter(i -> i.getReferenceNumber() != null &&
+                        i.getReferenceNumber().trim().equalsIgnoreCase(referenceNumber.trim()))
                 .findFirst()
                 .map(i -> {
                     functionCallToChangeDetails(email, i, requestStatus);
@@ -165,34 +177,51 @@ public class AdminServiceImpl implements AdminService {
 
     private void functionCallToChangeDetails(String email, ContactUs contactUs, String requestStatus){
         UserAuthModel user = userRepository.getUserDetailsByUsername(email);
+        ContactUsHist requestUserHist = new ContactUsHist();
 
         if(requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
             user.setBlocked(false);
             userRepository.save(user);
-            methodToUpdateContactUsTable(contactUs);
-        } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
 
+            requestUserHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
+            methodToUpdateContactUsTable(contactUs, requestUserHist);
+        } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
             user.setDeleted(false);
             userRepository.save(user);
-            methodToUpdateContactUsTable(contactUs);
+
+            requestUserHist.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
+            methodToUpdateContactUsTable(contactUs, requestUserHist);
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
             ProfileModel userProfile = profileRepository.findByUserId(user.getId());
-            if(!userProfile.getName().toLowerCase().contains(contactUs.getMessage().toLowerCase())){
+            ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
+                    .stream()
+                    .findFirst()
+                    .get();
+            if(!userProfile.getName().toLowerCase().contains(requestDetailsHist.getMessage().toLowerCase())){
                 throw new ScenarioNotPossibleException("Old name didn't match");
             }
 
-            userProfile.setName(contactUs.getName());
+            userProfile.setName(requestDetailsHist.getName());
             profileRepository.save(userProfile);
-            methodToUpdateContactUsTable(contactUs);
+
+            requestUserHist.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
+            methodToUpdateContactUsTable(contactUs, requestUserHist);
         }
     }
 
-    private void methodToUpdateContactUsTable(ContactUs contactUs){
+    private void methodToUpdateContactUsTable(ContactUs contactUs, ContactUsHist requestUserHist){
         contactUs.setRequestActive(false);
         contactUs.setVerified(true);
         contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
         contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
-        contactUsRepository.save(contactUs);
+        contactUs.setCompletedTime(LocalDateTime.now());
+        ContactUs savedRequest = contactUsRepository.save(contactUs);
+
+        requestUserHist.setContactUsId(savedRequest.getId());
+        requestUserHist.setMessage("Admin has been approved");
+        requestUserHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+        requestUserHist.setUpdatedTime(LocalDateTime.now());
+        contactUsHistRepository.save(requestUserHist);
     }
 
     @Override
@@ -223,11 +252,37 @@ public class AdminServiceImpl implements AdminService {
     public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status) {
         return adminRepository.getUserRaisedDefectsForAdmin()
                 .stream()
-                .filter(response -> {
-                    if(status.equalsIgnoreCase("Active")){
-                        return response.isActive();
-                    } else return !response.isActive();
-                }).toList();
+                .peek(defect -> {
+                    if (defect.getDefectStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) ||
+                                defect.getDefectStatus().equalsIgnoreCase(RaiseRequestStatus.IGNORED.name())) {
+                        defect.setReferenceNumber(defect.getReferenceNumber().substring(4));
+                    }
+                })
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void updateDefectStatus(Long defectId, String status) {
+        ContactUs userDefect = contactUsRepository.findById(defectId).orElse(null);
+        if(userDefect == null){
+            throw new ResourceNotFoundException("Not able to obtain the user defect details");
+        }
+
+        if(status.equalsIgnoreCase("Solved")){
+            userDefect.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+            userDefect.setRequestActive(false);
+            userDefect.setReferenceNumber("COM_" + userDefect.getReferenceNumber());
+            userDefect.setVerified(true);
+        } else if(status.equalsIgnoreCase("Pend")){
+            userDefect.setRequestStatus(RaiseRequestStatus.PENDED.name());
+        } else if (status.equalsIgnoreCase("Ignore")){
+            userDefect.setRequestStatus(RaiseRequestStatus.IGNORED.name());
+            userDefect.setRequestActive(false);
+            userDefect.setReferenceNumber("COM_" + userDefect.getReferenceNumber());
+            userDefect.setVerified(true);
+        }
+        contactUsRepository.save(userDefect);
     }
 
     @Override
@@ -242,5 +297,30 @@ public class AdminServiceImpl implements AdminService {
                 () -> userDetails.setImageFromS3(s3AwsService.fetchUserProfilePictureFromS3(userDetails.getUserId(), username))
         ).start();
         return userDetails;
+    }
+
+    @Override
+    @Transactional
+    public String scheduleNotification(ScheduleNotificationRequestDto requestDto) {
+        ScheduleNotification scheduleNotification = new ScheduleNotification();
+        BeanUtils.copyProperties(requestDto, scheduleNotification);
+        scheduleNotification.setActive(true);
+        scheduleNotification.setCancelled(false);
+        scheduleNotification.setCreatedDate(LocalDateTime.now());
+        ScheduleNotification response = scheduleNotificationRepository.save(scheduleNotification);
+
+        if (!requestDto.getRecipients().equalsIgnoreCase("All")) {
+            Arrays.stream(requestDto.getRecipients().split(","))
+                    .map(String::trim)
+                    .map(username -> {
+                        UserNotification userNotification = new UserNotification();
+                        userNotification.setScheduleId(response.getId());
+                        userNotification.setUsername(username);
+                        userNotification.setRead(false);
+                        return userNotification;
+                    })
+                    .forEach(userNotificationRepository::save);
+        }
+        return "Notification set successfully";
     }
 }

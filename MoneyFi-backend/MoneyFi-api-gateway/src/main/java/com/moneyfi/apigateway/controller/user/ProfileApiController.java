@@ -9,6 +9,7 @@ import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.service.common.ProfileService;
 import com.moneyfi.apigateway.service.userservice.UserService;
+import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.core.io.ByteArrayResource;
@@ -82,11 +83,11 @@ public class ProfileApiController {
         return ResponseEntity.ok(profileService.saveContactUsDetails(userDefectRequestDto));
     }
 
-    @Operation(summary = "Method which deals with user feedback")
-    @PostMapping("/feedback")
-    public ResponseEntity<ContactUs> saveFeedback(@RequestBody ContactUs feedback){
-        return ResponseEntity.ok(profileService.saveFeedback(feedback));
-    }
+//    @Operation(summary = "Method which deals with user feedback")
+//    @PostMapping("/feedback")
+//    public ResponseEntity<ContactUs> saveFeedback(@RequestBody ContactUs feedback){
+//        return ResponseEntity.ok(profileService.saveFeedback(feedback));
+//    }
 
     @Operation(summary = "Method to get the user id from user's email")
     @GetMapping("/getUserId/{email}")
@@ -133,6 +134,35 @@ public class ProfileApiController {
     public ResponseEntity<String> deleteProfilePictureFromS3(Authentication authentication) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         return userService.deleteProfilePictureFromS3(username);
+    }
+
+    @Operation(summary = "Api to send otp to block the account")
+    @GetMapping("/otp-request/block-account")
+    public ResponseEntity<String> sendOtpForSignup(Authentication authentication){
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        return userService.sendOtpToBlockAccount(username);
+    }
+
+    @Operation(summary = "Api to block the account based on user request")
+    @PostMapping("/block-account")
+    public ResponseEntity<String> blockAccountByUserRequest(Authentication authentication,
+                                                            @RequestBody AccountBlockRequestDto request) {
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        return userService.blockAccountByUserRequest(username, request);
+    }
+
+    @Operation(summary = "Api to download the empty template of excel for user profile details to be saved")
+    @GetMapping("/profile-details-template/download")
+    public ResponseEntity<byte[]> downloadTemplateForUserProfile() {
+        return profileService.downloadTemplateForUserProfile();
+    }
+
+    @Operation(summary = "Api to parse the excel to extract the user's profile data and save into db")
+    @PostMapping("/user-profile/excel-upload")
+    public ResponseEntity<String> parseUserProfileDataFromExcel(Authentication authentication,
+                                                                @RequestParam("file") MultipartFile excel){
+        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        return profileService.parseUserProfileDataFromExcel(excel, userId);
     }
 
     @Operation(summary = "Method to logout/making the token blacklist")

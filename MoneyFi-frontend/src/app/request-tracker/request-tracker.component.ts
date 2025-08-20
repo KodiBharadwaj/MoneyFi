@@ -14,6 +14,8 @@ export interface RequestStatus {
   requestType: string;
   isRequestActive: string;
   requestStatus: string;
+  requestedDate: string;
+  description?: string;
 }
 
 export interface ApiError {

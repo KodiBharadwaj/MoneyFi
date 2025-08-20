@@ -1,6 +1,8 @@
 package com.moneyfi.apigateway.service.admin;
 
+import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Map;
@@ -12,6 +14,8 @@ public interface AdminService {
 
     List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status);
 
+    void updateDefectStatus(Long defectId, String status);
+
     List<UserGridDto> getUserDetailsGridForAdmin(String status);
 
     byte[] getUserDetailsExcelForAdmin(String status);
@@ -21,4 +25,6 @@ public interface AdminService {
     Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status);
 
     UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username);
+
+    String scheduleNotification(@Valid ScheduleNotificationRequestDto requestDto);
 }
