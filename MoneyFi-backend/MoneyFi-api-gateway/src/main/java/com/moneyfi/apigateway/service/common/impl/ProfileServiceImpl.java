@@ -13,6 +13,7 @@ import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.service.common.ProfileService;
 import com.moneyfi.apigateway.service.common.S3AwsService;
 import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
+import com.moneyfi.apigateway.service.common.dto.request.UserFeedbackRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.ProfileDetailsDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.constants.StringUtils;
@@ -33,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 import static com.moneyfi.apigateway.util.constants.StringUtils.generateVerificationCode;
@@ -98,6 +100,7 @@ public class ProfileServiceImpl implements ProfileService {
         userDefect.setEmail(userDefectRequestDto.getEmail());
         userDefect.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
         userDefect.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+        userDefect.setStartTime(LocalDateTime.now());
         userDefect.setRequestActive(true);
         userDefect.setVerified(false);
 
@@ -116,24 +119,41 @@ public class ProfileServiceImpl implements ProfileService {
         userDefectHist.setContactUsId(savedDefect.getId());
         userDefectHist.setName(userDefectRequestDto.getName());
         userDefectHist.setMessage(userDefectRequestDto.getMessage());
+        userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
+        userDefectHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+        userDefectHist.setUpdatedTime(savedDefect.getStartTime());
         contactUsHistRepository.save(userDefectHist);
         return savedDefect;
     }
 
-//    @Override
-//    public ContactUs saveFeedback(ContactUs feedback) {
-//        String rating = feedback.getMessage().substring(0,1);
-//        String message = feedback.getMessage().substring(2);
-//        new Thread(() ->
-//                EmailTemplates.feedbackAlertMail(rating , message)
-//        ).start();
-//
-//        feedback.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
-//        feedback.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-//        feedback.setRequestActive(true);
-//        feedback.setVerified(false);
-//        return contactUsRepository.save(feedback);
-//    }
+    @Override
+    public ContactUs saveFeedback(UserFeedbackRequestDto feedback) {
+        String rating = feedback.getMessage().substring(0,1);
+        String message = feedback.getMessage().substring(2);
+        new Thread(() ->
+                EmailTemplates.feedbackAlertMail(rating , message)
+        ).start();
+
+        ContactUs userFeedback = new ContactUs();
+        userFeedback.setEmail(feedback.getEmail());
+        userFeedback.setRequestActive(true);
+        userFeedback.setVerified(false);
+        userFeedback.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
+        userFeedback.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+        userFeedback.setStartTime(LocalDateTime.now());
+        ContactUs savedFeedback = contactUsRepository.save(userFeedback);
+
+        ContactUsHist userFeedbackHist = new ContactUsHist();
+        userFeedbackHist.setContactUsId(savedFeedback.getId());
+        userFeedbackHist.setMessage(feedback.getMessage());
+        userFeedbackHist.setName(feedback.getName());
+        userFeedbackHist.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
+        userFeedbackHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+        userFeedbackHist.setUpdatedTime(savedFeedback.getStartTime());
+        contactUsHistRepository.save(userFeedbackHist);
+
+        return savedFeedback;
+    }
 
     @Override
     public ProfileDetailsDto getProfileDetailsOfUser(Long userId) {

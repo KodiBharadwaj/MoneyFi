@@ -13,7 +13,6 @@ import { OverviewComponent } from './overview/overview.component';
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { AnalysisComponent } from './analysis/analysis.component';
 import { AiAssistantComponent } from './ai-assistant/ai-assistant.component';
-import { ContactUsComponent } from './contact-us/contact-us.component';
 import { SignupOtpConfirmDialogComponent } from './signup-otp-confirm-dialog/signup-otp-confirm-dialog.component';
 import { ForgotUsernameComponent } from './forgot-username/forgot-username.component';
 import { ReportsInsightsComponent } from './reports-insights/reports-insights.component';
@@ -25,6 +24,7 @@ import { AdminLoginComponent } from './admin-login/admin-login.component';
 import { AdminRequestsComponent } from './admin-requests/admin-requests.component';
 import { AdminInsightsComponent } from './admin-insights/admin-insights.component';
 import { AdminUserDefectsComponent } from './admin-user-defects/admin-user-defects.component';
+import { UserConfigurationComponent } from './user-configuration/user-configuration.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -52,7 +52,7 @@ export const routes: Routes = [
     {path:'goals',component:GoalsComponent},
     {path:'analysis',component:AnalysisComponent},
     {path:'profile',component:ProfileComponent},
-    {path: 'contact-us', component:ContactUsComponent},
+    {path: 'user-configuration', component:UserConfigurationComponent},
     {path: 'ai-assistant', component: AiAssistantComponent},
     {path: 'reports-insights', component:ReportsInsightsComponent},
   ]},

@@ -1,0 +1,81 @@
+<div class="config-container">
+
+  <h2 class="config-title">Account Configuration</h2>
+
+  <!-- Change Password -->
+  <div class="config-card">
+    <h3>Security 
+        <span class="hint-text">(Change your password here)</span>
+    </h3>
+    <button class="config-btn primary" (click)="changePassword()">
+       Change Password
+    </button>
+  </div>
+
+  <!-- Block Account -->
+  <div class="config-card">
+    <h3>Account Management 
+        <span class="hint-text">(Block your account in case of emergency)</span>
+    </h3>
+    <button 
+        class="config-btn danger" 
+        (click)="initiateAccountBlock()" 
+        [disabled]="loadingBlockRequest">
+
+        <span *ngIf="!loadingBlockRequest"> Block Account</span>
+        <span *ngIf="loadingBlockRequest" class="spinner"></span>
+    </button>
+
+    <div *ngIf="blockRequestSent" class="block-inputs">
+        <input type="text" [(ngModel)]="otp" placeholder="Enter OTP" class="block-input" />
+        <input type="text" [(ngModel)]="description" placeholder="Enter Description" class="block-input" />
+        <button class="config-btn confirm" (click)="confirmAccountBlock()"> Confirm</button>
+    </div>
+  </div>
+
+
+  <!-- Profile Update -->
+  <div class="config-card">
+    <h3>Profile Update 
+        <span class="hint-text">(Update your profile data with excel template)</span>
+    </h3>
+    <button class="config-btn secondary" (click)="downloadProfileTemplate()">
+       Download Profile Template
+    </button>
+
+    <div class="upload-section">
+      <input type="file" id="fileUpload" (change)="onFileSelected($event)" accept=".xlsx" hidden />
+      <label for="fileUpload" class="file-label">📂 Choose File</label>
+      <span class="file-name" *ngIf="selectedFile">{{ selectedFile.name }}</span>
+      <button class="config-btn upload" (click)="uploadUserProfileExcel()" [disabled]="!selectedFile">
+         Upload
+      </button>
+    </div>
+  </div>
+
+  <div class="config-card">
+    <h2>Raise a Report/Feedback</h2>
+    
+    <!-- Dropdown to select form type -->
+    <label for="formSelector">Choose an option:</label>
+    <!-- <select id="formSelector" (change)="selectForm($event.target.value)"> -->
+        <select id="formSelector" (change)="selectForm($event)">
+      <option value="">-- Select --</option>
+      <option *ngFor="let option of formOptions" [value]="option.value">
+        <ng-container *ngIf="option.label === 'Contact Form'; else feedback">
+            Raise a Report
+        </ng-container>
+        <ng-template #feedback>Feedback</ng-template>
+      </option>
+
+    </select>
+  
+    <!-- Dynamically display selected form -->
+    <div class="form-container">
+      <app-contact-form *ngIf="selectedForm === 'contact'"></app-contact-form>
+    <app-feedback-form *ngIf="selectedForm === 'feedback'"></app-feedback-form>
+      <!-- <app-survey-form *ngIf="selectedForm === 'survey'"></app-survey-form> -->
+    </div>
+  </div>
+
+</div>

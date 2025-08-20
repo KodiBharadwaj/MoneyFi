@@ -127,7 +127,7 @@ body {
 }
 
 .profile-title {
-  margin-bottom: 1rem;
+  margin-bottom: 0.0rem;
 }
 
 .profile-title h1 {
@@ -144,101 +144,6 @@ body {
   margin-bottom: 1.5rem;
 }
 
-/* Features Section */
-.features-box {
-  border: 2px solid #007bff;
-  border-radius: 12px;
-  padding: 1.2rem;
-  margin-top: 1.5rem;
-  background-color: #f8f9fa;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-}
-
-.features-box legend {
-  font-weight: 600;
-  font-size: 1rem;
-  color: #007bff;
-  padding: 0 0.5rem;
-}
-
-.button-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-/* Upload & Block Sections */
-.upload-section, 
-.block-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.file-input {
-  padding: 0.4rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.85rem;
-}
-
-.block-inputs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.8rem;
-  background: #eef2f6;
-  border-radius: 8px;
-  border: 1px solid #d0d7de;
-}
-
-.block-input {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  min-width: 150px;
-}
-
-.block-input:focus {
-  border-color: #007bff;
-  outline: none;
-}
-
-/* Buttons */
-.change-password-btn,
-.template-btn,
-.upload-btn,
-.block-btn,
-.confirm-btn {
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.change-password-btn { background-color: #3f51b5; color: white; }
-.change-password-btn:hover { background-color: #303f9f; }
-
-.template-btn { background-color: #28a745; color: white; }
-.template-btn:hover { background-color: #218838; }
-
-.upload-btn { background-color: #17a2b8; color: white; }
-.upload-btn:disabled { background-color: #6c757d; opacity: 0.6; cursor: not-allowed; }
-.upload-btn:hover:not(:disabled) { background-color: #138496; }
-
-.block-btn { background-color: #dc3545; color: white; }
-.block-btn:disabled { background-color: #6c757d; opacity: 0.6; }
-.block-btn:hover:not(:disabled) { background-color: #c82333; }
-
-.confirm-btn { background-color: #fd7e14; color: white; }
-.confirm-btn:hover { background-color: #e66a00; }
 
 /* Edit Profile Button */
 .edit-profile-btn {
@@ -423,22 +328,11 @@ body {
     padding: 1rem;
   }
 
-  .button-container {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
   .action-btn {
     justify-content: center;
     width: 100%;
     max-width: 250px;
     margin: 0 auto;
-  }
-
-  .upload-section,
-  .block-section {
-    width: 100%;
-    align-items: stretch;
   }
 
   .file-input {

@@ -56,7 +56,6 @@ export class FeedbackFormComponent {
         name: this.feedback.name,
         email: this.feedback.email,
         message: this.feedback.rating + '/' + this.feedback.comments,
-        images: '',
       };
 
       this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/feedback`, contactData).subscribe(

@@ -265,6 +265,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void updateDefectStatus(Long defectId, String status) {
         ContactUs userDefect = contactUsRepository.findById(defectId).orElse(null);
+        ContactUsHist userDefectHist = new ContactUsHist();
         if(userDefect == null){
             throw new ResourceNotFoundException("Not able to obtain the user defect details");
         }
@@ -273,16 +274,37 @@ public class AdminServiceImpl implements AdminService {
             userDefect.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
             userDefect.setRequestActive(false);
             userDefect.setReferenceNumber("COM_" + userDefect.getReferenceNumber());
+            userDefect.setCompletedTime(LocalDateTime.now());
             userDefect.setVerified(true);
+
+            userDefectHist.setMessage("Development team completed, Admin has been approved");
+            userDefectHist.setContactUsId(userDefect.getId());
+            userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
+            userDefectHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+            userDefectHist.setUpdatedTime(userDefect.getCompletedTime());
         } else if(status.equalsIgnoreCase("Pend")){
             userDefect.setRequestStatus(RaiseRequestStatus.PENDED.name());
+
+            userDefectHist.setMessage("Admin kept in Pended state. Need some accuracy");
+            userDefectHist.setContactUsId(userDefect.getId());
+            userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
+            userDefectHist.setRequestStatus(RaiseRequestStatus.PENDED.name());
+            userDefectHist.setUpdatedTime(LocalDateTime.now());
         } else if (status.equalsIgnoreCase("Ignore")){
             userDefect.setRequestStatus(RaiseRequestStatus.IGNORED.name());
             userDefect.setRequestActive(false);
             userDefect.setReferenceNumber("COM_" + userDefect.getReferenceNumber());
+            userDefect.setCompletedTime(LocalDateTime.now());
             userDefect.setVerified(true);
+
+            userDefectHist.setMessage("Admin ignored. Issue was already solved");
+            userDefectHist.setContactUsId(userDefect.getId());
+            userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
+            userDefectHist.setRequestStatus(RaiseRequestStatus.IGNORED.name());
+            userDefectHist.setUpdatedTime(userDefect.getCompletedTime());
         }
         contactUsRepository.save(userDefect);
+        contactUsHistRepository.save(userDefectHist);
     }
 
     @Override

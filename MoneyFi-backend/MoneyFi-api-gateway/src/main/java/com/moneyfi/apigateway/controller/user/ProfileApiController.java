@@ -2,6 +2,7 @@ package com.moneyfi.apigateway.controller.user;
 
 import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
+import com.moneyfi.apigateway.service.common.dto.request.UserFeedbackRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.ProfileDetailsDto;
 import com.moneyfi.apigateway.service.userservice.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.service.userservice.dto.ProfileChangePassword;
@@ -83,11 +84,11 @@ public class ProfileApiController {
         return ResponseEntity.ok(profileService.saveContactUsDetails(userDefectRequestDto));
     }
 
-//    @Operation(summary = "Method which deals with user feedback")
-//    @PostMapping("/feedback")
-//    public ResponseEntity<ContactUs> saveFeedback(@RequestBody ContactUs feedback){
-//        return ResponseEntity.ok(profileService.saveFeedback(feedback));
-//    }
+    @Operation(summary = "Method which deals with user feedback")
+    @PostMapping("/feedback")
+    public ResponseEntity<ContactUs> saveFeedback(@RequestBody @Valid UserFeedbackRequestDto feedback){
+        return ResponseEntity.ok(profileService.saveFeedback(feedback));
+    }
 
     @Operation(summary = "Method to get the user id from user's email")
     @GetMapping("/getUserId/{email}")
