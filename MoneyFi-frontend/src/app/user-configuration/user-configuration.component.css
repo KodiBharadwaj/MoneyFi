@@ -40,6 +40,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  width: 160px;
 }
 
 .config-btn:hover {
@@ -51,6 +52,20 @@
   background: #488ebd;
   color: white;
 }
+
+.secondary-track {
+  background: #f4f4f4;
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.track-section {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 
 .secondary {
   background: #488ebd;

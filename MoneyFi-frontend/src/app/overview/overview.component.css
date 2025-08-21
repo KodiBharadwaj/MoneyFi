@@ -25,19 +25,22 @@
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%; /* keep full width */
 }
 
 .welcome-text {
   font-size: 2.5rem;
-  margin-bottom: 0.5rem;
+  margin: 0; /* remove default margin */
   font-weight: 600;
   letter-spacing: -0.5px;
+  margin-bottom: 10px;
 }
 
-.financial-quote {
-  font-size: 1rem;
+.greeting-container p {
+  margin: 0.4rem 0 0; /* minimal spacing below welcome text */
+  font-size: 1.1rem;
   font-style: italic;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 /* Financial Overview Grid */

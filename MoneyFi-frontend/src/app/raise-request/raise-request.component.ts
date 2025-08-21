@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../environments/environment';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgChartsModule } from 'ng2-charts';
@@ -30,11 +30,19 @@ export class RaiseRequestComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
-    this.selectTab('unblock');
+    this.route.queryParams.subscribe(params => {
+      if (params['tab']) {
+        this.selectedTab = params['tab'];
+      }
+      if (params['username']) {
+        this.email = params['username'];
+      }
+    });
   }
   
   baseUrl = environment.BASE_URL;

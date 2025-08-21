@@ -49,7 +49,7 @@ public class AdminRepositoryImpl implements AdminRepository {
             return query.getResultList();
         } catch (Exception e){
             e.printStackTrace();
-            throw new QueryValidationException("Error occurred while fetching contact us details of users'");
+            throw new QueryValidationException("Error occurred while fetching user request details raised by users'");
         }
     }
 
@@ -188,7 +188,7 @@ public class AdminRepositoryImpl implements AdminRepository {
             return userDefectResponseDtosList;
         } catch (Exception e){
             e.printStackTrace();
-            throw new QueryValidationException("Error occurred while fetching fetching user defect details");
+            throw new QueryValidationException("Error occurred while fetching fetching user raised defect details");
         }
     }
 }

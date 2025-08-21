@@ -96,6 +96,13 @@ public class ProfileApiController {
         return userService.getUserIdByUsername(email);
     }
 
+    @Operation(summary = "Method to get the username from token and return")
+    @GetMapping("/get-username")
+    public ResponseEntity<String> getUsername(Authentication authentication){
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        return ResponseEntity.ok(username);
+    }
+
     @Operation(summary = "Method to change the password for the logged in user in the profile section")
     @PostMapping("/change-password")
     public ProfileChangePassword changePassword(Authentication authentication,

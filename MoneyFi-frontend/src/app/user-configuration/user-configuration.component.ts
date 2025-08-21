@@ -28,6 +28,7 @@ export class UserConfigurationComponent {
   description = '';
   blockRequestSent = false;
   loadingBlockRequest = false;
+  username = '';
 
   changePassword() {
     const dialogRef = this.dialog.open(ChangePasswordDialogComponent, {
@@ -42,6 +43,28 @@ export class UserConfigurationComponent {
         });
       }
     });
+  }
+
+  changeMyName() {
+    
+    this.http.get(`${this.baseUrl}/api/v1/userProfile/get-username`, { responseType: 'text' }).subscribe({
+      next: (data: string) => {
+        this.username = data;
+        this.callNameChangeRequestMethod(this.username);
+      },
+      error: (err) => {
+        console.error('Error fetching username', err);
+      }
+    });
+  }
+
+  callNameChangeRequestMethod(username : string){
+    if(username.length === 0) username = '';
+    window.open(`/raise-request?tab=rename&username=${username}`, '_blank');
+  }
+
+  trackNameChangeRequest(){
+    window.open(`/track-request`, '_blank');
   }
 
   initiateAccountBlock() {
