@@ -1,0 +1,18 @@
+CREATE PROCEDURE getUserFeedbackListForAdmin
+
+AS
+BEGIN
+	
+	SET NOCOUNT ON;
+
+    SELECT cut.id AS feedbackId
+		,cuth.message AS description
+		,cut.start_time AS timeOfFeedback
+	FROM contact_us_table cut WITH (NOLOCK) 
+	INNER JOIN contact_us_table_hist cuth WITH (NOLOCK) ON cuth.contact_us_id = cut.id
+	WHERE cut.request_reason = 'USER_FEEDBACK_UPDATE'
+	AND cut.request_status = 'SUBMITTED'
+	AND cut.is_request_active = 1
+	AND cut.is_verified = 0
+END
+GO

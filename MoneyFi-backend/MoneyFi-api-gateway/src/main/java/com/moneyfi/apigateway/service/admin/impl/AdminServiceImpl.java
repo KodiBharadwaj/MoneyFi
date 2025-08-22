@@ -11,6 +11,7 @@ import com.moneyfi.apigateway.service.admin.AdminService;
 import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.S3AwsService;
+import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -344,5 +346,38 @@ public class AdminServiceImpl implements AdminService {
                     .forEach(userNotificationRepository::save);
         }
         return "Notification set successfully";
+    }
+
+    @Override
+    public List<UserFeedbackResponseDto> getUserFeedbackListForAdmin() {
+        return adminRepository.getUserFeedbackListForAdmin()
+                .stream()
+                .map(feedback -> {
+                    feedback.setRating(Integer.parseInt(feedback.getDescription().substring(0,1)));
+                    feedback.setMessage(feedback.getDescription().substring(2));
+                    return feedback;
+                }).toList();
+    }
+
+    @Override
+    @Transactional
+    public void updateUserFeedback(Long feedbackId) {
+        Optional<ContactUs> userFeedback = contactUsRepository.findById(feedbackId);
+        if(userFeedback.isEmpty()){
+            throw new ResourceNotFoundException("Feedback with id " + feedbackId + " is not found");
+        }
+        userFeedback.get().setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+        userFeedback.get().setCompletedTime(LocalDateTime.now());
+        userFeedback.get().setVerified(true);
+        userFeedback.get().setRequestActive(false);
+        ContactUs savedUserFeedback = contactUsRepository.save(userFeedback.get());
+
+        ContactUsHist userFeedbackHist = new ContactUsHist();
+        userFeedbackHist.setContactUsId(savedUserFeedback.getId());
+        userFeedbackHist.setUpdatedTime(savedUserFeedback.getCompletedTime());
+        userFeedbackHist.setMessage("Admin has been viewed & Closed");
+        userFeedbackHist.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
+        userFeedbackHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+        contactUsHistRepository.save(userFeedbackHist);
     }
 }

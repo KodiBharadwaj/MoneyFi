@@ -3,6 +3,7 @@ package com.moneyfi.apigateway.controller.admin;
 import com.moneyfi.apigateway.service.admin.AdminService;
 import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
+import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -69,6 +70,18 @@ public class AdminController {
     @GetMapping("/fetch-user-requests/grid")
     public List<UserRequestsGridDto> getUserRequestsGridForAdmin(@RequestParam("status") String status){
         return adminService.getUserRequestsGridForAdmin(status);
+    }
+
+    @Operation(summary = "Api to get the user feedback list to the admin")
+    @GetMapping("/user-feedback/get")
+    public List<UserFeedbackResponseDto> getUserFeedbackListForAdmin(){
+        return adminService.getUserFeedbackListForAdmin();
+    }
+
+    @Operation(summary = "Api to update the user feedback by admin")
+    @PutMapping("/user-feedback/update")
+    public void updateUserFeedback(@RequestParam("id") Long feedbackId){
+        adminService.updateUserFeedback(feedbackId);
     }
 
     @Operation(summary = "Api to unblock/retrieve/name change of the user account with respective details")

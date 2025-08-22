@@ -2,6 +2,7 @@ package com.moneyfi.apigateway.service.admin;
 
 import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
+import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -27,4 +28,8 @@ public interface AdminService {
     UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username);
 
     String scheduleNotification(@Valid ScheduleNotificationRequestDto requestDto);
+
+    List<UserFeedbackResponseDto> getUserFeedbackListForAdmin();
+
+    void updateUserFeedback(Long feedbackId);
 }

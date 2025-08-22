@@ -3,6 +3,7 @@ package com.moneyfi.apigateway.repository.admin.impl;
 import com.moneyfi.apigateway.exceptions.QueryValidationException;
 import com.moneyfi.apigateway.repository.admin.AdminRepository;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
+import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.apigateway.util.enums.UserStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -189,6 +190,23 @@ public class AdminRepositoryImpl implements AdminRepository {
         } catch (Exception e){
             e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching fetching user raised defect details");
+        }
+    }
+
+    @Override
+    public List<UserFeedbackResponseDto> getUserFeedbackListForAdmin() {
+        List<UserFeedbackResponseDto> userFeedbackList = new ArrayList<>();
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getUserFeedbackListForAdmin ")
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserFeedbackResponseDto.class));
+
+            userFeedbackList.addAll(query.getResultList());
+            return userFeedbackList;
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching fetching user feedback details");
         }
     }
 }
