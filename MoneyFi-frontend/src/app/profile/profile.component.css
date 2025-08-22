@@ -376,3 +376,32 @@ body {
     padding: 0.5rem 0.8rem;
   }
 }
+
+
+.image-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 0.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 15px; /* space between camera & trash */
+}
+
+.image-actions .action-btn {
+  color: white;
+  cursor: pointer;
+  font-size: 1.2rem;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-actions .delete-btn {
+  color: #ff4d4d; /* red trash */
+}
+

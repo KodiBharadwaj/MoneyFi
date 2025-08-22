@@ -22,7 +22,6 @@ interface UserProfileDetails {
   maritalStatus : string;
   address: string;
   incomeRange:number;
-  profileImage: string;
   createdDate: string;
 }
 
@@ -50,7 +49,6 @@ export class ProfileComponent implements OnInit {
     maritalStatus: '',
     address: '',
     incomeRange:0,
-    profileImage: '',
     createdDate : '',
   };
   
@@ -60,17 +58,18 @@ export class ProfileComponent implements OnInit {
   blockRequestSent = false;
   otp = '';
   description = '';
-  quote : string = '';
+  quote : string = ''; 
+  profileImage = '';
+  isImageLoading: boolean = true;
 
   constructor(private http: HttpClient, private toastr:ToastrService, private dialog:MatDialog, private router: Router) { }
 
   baseUrl = environment.BASE_URL;
   ngOnInit(): void {
     this.getProfile();
-    this.toastr.info("Profile image can't be uploaded in local")
   }
 
-  isImageLoading: boolean = true;
+  
   onImageLoad() {
     this.isImageLoading = false;
   }
@@ -79,7 +78,7 @@ export class ProfileComponent implements OnInit {
     this.http.get<UserProfileDetails>(`${this.baseUrl}/api/v1/userProfile/getProfile`).subscribe({
       next: (data) => {
         this.userProfileDetails = data;
-        this.isImageLoading = false;
+        this.loadProfilePicture();
       },
       error: (error) => {
         this.isImageLoading = false;
@@ -94,6 +93,46 @@ export class ProfileComponent implements OnInit {
       }
     });
   }
+
+  loadProfilePicture(): void {
+    this.isImageLoading = true;
+    this.http.get(`${this.baseUrl}/api/v1/userProfile/profile-picture/get`, { responseType: 'blob' })
+      .subscribe({
+        next: (blob) => {
+          if (blob.size > 0) {
+            const reader = new FileReader();
+            reader.onload = (e: any) => {
+              this.profileImage = e.target.result; // base64 string
+              this.isImageLoading = false;
+            };
+            reader.readAsDataURL(blob);
+          } else {
+            console.warn('No profile picture found.');
+          }
+        },
+        error: (err) => {
+          this.isImageLoading = false;
+          console.error('Error fetching profile picture:', err);
+        }
+      });
+  }
+
+  onDeleteImage(): void {
+    if (confirm('Are you sure you want to delete your profile picture?')) {
+      this.http.delete(`${this.baseUrl}/api/v1/userProfile/profile-picture/delete`, { responseType: 'text' })
+        .subscribe({
+          next: (response) => {
+            alert('Profile picture deleted successfully.');
+            this.profileImage = '';  // clear from UI
+          },
+          error: (err) => {
+            console.error('Error deleting profile picture:', err);
+            alert('Failed to delete profile picture.');
+          }
+        });
+    }
+  }
+
 
   // Save the profile to the backend
   saveProfile(): void {
@@ -152,11 +191,27 @@ export class ProfileComponent implements OnInit {
 
     if (file && allowedTypes.includes(file.type)) {
       if (file.size <= maxSize) {
+        // Show preview
         const reader = new FileReader();
         reader.onload = (e: any) => {
-          this.userProfileDetails.profileImage = e.target.result;
+          this.profileImage = e.target.result;
         };
         reader.readAsDataURL(file);
+
+        // Upload to backend (S3 endpoint)
+        const formData = new FormData();
+        formData.append('file', file);
+
+        this.http.post(`${this.baseUrl}/api/v1/userProfile/profile-picture/upload`, formData, { responseType: 'text' })
+          .subscribe({
+            next: (response) => {
+              alert('Upload successful: ' + response);
+            },
+            error: (err) => {
+              console.error(err);
+              alert('Upload failed!');
+            }
+          });
       } else {
         alert('File is too large. Maximum size is 5MB.');
       }
@@ -164,6 +219,7 @@ export class ProfileComponent implements OnInit {
       alert('Please select a valid image file (JPEG, PNG, or GIF).');
     }
   }
+
 
   changePassword() {
     const dialogRef = this.dialog.open(ChangePasswordDialogComponent, {

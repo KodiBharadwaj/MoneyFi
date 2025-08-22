@@ -7,7 +7,6 @@ Major Changes:
 
 Minor Changes:
 - Write Junit test cases for income service (ongoing)
-- Implement block account feature in user profile with mail confirmation. (ui enhance pending)
 - Implement triggers/scheduled (birthday, recurring income saving)
 - Implement caching policy in ui to avoid repetitive api calls.
 - Implement admin scheduling notifications to user.
@@ -18,7 +17,6 @@ Minor Changes:
 
 New Feature
 2) (New Role - Admin)
-- When user sends an defect/contact mail to admin, admin should get the notification in his UI.
 - Implement dropdown when admin sees all the requests in one page to filter out based on request type.
 - Admin should able to see the feedback submitted by the users with no user details & defects.
 - Admin should have right to disable features of the user. This can be done to all or to particular users.
@@ -66,6 +64,8 @@ cleared changes:
 - (Account statement) Account statement generation for the user in a specific period
 - Implemented Kafka communication in goal to expense service to delete the expenses when a goal is deleted.
 - Change reference number which should consider user's name, phone, etc details.
+- Implement block account feature in user profile with mail confirmation. (ui enhance pending)
+
 
 
 

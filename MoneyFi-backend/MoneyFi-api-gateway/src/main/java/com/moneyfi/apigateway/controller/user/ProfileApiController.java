@@ -123,7 +123,7 @@ public class ProfileApiController {
     }
 
     @Operation(summary = "Api to upload profile pic to aws s3")
-    @PostMapping("/upload/profile-picture")
+    @PostMapping("/profile-picture/upload")
     public ResponseEntity<String> uploadUserProfilePictureToS3(Authentication authentication,
                                                                @RequestParam(value = "file") MultipartFile file) throws IOException {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
@@ -131,14 +131,14 @@ public class ProfileApiController {
     }
 
     @Operation(summary = "Api to fetch the user profile picture from aws s3")
-    @GetMapping("/fetch/profile-picture")
+    @GetMapping("/profile-picture/get")
     public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(Authentication authentication) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         return userService.fetchUserProfilePictureFromS3(username);
     }
 
     @Operation(summary = "Api to delete the user profile picture from aws s3")
-    @DeleteMapping("/delete/profile-picture")
+    @DeleteMapping("/profile-picture/delete")
     public ResponseEntity<String> deleteProfilePictureFromS3(Authentication authentication) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         return userService.deleteProfilePictureFromS3(username);

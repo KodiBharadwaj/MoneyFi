@@ -9,17 +9,32 @@
           <div class="spinner" *ngIf="isImageLoading"></div>
 
           <!-- Actual Image -->
-          <img [src]="userProfileDetails.profileImage"
-               alt="Profile Picture"
-               (load)="onImageLoad()"
-               [class.hidden]="isImageLoading" />
+          <img [src]="profileImage"
+              alt="Profile Picture"
+              (load)="onImageLoad()"
+              [class.hidden]="isImageLoading" />
 
-          <!-- Image Upload (Edit Mode) -->
-          <div class="image-upload" *ngIf="isEditing">
-            <label for="file-input">
+          <!-- Upload + Delete buttons (Edit Mode) -->
+          <div class="image-actions" *ngIf="isEditing">
+            <!-- Upload -->
+            <label for="file-input" class="action-btn">
               <i class="fas fa-camera"></i>
             </label>
-            <input id="file-input" type="file" (change)="onImageUpload($event)" accept="image/*">
+            <input 
+              id="file-input" 
+              type="file" 
+              (change)="onImageUpload($event)" 
+              accept="image/*"
+              hidden>
+
+            <!-- Delete (only show if profileImage exists) -->
+            <button 
+              type="button" 
+              class="action-btn delete-btn" 
+              *ngIf="profileImage" 
+              (click)="onDeleteImage()">
+              <i class="fas fa-trash"></i>
+            </button>
           </div>
         </div>
       </div>

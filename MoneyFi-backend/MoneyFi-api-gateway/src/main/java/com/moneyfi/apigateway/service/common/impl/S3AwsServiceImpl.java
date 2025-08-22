@@ -37,9 +37,7 @@ public class S3AwsServiceImpl implements S3AwsService {
 
         try {
             fileObj = convertMultiPartFileToFile(file);
-            String fileName = generateFileNameForUserProfilePicture(userId, username);
-
-            s3Client.putObject(new PutObjectRequest(bucketName, fileName, fileObj));
+            s3Client.putObject(new PutObjectRequest(bucketName, generateFileNameForUserProfilePicture(userId, username), fileObj));
             return "Profile Picture Uploaded!";
         } catch (AmazonServiceException e) {
             e.printStackTrace();
@@ -59,10 +57,8 @@ public class S3AwsServiceImpl implements S3AwsService {
     public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(Long userId, String username) {
 
         try {
-            S3Object s3Object = s3Client.getObject(bucketName,
-                    generateFileNameForUserProfilePicture(userId, username));
+            S3Object s3Object = s3Client.getObject(bucketName,generateFileNameForUserProfilePicture(userId, username));
             S3ObjectInputStream inputStream = s3Object.getObjectContent();
-
             byte[] data = IOUtils.toByteArray(inputStream);
             ByteArrayResource resource = new ByteArrayResource(data);
             return ResponseEntity
@@ -84,8 +80,7 @@ public class S3AwsServiceImpl implements S3AwsService {
     @Override
     public ResponseEntity<String> deleteProfilePictureFromS3(Long userId, String username) {
         try {
-            s3Client.deleteObject(bucketName,
-                    generateFileNameForUserProfilePicture(userId, username));
+            s3Client.deleteObject(bucketName,generateFileNameForUserProfilePicture(userId, username));
             return ResponseEntity.ok().body("profile_picture_removed");
         } catch (AmazonServiceException e) {
             e.printStackTrace();
@@ -127,7 +122,7 @@ public class S3AwsServiceImpl implements S3AwsService {
     }
 
     private String generateFileNameForUserProfilePicture(Long userId, String username){
-        return "profile_pic_" + (userId+143) +
+        return "profile_pic_" + (userId) +
                 username.substring(0,username.indexOf('@'));
     }
 
