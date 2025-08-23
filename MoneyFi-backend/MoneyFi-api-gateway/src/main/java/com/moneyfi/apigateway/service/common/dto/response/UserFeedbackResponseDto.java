@@ -14,6 +14,7 @@ import static com.moneyfi.apigateway.util.constants.StringUtils.DATE_TIME_PATTER
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserFeedbackResponseDto {
+    private int id;
     private Long feedbackId;
     @JsonIgnore
     private String description;

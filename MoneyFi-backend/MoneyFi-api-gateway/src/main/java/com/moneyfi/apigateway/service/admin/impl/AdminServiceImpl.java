@@ -350,11 +350,13 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<UserFeedbackResponseDto> getUserFeedbackListForAdmin() {
+        AtomicInteger i = new AtomicInteger(1);
         return adminRepository.getUserFeedbackListForAdmin()
                 .stream()
                 .map(feedback -> {
                     feedback.setRating(Integer.parseInt(feedback.getDescription().substring(0,1)));
                     feedback.setMessage(feedback.getDescription().substring(2));
+                    feedback.setId(i.getAndIncrement());
                     return feedback;
                 }).toList();
     }

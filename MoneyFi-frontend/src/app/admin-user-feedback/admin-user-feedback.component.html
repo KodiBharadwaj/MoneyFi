@@ -1,0 +1,79 @@
+<div class="admin-container">
+  <nav class="top-nav">
+    <div class="brand">MoneyFi Admin</div>
+  </nav>
+
+  <div class="layout">
+    <aside class="side-nav">
+      <ul class="nav-list">
+        <li routerLink="/admin/home">Dashboard</li>
+        <li [routerLink]="['/admin/users', 'All']">Total Users</li>
+        <li [routerLink]="['/admin/requests', 'All']">User Requests</li>
+        <li routerLink="/admin/user-defects">User Issues</li>
+        <li routerLink="/admin/feedbacks">User Feedbacks</li>
+        <li routerLink="/admin/insights">Insights/Charts</li>
+        <li routerLink="/admin/configuration">Configuration</li>
+      </ul>
+      <ul class="logout-list">
+        <li (click)="logoutUser()">Logout</li>
+      </ul>
+    </aside>
+
+    <!-- <main class="main-content" -->
+    <div class="feedback-container">
+        <h2>User Feedbacks</h2>
+
+        <!-- Loader -->
+        <div *ngIf="loading" class="loader">Loading feedbacks...</div>
+
+        <!-- No feedbacks -->
+        <div *ngIf="!loading && feedbacks.length === 0" class="no-feedback">
+            No feedbacks available.
+        </div>
+
+        <!-- Feedback Table -->
+        <table *ngIf="!loading && feedbacks.length > 0" class="feedback-table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Rating</th>
+                <th>Message</th>
+                <th>Time</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let feedback of feedbacks">
+                <td>{{ feedback.feedbackId }}</td>
+                <td>
+                <span class="rating">
+                    <ng-container *ngFor="let star of getStars(feedback.rating)">
+                    ⭐
+                    </ng-container>
+                </span>
+                </td>
+                <td>{{ feedback.message }}</td>
+                <td>{{ feedback.timeOfFeedback | date:'medium' }}</td>
+                <td>
+                <button class="seen-btn" 
+                        [disabled]="buttonLoadingId === feedback.feedbackId"
+                        (click)="markAsSeen(feedback.feedbackId)">
+                    
+                    <!-- Show loader if this button is loading -->
+                    <ng-container *ngIf="buttonLoadingId === feedback.feedbackId; else seenText">
+                    <span class="spinner"></span> Processing...
+                    </ng-container>
+                    
+                    <ng-template #seenText>
+                    Seen
+                    </ng-template>
+                </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        </div>
+
+
+  </div>
+</div>
