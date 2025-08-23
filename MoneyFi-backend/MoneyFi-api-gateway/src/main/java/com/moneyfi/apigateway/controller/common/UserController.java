@@ -1,6 +1,7 @@
 package com.moneyfi.apigateway.controller.common;
 
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
+import com.moneyfi.apigateway.service.common.AwsServices;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;

@@ -7,12 +7,15 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.util.IOUtils;
 import com.moneyfi.apigateway.exceptions.S3AwsErrorThrowException;
-import com.moneyfi.apigateway.service.common.S3AwsService;
+import com.moneyfi.apigateway.service.common.AwsServices;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.ses.model.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -20,15 +23,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 @Service
-public class S3AwsServiceImpl implements S3AwsService {
+public class AwsServicesImpl implements AwsServices {
 
     @Value("${application.bucket.name}")
     private String bucketName;
 
     private final AmazonS3 s3Client;
+    private final SesClient sesClient;
 
-    public S3AwsServiceImpl(AmazonS3 s3Client){
+    public AwsServicesImpl(AmazonS3 s3Client,
+                           SesClient sesClient){
         this.s3Client = s3Client;
+        this.sesClient = sesClient;
     }
 
     @Override
@@ -129,5 +135,26 @@ public class S3AwsServiceImpl implements S3AwsService {
     private String generateFileNameForUserDefectRequest(String imageId, String username){
         return "user_request_" + (imageId) +
                 username.substring(0,username.indexOf('@'));
+    }
+
+    @Override
+    public void sendEmailToUserUsingAwsSes(SimpleMailMessage simpleMailMessage) {
+        Destination destination = Destination.builder().toAddresses(simpleMailMessage.getTo()).build();
+        Content subjectContent = Content.builder().data(simpleMailMessage.getSubject()).build();
+        Content bodyContent = Content.builder().data(simpleMailMessage.getText()).build();
+        Body messageBody = Body.builder().html(bodyContent).build();
+
+        software.amazon.awssdk.services.ses.model.Message message =
+                software.amazon.awssdk.services.ses.model.Message.builder()
+                        .subject(subjectContent)
+                        .body(messageBody)
+                        .build();
+
+        SendEmailRequest emailRequest = SendEmailRequest.builder()
+                .source(simpleMailMessage.getFrom())  // Must be verified in SES sandbox
+                .destination(destination)
+                .message(message)
+                .build();
+        SendEmailResponse response = sesClient.sendEmail(emailRequest);
     }
 }

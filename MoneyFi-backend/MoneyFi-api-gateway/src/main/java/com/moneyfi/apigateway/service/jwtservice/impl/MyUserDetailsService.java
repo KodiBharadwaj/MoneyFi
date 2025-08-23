@@ -25,8 +25,8 @@ public class MyUserDetailsService implements UserDetailsService {
         UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(username);
 
         if (userAuthModel == null) {
-            log.info("No userAuthModel with this UserAuthModel Name: " + username);
-            throw new UsernameNotFoundException("UserAuthModel Not Found");
+            log.info("No user found with this username: " + username);
+            throw new UsernameNotFoundException("User not found");
         } else {
             return new UserPrincipal(userAuthModel);
         }

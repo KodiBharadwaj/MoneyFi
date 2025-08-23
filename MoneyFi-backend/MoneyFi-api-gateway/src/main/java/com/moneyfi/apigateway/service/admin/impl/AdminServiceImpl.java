@@ -10,7 +10,7 @@ import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.admin.AdminService;
 import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
-import com.moneyfi.apigateway.service.common.S3AwsService;
+import com.moneyfi.apigateway.service.common.AwsServices;
 import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
@@ -39,7 +39,7 @@ public class AdminServiceImpl implements AdminService {
     private final ContactUsHistRepository contactUsHistRepository;
     private final ScheduleNotificationRepository scheduleNotificationRepository;
     private final UserNotificationRepository userNotificationRepository;
-    private final S3AwsService s3AwsService;
+    private final AwsServices awsServices;
 
     public AdminServiceImpl(AdminRepository adminRepository,
                             ContactUsRepository contactUsRepository,
@@ -48,7 +48,7 @@ public class AdminServiceImpl implements AdminService {
                             ContactUsHistRepository contactUsHistRepository,
                             ScheduleNotificationRepository scheduleNotificationRepository,
                             UserNotificationRepository userNotificationRepository,
-                            S3AwsService s3AwsService){
+                            AwsServices awsServices){
         this.adminRepository = adminRepository;
         this.contactUsRepository = contactUsRepository;
         this.userRepository = userRepository;
@@ -56,7 +56,7 @@ public class AdminServiceImpl implements AdminService {
         this.contactUsHistRepository = contactUsHistRepository;
         this.scheduleNotificationRepository = scheduleNotificationRepository;
         this.userNotificationRepository = userNotificationRepository;
-        this.s3AwsService = s3AwsService;
+        this.awsServices = awsServices;
     }
 
     @Override
@@ -318,7 +318,7 @@ public class AdminServiceImpl implements AdminService {
     public UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username) {
         UserProfileAndRequestDetailsDto userDetails = adminRepository.getCompleteUserDetailsForAdmin(username);
         new Thread(
-                () -> userDetails.setImageFromS3(s3AwsService.fetchUserProfilePictureFromS3(userDetails.getUserId(), username))
+                () -> userDetails.setImageFromS3(awsServices.fetchUserProfilePictureFromS3(userDetails.getUserId(), username))
         ).start();
         return userDetails;
     }

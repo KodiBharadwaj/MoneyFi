@@ -1,7 +1,5 @@
 package com.moneyfi.apigateway.service.userservice.impl;
 
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
-import com.amazonaws.services.simpleemail.model.*;
 import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
@@ -16,7 +14,7 @@ import com.moneyfi.apigateway.repository.user.ContactUsRepository;
 import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
-import com.moneyfi.apigateway.service.common.S3AwsService;
+import com.moneyfi.apigateway.service.common.AwsServices;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.userservice.dto.*;
@@ -33,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -65,10 +62,9 @@ public class UserServiceImpl implements UserService {
     private final UserCommonService userCommonService;
     private final ContactUsRepository contactUsRepository;
     private final ContactUsHistRepository contactUsHistRepository;
-    private final S3AwsService s3AwsService;
+    private final AwsServices awsServices;
 
     private final AuthenticationManager authenticationManager;
-    private final AmazonSimpleEmailService amazonSimpleEmailService;
 
     public UserServiceImpl(UserRepository userRepository,
                            OtpTempRepository otpTempRepository,
@@ -78,8 +74,7 @@ public class UserServiceImpl implements UserService {
                            ContactUsRepository contactUsRepository,
                            ContactUsHistRepository contactUsHistRepository,
                            AuthenticationManager authenticationManager,
-                           AmazonSimpleEmailService amazonSimpleEmailService,
-                           S3AwsService s3AwsService){
+                           AwsServices awsServices){
         this.userRepository = userRepository;
         this.otpTempRepository = otpTempRepository;
         this.jwtService = jwtService;
@@ -88,8 +83,7 @@ public class UserServiceImpl implements UserService {
         this.contactUsRepository = contactUsRepository;
         this.contactUsHistRepository = contactUsHistRepository;
         this.authenticationManager = authenticationManager;
-        this.amazonSimpleEmailService = amazonSimpleEmailService;
-        this.s3AwsService = s3AwsService;
+        this.awsServices = awsServices;
     }
 
     @Override
@@ -119,8 +113,13 @@ public class UserServiceImpl implements UserService {
         if(!userRoleAssociation.get(roleId).equalsIgnoreCase(UserRoles.ADMIN.name())) {
             saveUserProfileDetails(user.getId(), userProfile);
             /** send successful email in a separate thread by aws ses **/
-            new Thread(() ->
-                    sendEmailToUserForSuccessfulSignupUsingAwsSes(userProfile.getUsername())
+            new Thread(() -> {
+                try {
+                    awsServices.sendEmailToUserUsingAwsSes(EmailTemplates.sendEmailForSuccessfulUserCreation(userProfile.getName(), userProfile.getUsername()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
             ).start();
         }
         return user;
@@ -132,40 +131,6 @@ public class UserServiceImpl implements UserService {
         profile.setName(userProfile.getName());
         profile.setCreatedDate(LocalDateTime.now());
         profileRepository.save(profile);
-    }
-
-    private void sendEmailToUserForSuccessfulSignupUsingAwsSes(String email){
-        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-        simpleMailMessage.setFrom(ADMIN_EMAIL);
-        simpleMailMessage.setTo(email);
-        simpleMailMessage.setSubject("MoneyFi - Signup Successful");
-        simpleMailMessage.setText("Welcome to our app! Enjoy the benefits of MoneyFi with exclusive features");
-        sendEmailToUserUsingAwsSes(simpleMailMessage);
-    }
-
-    private void sendEmailToUserUsingAwsSes(SimpleMailMessage simpleMailMessage) {
-        Destination destination =  new Destination();
-        destination.setToAddresses(Arrays.asList(simpleMailMessage.getTo()));
-
-        Content content = new Content();
-        content.setData(simpleMailMessage.getText());
-
-        Content subject = new Content();
-        subject.setData(simpleMailMessage.getSubject());
-
-        Body body = new Body();
-        body.setText(content);
-
-        Message msg = new Message();
-        msg.setBody(body);
-        msg.setSubject(subject);
-
-        SendEmailRequest emailRequest = new SendEmailRequest();
-        emailRequest.setSource(simpleMailMessage.getFrom());
-        emailRequest.setDestination(destination);
-        emailRequest.setMessage(msg);
-
-        amazonSimpleEmailService.sendEmail(emailRequest);
     }
 
     @Override
@@ -186,12 +151,10 @@ public class UserServiceImpl implements UserService {
             if (existingUser == null) {
                 userRoleToken.put(ERROR, USER_NOT_FOUND);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userRoleToken);
-            }
-            else if(existingUser.isBlocked()){
+            } else if(existingUser.isBlocked()){
                 userRoleToken.put(ERROR, ACCOUNT_BLOCKED);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
-            }
-            else if(existingUser.isDeleted()){
+            } else if(existingUser.isDeleted()){
                 userRoleToken.put(ERROR, ACCOUNT_DELETED);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
             }
@@ -277,8 +240,7 @@ public class UserServiceImpl implements UserService {
         if(!encoder.matches(changePasswordDto.getCurrentPassword(), userAuthModel.getPassword())){
             dto.setFlag(false);
             return dto;
-        }
-        else if(userAuthModel.getOtpCount() >= 3){
+        } else if(userAuthModel.getOtpCount() >= 3){
             dto.setOtpCount(userAuthModel.getOtpCount());
             dto.setFlag(false);
             return dto;
@@ -286,7 +248,7 @@ public class UserServiceImpl implements UserService {
 
         String userName = profileRepository.findByUserId(userAuthModel.getId()).getName();
         new Thread(() ->
-                EmailTemplates.sendPasswordAlertMail(userName, userAuthModel.getUsername())
+                EmailTemplates.sendPasswordChangeAlertMail(userName, userAuthModel.getUsername())
         ).start();
 
         userAuthModel.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
@@ -307,13 +269,11 @@ public class UserServiceImpl implements UserService {
             remainingTimeCountDto.setComment("User not exist");
             remainingTimeCountDto.setResult(false);
             return remainingTimeCountDto;
-        }
-        else if(userAuthModel.isBlocked()){
+        } else if(userAuthModel.isBlocked()){
             remainingTimeCountDto.setComment("Account Blocked! Please contact admin");
             remainingTimeCountDto.setResult(false);
             return remainingTimeCountDto;
-        }
-        else if(userAuthModel.isDeleted()){
+        } else if(userAuthModel.isDeleted()){
             remainingTimeCountDto.setComment("Account Deleted! Please contact admin");
             remainingTimeCountDto.setResult(false);
             return remainingTimeCountDto;
@@ -347,7 +307,7 @@ public class UserServiceImpl implements UserService {
         }
 
         String verificationCode = generateVerificationCode();
-        boolean isMailsent = EmailTemplates.sendEmailToUserForSignup(email, name, verificationCode);
+        boolean isMailsent = EmailTemplates.sendOtpEmailToUserForSignup(email, name, verificationCode);
 
         if(isMailsent){
             List<OtpTempModel> userList = otpTempRepository.findByEmail(email);
@@ -457,17 +417,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String uploadUserProfilePictureToS3(String username, MultipartFile file) {
-        return s3AwsService.uploadUserProfilePictureToS3(getUserIdByUsername(username), username, file);
+        return awsServices.uploadUserProfilePictureToS3(getUserIdByUsername(username), username, file);
     }
 
     @Override
     public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username) {
-        return s3AwsService.fetchUserProfilePictureFromS3(getUserIdByUsername(username), username);
+        return awsServices.fetchUserProfilePictureFromS3(getUserIdByUsername(username), username);
     }
 
     @Override
     public ResponseEntity<String> deleteProfilePictureFromS3(String username) {
-        return s3AwsService.deleteProfilePictureFromS3(getUserIdByUsername(username), username);
+        return awsServices.deleteProfilePictureFromS3(getUserIdByUsername(username), username);
     }
 
     @Override

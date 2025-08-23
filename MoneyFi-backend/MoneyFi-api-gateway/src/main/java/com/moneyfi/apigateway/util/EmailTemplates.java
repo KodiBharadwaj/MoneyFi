@@ -1,6 +1,7 @@
 package com.moneyfi.apigateway.util;
 
 import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
+import org.springframework.mail.SimpleMailMessage;
 
 import java.util.Base64;
 
@@ -11,8 +12,7 @@ public class EmailTemplates {
     private EmailTemplates() {
     }
 
-    public static void sendPasswordAlertMail(String userName, String email){
-
+    public static void sendPasswordChangeAlertMail(String userName, String email){
         String subject = "Password Change Alert!!";
         String body = "<html>"
                 + "<body>"
@@ -30,8 +30,7 @@ public class EmailTemplates {
         EmailFilter.sendEmail(email, subject, body);
     }
 
-    public static boolean sendEmailToUserForSignup(String email, String name, String verificationCode){
-
+    public static boolean sendOtpEmailToUserForSignup(String email, String name, String verificationCode){
         String subject = "OTP for MoneyFi's account creation";
         String body = "<html>"
                 + "<body>"
@@ -50,7 +49,6 @@ public class EmailTemplates {
     }
 
     public static boolean sendOtpToUserForAccountBlock(String username, String name, String verificationCode){
-
         String subject = "OTP to block account";
         String body = "<html>"
                 + "<body>"
@@ -105,7 +103,7 @@ public class EmailTemplates {
         return EmailFilter.sendEmail(email, subject, body);
     }
 
-    public static void sendContactAlertMail(UserDefectRequestDto userDefectRequestDto, String images){
+    public static void sendUserRaiseDefectEmailToAdmin(UserDefectRequestDto userDefectRequestDto, String images){
         String subject = "MoneyFi's User Report Alert!!";
 
         String body = "<html>"
@@ -122,7 +120,6 @@ public class EmailTemplates {
                 + "</body>"
                 + "</html>";
 
-
         if (images.contains(",")) {
             images = images.split(",")[1];  // Only the base64 part after the comma
         }
@@ -130,7 +127,7 @@ public class EmailTemplates {
         EmailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, "user.jpg");
     }
 
-    public static void feedbackAlertMail(String rating, String message){
+    public static void sendUserFeedbackEmailToAdmin(String rating, String message){
         String subject = "MoneyFi's User Feedback";
 
         String body = "<html>"
@@ -141,7 +138,6 @@ public class EmailTemplates {
                 + "<br>"
                 + "<p style='font-size: 16px;'>Comment: </p>"
                 + "<p style='font-size: 16px;'>" + message + "</p>";
-
         EmailFilter.sendEmail(ADMIN_EMAIL, subject, body);
     }
 
@@ -161,10 +157,8 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-
         int index = name.indexOf(' ');
         String fileName = name.substring(0, index)+"_statement.pdf";
-
         return EmailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, fileName);
     }
 
@@ -186,5 +180,27 @@ public class EmailTemplates {
                 + "</body>"
                 + "</html>";
         return EmailFilter.sendEmail(email, subject, body);
+    }
+
+    public static SimpleMailMessage sendEmailForSuccessfulUserCreation(String name, String email){
+        String subject = "Welcome to MoneyFi";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name +",</p>"
+                + "<p style='font-size: 16px;'>You have successfully created account in MoneyFi. Kindly Login to use our services. </p>"
+                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+        simpleMailMessage.setFrom(ADMIN_EMAIL);
+        simpleMailMessage.setTo(email);
+        simpleMailMessage.setSubject(subject);
+        simpleMailMessage.setText(body);
+        return simpleMailMessage;
     }
 }

@@ -11,7 +11,7 @@ import com.moneyfi.apigateway.repository.user.ContactUsRepository;
 import com.moneyfi.apigateway.repository.user.ExcelTemplateRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.service.common.ProfileService;
-import com.moneyfi.apigateway.service.common.S3AwsService;
+import com.moneyfi.apigateway.service.common.AwsServices;
 import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.UserFeedbackRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.ProfileDetailsDto;
@@ -48,20 +48,20 @@ public class ProfileServiceImpl implements ProfileService {
     private final CommonServiceRepository commonServiceRepository;
     private final ContactUsHistRepository contactUsHistRepository;
     private final ExcelTemplateRepository excelTemplateRepository;
-    private final S3AwsService s3AwsService;
+    private final AwsServices awsServices;
 
     public ProfileServiceImpl(ProfileRepository profileRepository,
                               ContactUsRepository contactUsRepository,
                               CommonServiceRepository commonServiceRepository,
                               ContactUsHistRepository contactUsHistRepository,
                               ExcelTemplateRepository excelTemplateRepository,
-                              S3AwsService s3AwsService){
+                              AwsServices awsServices){
         this.profileRepository = profileRepository;
         this.contactUsRepository = contactUsRepository;
         this.commonServiceRepository = commonServiceRepository;
         this.contactUsHistRepository = contactUsHistRepository;
         this.excelTemplateRepository = excelTemplateRepository;
-        this.s3AwsService = s3AwsService;
+        this.awsServices = awsServices;
     }
 
     @Override
@@ -109,9 +109,9 @@ public class ProfileServiceImpl implements ProfileService {
         userDefect.setImageId("Defect_" + contactUsRepository.save(userDefect).getId() + "_" +
                 userDefect.getEmail().substring(0,userDefect.getEmail().indexOf('@')));
         new Thread(() -> {
-            EmailTemplates.sendContactAlertMail(userDefectRequestDto, userDefect.getImageId());
+            EmailTemplates.sendUserRaiseDefectEmailToAdmin(userDefectRequestDto, userDefect.getImageId());
             EmailTemplates.sendReferenceNumberEmail(userDefectRequestDto.getName(), userDefect.getEmail(), "resolve issue", referenceNumber);
-            s3AwsService.uploadDefectPictureByUser(userDefect.getImageId(), userDefectRequestDto.getFile());
+            awsServices.uploadDefectPictureByUser(userDefect.getImageId(), userDefectRequestDto.getFile());
         }).start();
         ContactUs savedDefect = contactUsRepository.save(userDefect);
 
@@ -131,7 +131,7 @@ public class ProfileServiceImpl implements ProfileService {
         String rating = feedback.getMessage().substring(0,1);
         String message = feedback.getMessage().substring(2);
         new Thread(() ->
-                EmailTemplates.feedbackAlertMail(rating , message)
+                EmailTemplates.sendUserFeedbackEmailToAdmin(rating , message)
         ).start();
 
         ContactUs userFeedback = new ContactUs();
