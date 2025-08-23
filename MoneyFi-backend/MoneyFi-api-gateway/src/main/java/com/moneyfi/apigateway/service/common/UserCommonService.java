@@ -6,8 +6,10 @@ import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.QuoteResponseDto;
+import com.moneyfi.apigateway.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
 
+import java.util.List;
 import java.util.Map;
 
 public interface UserCommonService {
@@ -37,4 +39,6 @@ public interface UserCommonService {
     UserRequestStatusDto trackUserRequestUsingReferenceNumber(String referenceNumber);
 
     QuoteResponseDto getTodayQuoteByExternalCall(String externalApiUrl) throws JsonProcessingException;
+
+    List<UserNotificationResponseDto> getUserNotifications(String username);
 }

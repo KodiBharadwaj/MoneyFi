@@ -1,0 +1,61 @@
+<h2 mat-dialog-title>Schedule Notification</h2>
+
+<form [formGroup]="scheduleForm" (ngSubmit)="submit()" class="dialog-form">
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Subject</mat-label>
+    <input matInput formControlName="subject">
+  </mat-form-field> 
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Description</mat-label>
+    <textarea matInput rows="3" formControlName="description"></textarea>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width">
+  <mat-label>Schedule From (Date)</mat-label>
+  <input matInput [matDatepicker]="fromPicker" formControlName="scheduleFromDate">
+  <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+  <mat-datepicker #fromPicker></mat-datepicker>
+</mat-form-field>
+
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>Schedule From (Time)</mat-label>
+  <input matInput type="time" formControlName="scheduleFromTime">
+</mat-form-field>
+
+
+  <!-- Schedule To (Date) -->
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>Schedule To (Date)</mat-label>
+  <input matInput [matDatepicker]="toDatePicker" formControlName="scheduleToDate">
+  <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+  <mat-datepicker #toDatePicker></mat-datepicker>
+</mat-form-field>
+
+<!-- Schedule To (Time) -->
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>Schedule To (Time)</mat-label>
+  <input matInput type="time" formControlName="scheduleToTime">
+</mat-form-field>
+
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Recipients</mat-label>
+    <mat-select formControlName="recipients">
+      <mat-option value="All">All Users</mat-option>
+      <mat-option *ngFor="let user of filteredUsers" [value]="user">{{ user }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <input 
+    matInput 
+    placeholder="Search user" 
+    (input)="searchUsers($event)">
+
+
+  <div class="actions">
+    <button mat-button type="button" (click)="close()">Cancel</button>
+    <button mat-raised-button color="primary" type="submit">Submit</button>
+  </div>
+</form>

@@ -100,7 +100,7 @@ public class AdminController {
     }
 
     @Operation(summary = "Api to get the user profile details for admin")
-    @GetMapping("user-profile-details")
+    @GetMapping("/user-profile-details")
     public UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(@RequestParam("username") String username){
         return adminService.getCompleteUserDetailsForAdmin(username);
     }

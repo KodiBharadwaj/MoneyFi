@@ -1,9 +1,11 @@
 package com.moneyfi.apigateway.controller.user;
 
 import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
+import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.UserFeedbackRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.ProfileDetailsDto;
+import com.moneyfi.apigateway.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.apigateway.service.userservice.dto.ChangePasswordDto;
 import com.moneyfi.apigateway.service.userservice.dto.ProfileChangePassword;
 import com.moneyfi.apigateway.model.common.ContactUs;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -30,11 +33,14 @@ public class ProfileApiController {
 
     private final ProfileService profileService;
     private final UserService userService;
+    private final UserCommonService userCommonService;
 
     public ProfileApiController(ProfileService profileService,
-                                UserService userService){
+                                UserService userService,
+                                UserCommonService userCommonService){
         this.profileService = profileService;
         this.userService = userService;
+        this.userCommonService = userCommonService;
     }
 
     @GetMapping("/test")
@@ -142,6 +148,13 @@ public class ProfileApiController {
     public ResponseEntity<String> deleteProfilePictureFromS3(Authentication authentication) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         return userService.deleteProfilePictureFromS3(username);
+    }
+
+    @Operation(summary = "Api to get the admin scheduled notifications")
+    @GetMapping("/get-notifications")
+    public List<UserNotificationResponseDto> getUserNotifications(Authentication authentication){
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        return userCommonService.getUserNotifications(username);
     }
 
     @Operation(summary = "Api to send otp to block the account")

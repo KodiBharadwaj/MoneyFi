@@ -14,6 +14,7 @@ import com.moneyfi.apigateway.service.common.AwsServices;
 import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
+import com.moneyfi.apigateway.util.enums.UserRoles;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -28,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.moneyfi.apigateway.util.constants.StringUtils.userRoleAssociation;
 
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -344,6 +347,17 @@ public class AdminServiceImpl implements AdminService {
                         return userNotification;
                     })
                     .forEach(userNotificationRepository::save);
+        } else {
+            userRepository.findAll()
+                    .stream()
+                    .filter(user -> !userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.ADMIN.name()))
+                    .forEach(user -> {
+                        UserNotification userNotification = new UserNotification();
+                        userNotification.setScheduleId(response.getId());
+                        userNotification.setUsername(user.getUsername());
+                        userNotification.setRead(false);
+                        userNotificationRepository.save(userNotification);
+                    });
         }
         return "Notification set successfully";
     }

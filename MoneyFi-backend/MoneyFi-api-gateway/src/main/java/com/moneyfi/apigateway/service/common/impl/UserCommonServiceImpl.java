@@ -21,6 +21,7 @@ import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.QuoteResponseDto;
+import com.moneyfi.apigateway.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.constants.StringUtils;
@@ -429,6 +430,11 @@ public class UserCommonServiceImpl implements UserCommonService {
         }
 
         throw new ResourceNotFoundException("No quote response found from external api");
+    }
+
+    @Override
+    public List<UserNotificationResponseDto> getUserNotifications(String username) {
+        return commonServiceRepository.getUserNotifications(username);
     }
 
 
