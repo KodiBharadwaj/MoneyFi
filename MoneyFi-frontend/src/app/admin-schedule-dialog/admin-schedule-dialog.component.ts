@@ -165,20 +165,31 @@ export class AdminScheduleDialogComponent implements OnInit {
           this.isSubmitting = false;
           this.dialogRef.close({ success: true, message: response });
         },
-        error: (error) => {
+        error: (errorResponse) => {
           this.isSubmitting = false;
-          console.error('Error scheduling notification:', error);
+          console.error('Error scheduling notification:', errorResponse);
 
-          if (error.status === 400 && error.error && error.error.message) {
-            // show only message from backend
-            this.toastr.error(error.error.message);
+          const statusCode = errorResponse.status;
+          let errorMessage = 'Error occurred';
+
+          if (typeof errorResponse.error === 'string') {
+            try {
+              const parsed = JSON.parse(errorResponse.error);
+              errorMessage = parsed.message || errorMessage;
+            } catch {
+              errorMessage = errorResponse.error; // just show raw text
+            }
+          } else if (errorResponse.error?.message) {
+            // Normal JSON case
+            errorMessage = errorResponse.error.message;
+          }
+
+          if (statusCode === 400) {
+            this.toastr.error(errorMessage);
           } else {
-            this.toastr.error('Something went wrong! Please try again.');
+            this.toastr.error('Something went wrong! Please try later');
           }
         }
-
-
-
       });
     }
 

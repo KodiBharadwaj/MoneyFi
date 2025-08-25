@@ -329,11 +329,20 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public String scheduleNotification(ScheduleNotificationRequestDto requestDto) {
+        if(requestDto.getSubject() == null || requestDto.getSubject().isEmpty()){
+            throw new ScenarioNotPossibleException("Subject can't be null or empty");
+        }
+        if(requestDto.getDescription() == null || requestDto.getDescription().isEmpty()){
+            throw new ScenarioNotPossibleException("Description can't be null or empty");
+        }
         if(requestDto.getScheduleFrom() == null || requestDto.getScheduleTo() == null){
             throw new ScenarioNotPossibleException("From and To dates should not be null");
         }
         if(requestDto.getScheduleTo().isBefore(requestDto.getScheduleFrom())){
             throw new ScenarioNotPossibleException("To Date should be greater than From Date");
+        }
+        if(requestDto.getRecipients() == null || requestDto.getRecipients().isEmpty()){
+            throw new ScenarioNotPossibleException("Recipients should be empty");
         }
         ScheduleNotification scheduleNotification = new ScheduleNotification();
         BeanUtils.copyProperties(requestDto, scheduleNotification);
@@ -354,7 +363,7 @@ public class AdminServiceImpl implements AdminService {
                     })
                     .forEach(userNotificationRepository::save);
         } else {
-            userRepository.findAll()
+            new Thread(() -> userRepository.findAll()
                     .stream()
                     .filter(user -> !userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.ADMIN.name()))
                     .forEach(user -> {
@@ -363,7 +372,7 @@ public class AdminServiceImpl implements AdminService {
                         userNotification.setUsername(user.getUsername());
                         userNotification.setRead(false);
                         userNotificationRepository.save(userNotification);
-                    });
+                    })).start();
         }
         return "Notification set successfully";
     }
