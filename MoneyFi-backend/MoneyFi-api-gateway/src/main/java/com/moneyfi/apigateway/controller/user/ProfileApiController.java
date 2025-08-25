@@ -157,6 +157,21 @@ public class ProfileApiController {
         return userCommonService.getUserNotifications(username);
     }
 
+    @Operation(summary = "Api to get the admin scheduled notifications count")
+    @GetMapping("/get-notifications/count")
+    public ResponseEntity<Integer> getUserNotificationsCount(Authentication authentication){
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        return ResponseEntity.ok(userCommonService.getUserNotificationsCount(username));
+    }
+
+    @Operation(summary = "Api to update the seen status of the notification by user")
+    @PutMapping("/user-notification/update")
+    public void updateUserNotificationSeenStatus(Authentication authentication,
+                                                 @RequestParam("ids") String notificationIds){
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        userCommonService.updateUserNotificationSeenStatus(username,notificationIds);
+    }
+
     @Operation(summary = "Api to send otp to block the account")
     @GetMapping("/otp-request/block-account")
     public ResponseEntity<String> sendOtpForSignup(Authentication authentication){

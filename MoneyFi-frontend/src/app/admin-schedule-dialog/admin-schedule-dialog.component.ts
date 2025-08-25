@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { environment } from '../../environments/environment';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-admin-schedule-dialog',
@@ -25,19 +26,25 @@ import { environment } from '../../environments/environment';
     MatDatepickerModule,
     MatNativeDateModule
   ],
-  standalone : true
+  standalone : true,
+  styleUrl: './admin-schedule-dialog.component.css'
 })
 export class AdminScheduleDialogComponent implements OnInit {
   scheduleForm!: FormGroup;
-  userOptions: string[] = []; // usernames fetched from API
-  filteredUsers: string[] = [];
-  
+  allUsers: string[] = [];
+  searchResults: string[] = [];
+  showSuggestions = false;
+  isSubmitting = false;
+
+  selectedUsers: string[] = [];   // multiple users stored here
+
   baseUrl = environment.BASE_URL;
 
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<AdminScheduleDialogComponent>,
-    private http: HttpClient
+    private http: HttpClient,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
@@ -48,27 +55,62 @@ export class AdminScheduleDialogComponent implements OnInit {
       scheduleFromTime: ['', Validators.required],
       scheduleToDate: ['', Validators.required],
       scheduleToTime: ['', Validators.required],
-      recipients: ['All', Validators.required]
+      recipients: ['All', Validators.required]  // All or Specific
     });
+
+    this.http.get<string[]>(`${this.baseUrl}/api/v1/admin/get-usernames`)
+      .subscribe(data => this.allUsers = data);
+  }
+
+  onRecipientChange(event: Event) {
+    const value = (event.target as HTMLSelectElement).value;
+    if (value === 'All') {
+      this.selectedUsers = []; // clear any previously selected
+    }
   }
 
   searchUsers(event: Event) {
     const input = event.target as HTMLInputElement;
-    const query = input.value.trim();
+    const query = input.value.trim().toLowerCase();
 
     if (!query) {
-      this.filteredUsers = [];
+      this.searchResults = [];
       return;
     }
 
-    this.http.get<string[]>(`/api/users/search?query=${query}`).subscribe(data => {
-      this.filteredUsers = data;
-    });
+    this.searchResults = this.allUsers
+      .filter(user =>
+        user.toLowerCase().includes(query) &&
+        !this.selectedUsers.includes(user) // exclude already picked
+      )
+      .slice(0, 10);
+
+    this.showSuggestions = this.searchResults.length > 0;
+  }
+
+  addUser(user: string) {
+    if (!this.selectedUsers.includes(user)) {
+      this.selectedUsers.push(user);
+    }
+    this.searchResults = [];
+    this.showSuggestions = false;
+  }
+
+  removeUser(index: number) {
+    this.selectedUsers.splice(index, 1);
+  }
+
+  onFocus() {
+    if (this.searchResults.length > 0) {
+      this.showSuggestions = true;
+    }
+  }
+
+  onBlur() {
+    setTimeout(() => this.showSuggestions = false, 200);
   }
 
   submit() {
-    console.log('clicked');
-
     const {
       subject,
       description,
@@ -79,49 +121,66 @@ export class AdminScheduleDialogComponent implements OnInit {
       recipients
     } = this.scheduleForm.value;
 
-    console.log('Raw form values:', this.scheduleForm.value);
-
-    // Helper to format datetime as local ISO without UTC shift
+    // format datetime helper
     const formatLocalDateTime = (dateStr: string, timeStr: string): string => {
       const [hour, minute] = timeStr.split(':').map(Number);
       const dateObj = new Date(dateStr);
       dateObj.setHours(hour, minute, 0, 0);
-
-      // build string like "2025-08-23T12:12:00"
       const pad = (n: number) => n.toString().padStart(2, '0');
       return (
-        dateObj.getFullYear() +
-        '-' + pad(dateObj.getMonth() + 1) +
-        '-' + pad(dateObj.getDate()) +
-        'T' + pad(dateObj.getHours()) +
-        ':' + pad(dateObj.getMinutes()) +
-        ':' + pad(dateObj.getSeconds())
+        dateObj.getFullYear() + '-' + pad(dateObj.getMonth() + 1) +
+        '-' + pad(dateObj.getDate()) + 'T' +
+        pad(dateObj.getHours()) + ':' + pad(dateObj.getMinutes()) + ':' +
+        pad(dateObj.getSeconds())
       );
     };
 
-    // Merge From
     let scheduleFrom: string | null = null;
     if (scheduleFromDate && scheduleFromTime) {
       scheduleFrom = formatLocalDateTime(scheduleFromDate, scheduleFromTime);
     }
 
-    // Merge To
     let scheduleTo: string | null = null;
     if (scheduleToDate && scheduleToTime) {
       scheduleTo = formatLocalDateTime(scheduleToDate, scheduleToTime);
     }
 
-    const payload = { subject, description, recipients, scheduleFrom, scheduleTo };
-    console.log('Final payload:', payload);
+    // Build recipients string
+    let recipientsValue = 'All';
+    if (recipients === 'Specific') {
+      recipientsValue = this.selectedUsers.join(',');
+    }
 
-    this.http.post(`${this.baseUrl}/api/v1/admin/schedule-notification`, payload).subscribe({
-      next: () => {
-        this.dialogRef.close(payload);
-      },
-      error: err => console.error(err)
-    });
-  }
+    const payload = {
+      subject,
+      description,
+      recipients: recipientsValue,
+      scheduleFrom,
+      scheduleTo
+    };
 
+    this.http.post<string>(`${this.baseUrl}/api/v1/admin/schedule-notification`, payload, { responseType: 'text' as 'json' })
+      .subscribe({
+        next: (response: string) => {
+          this.isSubmitting = false;
+          this.dialogRef.close({ success: true, message: response });
+        },
+        error: (error) => {
+          this.isSubmitting = false;
+          console.error('Error scheduling notification:', error);
+
+          if (error.status === 400 && error.error && error.error.message) {
+            // show only message from backend
+            this.toastr.error(error.error.message);
+          } else {
+            this.toastr.error('Something went wrong! Please try again.');
+          }
+        }
+
+
+
+      });
+    }
 
   close() {
     this.dialogRef.close();

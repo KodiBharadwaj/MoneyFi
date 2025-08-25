@@ -42,6 +42,17 @@
         <i class="fas fa-lightbulb"></i>
         <span>Reports/Insights</span>
       </button>
+
+      <button routerLink="notifications" routerLinkActive="active" class="notification-btn">
+        <i class="fa fa-bell"></i>
+        <span>Notifications</span>
+
+        <!-- Badge (only show when count > 0) -->
+        <span class="badge" *ngIf="notificationCount > 0">
+          {{ notificationCount }}
+        </span>
+      </button>
+
     </div>
 
     <div class="user-section">

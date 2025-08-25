@@ -41,4 +41,8 @@ public interface UserCommonService {
     QuoteResponseDto getTodayQuoteByExternalCall(String externalApiUrl) throws JsonProcessingException;
 
     List<UserNotificationResponseDto> getUserNotifications(String username);
+
+    Integer getUserNotificationsCount(String username);
+
+    void updateUserNotificationSeenStatus(String username, String notificationIds);
 }

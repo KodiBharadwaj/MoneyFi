@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IncomeComponent } from '../income/income.component';
 import { ExpensesComponent } from '../expenses/expenses.component';
@@ -13,6 +13,7 @@ import { AnalysisComponent } from '../analysis/analysis.component';
 import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../environments/environment';
+import { NotificationService } from '../notification-service.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -32,14 +33,22 @@ import { environment } from '../../environments/environment';
     AnalysisComponent
   ]
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit{
 
   constructor(private router:Router, private dialog: MatDialog, 
-    private route: ActivatedRoute, private httpClient:HttpClient,
+    private route: ActivatedRoute, private httpClient:HttpClient, private notificationService: NotificationService,
   private toastr: ToastrService){};
 
   isLoading = false;
   baseUrl = environment.BASE_URL;
+  notificationCount : number = 0;
+
+  ngOnInit(): void {
+    this.notificationService.notificationCount$.subscribe(count => {
+      this.notificationCount = count;
+    });
+    this.notificationService.loadNotificationCount();
+  }
 
 
   logoutUser(): void {

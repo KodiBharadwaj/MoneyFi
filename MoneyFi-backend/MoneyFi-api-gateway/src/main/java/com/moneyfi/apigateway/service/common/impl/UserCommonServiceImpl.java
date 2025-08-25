@@ -10,9 +10,11 @@ import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.ContactUsHist;
 import com.moneyfi.apigateway.model.common.ProfileModel;
+import com.moneyfi.apigateway.model.common.UserNotification;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
 import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
 import com.moneyfi.apigateway.repository.user.ContactUsRepository;
+import com.moneyfi.apigateway.repository.user.UserNotificationRepository;
 import com.moneyfi.apigateway.repository.user.auth.SessionTokenRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
@@ -36,10 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.moneyfi.apigateway.util.constants.StringUtils.DAILY_QUOTE_EXTERNAL_API_URL;
 import static com.moneyfi.apigateway.util.constants.StringUtils.generateVerificationCode;
@@ -55,6 +54,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final ContactUsRepository contactUsRepository;
     private final ContactUsHistRepository contactUsHistRepository;
     private final CommonServiceRepository commonServiceRepository;
+    private final UserNotificationRepository userNotificationRepository;
     private final RestTemplate externalRestTemplate;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -66,6 +66,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  ContactUsRepository contactUsRepository,
                                  ContactUsHistRepository contactUsHistRepository,
                                  CommonServiceRepository commonServiceRepository,
+                                 UserNotificationRepository userNotificationRepository,
                                  RestTemplate externalRestTemplate){
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
@@ -74,8 +75,13 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.contactUsRepository = contactUsRepository;
         this.contactUsHistRepository = contactUsHistRepository;
         this.commonServiceRepository = commonServiceRepository;
+        this.userNotificationRepository = userNotificationRepository;
         this.externalRestTemplate = externalRestTemplate;
     }
+
+    private static final String REFERENCE_NUMBER_SENT = "Reference already sent, Please submit your details";
+    private static final String USER_NOT_FOUND = "User not found. Please check your details";
+    private static final String DETAILS_ALREADY_SUBMITTED = "Details are already submitted. Please check the status";
 
 
     @Override
@@ -186,8 +192,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .findFirst();
 
             if(report.isPresent()){
-                throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).getName()!=null?"Account unblock request is already raised":
-                        "Reference already sent, Please submit your details");
+                throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size()==1?REFERENCE_NUMBER_SENT :
+                        DETAILS_ALREADY_SUBMITTED);
             }
 
             Optional<ContactUs> requestDetails = contactUsDetails
@@ -227,8 +233,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .filter(i -> i.getReferenceNumber() != null)
                     .findFirst();
             if(report.isPresent()){
-                throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).getName()!=null?"Name change request is already raised":
-                        "Reference already sent, Please submit your details");
+                throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size()==1?REFERENCE_NUMBER_SENT :
+                        DETAILS_ALREADY_SUBMITTED);
             }
 
             ProfileModel userProfile = profileRepository.findByUserId(user.getId());
@@ -271,8 +277,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .filter(i -> i.getReferenceNumber() != null)
                     .findFirst();
             if(report.isPresent()){
-                throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).getName()!=null?"Account retrieval request is already raised":
-                        "Reference already sent, Please submit your details");
+                throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size()==1?REFERENCE_NUMBER_SENT :
+                        DETAILS_ALREADY_SUBMITTED);
             }
 
             String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
@@ -309,7 +315,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
                     .findFirst();
 
-            ContactUs user = report.orElseThrow(() -> new RuntimeException("User not found. Please check your details"));
+            ContactUs user = report.orElseThrow(() -> new RuntimeException());
 
             if(user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
                 if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
@@ -335,7 +341,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .filter(ContactUs::isRequestActive)
                     .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
                     .findFirst();
-            ContactUs user = report.orElseThrow(() -> new RuntimeException("User not found. Please check your details"));
+            ContactUs user = report.orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
 
             if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
                 throw new ScenarioNotPossibleException("Incorrect Reference Number!");
@@ -362,7 +368,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name()))
                 .findFirst();
 
-        ContactUs user = report.orElseThrow(() -> new RuntimeException("User not found. Please check your details"));
+        ContactUs user = report.orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
 
         if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
             throw new ScenarioNotPossibleException("Incorrect Reference Number!");
@@ -435,6 +441,31 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Override
     public List<UserNotificationResponseDto> getUserNotifications(String username) {
         return commonServiceRepository.getUserNotifications(username);
+    }
+
+    @Override
+    public Integer getUserNotificationsCount(String username) {
+        return Math.toIntExact(getUserNotifications(username)
+                .stream()
+                .filter(notification -> !notification.isRead())
+                .count());
+    }
+
+    @Override
+    @Transactional
+    public void updateUserNotificationSeenStatus(String username, String notificationIds) {
+        List<Long> ids = Arrays.stream(notificationIds.split(","))
+                .map(String::trim)
+                .map(Long::parseLong)
+                .toList();
+        ids.forEach(id -> {
+            UserNotification notification = userNotificationRepository.findByScheduleIdAndUsername(id, username);
+            if(notification == null){
+                throw new ResourceNotFoundException("Notification details are not found");
+            }
+            notification.setRead(true);
+            userNotificationRepository.save(notification);
+        });
     }
 
 

@@ -329,6 +329,12 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public String scheduleNotification(ScheduleNotificationRequestDto requestDto) {
+        if(requestDto.getScheduleFrom() == null || requestDto.getScheduleTo() == null){
+            throw new ScenarioNotPossibleException("From and To dates should not be null");
+        }
+        if(requestDto.getScheduleTo().isBefore(requestDto.getScheduleFrom())){
+            throw new ScenarioNotPossibleException("To Date should be greater than From Date");
+        }
         ScheduleNotification scheduleNotification = new ScheduleNotification();
         BeanUtils.copyProperties(requestDto, scheduleNotification);
         scheduleNotification.setActive(true);
@@ -395,5 +401,14 @@ public class AdminServiceImpl implements AdminService {
         userFeedbackHist.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
         userFeedbackHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
         contactUsHistRepository.save(userFeedbackHist);
+    }
+
+    @Override
+    public List<String> getUsernamesOfAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .filter(user -> userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.USER.name()))
+                .map(UserAuthModel::getUsername)
+                .toList();
     }
 }

@@ -1,5 +1,6 @@
 package com.moneyfi.apigateway.controller.admin;
 
+import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.service.admin.AdminService;
 import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
@@ -105,10 +106,20 @@ public class AdminController {
         return adminService.getCompleteUserDetailsForAdmin(username);
     }
 
+    @Operation(summary = "Api to get all the usernames of all the users for the admin")
+    @GetMapping("/get-usernames")
+    public ResponseEntity<List<String>> getUsernamesOfAllUsers(){
+        List<String> usernamesList = adminService.getUsernamesOfAllUsers();
+        if(usernamesList.isEmpty()){
+            throw new ResourceNotFoundException("Users not found");
+        }
+        return ResponseEntity.ok(usernamesList);
+    }
+
     @Operation(summary = "Api to schedule a notification by admin")
     @PostMapping("/schedule-notification")
-    public String scheduleNotification(@RequestBody @Valid ScheduleNotificationRequestDto requestDto){
-        return adminService.scheduleNotification(requestDto);
+    public ResponseEntity<String> scheduleNotification(@RequestBody @Valid ScheduleNotificationRequestDto requestDto){
+        return ResponseEntity.ok(adminService.scheduleNotification(requestDto));
     }
 
     @Operation(summary = "Api to logout/making the token blacklist for admin")

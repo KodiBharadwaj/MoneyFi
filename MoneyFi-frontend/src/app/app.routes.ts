@@ -27,6 +27,7 @@ import { AdminUserDefectsComponent } from './admin-user-defects/admin-user-defec
 import { UserConfigurationComponent } from './user-configuration/user-configuration.component';
 import { AdminUserFeedbackComponent } from './admin-user-feedback/admin-user-feedback.component';
 import { AdminConfigurationComponent } from './admin-configuration/admin-configuration.component';
+import { UserNotificationsComponent } from './user-notifications/user-notifications.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -57,5 +58,6 @@ export const routes: Routes = [
     {path: 'user-configuration', component:UserConfigurationComponent},
     {path: 'ai-assistant', component: AiAssistantComponent},
     {path: 'reports-insights', component:ReportsInsightsComponent},
+    {path: 'notifications', component:UserNotificationsComponent},
   ]},
 ];
