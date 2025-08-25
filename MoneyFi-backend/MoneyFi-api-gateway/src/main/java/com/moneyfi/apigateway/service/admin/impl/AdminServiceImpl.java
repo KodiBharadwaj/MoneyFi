@@ -14,6 +14,7 @@ import com.moneyfi.apigateway.service.common.AwsServices;
 import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
+import com.moneyfi.apigateway.util.enums.UserRoles;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -28,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.moneyfi.apigateway.util.constants.StringUtils.userRoleAssociation;
 
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -326,6 +329,21 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public String scheduleNotification(ScheduleNotificationRequestDto requestDto) {
+        if(requestDto.getSubject() == null || requestDto.getSubject().isEmpty()){
+            throw new ScenarioNotPossibleException("Subject can't be null or empty");
+        }
+        if(requestDto.getDescription() == null || requestDto.getDescription().isEmpty()){
+            throw new ScenarioNotPossibleException("Description can't be null or empty");
+        }
+        if(requestDto.getScheduleFrom() == null || requestDto.getScheduleTo() == null){
+            throw new ScenarioNotPossibleException("From and To dates should not be null");
+        }
+        if(requestDto.getScheduleTo().isBefore(requestDto.getScheduleFrom())){
+            throw new ScenarioNotPossibleException("To Date should be greater than From Date");
+        }
+        if(requestDto.getRecipients() == null || requestDto.getRecipients().isEmpty()){
+            throw new ScenarioNotPossibleException("Recipients should be empty");
+        }
         ScheduleNotification scheduleNotification = new ScheduleNotification();
         BeanUtils.copyProperties(requestDto, scheduleNotification);
         scheduleNotification.setActive(true);
@@ -344,6 +362,17 @@ public class AdminServiceImpl implements AdminService {
                         return userNotification;
                     })
                     .forEach(userNotificationRepository::save);
+        } else {
+            new Thread(() -> userRepository.findAll()
+                    .stream()
+                    .filter(user -> !userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.ADMIN.name()))
+                    .forEach(user -> {
+                        UserNotification userNotification = new UserNotification();
+                        userNotification.setScheduleId(response.getId());
+                        userNotification.setUsername(user.getUsername());
+                        userNotification.setRead(false);
+                        userNotificationRepository.save(userNotification);
+                    })).start();
         }
         return "Notification set successfully";
     }
@@ -381,5 +410,14 @@ public class AdminServiceImpl implements AdminService {
         userFeedbackHist.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
         userFeedbackHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
         contactUsHistRepository.save(userFeedbackHist);
+    }
+
+    @Override
+    public List<String> getUsernamesOfAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .filter(user -> userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.USER.name()))
+                .map(UserAuthModel::getUsername)
+                .toList();
     }
 }

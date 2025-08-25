@@ -44,7 +44,7 @@
             </thead>
             <tbody>
             <tr *ngFor="let feedback of feedbacks">
-                <td>{{ feedback.feedbackId }}</td>
+                <td>{{ feedback.id }}</td>
                 <td>
                 <span class="rating">
                     <ng-container *ngFor="let star of getStars(feedback.rating)">

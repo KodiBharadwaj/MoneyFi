@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface ContactUsHistRepository extends JpaRepository<ContactUsHist, Long> {
-    ContactUsHist findByContactUsId(Long id);
+    List<ContactUsHist> findByContactUsId(Long id);
 
     @Query("SELECT c FROM ContactUsHist c WHERE c.contactUsId = :id AND c.requestStatus = 'SUBMITTED'")
     List<ContactUsHist> findByContactUsIdList(Long id);

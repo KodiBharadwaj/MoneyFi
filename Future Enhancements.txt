@@ -12,7 +12,7 @@ Minor Changes:
 - Implement admin scheduling notifications to user.
 - Implement s3 file uploads with necessary paths.
 - Implement one external api in backend for any existing feature.
-- Frontend error handling for block acc in profile.
+- Frontend error handling for block acc in profile, admin scheduling
 
 
 New Feature

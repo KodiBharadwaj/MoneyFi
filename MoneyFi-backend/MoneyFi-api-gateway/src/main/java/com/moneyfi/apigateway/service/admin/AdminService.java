@@ -32,4 +32,6 @@ public interface AdminService {
     List<UserFeedbackResponseDto> getUserFeedbackListForAdmin();
 
     void updateUserFeedback(Long feedbackId);
+
+    List<String> getUsernamesOfAllUsers();
 }

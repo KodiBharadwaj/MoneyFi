@@ -26,6 +26,8 @@ import { AdminInsightsComponent } from './admin-insights/admin-insights.componen
 import { AdminUserDefectsComponent } from './admin-user-defects/admin-user-defects.component';
 import { UserConfigurationComponent } from './user-configuration/user-configuration.component';
 import { AdminUserFeedbackComponent } from './admin-user-feedback/admin-user-feedback.component';
+import { AdminConfigurationComponent } from './admin-configuration/admin-configuration.component';
+import { UserNotificationsComponent } from './user-notifications/user-notifications.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -43,8 +45,7 @@ export const routes: Routes = [
   { path: 'admin/insights', component: AdminInsightsComponent },
   { path: 'admin/user-defects', component: AdminUserDefectsComponent },
   { path: 'admin/feedbacks', component: AdminUserFeedbackComponent },
-  // { path: 'admin/feedbacks', component: AdminFeedbacksComponent },
-  // { path: 'admin/configuration', component: AdminConfigurationComponent },
+  { path: 'admin/configuration', component: AdminConfigurationComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard],children:[
     {path:'',component:OverviewComponent},
     {path:'overview',component:OverviewComponent},
@@ -57,5 +58,6 @@ export const routes: Routes = [
     {path: 'user-configuration', component:UserConfigurationComponent},
     {path: 'ai-assistant', component: AiAssistantComponent},
     {path: 'reports-insights', component:ReportsInsightsComponent},
+    {path: 'notifications', component:UserNotificationsComponent},
   ]},
 ];
