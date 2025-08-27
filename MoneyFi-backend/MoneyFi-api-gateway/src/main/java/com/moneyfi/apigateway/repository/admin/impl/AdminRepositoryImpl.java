@@ -206,7 +206,24 @@ public class AdminRepositoryImpl implements AdminRepository {
             return userFeedbackList;
         } catch (Exception e){
             e.printStackTrace();
-            throw new QueryValidationException("Error occurred while fetching fetching user feedback details");
+            throw new QueryValidationException("Error occurred while fetching user feedback details");
+        }
+    }
+
+    @Override
+    public List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin() {
+        List<AdminSchedulesResponseDto> scheduleList = new ArrayList<>();
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getAllActiveSchedulesOfAdmin ")
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(AdminSchedulesResponseDto.class));
+
+            scheduleList.addAll(query.getResultList());
+            return scheduleList;
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching schedules for admin");
         }
     }
 }

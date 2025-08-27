@@ -20,4 +20,6 @@ public interface AdminRepository {
     List<UserDefectResponseDto> getUserRaisedDefectsForAdmin();
 
     List<UserFeedbackResponseDto> getUserFeedbackListForAdmin();
+
+    List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin();
 }

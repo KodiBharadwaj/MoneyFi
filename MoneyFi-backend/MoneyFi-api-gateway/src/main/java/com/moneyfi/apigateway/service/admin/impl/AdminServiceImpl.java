@@ -8,6 +8,7 @@ import com.moneyfi.apigateway.repository.admin.AdminRepository;
 import com.moneyfi.apigateway.repository.user.*;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.admin.AdminService;
+import com.moneyfi.apigateway.service.admin.dto.request.AdminScheduleRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.AwsServices;
@@ -419,5 +420,59 @@ public class AdminServiceImpl implements AdminService {
                 .filter(user -> userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.USER.name()))
                 .map(UserAuthModel::getUsername)
                 .toList();
+    }
+
+    @Override
+    public List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin() {
+        return adminRepository.getAllActiveSchedulesOfAdmin();
+    }
+
+    @Override
+    @Transactional
+    public void cancelTheUserScheduling(Long scheduleId) {
+        ScheduleNotification notification = scheduleNotificationRepository.findById(scheduleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + scheduleId));
+
+        if (Boolean.TRUE.equals(notification.isCancelled())) {
+            throw new IllegalStateException("Schedule with id " + scheduleId + " is already cancelled.");
+        }
+
+        notification.setCancelled(true);
+        scheduleNotificationRepository.save(notification);
+    }
+
+    @Override
+    @Transactional
+    public void updateAdminPlacedSchedules(AdminScheduleRequestDto requestDto) {
+        ScheduleNotification notification = scheduleNotificationRepository.findById(requestDto.getScheduleId())
+                .orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + requestDto.getScheduleId()));
+
+        if(requestDto.getSubject() == null || requestDto.getSubject().isEmpty()){
+            throw new ScenarioNotPossibleException("Subject can't be null or empty");
+        }
+        if(requestDto.getDescription() == null || requestDto.getDescription().isEmpty()){
+            throw new ScenarioNotPossibleException("Description can't be null or empty");
+        }
+        if(requestDto.getScheduleFrom() == null || requestDto.getScheduleTo() == null){
+            throw new ScenarioNotPossibleException("From and To dates should not be null");
+        }
+        if(requestDto.getScheduleTo().toLocalDateTime().isBefore(requestDto.getScheduleFrom().toLocalDateTime())){
+            throw new ScenarioNotPossibleException("To Date should be greater than From Date");
+        }
+        if(requestDto.getRecipients() == null || requestDto.getRecipients().isEmpty()){
+            throw new ScenarioNotPossibleException("Recipients should be empty");
+        }
+        notification.setSubject(requestDto.getSubject());
+        notification.setDescription(requestDto.getDescription());
+        notification.setScheduleFrom(requestDto.getScheduleFrom().toLocalDateTime());
+        notification.setScheduleTo(requestDto.getScheduleTo().toLocalDateTime());
+        notification.setRecipients(requestDto.getRecipients());
+        notification.setDescription("New Update: " + notification.getDescription());
+        scheduleNotificationRepository.save(notification);
+
+        userNotificationRepository.findByScheduleId(requestDto.getScheduleId()).forEach(userNotification -> {
+            userNotification.setRead(false);
+            userNotificationRepository.save(userNotification);
+        });
     }
 }
