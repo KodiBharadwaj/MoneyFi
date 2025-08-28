@@ -75,6 +75,51 @@
           </div>
         </div>
       </fieldset>
+
+
+      <fieldset class="tile-group">
+        <legend class="group-title">Scheduled Notifications</legend>
+
+        <div class="schedule-container" *ngIf="schedules.length > 0; else noSchedules">
+          <div class="schedule-item" *ngFor="let s of schedules">
+            <div class="schedule-row">
+              <div class="schedule-col">
+                <strong>Subject:</strong> {{ s.subject }}
+              </div>
+              <div class="schedule-col">
+                <strong>Created:</strong> {{ s.createdDate }}
+              </div>
+            </div>
+
+            <div class="schedule-row">
+              <div class="schedule-col full">
+                <strong>Description:</strong> {{ s.description }}
+              </div>
+            </div>
+
+            <div class="schedule-row">
+              <div class="schedule-col">
+                <strong>From:</strong> {{ s.scheduleFrom }}
+              </div>
+              <div class="schedule-col">
+                <strong>To:</strong> {{ s.scheduleTo }}
+              </div>
+            </div>
+
+            <div class="schedule-actions">
+              <button (click)="editSchedule(s)">Edit</button>
+              <button (click)="cancelSchedule(s.scheduleId)" [disabled]="s.cancelled">
+                {{ s.cancelled ? 'Cancelled' : 'Cancel' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noSchedules>
+          <p>No schedules found.</p>
+        </ng-template>
+      </fieldset>
+
     </main>
   </div>
 </div>

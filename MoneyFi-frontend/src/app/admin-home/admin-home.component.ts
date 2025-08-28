@@ -43,6 +43,7 @@ export class AdminHomeComponent implements OnInit {
   showGrid = false;
   selectedTile = '';
   gridData: any[] = [];
+  schedules: any[] = [];
 
   baseUrl = environment.BASE_URL;
 
@@ -52,6 +53,47 @@ export class AdminHomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchCounts();
+    this.getAdminScheduledNotifications();
+  }
+
+  getAdminScheduledNotifications() {
+    this.httpClient.get<any[]>(`${this.baseUrl}/api/v1/admin/schedule-notifications/get`).subscribe({
+      next: (data) => {
+        this.schedules = data;
+      },
+      error: () => this.toastr.error('Failed to load schedules')
+    });
+  }
+
+  cancelSchedule(scheduleId: number) {
+    this.httpClient.put(`${this.baseUrl}/api/v1/admin/schedule-notification/cancel?id=${scheduleId}`, {})
+      .subscribe({
+        next: () => {
+          this.toastr.success('Schedule cancelled');
+          this.schedules = this.schedules.map(s => 
+            s.scheduleId === scheduleId ? { ...s, cancelled: true } : s
+          );
+        },
+        error: () => this.toastr.error('Failed to cancel schedule')
+      });
+  }
+
+  editSchedule(schedule: any) {
+    // Open a modal/dialog for editing
+    // You can reuse your existing dialog service if available
+    // Example with simple prompt (replace with Angular Material dialog for better UX):
+    const updatedSubject = prompt('Update Subject:', schedule.subject);
+    if (updatedSubject !== null) {
+      const updatedSchedule = { ...schedule, subject: updatedSubject };
+      this.httpClient.put(`${this.baseUrl}/api/v1/admin/schedule-notification/update`, updatedSchedule)
+        .subscribe({
+          next: () => {
+            this.toastr.success('Schedule updated');
+            this.getAdminScheduledNotifications();
+          },
+          error: () => this.toastr.error('Failed to update schedule')
+        });
+    }
   }
 
   fetchCounts() {
