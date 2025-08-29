@@ -57,81 +57,18 @@ public class AdminRepositoryImpl implements AdminRepository {
     @Override
     public List<UserGridDto> getUserDetailsGridForAdmin(String status) {
         List<UserGridDto> userGridDetails = new ArrayList<>();
-
-        if(status.equalsIgnoreCase(UserStatus.ACTIVE.name())){
-            try {
-                Query query = entityManager.createNativeQuery(
-                                "exec getActiveUserDetailsForAdmin ")
-                        .unwrap(NativeQuery.class)
-                        .setResultTransformer(Transformers.aliasToBean(UserGridDto.class));
-
-                userGridDetails.addAll(query.getResultList());
-            } catch (Exception e){
-                e.printStackTrace();
-                throw new QueryValidationException("Error occurred while fetching fetching active user grid details");
-            }
-        } else if(status.equalsIgnoreCase(UserStatus.DELETED.name())){
-            try {
-                Query query = entityManager.createNativeQuery(
-                                "exec getDeletedUserDetailsForAdmin ")
-                        .unwrap(NativeQuery.class)
-                        .setResultTransformer(Transformers.aliasToBean(UserGridDto.class));
-
-                userGridDetails.addAll(query.getResultList());
-            } catch (Exception e){
-                e.printStackTrace();
-                throw new QueryValidationException("Error occurred while fetching fetching deleted user grid details");
-            }
-        } else if(status.equalsIgnoreCase(UserStatus.BLOCKED.name())){
-            try {
-                Query query = entityManager.createNativeQuery(
-                                "exec getBlockedUserDetailsForAdmin ")
-                        .unwrap(NativeQuery.class)
-                        .setResultTransformer(Transformers.aliasToBean(UserGridDto.class));
-
-                userGridDetails.addAll(query.getResultList());
-            } catch (Exception e){
-                e.printStackTrace();
-                throw new QueryValidationException("Error occurred while fetching fetching blocked user grid details");
-            }
-        } else {
-            try {
-                Query query = entityManager.createNativeQuery(
-                                "exec getBlockedUserDetailsForAdmin ")
-                        .unwrap(NativeQuery.class)
-                        .setResultTransformer(Transformers.aliasToBean(UserGridDto.class));
-
-                userGridDetails.addAll(query.getResultList());
-            } catch (Exception e){
-                e.printStackTrace();
-                throw new QueryValidationException("Error occurred while fetching fetching blocked user grid details");
-            }
-
-            try {
-                Query query = entityManager.createNativeQuery(
-                                "exec getDeletedUserDetailsForAdmin ")
-                        .unwrap(NativeQuery.class)
-                        .setResultTransformer(Transformers.aliasToBean(UserGridDto.class));
-
-                userGridDetails.addAll(query.getResultList());
-            } catch (Exception e){
-                e.printStackTrace();
-                throw new QueryValidationException("Error occurred while fetching fetching deleted user grid details");
-            }
-
-            try {
-                Query query = entityManager.createNativeQuery(
-                                "exec getActiveUserDetailsForAdmin ")
-                        .unwrap(NativeQuery.class)
-                        .setResultTransformer(Transformers.aliasToBean(UserGridDto.class));
-
-                userGridDetails.addAll(query.getResultList());
-            } catch (Exception e){
-                e.printStackTrace();
-                throw new QueryValidationException("Error occurred while fetching fetching active user grid details");
-            }
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getUserGridDetailsByStatusForAdmin " +
+                            "@status = :status")
+                    .setParameter("status", status)
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserGridDto.class));
+            userGridDetails.addAll(query.getResultList());
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching fetching " + status.toLowerCase() + " user grid details");
         }
-
         return userGridDetails;
     }
 
