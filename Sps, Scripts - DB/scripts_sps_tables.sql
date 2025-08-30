@@ -1379,7 +1379,7 @@ BEGIN
 	SELECT MAX(cuth.updated_time) 
 	FROM contact_us_table_hist cuth
 	INNER JOIN contact_us_table cut ON cut.id = cuth.contact_us_id
-	WHERE cut.reference_number IN ( reference_number, 'COM_' + @referenceNumber);
+	WHERE cut.reference_number IN ( @referenceNumber, 'COM_' + @referenceNumber);
 
     SELECT cut.email AS email
 		,updt.name AS name
