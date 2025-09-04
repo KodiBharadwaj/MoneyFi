@@ -1,12 +1,21 @@
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-
+server:
+  port: 8765
 
 spring:
+  application:
+    name: MoneyFi-api-gateway
+
+  boot:
+    admin:
+      client:
+        url: http://localhost:8760
+        username: admin        # <-- must match monitor server
+        password: admin123     # <-- must match monitor server
+        instance:
+          metadata:
+            user.name: client
+            user.password: client123
+
   datasource:
     url: jdbc:sqlserver://${RDS_HOSTNAME:localhost}:${RDS_PORT:1433};databaseName=${RDS_DB_NAME:moneyfi_db};encrypt=true;trustServerCertificate=true
     username: ${RDS_USERNAME:sa}
@@ -24,42 +33,48 @@ spring:
     gateway:
       mvc:
         routes:
-
           - id: MoneyFi-income
-            uri:
-              lb://MoneyFi-income
+            uri: lb://MoneyFi-income
             predicates:
               - Path=/api/v1/income/**
-
           - id: MoneyFi-expense
-            uri:
-              lb://MoneyFi-expense
+            uri: lb://MoneyFi-expense
             predicates:
               - Path=/api/v1/expense/**
-
           - id: MoneyFi-budget
-            uri:
-              lb://MoneyFi-budget
+            uri: lb://MoneyFi-budget
             predicates:
               - Path=/api/v1/budget/**
-
           - id: MoneyFi-goal
-            uri:
-              lb://MoneyFi-goal
+            uri: lb://MoneyFi-goal
             predicates:
               - Path=/api/v1/goal/**
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
 
-# aws s3 and ses connection details
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
 cloud:
   aws:
     credentials:
-      access-key:
-      secret-key:
+      access-key: xxxxxxxxxxxxx
+      secret-key: xxxxxxxxxxxxx
     region:
       static: us-east-1
     stack:
-      auto:false
+      auto: false
 
 application:
   bucket:

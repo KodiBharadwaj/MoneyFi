@@ -154,10 +154,23 @@
             <version>5.2.3</version>
         </dependency>
 
+        <!-- Aws email service ses -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>ses</artifactId>
             <version>2.20.0</version>
+        </dependency>
+
+        <!-- monitor client -->
+        <dependency>
+            <groupId>de.codecentric</groupId>
+            <artifactId>spring-boot-admin-starter-client</artifactId>
+            <version>3.3.5</version> <!-- match your Boot version -->
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
     </dependencies>
 

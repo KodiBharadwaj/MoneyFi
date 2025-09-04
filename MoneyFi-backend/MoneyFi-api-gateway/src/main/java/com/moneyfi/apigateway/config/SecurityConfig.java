@@ -70,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers("api/v1/admin/**").hasRole(UserRoles.ADMIN.name())
                         .requestMatchers("api/auth/**").permitAll()
                         .requestMatchers("/api/v1/external-api/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().hasRole(UserRoles.USER.name()))
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

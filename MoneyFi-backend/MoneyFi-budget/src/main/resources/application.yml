@@ -4,3 +4,23 @@ spring:
   application:
     name:
       MoneyFi-budget
+
+  boot:
+    admin:
+      client:
+        url: http://localhost:8760
+        username: admin        # <-- must match monitor server
+        password: admin123     # <-- must match monitor server
+        instance:
+          metadata:
+            user.name: client
+            user.password: client123
+
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: "*"
+    endpoint:
+      health:
+        show-details: always

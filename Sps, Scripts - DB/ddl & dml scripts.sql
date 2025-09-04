@@ -26,11 +26,23 @@ CREATE TABLE excel_template (
 -- DML Scripts
 -- To insert pre defined values in user_role table
 INSERT INTO dbo.user_role_table (role_id, role_name)
-VALUES (1, 'ADMIN'), (2, 'USER');
+VALUES (1, 'ADMIN'), (2, 'USER'), (3,'DEVELOPER');
 
 -- To add admin default login credentials
 INSERT INTO dbo.user_auth_table (username, password, is_deleted, is_blocked, role_id, otp_count)
-VALUES ('admin', '$2a$12$N1G9aEHD8QGhZBj3QC3TDOLpkOMMC2mDrka/YPjqEo2U0mhLwYVVy', 0, 0, 1, 0)
+VALUES ('admin@access.com', '$2a$12$N1G9aEHD8QGhZBj3QC3TDOLpkOMMC2mDrka/YPjqEo2U0mhLwYVVy', 0, 0, 1, 0)
+
+-- Credentials for monitor service as admin
+-- username : admin
+-- password : admin123
+INSERT INTO dbo.user_auth_table (username, password, is_deleted, is_blocked, role_id, otp_count)
+VALUES ('admin', '$2a$12$L7Z/JLRNYiTNffo7eNbyeOJ4nxuC0kNvI4rMc4R/tC1rk1/Zh41h2', 0, 0, 3, 0)
+
+-- Credentials for monitor service as client
+-- username : client
+-- password : client123
+INSERT INTO dbo.user_auth_table (username, password, is_deleted, is_blocked, role_id, otp_count)
+VALUES ('client', '$2a$12$H3ThrYDby00iblvWzKHt7OLBHkEiQvx4ZJCiWIK35FRlG5cTD8J8G', 0, 0, 3, 0)
 
 -- Insert an excel template with necessary path for user profile upload and parsing
 INSERT INTO excel_template (id, name, content, content_type)

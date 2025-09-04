@@ -2,5 +2,6 @@ package com.moneyfi.apigateway.util.enums;
 
 public enum UserRoles {
     ADMIN,
-    USER
+    USER,
+    DEVELOPER
 }
