@@ -7,11 +7,10 @@ Major Changes:
 
 Minor Changes:
 - Write Junit test cases for income service (ongoing)
-- Implement triggers/scheduled (birthday, recurring income saving)
 - Implement caching policy in ui to avoid repetitive api calls.
-- Implement admin scheduling notifications to user.
+- Implement admin scheduling notifications to user. (admin editing is in progress)
 - Implement s3 file uploads with necessary paths.
-- Implement one external api in backend for any existing feature.
+- Implement more external apis for any existing feature.
 - Frontend error handling for block acc in profile, admin scheduling
 
 
@@ -34,7 +33,7 @@ Defects:
 
 
 
-cleared changes:
+completed changes:
 - Ask confirmation before deleting a goal/income/expense etc in the frontend.
 - @operation(summary = "...") replace all comments with this in all controller files.
 - Add api's through api gateway not through user service. Remove all.
@@ -65,12 +64,14 @@ cleared changes:
 - Implemented Kafka communication in goal to expense service to delete the expenses when a goal is deleted.
 - Change reference number which should consider user's name, phone, etc details.
 - Implement block account feature in user profile with mail confirmation. (ui enhance pending)
+- Implement triggers/scheduled (birthday, recurring income saving)
 
 
 
 
 
-cleared defects:
+
+completed defects:
 - Implement user id authentication level in backend instead of doing in frontend
 - If otp verification isn't there during signup, if user creates with unexisting email, then forgot password, email service wont work for that user.
   Add otp verification at signup stage itself.

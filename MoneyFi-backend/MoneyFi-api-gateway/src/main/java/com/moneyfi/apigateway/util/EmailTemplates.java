@@ -103,13 +103,13 @@ public class EmailTemplates {
         return EmailFilter.sendEmail(email, subject, body);
     }
 
-    public static void sendBirthdayMail(String name, String email){
+    public static void sendBirthdayMail(String email, String name, int numberOfYears){
         String subject = "Happy Birthday";
         String body = "<html>"
                 + "<body>"
-                + "<h2 style='color: #333;'>Password Reset Verification</h2>"
                 + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
-                + "<p style='font-size: 16px;'>We wish you a very happy birthday. May god bless you in this auspicious day.</p>"
+                + "<p style='font-size: 16px;'>We wish you a very happy birthday. May god bless you on this auspicious day.</p>"
+                + "<p style='font-size: 16px;'>You have completed " + numberOfYears + (numberOfYears <= 1?" year" : " years") + " in our platform. Hope you are enjoying the services.</p>"
                 + "<hr>"
                 + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
                 + "<br>"
