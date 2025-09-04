@@ -103,6 +103,23 @@ public class EmailTemplates {
         return EmailFilter.sendEmail(email, subject, body);
     }
 
+    public static void sendBirthdayMail(String name, String email){
+        String subject = "Happy Birthday";
+        String body = "<html>"
+                + "<body>"
+                + "<h2 style='color: #333;'>Password Reset Verification</h2>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
+                + "<p style='font-size: 16px;'>We wish you a very happy birthday. May god bless you in this auspicious day.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        EmailFilter.sendEmail(email, subject, body);
+    }
+
     public static void sendUserRaiseDefectEmailToAdmin(UserDefectRequestDto userDefectRequestDto, String images){
         String subject = "MoneyFi's User Report Alert!!";
 

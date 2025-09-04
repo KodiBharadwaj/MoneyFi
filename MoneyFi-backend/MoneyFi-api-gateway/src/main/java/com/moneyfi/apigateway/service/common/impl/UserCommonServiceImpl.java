@@ -31,7 +31,6 @@ import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -162,7 +161,6 @@ public class UserCommonServiceImpl implements UserCommonService {
 
     public boolean isTokenBlacklisted(String token) {
         List<BlackListedToken> blackListedTokens = tokenBlacklistRepository.findByToken(token);
-
         return !(blackListedTokens.isEmpty());
     }
 
@@ -466,14 +464,5 @@ public class UserCommonServiceImpl implements UserCommonService {
             notification.setRead(true);
             userNotificationRepository.save(notification);
         });
-    }
-
-
-    @Scheduled(fixedRate = 3600000) // Runs every 1 hour
-    @Transactional
-    public void removeExpiredTokens() {
-        LocalDateTime now = LocalDateTime.now();
-        log.info("Checking for expired tokens at: " + now);
-        tokenBlacklistRepository.deleteByExpiryBefore(now);  // Deletes expired tokens
     }
 }

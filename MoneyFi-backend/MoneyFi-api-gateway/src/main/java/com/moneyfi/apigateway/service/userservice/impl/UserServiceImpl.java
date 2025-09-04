@@ -17,10 +17,14 @@ import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.common.AwsServices;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.userservice.UserService;
-import com.moneyfi.apigateway.service.userservice.dto.*;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
 import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockRequestDto;
+import com.moneyfi.apigateway.service.userservice.dto.request.ChangePasswordDto;
+import com.moneyfi.apigateway.service.userservice.dto.request.ForgotUsernameDto;
+import com.moneyfi.apigateway.service.userservice.dto.request.UserProfile;
+import com.moneyfi.apigateway.service.userservice.dto.response.ProfileChangePassword;
+import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.enums.OtpType;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
@@ -31,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,7 +43,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -628,19 +630,4 @@ public class UserServiceImpl implements UserService {
         }
         return null;
     }
-
-
-
-
-    @Scheduled(fixedRate = 3600000) // Method Runs for every 1 hour
-    public void removeOtpCountOfPreviousDay(){
-        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
-        List<UserAuthModel>  userAuthModelList = userRepository.getUserListWhoseOtpCountGreaterThanThree(startOfToday);
-
-        for (UserAuthModel userAuthModel : userAuthModelList) {
-            userAuthModel.setOtpCount(0);
-            userRepository.save(userAuthModel);
-        }
-    }
-
 }
