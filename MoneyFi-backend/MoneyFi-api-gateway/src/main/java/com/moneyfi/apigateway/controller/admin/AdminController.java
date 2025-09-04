@@ -2,6 +2,7 @@ package com.moneyfi.apigateway.controller.admin;
 
 import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.service.admin.AdminService;
+import com.moneyfi.apigateway.service.admin.dto.request.AdminScheduleRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
@@ -120,6 +121,29 @@ public class AdminController {
     @PostMapping("/schedule-notification")
     public ResponseEntity<String> scheduleNotification(@RequestBody @Valid ScheduleNotificationRequestDto requestDto){
         return ResponseEntity.ok(adminService.scheduleNotification(requestDto));
+    }
+
+    @Operation(summary = "Api to get all the schedules for admin screen")
+    @GetMapping("/schedule-notifications/get")
+    public ResponseEntity<List<AdminSchedulesResponseDto>> getAllActiveSchedulesOfAdmin(){
+        List<AdminSchedulesResponseDto> scheduleList = adminService.getAllActiveSchedulesOfAdmin();
+        if(!scheduleList.isEmpty()){
+            return ResponseEntity.ok(scheduleList);
+        } else {
+            throw new ResourceNotFoundException("Data not found");
+        }
+    }
+
+    @Operation(summary = "Api to cancel the user scheduling")
+    @PutMapping("schedule-notification/cancel")
+    public void cancelTheUserScheduling(@RequestParam("id") Long scheduleId){
+        adminService.cancelTheUserScheduling(scheduleId);
+    }
+
+    @Operation(summary = "Api to update the already scheduled notification")
+    @PutMapping("schedule-notification/update")
+    public void updateAdminPlacedSchedules(@RequestBody @Valid AdminScheduleRequestDto requestDto){
+        adminService.updateAdminPlacedSchedules(requestDto);
     }
 
     @Operation(summary = "Api to logout/making the token blacklist for admin")

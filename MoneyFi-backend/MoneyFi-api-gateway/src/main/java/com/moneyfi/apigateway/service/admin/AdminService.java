@@ -1,5 +1,6 @@
 package com.moneyfi.apigateway.service.admin;
 
+import com.moneyfi.apigateway.service.admin.dto.request.AdminScheduleRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
@@ -34,4 +35,10 @@ public interface AdminService {
     void updateUserFeedback(Long feedbackId);
 
     List<String> getUsernamesOfAllUsers();
+
+    List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin();
+
+    void cancelTheUserScheduling(Long scheduleId);
+
+    void updateAdminPlacedSchedules(@Valid AdminScheduleRequestDto requestDto);
 }

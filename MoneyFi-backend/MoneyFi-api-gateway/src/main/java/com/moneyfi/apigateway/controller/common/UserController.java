@@ -142,7 +142,7 @@ private DataSource dataSource;
     }
 
     @Operation(summary = "Api to check the status of the user request using reference number")
-    @GetMapping("track-user-request")
+    @GetMapping("/track-user-request")
     public ResponseEntity<UserRequestStatusDto> trackUserRequestUsingReferenceNumber(@RequestParam("ref") String referenceNumber){
         UserRequestStatusDto userRequestStatusDto = userCommonService.trackUserRequestUsingReferenceNumber(referenceNumber);
         if(userRequestStatusDto != null){
