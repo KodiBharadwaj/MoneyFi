@@ -1,0 +1,21 @@
+create PROCEDURE getBirthdayUserEmailAndName (
+	@month INT,
+	@day INT
+	)
+AS
+BEGIN
+	
+	SET NOCOUNT ON;
+
+    SELECT CONCAT(uat.username, '-', updt.name)
+	FROM user_profile_details_table updt WITH (NOLOCK)
+	INNER JOIN user_auth_table uat WITH (NOLOCK) ON uat.id = updt.user_id
+		AND uat.is_blocked = 0
+		AND uat.is_deleted = 0
+	INNER JOIN user_role_table urt WITH (NOLOCK) ON urt.role_id = uat.role_id
+		AND urt.role_name IN ('USER')
+	WHERE MONTH(updt.created_date) = @month
+		AND DAY(updt.created_date) = @day
+	ORDER BY updt.created_date
+END
+GO
