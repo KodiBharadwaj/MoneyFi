@@ -1,0 +1,11 @@
+server:
+  port: 8760
+
+spring:
+  application:
+    name: Moneyfi-monitor
+
+  security:
+    user:
+      name: admin
+      password: admin123
