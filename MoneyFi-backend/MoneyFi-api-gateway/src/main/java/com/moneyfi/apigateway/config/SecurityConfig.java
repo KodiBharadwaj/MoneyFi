@@ -43,6 +43,9 @@ public class SecurityConfig {
     @Value("${cloud.aws.region.static}")
     private String region;
 
+    @Value("${cors.allowed-origins}")
+    private String allowedOrigins;
+
 
     private final UserDetailsService userDetailsService;
     private final JwtFilter jwtFilter;
@@ -86,7 +89,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("http://localhost:4200"); // Allow all origins, you can replace "*" with your client URL
+        config.addAllowedOriginPattern(allowedOrigins.trim()); // Allow all origins, you can replace "*" with your client URL
         config.addAllowedHeader("*"); // Allow all headers
         config.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
         source.registerCorsConfiguration("/**", config);

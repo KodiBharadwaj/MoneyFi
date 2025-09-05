@@ -28,7 +28,6 @@ import java.sql.ResultSet;
 import java.util.Map;
 
 @RestController
-@CrossOrigin("http://localhost:4200")
 @RequestMapping("/api/auth")
 public class UserController {
 

@@ -1,6 +1,3 @@
-server:
-  port: 8765
-
 spring:
   application:
     name: MoneyFi-api-gateway
@@ -17,9 +14,9 @@ spring:
             user.password: client123
 
   datasource:
-    url: jdbc:sqlserver://${RDS_HOSTNAME:localhost}:${RDS_PORT:1433};databaseName=${RDS_DB_NAME:moneyfi_db};encrypt=true;trustServerCertificate=true
-    username: ${RDS_USERNAME:sa}
-    password: ${RDS_PASSWORD:admin@123}
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
@@ -62,20 +59,27 @@ management:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URL}
   instance:
     prefer-ip-address: true
+
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS}
+
+server:
+  port: 8765
+
 
 cloud:
   aws:
     credentials:
-      access-key: xxxxxxxxxxxxx
-      secret-key: xxxxxxxxxxxxx
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
     region:
-      static: us-east-1
+      static: ${AWS_REGION}
     stack:
       auto: false
 
 application:
   bucket:
-    name:
+    name: ${AWS_S3_BUCKET_NAME}
