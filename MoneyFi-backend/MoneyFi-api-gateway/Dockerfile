@@ -1,11 +1,12 @@
-# Step 1: Use OpenJDK as base image
-FROM openjdk:17-jdk-slim
-
-# Step 2: Set working directory inside container
+# Step 1: Build the application
+FROM maven:3.9.4-eclipse-temurin-17 AS build
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Step 3: Copy the jar file into the container
-COPY target/MoneyFi-api-gateway.jar app.jar
-
-# Step 4: Run the application
+# Step 2: Run the application
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]
