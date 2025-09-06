@@ -1,4 +1,4 @@
 export const environment = {
-    API_KEY: "",
-    BASE_URL : 'http://localhost:8765'
+  API_KEY: 'gemini-key',
+  BASE_URL: 'https://moneyfi-api-gateway.onrender.com',
 };
