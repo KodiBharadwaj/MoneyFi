@@ -1,0 +1,205 @@
+<!-- account-statement.component.html -->
+<div class="feature-box">
+  <div class="feature-legend">
+    <!-- <i class="icon-document"></i> -->
+    <span>1. Account Statement</span>
+  </div>
+  <div class="feature-content">
+
+  <!-- Filter Section -->
+  <div class="filter-card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <!-- <i class="icon-calendar"></i> -->
+        Date Range Filter
+      </h3>
+    </div>
+    <div class="card-body">
+      <form class="date-form">
+        <div class="date-inputs">
+          <div class="input-group">
+            <mat-form-field appearance="outline" class="date-field">
+              <mat-label>From Date</mat-label>
+              <input 
+                matInput 
+                [matDatepicker]="fromDatePicker"
+                [(ngModel)]="fromDate"
+                name="fromDate"
+                placeholder="Select start date"
+                readonly
+              >
+              <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #fromDatePicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+          <div class="input-group">
+            <mat-form-field appearance="outline" class="date-field">
+              <mat-label>To Date</mat-label>
+              <input 
+                matInput 
+                [matDatepicker]="toDatePicker"
+                [(ngModel)]="toDate"
+                name="toDate"
+                placeholder="Select end date"
+                readonly
+              >
+              <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #toDatePicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+        <font color = "red"><p> * The date range is set for last seven days. Please change for other date range</p></font>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button 
+            type="button"
+            (click)="generateStatement()" 
+            class="btn btn-primary"
+            [disabled]="isGenerating"
+          >
+            <div class="btn-content">
+              <div class="spinner" *ngIf="isGenerating"></div>
+              <i class="icon-search" *ngIf="!isGenerating"></i>
+              <span>{{ isGenerating ? 'Generating...' : 'Generate Statement' }}</span>
+            </div>
+          </button>
+          <button 
+            type="button"
+            (click)="downloadStatement()" 
+            class="btn btn-secondary"
+            [disabled]="accountStatementGenerated.length === 0 || isDownloading"
+          >
+            <div class="btn-content">
+              <div class="spinner" *ngIf="isDownloading"></div>
+              <i class="icon-download" *ngIf="!isDownloading"></i>
+              <span>{{ isDownloading ? 'Downloading...' : 'Download PDF' }}</span>
+            </div>
+          </button>
+          <button 
+            type="button"
+            (click)="sendStatementEmail()" 
+            class="btn btn-tertiary"
+            [disabled]="accountStatementGenerated.length === 0 || isSendingEmail"
+          >
+            <div class="btn-content">
+              <div class="spinner" *ngIf="isSendingEmail"></div>
+              <i class="icon-email" *ngIf="!isSendingEmail"></i>
+              <span>{{ isSendingEmail ? 'Sending...' : 'Send Email' }}</span>
+            </div>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination-controls" *ngIf="accountStatementGenerated.length === threshold || currentPage > 1">
+      <div class="pagination-info">
+        <span class="showing-text">
+          Showing {{ startIndex + 1 }} - {{ startIndex + accountStatementGenerated.length }} transactions
+        </span>
+      </div>
+      <div class="pagination-buttons">
+        <button 
+          type="button"
+          (click)="goToPreviousPage()"
+          class="btn btn-pagination"
+          [disabled]="currentPage === 1"
+        >
+          <i class="icon-arrow-left"></i>
+          Previous
+        </button>
+        <span class="current-page">{{ currentPage }}</span>
+        <button 
+          type="button"
+          (click)="goToNextPage()"
+          class="btn btn-pagination"
+          [disabled]="accountStatementGenerated.length < threshold"
+        >
+          Next
+          <i class="icon-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statement Table Section -->
+  <div class="statement-section" *ngIf="accountStatementGenerated.length > 0">
+    <div class="statement-header">
+      <h3 class="statement-title">
+        <!-- <i class="icon-list"></i> -->
+        Transaction History
+      </h3>
+      <div class="statement-summary">
+        <span class="record-count">{{ accountStatementGenerated.length }} transactions</span>
+        <span class="page-info" *ngIf="accountStatementGenerated.length === threshold">
+          Page {{ currentPage }} 
+        </span>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="statement-table">
+        <thead>
+          <tr>
+            <th class="col-id">S.No</th>
+            <th class="col-date">Date</th>
+            <th class="col-date">Time</th>
+            <th class="col-description">Description</th>
+            <th class="col-credit">Credit</th>
+            <th class="col-debit">Debit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let statement of accountStatementGenerated; let i = index" 
+              class="table-row" 
+              [class.even]="i % 2 === 0">
+            <td class="col-id">
+              <span class="id-badge">{{ statement.id }}</span>
+            </td>
+            <td class="col-date">
+              <span class="date-text">{{ statement.transactionDate | date:'dd/MM/yyyy' }}</span>
+            </td>
+            <td class="col-date">
+              <span class="date-text">
+                {{ statement.transactionTime }}
+              </span>
+            </td>
+
+            <td class="col-description">
+              <div class="description-wrapper">
+                <span class="description-text">{{ statement.description }}</span>
+              </div>
+            </td>
+            <td class="col-credit">
+              <span class="amount-credit" *ngIf="statement.creditOrDebit === 'credit'">
+                <!-- <i class="icon-arrow-up"></i> -->
+                +₹{{ statement.amount | number:'1.2-2' }}
+              </span>
+              <span class="amount-empty" *ngIf="statement.creditOrDebit !== 'credit'">-</span>
+            </td>
+            <td class="col-debit">
+              <span class="amount-debit" *ngIf="statement.creditOrDebit === 'debit'">
+                <!-- <i class="icon-arrow-down"></i> -->
+                -₹{{ statement.amount | number:'1.2-2' }}
+              </span>
+              <span class="amount-empty" *ngIf="statement.creditOrDebit !== 'debit'">-</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="accountStatementGenerated.length === 0">
+    <div class="empty-content">
+      <i class="empty-icon icon-document"></i>
+      <h3 class="empty-title">No Statements Generated</h3>
+      <p class="empty-description">
+        Select a date range and click "Generate Statement" to view your transaction history.
+      </p>
+    </div>
+  </div>
+</div>
+</div>

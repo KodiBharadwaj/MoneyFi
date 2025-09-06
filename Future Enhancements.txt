@@ -1,5 +1,102 @@
 Project MoneyFi:
 
-Main is only for production.
-Please checkout to testing-v1 branch for details of defects/features.
+Major Changes:
+- Admin role implementation (progress)
+- Google authentication
 
+
+Minor Changes:
+- Write Junit test cases for income service (ongoing)
+- Implement caching policy in ui to avoid repetitive api calls.
+- Implement admin scheduling notifications to user. (admin editing is in progress)
+- Implement s3 file uploads with necessary paths.
+- Implement more external apis for any existing feature.
+- Frontend error handling for block acc in profile, admin scheduling
+
+
+New Feature
+2) (New Role - Admin)
+- Implement dropdown when admin sees all the requests in one page to filter out based on request type.
+- Admin should able to see the feedback submitted by the users with no user details & defects.
+- Admin should have right to disable features of the user. This can be done to all or to particular users.
+ -- Configuration for account statement.
+ -- Configuration for Ai Analysis.
+- While seeing user grid, username should be clickable and when clicked, all the details along with profile pic should be visible in a dialog. It should contains all the requests (ongoing, completed) etc.
+- Implement schedule notifications for admin to send notifications to users (useful when downtime of app)
+- Introduce chart which shows users creation count with each month in a year. Year can be set in filter.(bar)
+
+3) Introduce cloud drive which stores the user data like his personal things like secure vault.
+
+
+Defects:
+- update functionality is not working in all services.
+
+
+
+completed changes:
+- Ask confirmation before deleting a goal/income/expense etc in the frontend.
+- @operation(summary = "...") replace all comments with this in all controller files.
+- Add api's through api gateway not through user service. Remove all.
+- Replace Jpa & Jpql with ms sql queries and stored procedures through repository.
+- add err0r codes to all controllers
+- Implemented scheduled method to delete expired tokens for every 1 hour.
+- Put change password in profile section.
+- Put Loading effect for send otp section at forgot password.
+- When user updates the password, he should get a mail regarding password change alert.
+- Add remaining time for further otp and make only 3 otp's in a day. (ongoing) and if 3 otp's crossed, user should get the message in frontend.
+- In the confirm delete dialog box, it should show the income/expense/goal source name.
+- while deleting a transaction(income/expense/goal), the toast should display source name.
+- Change all Autowired to constructor based while calling the other service.
+- Excel export generation of income and expenses of a user.
+- Add some more fields in profile, Also it should show for a user ex: member since nov, 2024.
+- Put contact us section. and feedback section.
+- Put change password 3 time limit in profile section
+- Make the first letter capital by default while adding a transaction.
+- Implement soft delete and set 30 day expiration for the deleted transactions(Income). (ongoing)
+- Goal frontend implementation moved to sp.
+- Implement delete account & block feature (soft delete - can be revert back if user needs ticket raise)
+- check with sonar for code quality and sonar fixes.
+- Modify Budget Promise bunch api calls to singe api while adding or modifying a budget.
+- Implement forgot username feature (user should receive mail by providing necessary details like dob, phn No)
+- Create a new table called user_role instead of doing with role_id <> 1
+- avoid repetition in sps. Try call other sp in existing sp.
+- (Account statement) Account statement generation for the user in a specific period
+- Implemented Kafka communication in goal to expense service to delete the expenses when a goal is deleted.
+- Change reference number which should consider user's name, phone, etc details.
+- Implement block account feature in user profile with mail confirmation. (ui enhance pending)
+- Implement triggers/scheduled (birthday, recurring income saving)
+
+
+
+
+
+
+completed defects:
+- Implement user id authentication level in backend instead of doing in frontend
+- If otp verification isn't there during signup, if user creates with unexisting email, then forgot password, email service wont work for that user.
+  Add otp verification at signup stage itself.
+- same source and same category duplicate transaction should not allowed.
+- update charts after deleting a transaction (income, expense)
+- after having income and expenses, if we delete previous incomes then it will show -ve. which is not possible.
+- May be some conditionals are required when deleting updating an income when editing the income, it should check the total expense of that month. if the      
+  income is still greater then only able to edit.
+- Editing an income and expense, even If I didn't do any changes, it is still getting toast with updated.
+- It's allowing to create a goal with target amount less than current amount
+- If there are no budgets, it showing error in console . But income and expense are not showing.
+- Correct MoneFi name in landing page.
+- int to Long was changed for all the microservices
+- In two browsers, if i open the same account, both are working with two different tokens.
+- Implemented logout issue in the backend since the token is still active even after logout.
+- When a service is failed or stopped working, it should show service unavailable, should not throw error.
+- category section is not working properly in income, expense and budget services.
+- User should not be able to add the future transactions in income, expense.
+- Implement @Transactional for the methods which deals with greater than two jpa save operation to avoid half implementation.
+- Implement dto feature to fetch data to exclude user id - data bleach
+- Text should not be acceptable in the profile phone number input.
+- DOB in profile is showing current date before loading and in server error time.
+- user id exposing during updating a transaction in all services.
+- Use s3 for profile upload.
+- Use local cache for user's name and some to avoid multiple api calls.
+- Implement Pagination for the account statement section.
+- Implement Atomic Number generation in backend for all the existing grid data.
+- Restrict admin login in user login page.

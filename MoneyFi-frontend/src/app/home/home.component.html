@@ -17,6 +17,7 @@
     <div class="auth-buttons" *ngIf="!isLoggedIn">
       <button class="btn-login" (click)="navigateTo('/login')">Login</button>
       <button class="btn-signup" (click)="navigateTo('/signup')">Sign Up</button>
+      <button class="btn-signup" (click)="navigateTo('/raise-request')">Requests</button>
     </div>
   </div>
 </header>
@@ -109,13 +110,13 @@
         <h4>Product</h4>
         <a href="#features">Features</a>
         <a href="#">Pricing</a>
-        <a href="#">Security</a>
+        <a [routerLink]="['./raise-request']">Raise Requests</a>
       </div>
       <div class="link-group">
         <h4>Company</h4>
         <a href="#features">About</a>
-        <a href="#">Contact</a>
         <a href="#">Careers</a>
+        <a [routerLink]="['./admin/login']">Admin Login</a>
       </div>
       <div class="link-group">
         <h4>Resources</h4>

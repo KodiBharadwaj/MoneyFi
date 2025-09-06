@@ -1,11 +1,13 @@
 package com.moneyfi.income.controller;
 
 import com.moneyfi.income.config.JwtService;
+import com.moneyfi.income.service.dto.request.AccountStatementRequestDto;
+import com.moneyfi.income.service.dto.response.AccountStatementResponseDto;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeModel;
-import com.moneyfi.income.repository.IncomeRepository;
 import com.moneyfi.income.service.IncomeService;
 import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
+import com.moneyfi.income.service.dto.response.OverviewPageDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,14 +24,11 @@ import java.util.List;
 public class IncomeApiController {
 
     private final IncomeService incomeService;
-    private final IncomeRepository incomeRepository;
     private final JwtService jwtService;
 
     public IncomeApiController(IncomeService incomeService,
-                               IncomeRepository incomeRepository,
                                JwtService jwtService){
         this.incomeService = incomeService;
-        this.incomeRepository = incomeRepository;
         this.jwtService = jwtService;
     }
 
@@ -73,9 +72,8 @@ public class IncomeApiController {
     public ResponseEntity<byte[]> getMonthlyIncomeReport(@RequestHeader("Authorization") String authHeader,
                                                          @PathVariable("month") int month,
                                                          @PathVariable("year") int year,
-                                                         @PathVariable("category") String category) throws IOException {
+                                                         @PathVariable("category") String category) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         byte[] excelData = incomeService.generateMonthlyExcelReport(userId, month, year, category);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Monthly income report.xlsx")
@@ -108,10 +106,9 @@ public class IncomeApiController {
     @GetMapping("/{year}/{category}/generateYearlyReport")
     public ResponseEntity<byte[]> getYearlyIncomeReport(@RequestHeader("Authorization") String authHeader,
                                                         @PathVariable("year") int year,
-                                                        @PathVariable("category") String category) throws IOException {
+                                                        @PathVariable("category") String category) {
 
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         byte[] excelData = incomeService.generateYearlyExcelReport(userId, year, category);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Yearly income report.xlsx")
@@ -136,22 +133,12 @@ public class IncomeApiController {
         return incomeService.getMonthlyIncomes(userId, year);
     }
 
-    @Operation(summary = "Method to get the total savings/remaining amount up to previous month (excludes current month)")
-    @GetMapping("/totalRemainingIncomeUpToPreviousMonth/{month}/{year}")
-    public BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(@RequestHeader("Authorization") String authHeader,
-                                                                        @PathVariable("month") int month,
-                                                                        @PathVariable("year") int year) {
-        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return incomeService.getRemainingIncomeUpToPreviousMonthByMonthAndYear(userId, month, year);
-    }
-
     @Operation(summary = "Method to check the particular income can be editable")
     @PostMapping("/incomeUpdateCheck")
     public boolean incomeUpdateCheckFunction(@RequestHeader("Authorization") String authHeader,
                                              @RequestBody IncomeModel incomeModel){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        incomeModel.setUserId(userId);
-        return incomeService.incomeUpdateCheckFunction(incomeModel);
+        return incomeService.incomeUpdateCheckFunction(incomeModel, userId);
     }
 
     @Operation(summary = "Method to check the particular income can be deleted")
@@ -178,37 +165,47 @@ public class IncomeApiController {
         return incomeService.getAvailableBalanceOfUser(userId);
     }
 
+    @Operation(summary = "Api to get overall transactions in the selected period")
+    @PostMapping("/account-statement")
+    public List<AccountStatementResponseDto> getAccountStatementOfUser(@RequestHeader("Authorization") String authHeader,
+                                                                       @RequestBody AccountStatementRequestDto inputDto){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return incomeService.getAccountStatementOfUser(userId, inputDto);
+    }
+
+    @Operation(summary = "Api to generate pdf for the account statement")
+    @PostMapping("/account-statement/report")
+    public byte[] generatePdfForAccountStatement(@RequestHeader("Authorization") String authHeader,
+                                                 @RequestBody AccountStatementRequestDto inputDto) throws IOException {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return incomeService.generatePdfForAccountStatement(userId, inputDto);
+    }
+
+    @Operation(summary = "Api to send account statement of a user as email")
+    @PostMapping("/account-statement-report/email")
+    public ResponseEntity<String> sendAccountStatementEmailToUser(@RequestHeader("Authorization") String authHeader,
+                                                                  @RequestBody AccountStatementRequestDto inputDto) {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return incomeService.sendAccountStatementEmailToUser(userId, inputDto, authHeader);
+    }
+
+    @Operation(summary = "Api to get the overview page tile details")
+    @GetMapping("/overview-details/{month}/{year}")
+    public OverviewPageDetailsDto getOverviewPageTileDetails(@RequestHeader("Authorization") String authHeader,
+                                                             @PathVariable("month") int month,
+                                                             @PathVariable("year") int year){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return incomeService.getOverviewPageTileDetails(userId, month, year);
+    }
+
     @Operation(summary = "Method to update the income details")
     @PutMapping("/{id}")
-    public ResponseEntity<IncomeModel> updateIncome(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<IncomeDetailsDto> updateIncome(@RequestHeader("Authorization") String authHeader,
                                                     @PathVariable("id") Long id,
                                                     @RequestBody IncomeModel income) {
 
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
-        income.setUserId(userId);
-        IncomeModel incomeModel = incomeRepository.findById(id).orElse(null);
-        if(incomeModel.getUserId() != userId){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); // 401
-        }
-        if(incomeModel != null){
-            if(incomeModel.getAmount().compareTo(income.getAmount()) == 0 &&
-                    incomeModel.getSource().equals(income.getSource()) &&
-                    incomeModel.getCategory().equals(income.getCategory()) &&
-                    incomeModel.getDate().equals(income.getDate()) &&
-                    incomeModel.isRecurring() == income.isRecurring()){
-                return ResponseEntity.noContent().build(); // HTTP 204
-
-            }
-        }
-
-        IncomeModel updatedIncome = incomeService.updateBySource(id, income);
-        if(updatedIncome!=null){
-            return ResponseEntity.status(HttpStatus.CREATED).body(updatedIncome); // 201
-        }
-        else{
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null); // 409
-        }
+        return incomeService.updateBySource(id, userId, income);
     }
 
     @Operation(summary = "Method to delete the particular income. Here which is typically soft delete only")

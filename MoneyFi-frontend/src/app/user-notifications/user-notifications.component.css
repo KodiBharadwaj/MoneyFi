@@ -1,0 +1,185 @@
+.notifications-container {
+  max-width: 700px;
+  margin: auto;
+  padding: 16px;
+}
+
+.notifications-container h2 {
+  font-size: 22px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #333;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #777;
+  font-size: 16px;
+}
+
+.empty-state i {
+  font-size: 40px;
+  margin-bottom: 10px;
+  color: #aaa;
+}
+
+/* Notification Card */
+.notification-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease, background 0.3s;
+}
+
+.notification-card:hover {
+  transform: translateY(-3px);
+}
+
+.notification-card.read {
+  background: #f0f0f0;
+  color: #777;
+  font-weight: normal;
+  box-shadow: none;
+}
+
+.notification-card:not(.read) .notification-header h3 {
+  font-weight: bold;
+  color: #222;
+}
+
+.notification-card.read .notification-header h3 {
+  color: #555;
+}
+
+/* Header Layout */
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-header .left {
+  display: flex;
+  align-items: center;
+  gap: 10px;   /* space between checkbox & title */
+}
+
+.notification-header h3 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.notification-header .time {
+  font-size: 12px;
+  color: #888;
+}
+
+.description {
+  margin-top: 8px;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* Action bar */
+.action-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.mark-read-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.mark-read-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.mark-read-btn:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+/* Custom checkbox */
+.custom-checkbox {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+}
+
+.custom-checkbox input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  transition: all 0.2s;
+}
+
+.custom-checkbox input:checked ~ .checkmark {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.custom-checkbox input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.custom-checkbox .checkmark:after {
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .notification-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .notification-header .left {
+    gap: 6px;
+  }
+
+  .notification-header h3 {
+    font-size: 16px;
+  }
+
+  .notification-header .time {
+    font-size: 11px;
+  }
+}

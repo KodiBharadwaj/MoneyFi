@@ -1,31 +1,37 @@
 package com.moneyfi.apigateway.config;
 
-import com.moneyfi.apigateway.service.jwtservice.JwtServiceImplementation;
-import com.moneyfi.apigateway.service.MyUserDetailsService;
-import com.moneyfi.apigateway.service.TokenBlacklistService;
+import com.moneyfi.apigateway.service.common.UserCommonService;
+import com.moneyfi.apigateway.service.jwtservice.impl.JwtServiceImplementation;
+import com.moneyfi.apigateway.service.jwtservice.impl.MyUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
+import java.util.Collection;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    @Autowired
-    JwtServiceImplementation jwtService;
-    @Autowired
-    TokenBlacklistService tokenBlacklistService;
-    @Autowired
-    ApplicationContext context;
+    private final JwtServiceImplementation jwtService;
+    private final UserCommonService userCommonService;
+    private final ApplicationContext context;
+
+    public JwtFilter(JwtServiceImplementation jwtService,
+                     UserCommonService userCommonService,
+                     ApplicationContext context){
+        this.jwtService = jwtService;
+        this.userCommonService = userCommonService;
+        this.context = context;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -41,7 +47,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
             // Check if token is blacklisted
-            if (token != null && tokenBlacklistService.isTokenBlacklisted(token)) {
+            if (token != null && userCommonService.isTokenBlacklisted(token)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Token is blacklisted");
                 return;
@@ -50,8 +56,10 @@ public class JwtFilter extends OncePerRequestFilter {
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
                 if (jwtService.validateToken(token, userDetails)) {
+                    Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+
                     UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                            new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }

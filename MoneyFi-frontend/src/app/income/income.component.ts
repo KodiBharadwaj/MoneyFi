@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -8,13 +8,14 @@ import { MatInputModule } from '@angular/material/input';
 import { AddIncomeDialogComponent } from '../add-income-dialog/add-income-dialog.component';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { ChartConfiguration, ChartData, TimeScale } from 'chart.js';
+import { ChartConfiguration, ChartData } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
 import { MatSelectModule } from '@angular/material/select';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
 import { IncomeDeletedComponent } from '../income-deleted/income-deleted.component';
 import { incomeDeleted } from '../model/incomeDeleted';
+import { environment } from '../../environments/environment.development';
 
 
 interface IncomeSource {
@@ -93,7 +94,7 @@ export class IncomeComponent {
 
   constructor(public httpClient: HttpClient,private dialog: MatDialog, private router:Router, private toastr:ToastrService) {};
 
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
   
   ngOnInit() {
     this.initializeFilters();
@@ -176,7 +177,6 @@ export class IncomeComponent {
     const url = `${this.baseUrl}/api/v1/income/getDeletedIncomeDetails/${this.selectedMonth}/${this.selectedYear}`;
     this.httpClient.get<incomeDeleted[]>(url).subscribe({
       next: (data) => {
-        console.log(data)
         if (data && data.length > 0) {
           const dialogRef = this.dialog.open(IncomeDeletedComponent, {
             width: '850px', // Makes dialog wider
@@ -187,6 +187,10 @@ export class IncomeComponent {
           dialogRef.afterClosed().subscribe(result => {
             if (result) {
               this.toastr.success('Income Reverted Successfully');
+              this.deleted = false;
+              this.loadIncomeData();
+            }
+            else {
               this.deleted = false;
               this.loadIncomeData();
             }
@@ -242,7 +246,7 @@ export class IncomeComponent {
       this.httpClient.post<IncomeSource>(`${this.baseUrl}/api/v1/income/saveIncome`, incomeData).subscribe({
         next: (newIncome) => {
           if(newIncome != null){
-            this.incomeSources.push(newIncome);
+            this.loadIncomeData();
             this.calculateTotalIncome();
             this.updateChartData();
             this.resetFilters();
@@ -298,7 +302,7 @@ export class IncomeComponent {
         date: formattedDate,
       };
 
-      this.httpClient.put<IncomeSource>(`${this.baseUrl}/api/v1/income/${income.id}`, updatedIncomeData).subscribe({
+      this.httpClient.put<any>(`${this.baseUrl}/api/v1/income/${income.id}`, updatedIncomeData).subscribe({
         next: (updatedIncome) => {
           if(updatedIncome){
             this.toastr.success("Income of " + updatedIncome.source + " updated successfully");
@@ -333,13 +337,21 @@ export class IncomeComponent {
     });
   }
 
-  formatDate(date: string): string {
-    const d = new Date(date);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
+  formatDate(date: string | Date): string {
+    const inputDate = new Date(date);
+    const now = new Date(); // current time
+    inputDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+
+    const yyyy = inputDate.getFullYear();
+    const mm = String(inputDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(inputDate.getDate()).padStart(2, '0');
+    const hh = String(inputDate.getHours()).padStart(2, '0');
+    const min = String(inputDate.getMinutes()).padStart(2, '0');
+    const ss = String(inputDate.getSeconds()).padStart(2, '0');
+
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}`;
   }
+
   
 
   deleteIncome(incomeId: number): void {
@@ -353,6 +365,7 @@ export class IncomeComponent {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         const incomeSource = this.incomeSources.find(i => i.id === incomeId);
+        incomeSource.date = this.formatDate(incomeSource.date);
 
         this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/v1/income/incomeDeleteCheck`, incomeSource).subscribe({
           next: (result) => {
@@ -478,7 +491,9 @@ export class IncomeComponent {
       },
       error: (error) => {
         console.error('Failed to generate report:', error);
-        alert("Failed to generate the report. Please try again.");
+        // alert("Failed to generate the report. Please try again.");
+        console.log(error.status)
+        console.log(error.error?.message);
 
         if(error.status === 401){
             if (error.error === 'TokenExpired') {
@@ -495,6 +510,8 @@ export class IncomeComponent {
             }
           } else if (error.status === 503){
             alert('Service Unavailable!! Please try later');
+          } else if (error.status === 404 && error?.message === 'No income data found to generate excel'){
+            this.toastr.error('Failed to generate report due to no data');
           }
       }
     });

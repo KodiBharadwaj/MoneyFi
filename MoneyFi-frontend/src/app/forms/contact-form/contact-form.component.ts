@@ -4,8 +4,8 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { UserProfile } from '../../model/UserProfile';
 import { ProfileDetails } from '../../model/ProfileDetails';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-contact-form',
@@ -28,7 +28,7 @@ export class ContactFormComponent {
   email : string = '';
   selectedFile: File | null = null;
   previewUrl: string | ArrayBuffer | null = null;
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
   ngOnInit(){
     
@@ -76,14 +76,23 @@ export class ContactFormComponent {
     }
 
 
-    const contactDto = {
-      name : this.contactData.name,
-      email : this.contactData.email,
-      message : this.contactData.message,
-      images : this.contactData.images || ""
-    }
+    const formData = new FormData();
 
-    this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/contactUs`, contactDto).subscribe(
+    formData.append('name', this.contactData.name);
+    formData.append('email', this.contactData.email);
+    formData.append('message', this.contactData.message);
+
+    if (this.selectedFile) {
+      formData.append('file', this.selectedFile); // This matches the `MultipartFile file` field
+    }
+    // const contactDto = {
+    //   name : this.contactData.name,
+    //   email : this.contactData.email,
+    //   message : this.contactData.message,
+    //   images : this.contactData.images || ""
+    // }
+
+    this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/report-issue`, formData).subscribe(
       (response) => {
         this.resetForm();
         this.toastr.success('Feedback submitted successfully!', '', {

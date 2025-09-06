@@ -4,20 +4,21 @@ import com.moneyfi.expense.exceptions.QueryValidationException;
 import com.moneyfi.expense.repository.common.ExpenseCommonRepository;
 import com.moneyfi.expense.service.dto.response.ExpenseDetailsDto;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.Transformers;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.moneyfi.expense.utils.StringConstants.*;
 
 @Repository
 public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
 
-    @Autowired
+    @PersistenceContext
     private EntityManager entityManager;
 
     @Override
@@ -32,10 +33,10 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
                                         "@month = :month, " +
                                         "@year = :year, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("month", month)
-                        .setParameter("year", year)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(MONTH, month)
+                        .setParameter(YEAR, year)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(ExpenseDetailsDto.class));
 
@@ -50,11 +51,11 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
                                         "@year = :year, " +
                                         "@category = :category, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("month", month)
-                        .setParameter("year", year)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(MONTH, month)
+                        .setParameter(YEAR, year)
                         .setParameter("category", category)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(ExpenseDetailsDto.class));
 
@@ -63,6 +64,7 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching monthly expense data");
         }
     }
@@ -78,9 +80,9 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
                                         "@userId = :userId, " +
                                         "@year = :year, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("year", year)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(YEAR, year)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(ExpenseDetailsDto.class));
 
@@ -94,10 +96,10 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
                                         "@year = :year, " +
                                         "@category = :category, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("year", year)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(YEAR, year)
                         .setParameter("category", category)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(ExpenseDetailsDto.class));
 
@@ -106,45 +108,8 @@ public class ExpenseCommonRepositoryImpl implements ExpenseCommonRepository {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching yearly expense data");
-        }
-    }
-
-    @Override
-    public BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
-        try {
-            Query query = entityManager.createNativeQuery(
-                            "exec [getTotalExpenseInMonthAndYear] " +
-                                    "@userId = :userId, " +
-                                    "@month = :month, " +
-                                    "@year = :year")
-                    .setParameter("userId", userId)
-                    .setParameter("month", month)
-                    .setParameter("year", year);
-
-            return (BigDecimal) query.getSingleResult();
-
-        } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching total expense amount");
-        }
-    }
-
-    @Override
-    public BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
-        try {
-            Query query = entityManager.createNativeQuery(
-                            "exec [getTotalIncomeInMonthAndYear] " +
-                                    "@userId = :userId, " +
-                                    "@month = :month, " +
-                                    "@year = :year")
-                    .setParameter("userId", userId)
-                    .setParameter("month", month)
-                    .setParameter("year", year);
-
-            return (BigDecimal) query.getSingleResult();
-
-        } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching total income amount");
         }
     }
 }

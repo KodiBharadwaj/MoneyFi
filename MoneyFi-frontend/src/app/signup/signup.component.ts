@@ -5,12 +5,12 @@ import { CommonModule } from '@angular/common';
 import { SignupCredentials } from '../model/SignupCredentials';
 import { AuthApiService } from '../auth-api.service';
 import { HttpClient } from '@angular/common/http';
-
 import { ToastrModule, ToastrService } from 'ngx-toastr';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { SignupOtpConfirmDialogComponent } from '../signup-otp-confirm-dialog/signup-otp-confirm-dialog.component';
-import { UserProfile } from '../model/UserProfile';
+import { environment } from '../../environments/environment';
+
 
 @Component({
   selector: 'app-signup',
@@ -27,6 +27,7 @@ export class SignupComponent {
   isOtpLoading = false;
   showOtp = false;
   tempSignupCredentials!: SignupCredentials;
+  role : string = 'USER';
 
   public mixedChartData: ChartData<'bar' | 'line'> = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -95,7 +96,7 @@ export class SignupComponent {
     this.router.navigate(['/login']);
   }
 
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
 
 isLoading: boolean = false; // Controls the loading spinner
@@ -137,10 +138,10 @@ onSubmit(signupCredentials: SignupCredentials) {
 onOtpValidated(success: boolean) {
   if (success) {
     this.isLoading = true;
+    this.tempSignupCredentials.role = this.role;
     this.authApiService.signupApiFunction(this.tempSignupCredentials)
     .subscribe(
       response => {
-        sessionStorage.setItem('moneyfi.auth', response.jwtToken);
         this.isLoading = false;
         this.toastr.success('User registered successfully!', 'Signup success');
         this.router.navigate(['/login']);

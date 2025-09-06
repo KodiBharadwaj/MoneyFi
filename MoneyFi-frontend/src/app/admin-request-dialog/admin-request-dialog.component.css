@@ -1,0 +1,40 @@
+/* Container spacing */
+mat-dialog-content {
+  padding-top: 0.5rem;
+  padding-bottom: 1rem;
+  font-size: 15px;
+  color: #374151;
+}
+
+/* Form field styling */
+.full-width {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+/* Input box */
+mat-form-field {
+  font-size: 14px;
+}
+
+/* Buttons alignment and spacing */
+mat-dialog-actions {
+  margin-top: 1.5rem;
+  padding: 0 1rem 1rem;
+}
+
+button[mat-button], button[mat-flat-button] {
+  min-width: 80px;
+  font-weight: 500;
+}
+
+/* OK button specific styling */
+button[mat-flat-button] {
+  background-color: #10b981;
+  color: white;
+  transition: background-color 0.3s ease-in-out;
+}
+
+button[mat-flat-button]:hover {
+  background-color: #059669;
+}

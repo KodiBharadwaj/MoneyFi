@@ -1,0 +1,125 @@
+<div class="admin-container">
+  <nav class="top-nav">
+    <div class="brand">MoneyFi Admin</div>
+  </nav>
+
+  <div class="layout">
+    <aside class="side-nav">
+      <ul class="nav-list">
+        <li routerLink="/admin/home">Dashboard</li>
+        <li [routerLink]="['/admin/users', 'All']">Total Users</li>
+        <li [routerLink]="['/admin/requests', 'All']">User Requests</li>
+        <li routerLink="/admin/user-defects">User Issues</li>
+        <li routerLink="/admin/feedbacks">User Feedbacks</li>
+        <li routerLink="/admin/insights">Insights/Charts</li>
+        <li routerLink="/admin/configuration">Configuration</li>
+      </ul>
+      <ul class="logout-list">
+        <li (click)="logoutUser()">Logout</li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <fieldset class="tile-group">
+        <legend class="group-title">Users Summary</legend>
+        <div class="tiles">
+          <div class="tile" [routerLink]="['/admin/users', 'All']">
+            <h3>Total Users</h3>
+            <h1>{{ totalUsers }}</h1>
+          </div>
+          <div class="tile" [routerLink]="['/admin/users', 'ACTIVE']">
+            <h3>Active Users</h3>
+            <h1>{{ activeUsers }}</h1>
+          </div>
+          <div class="tile" [routerLink]="['/admin/users', 'BLOCKED']">
+            <h3>Blocked Users</h3>
+            <h1>{{ blockedUsers }}</h1>
+          </div>
+          <div class="tile" [routerLink]="['/admin/users', 'DELETED']">
+            <h3>Deleted Users</h3>
+            <h1>{{ deletedUsers }}</h1>
+          </div>
+        </div>
+      </fieldset>
+
+      <br>
+      <fieldset class="tile-group">
+        <legend class="group-title">User Requests Summary</legend>
+        <div class="tiles tiles-3">
+          <div class="tile" [routerLink]="['/admin/requests', 'Unblock']">
+            <h3>Account Unblock Requests</h3>
+            <h1>{{ accountUnblockRequests }}</h1>
+          </div>
+          <div class="tile" [routerLink]="['/admin/requests', 'Rename']">
+            <h3>Name Change Requests</h3>
+            <h1>{{ nameChangeRequests }}</h1>
+          </div>
+          <div class="tile" [routerLink]="['/admin/requests', 'Retrieve']">
+            <h3>Account Reactivate Requests</h3>
+            <h1>{{ accountReactivateRequests }}</h1>
+          </div>
+        </div>
+      </fieldset>
+
+      <br>
+      <fieldset class="tile-group">
+        <legend class="group-title">User Requests Summary</legend>
+        <div class="tiles tiles-2">
+          <div class="tile" [routerLink]="['/admin/user-defects']">
+            <h3>Issues/Defects</h3>
+            <h1>{{ userDefectRaises }}</h1>
+          </div>
+          <div class="tile" [routerLink]="['/admin/feedbacks']">
+            <h3>User feedback</h3>
+            <h1>{{ userFeedbacks }}</h1>
+          </div>
+        </div>
+      </fieldset>
+
+
+      <fieldset class="tile-group">
+        <legend class="group-title">Scheduled Notifications</legend>
+
+        <div class="schedule-container" *ngIf="schedules.length > 0; else noSchedules">
+          <div class="schedule-item" *ngFor="let s of schedules">
+            <div class="schedule-row">
+              <div class="schedule-col">
+                <strong>Subject:</strong> {{ s.subject }}
+              </div>
+              <div class="schedule-col">
+                <strong>Created:</strong> {{ s.createdDate }}
+              </div>
+            </div>
+
+            <div class="schedule-row">
+              <div class="schedule-col full">
+                <strong>Description:</strong> {{ s.description }}
+              </div>
+            </div>
+
+            <div class="schedule-row">
+              <div class="schedule-col">
+                <strong>From:</strong> {{ s.scheduleFrom }}
+              </div>
+              <div class="schedule-col">
+                <strong>To:</strong> {{ s.scheduleTo }}
+              </div>
+            </div>
+
+            <div class="schedule-actions">
+              <button (click)="editSchedule(s)">Edit</button>
+              <button (click)="cancelSchedule(s.scheduleId)" [disabled]="s.cancelled">
+                {{ s.cancelled ? 'Cancelled' : 'Cancel' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noSchedules>
+          <p>No schedules found.</p>
+        </ng-template>
+      </fieldset>
+
+    </main>
+  </div>
+</div>

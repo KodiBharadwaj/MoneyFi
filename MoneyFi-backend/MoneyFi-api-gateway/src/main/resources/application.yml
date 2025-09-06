@@ -1,16 +1,22 @@
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-
-
 spring:
+  application:
+    name: MoneyFi-api-gateway
+
+  boot:
+    admin:
+      client:
+        url: http://localhost:8760
+        username: admin        # <-- must match monitor server
+        password: admin123     # <-- must match monitor server
+        instance:
+          metadata:
+            user.name: client
+            user.password: client123
+
   datasource:
-    url: jdbc:sqlserver://${RDS_HOSTNAME:localhost}:${RDS_PORT:1433};databaseName=${RDS_DB_NAME:moneyfi_db};encrypt=true;trustServerCertificate=true
-    username: ${RDS_USERNAME:sa}
-    password: ${RDS_PASSWORD:admin@123}
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
@@ -24,32 +30,62 @@ spring:
     gateway:
       mvc:
         routes:
-#          - id: MoneyFi-user
-#            uri:
-#              lb://MoneyFi-user
-#            predicates:
-#              - Path=/api/user/**, /api/profile/**, /api/contact/**
-
           - id: MoneyFi-income
-            uri:
-              lb://MoneyFi-income
+            uri: lb://MoneyFi-income
             predicates:
               - Path=/api/v1/income/**
-
           - id: MoneyFi-expense
-            uri:
-              lb://MoneyFi-expense
+            uri: lb://MoneyFi-expense
             predicates:
               - Path=/api/v1/expense/**
-
           - id: MoneyFi-budget
-            uri:
-              lb://MoneyFi-budget
+            uri: lb://MoneyFi-budget
             predicates:
               - Path=/api/v1/budget/**
-
           - id: MoneyFi-goal
-            uri:
-              lb://MoneyFi-goal
+            uri: lb://MoneyFi-goal
             predicates:
               - Path=/api/v1/goal/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL}
+  instance:
+    prefer-ip-address: true
+
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS}
+
+email:
+  filter:
+    from:
+      email : ${ADMIN_EMAIL}
+      password : ${ADMIN_PASSWORD}
+
+server:
+  port: 8765
+
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+    region:
+      static: ${AWS_REGION}
+    stack:
+      auto: false
+
+application:
+  bucket:
+    name: ${AWS_S3_BUCKET_NAME}

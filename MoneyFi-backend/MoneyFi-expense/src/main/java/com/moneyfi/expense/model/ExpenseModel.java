@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -20,11 +20,11 @@ public class ExpenseModel {
     private Long id;
     private Long userId;
     private String category;
-    @Column(precision = 38, scale = 10)
+    @Column(precision = 38, scale = 2)
     private BigDecimal amount;
-    private LocalDate date;
+    private LocalDateTime date;
     private boolean recurring;
     private String description;
-    private boolean is_deleted;
+    private boolean isDeleted;
 
 }

@@ -7,7 +7,6 @@ import { LoginCredentials } from '../model/LoginCredentials';
 import { ToastrService } from 'ngx-toastr';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
-import { timeout } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -101,24 +100,25 @@ export class LoginComponent {
     this.authApiService.loginApiFunction(loginCredentials)
       .subscribe(
         response => {
+          const role = Object.keys(response)[0];
+          const token = response[role];
           this.isLoading = false; // Hide loading spinner
-          sessionStorage.setItem('moneyfi.auth', response.jwtToken);
-          this.toastr.success('Login successful', 'Success', {
-            timeOut: 1500  // 
-          });
-          
-          this.router.navigate(['dashboard']);
+          if(role === 'USER'){
+            sessionStorage.setItem('moneyfi.auth', token);
+            this.toastr.success('Login successful', 'Success', {
+              timeOut: 1500  // 
+            });
+            
+            this.router.navigate(['dashboard']);
+          } else this.toastr.error('User is not authorized to login')
         },
         error => {
           this.isLoading = false; // Hide loading spinner
           if (error.status === 404) {
             this.toastr.error('User not found. Please sign up.', 'Login Failed');
-          } else if (error.status === 401) {
-            if (error.error === 'Incorrect password') {
-              this.toastr.error('Incorrect password. Please try again.', 'Login Failed');
-            } else {
-              this.toastr.error('Invalid username or password', 'Login Failed');
-            }
+          } 
+          else if (error.status === 401) {
+            this.toastr.error(error.error.error);
           } else {
             console.error('Login Failed', error);
             this.toastr.error('An error occurred. Please try again.', 'Login Failed');

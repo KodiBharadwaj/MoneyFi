@@ -1,0 +1,22 @@
+steps to user docker with eureka:
+-> create a network and make sure to run all services in that.
+1)docker network create moneyfi-eureka (builds image with name moneyfi)
+2)docker run --name eureka --network moneyfi -p 8761:8761 moneyfi-eureka
+
+1)docker network create moneyfi-api-gateway (builds image with name moneyfi)
+2)docker run --name api-gateway --network moneyfi -p 8765:8765 moneyfi-api-gateway
+
+similarly with the other services with respective image names.
+
+
+steps to run kafka:
+Go to the c drive and locate kafka. Go inside and run these:
+->bin\windows\zookeeper-server-start.bat config\zookeeper.properties
+->bin\windows\kafka-server-start.bat config\server.properties
+
+
+Steps to open application by many people in local under same wifi:
+-> Replace localhost with system private ip4 by running ipconfig in teminal.
+-> Replace in backend config, controller and ui env files. 
+-> Run in angular: ng serve --host 0.0.0.0
+link for reference: https://chatgpt.com/share/68610a47-7f90-8003-aede-e8b535b77974

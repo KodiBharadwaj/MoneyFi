@@ -1,24 +1,26 @@
 package com.moneyfi.income.repository.common.impl;
 
-import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
+import com.moneyfi.income.service.dto.request.AccountStatementRequestDto;
+import com.moneyfi.income.service.dto.response.*;
 import com.moneyfi.income.exceptions.QueryValidationException;
 import com.moneyfi.income.repository.common.IncomeCommonRepository;
-import com.moneyfi.income.service.dto.response.IncomeDetailsDto;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.Transformers;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.moneyfi.income.utils.StringConstants.*;
 
 @Repository
 public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
 
-    @Autowired
+    @PersistenceContext
     private EntityManager entityManager;
 
     @Override
@@ -33,10 +35,10 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                                         "@month = :month, " +
                                         "@year = :year, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("month", month)
-                        .setParameter("year", year)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(MONTH, month)
+                        .setParameter(YEAR, year)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
 
@@ -51,11 +53,11 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                                         "@year = :year, " +
                                         "@category = :category, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("month", month)
-                        .setParameter("year", year)
-                        .setParameter("category", category)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(MONTH, month)
+                        .setParameter(YEAR, year)
+                        .setParameter(CATEGORY, category)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
 
@@ -64,6 +66,7 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching monthly income data");
         }
     }
@@ -79,15 +82,16 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                             "@userId = :userId, " +
                             "@month = :month, " +
                             "@year = :year")
-                    .setParameter("userId", userId)
-                    .setParameter("month", month)
-                    .setParameter("year", year)
+                    .setParameter(USER_ID, userId)
+                    .setParameter(MONTH, month)
+                    .setParameter(YEAR, year)
                     .unwrap(NativeQuery.class)
                     .setResultListTransformer(Transformers.aliasToBean(IncomeDeletedDto.class));
 
             incomeListDeleted.addAll(query.getResultList());
             return incomeListDeleted;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching deleted income data");
         }
     }
@@ -103,9 +107,9 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                                         "@userId = :userId, " +
                                         "@year = :year, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("year", year)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(YEAR, year)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
 
@@ -119,10 +123,10 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                                         "@year = :year, " +
                                         "@category = :category, " +
                                         "@deleteStatus = :deleteStatus")
-                        .setParameter("userId", userId)
-                        .setParameter("year", year)
-                        .setParameter("category", category)
-                        .setParameter("deleteStatus", deleteStatus)
+                        .setParameter(USER_ID, userId)
+                        .setParameter(YEAR, year)
+                        .setParameter(CATEGORY, category)
+                        .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
 
@@ -131,99 +135,78 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching yearly income data");
         }
     }
 
     @Override
-    public BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
+    public List<AccountStatementResponseDto> getAccountStatementOfUser(Long userId, AccountStatementRequestDto inputDto) {
+
+        Date startDate = Date.valueOf(inputDto.getFromDate());
+        Date endDate = Date.valueOf(inputDto.getToDate());
+        List<AccountStatementResponseDto> accountStatement = new ArrayList<>();
+
         try {
             Query query = entityManager.createNativeQuery(
-                            "exec [getTotalIncomeInMonthAndYear] " +
-                                    "@userId = :userId, " +
-                                    "@month = :month, " +
-                                    "@year = :year")
-                    .setParameter("userId", userId)
-                    .setParameter("month", month)
-                    .setParameter("year", year);
+                    "exec getAccountStatementOfUser " +
+                            "@userId = :userId, " +
+                            "@startDate = :startDate, " +
+                            "@endDate = :endDate, " +
+                            "@offset = :offset, " +
+                            "@limit = :limit ")
+                    .setParameter(USER_ID, userId)
+                    .setParameter(START_DATE, startDate)
+                    .setParameter(END_DATE, endDate)
+                    .setParameter(OFFSET, inputDto.getStartIndex())
+                    .setParameter(LIMIT, inputDto.getThreshold())
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(AccountStatementResponseDto.class));
 
-            return (BigDecimal) query.getSingleResult();
+            accountStatement.addAll(query.getResultList());
+            return accountStatement;
 
         } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching total income");
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user's account statement");
         }
     }
 
     @Override
-    public BigDecimal getRemainingIncomeUpToPreviousMonthByMonthAndYear(Long userId, int month, int year) {
+    public UserDetailsForStatementDto getUserDetailsForAccountStatement(Long userId) {
         try {
             Query query = entityManager.createNativeQuery(
-                            "exec [getRemainingIncomeUpToPreviousMonthByMonthAndYear] " +
-                                    "@userId = :userId, " +
-                                    "@month = :month, " +
-                                    "@year = :year")
-                    .setParameter("userId", userId)
-                    .setParameter("month", month)
-                    .setParameter("year", year);
+                    "exec getUserDetailsForAccountStatement " +
+                            "@userId = :userId ")
+                    .setParameter(USER_ID, userId)
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserDetailsForStatementDto.class));
 
-            return (BigDecimal) query.getSingleResult();
-
+            return (UserDetailsForStatementDto) query.getSingleResult();
         } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching remaining income");
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user's details");
         }
     }
 
     @Override
-    public BigDecimal getTotalExpensesUpToPreviousMonth(Long userId, int month, int year) {
+    public OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year) {
         try {
             Query query = entityManager.createNativeQuery(
-                            "exec [getTotalExpensesUpToPreviousMonth] " +
+                            "exec getOverviewPageDetails " +
                                     "@userId = :userId, " +
                                     "@month = :month, " +
-                                    "@year = :year")
-                    .setParameter("userId", userId)
-                    .setParameter("month", month)
-                    .setParameter("year", year);
+                                    "@year = :year ")
+                    .setParameter(USER_ID, userId)
+                    .setParameter(MONTH, month)
+                    .setParameter(YEAR, year)
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(OverviewPageDetailsDto.class));
 
-            return (BigDecimal) query.getSingleResult();
-
+            return (OverviewPageDetailsDto) query.getSingleResult();
         } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching total expenses upto previous month");
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user's overview page details");
         }
     }
-
-    @Override
-    public BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
-        try {
-            Query query = entityManager.createNativeQuery(
-                            "exec [getTotalExpenseInMonthAndYear] " +
-                                    "@userId = :userId, " +
-                                    "@month = :month, " +
-                                    "@year = :year")
-                    .setParameter("userId", userId)
-                    .setParameter("month", month)
-                    .setParameter("year", year);
-
-            return (BigDecimal) query.getSingleResult();
-
-        } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching total expense in a month");
-        }
-    }
-
-    @Override
-    public BigDecimal getAvailableBalanceOfUser(Long userId) {
-        try {
-            Query query = entityManager.createNativeQuery(
-                            "exec [getAvailableBalanceOfUser] " +
-                                    "@userId = :userId")
-                    .setParameter("userId", userId);
-
-            return (BigDecimal) query.getSingleResult();
-
-        } catch (Exception e) {
-            throw new QueryValidationException("Error occurred while fetching total remaining balance of a user");
-        }
-    }
-
 }

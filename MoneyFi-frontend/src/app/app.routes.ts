@@ -13,15 +13,39 @@ import { OverviewComponent } from './overview/overview.component';
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { AnalysisComponent } from './analysis/analysis.component';
 import { AiAssistantComponent } from './ai-assistant/ai-assistant.component';
-import { ContactUsComponent } from './contact-us/contact-us.component';
 import { SignupOtpConfirmDialogComponent } from './signup-otp-confirm-dialog/signup-otp-confirm-dialog.component';
+import { ForgotUsernameComponent } from './forgot-username/forgot-username.component';
+import { ReportsInsightsComponent } from './reports-insights/reports-insights.component';
+import { RaiseRequestComponent } from './raise-request/raise-request.component';
+import { RequestTrackerComponent } from './request-tracker/request-tracker.component';
+import { AdminHomeComponent } from './admin-home/admin-home.component';
+import { AdminUsersComponent } from './admin-users/admin-users.component';
+import { AdminLoginComponent } from './admin-login/admin-login.component';
+import { AdminRequestsComponent } from './admin-requests/admin-requests.component';
+import { AdminInsightsComponent } from './admin-insights/admin-insights.component';
+import { AdminUserDefectsComponent } from './admin-user-defects/admin-user-defects.component';
+import { UserConfigurationComponent } from './user-configuration/user-configuration.component';
+import { AdminUserFeedbackComponent } from './admin-user-feedback/admin-user-feedback.component';
+import { AdminConfigurationComponent } from './admin-configuration/admin-configuration.component';
+import { UserNotificationsComponent } from './user-notifications/user-notifications.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'login', component: LoginComponent },
+  { path: 'admin/login', component: AdminLoginComponent },
   { path: 'signup', component: SignupComponent },
-  {path:'forgot-password',component:ForgotPasswordComponent},
+  { path: 'forgot-password',component:ForgotPasswordComponent },
+  { path: 'forgot-username', component:ForgotUsernameComponent },
+  { path: 'raise-request', component:RaiseRequestComponent },
   { path: 'otp-confirm', component: SignupOtpConfirmDialogComponent },
+  { path: 'track-request', component: RequestTrackerComponent },
+  { path: 'admin/home', component: AdminHomeComponent },
+  { path: 'admin/users/:status', component: AdminUsersComponent },
+  { path: 'admin/requests/:status', component: AdminRequestsComponent },
+  { path: 'admin/insights', component: AdminInsightsComponent },
+  { path: 'admin/user-defects', component: AdminUserDefectsComponent },
+  { path: 'admin/feedbacks', component: AdminUserFeedbackComponent },
+  { path: 'admin/configuration', component: AdminConfigurationComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard],children:[
     {path:'',component:OverviewComponent},
     {path:'overview',component:OverviewComponent},
@@ -31,7 +55,9 @@ export const routes: Routes = [
     {path:'goals',component:GoalsComponent},
     {path:'analysis',component:AnalysisComponent},
     {path:'profile',component:ProfileComponent},
-    {path: 'contact-us', component:ContactUsComponent},
-    { path: 'ai-assistant', component: AiAssistantComponent },
+    {path: 'user-configuration', component:UserConfigurationComponent},
+    {path: 'ai-assistant', component: AiAssistantComponent},
+    {path: 'reports-insights', component:ReportsInsightsComponent},
+    {path: 'notifications', component:UserNotificationsComponent},
   ]},
 ];

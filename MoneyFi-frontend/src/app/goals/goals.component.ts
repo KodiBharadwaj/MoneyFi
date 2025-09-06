@@ -8,13 +8,14 @@ import { ToastrService } from 'ngx-toastr';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { AddAmountGoalComponent } from '../add-amount-goal/add-amount-goal.component';
 import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
+import { environment } from '../../environments/environment';
 
 interface Goal {
   id: number;
   goalName: string;
   currentAmount: number;
   targetAmount: number;
-  deadLine: Date;
+  deadLine: string;
   category: string;
   goalStatus : string;
   daysRemaining : number;
@@ -28,7 +29,7 @@ interface inputGoal {
   goalName: string;
   currentAmount: number;
   targetAmount: number;
-  deadLine: Date;
+  deadLine: string;
   category: string;
   goalStatus: string;
   daysRemaining : number;
@@ -45,7 +46,7 @@ interface inputGoal {
 export class GoalsComponent {
 
   constructor(private httpClient:HttpClient, private dialog: MatDialog, private router:Router, private toastr:ToastrService){};
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
   goals: Goal[] = [];
   loading: boolean = false;
@@ -59,6 +60,7 @@ export class GoalsComponent {
 
   ngOnInit() {
     this.loadIncomeFunction();
+    this.loadGoalTileData();
     this.loadGoals();
   }
 
@@ -80,9 +82,7 @@ export class GoalsComponent {
 
           this.goals = data.map(goal => {
             const convertedGoal = this.modelConverterFunction(goal);
-            amount = amount + goal.currentAmount;
             this.loading = false;
-            // console.log(amount);
             return convertedGoal;
           });
         } else {
@@ -90,25 +90,6 @@ export class GoalsComponent {
           this.toastr.warning('No goal data is available.', 'No Data');
           this.loading = false;
         }
-        this.totalGoalSavings = amount;
-
-        this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/availableBalance`).subscribe({
-          next : (availableBalance) => {
-            this.availableBalance = availableBalance;
-          },
-          error : (error) => {
-            console.log('Failed to get the overall available income details', error);
-          }
-        })
-
-        this.httpClient.get<number>(`${this.baseUrl}/api/v1/goal/totalTargetGoalIncome`).subscribe({
-          next: (totalTargetGoalIncome) => {
-            this.totalGoalTargetAmount = totalTargetGoalIncome;
-          }, 
-          error : (error) => {
-            console.log('Failed to get the total goal target amount', error);
-          }
-        })
 
       },
       error: (error) => {
@@ -134,6 +115,21 @@ export class GoalsComponent {
     });
   }
 
+  private loadGoalTileData(){
+    this.httpClient.get<any>(`${this.baseUrl}/api/v1/goal/goal-tile-details`).subscribe({
+      next: (response) => {
+        this.availableBalance = response.goalTileDetails.availableIncome;
+        this.totalGoalSavings = response.goalTileDetails.totalGoalAmount;
+        this.totalGoalTargetAmount = response.goalTileDetails.totalGoalTargetAmount;
+      }, 
+      error : (error) => {
+        console.log('Failed to get the total goal target amount', error);
+        this.toastr.error("Failed to retrive values, try later")
+      }
+    })
+  }
+
+  
   addGoal() {
     const dialogRef = this.dialog.open(AddGoalDialogComponent, {
       width: '500px',
@@ -156,6 +152,7 @@ export class GoalsComponent {
                 // const newGoalConverted = this.modelConverterFunction(newGoal); 
                 // this.goals.push(newGoalConverted); 
                 this.loadGoals();
+                this.loadGoalTileData();
                 this.toastr.success('Goal ' + newGoal.goalName + ' added successfully');
               },
               error: (error) => {
@@ -290,12 +287,19 @@ export class GoalsComponent {
   }
 
 
-  formatDate(date: string): string {
-    const d = new Date(date);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
+  formatDate(date: string | Date): string {
+    const inputDate = new Date(date);
+    const now = new Date(); // current time
+    inputDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+
+    const yyyy = inputDate.getFullYear();
+    const mm = String(inputDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(inputDate.getDate()).padStart(2, '0');
+    const hh = String(inputDate.getHours()).padStart(2, '0');
+    const min = String(inputDate.getMinutes()).padStart(2, '0');
+    const ss = String(inputDate.getSeconds()).padStart(2, '0');
+
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}`;
   }
 
  
@@ -337,7 +341,7 @@ export class GoalsComponent {
       goalName: data.goalName,
       currentAmount: data.currentAmount,
       targetAmount: data.targetAmount,
-      deadLine: new Date(data.deadLine),
+      deadLine: new Date(data.deadLine).toISOString().slice(0, 19), // "YYYY-MM-DDTHH:mm:ss"
       category: data.category,
       goalStatus : data.goalStatus,
       daysRemaining : data.daysRemaining,

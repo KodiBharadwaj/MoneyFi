@@ -1,9 +1,16 @@
 package com.moneyfi.apigateway.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.moneyfi.apigateway.util.enums.UserRoles;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -20,17 +27,34 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.ses.SesClient;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+    @Value("${cloud.aws.credentials.access-key}")
+    private String accessKey;
+    @Value("${cloud.aws.credentials.secret-key}")
+    private String secretKey;
+    @Value("${cloud.aws.region.static}")
+    private String region;
 
-    @Autowired
-    JwtFilter jwtFilter;
+    @Value("${cors.allowed-origins}")
+    private String allowedOrigins;
 
+
+    private final UserDetailsService userDetailsService;
+    private final JwtFilter jwtFilter;
+
+    public SecurityConfig(UserDetailsService userDetailsService,
+                          @Lazy JwtFilter jwtFilter){
+        this.userDetailsService = userDetailsService;
+        this.jwtFilter = jwtFilter;
+    }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -46,8 +70,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(customizer -> customizer.disable())
                 .authorizeHttpRequests(request -> request
+                        .requestMatchers("api/v1/admin/**").hasRole(UserRoles.ADMIN.name())
                         .requestMatchers("api/auth/**").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers("/api/v1/external-api/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
+                        .anyRequest().hasRole(UserRoles.USER.name()))
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
@@ -62,7 +89,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("http://localhost:4200"); // Allow all origins, you can replace "*" with your client URL
+        config.addAllowedOriginPattern(allowedOrigins.trim()); // Allow all origins, you can replace "*" with your client URL
         config.addAllowedHeader("*"); // Allow all headers
         config.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
         source.registerCorsConfiguration("/**", config);
@@ -74,11 +101,30 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
-
     @Bean
     @LoadBalanced
     public RestTemplate getRestTemplate(){
         return new RestTemplate();
     }
 
+    @Bean
+    public RestTemplate externalRestTemplate() {
+        return new RestTemplate();
+    }
+
+    /** Aws s3 security connection **/
+    @Bean
+    public AmazonS3 s3Client(){
+        AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
+        return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(region).build();
+    }
+
+    /** Aws Simple Email Service (SES) Connection security details **/
+    @Bean
+    public SesClient sesClient() {
+        return SesClient.builder()
+                .region(Region.of(region))
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
+                .build();
+    }
 }

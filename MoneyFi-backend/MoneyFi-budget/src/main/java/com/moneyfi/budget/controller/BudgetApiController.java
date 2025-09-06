@@ -3,6 +3,7 @@ package com.moneyfi.budget.controller;
 import com.moneyfi.budget.config.JwtService;
 import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.service.BudgetService;
+import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
@@ -27,25 +28,20 @@ public class BudgetApiController {
 
     @Operation(summary = "Method to add the budget")
     @PostMapping("/saveBudget")
-    public ResponseEntity<BudgetModel> saveBudget(@RequestBody BudgetModel budget,
-                                                  @RequestHeader("Authorization") String authHeader) {
+    public void saveBudget(@RequestBody List<AddBudgetDto> budgetList,
+                           @RequestHeader("Authorization") String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        budget.setUserId(userId);
-        System.out.println("budget check: " + budget);
-        BudgetModel createdBudget = budgetService.save(budget);
-        if (createdBudget != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdBudget); // 201
-        } else {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null); // 409
-        }
+        budgetService.saveBudget(budgetList, userId);
     }
 
     @Operation(summary = "Method to get budget of a user")
-    @GetMapping("/getBudgetDetails/{category}")
+    @GetMapping("/getBudgetDetails/{category}/{month}/{year}")
     public ResponseEntity<List<BudgetDetailsDto>> getAllBudgetsByUserIdAndCategory(@RequestHeader("Authorization") String authHeader,
-                                                                                   @PathVariable("category") String category) {
+                                                                                   @PathVariable("category") String category,
+                                                                                   @PathVariable("month") int month,
+                                                                                   @PathVariable("year") int year) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        List<BudgetDetailsDto> list = budgetService.getAllBudgetsByUserIdAndCategory(userId, category);
+        List<BudgetDetailsDto> list = budgetService.getAllBudgetsByUserIdAndCategory(userId, month, year, category);
         if (!list.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(list); // 200
         } else {
@@ -63,15 +59,11 @@ public class BudgetApiController {
     }
 
     @Operation(summary = "Method to update the budget")
-    @PutMapping("/{id}")
-    public ResponseEntity<BudgetModel> updateBudget(@PathVariable("id") Long id, @RequestBody BudgetModel budget) {
-        BudgetModel updatedBudget = budgetService.update(id, budget);
-        System.out.println(updatedBudget);
-        if (updatedBudget != null) {
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body(updatedBudget); // 202
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+    @PutMapping("/updateBudget")
+    public void updateBudget(@RequestBody List<BudgetModel> budgetList,
+                                                    @RequestHeader("Authorization") String authHeader) {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        budgetService.updateBudget(userId, budgetList);
     }
 
 }

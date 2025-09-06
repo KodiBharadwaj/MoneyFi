@@ -1,9 +1,20 @@
-<div class="overview-container">
+<!-- Loading Spinner -->
+<div class="loading-overlay" *ngIf="loading">
+  <div class="loading">
+    <i class="fas fa-spinner fa-spin"></i>
+    <p>Loading data...</p>
+  </div>
+</div>
+
+<!-- All other content -->
+<div [class.blurred]="loading" class="page-content">
+  <!-- Your tiles, blocks, charts, etc. -->
+   <div class="overview-container">
   <!-- Elegant Header Section -->
   <header class="header-section">
     <div class="greeting-container">
       <h1 class="welcome-text">Welcome {{summary.username}}</h1>
-      <!-- <p class="financial-quote">{{financialQuote}}</p> -->
+      <p>{{quote}} - {{author}}</p>
     </div>
   </header>
 
@@ -88,9 +99,9 @@
       <!-- <p>Budget Left : {{summary.budget - summary.expenses}} </p> -->
        <p>
         Budget Left: 
-        {{ summary.budget - summary.expenses >= 0 ? (summary.budget - summary.expenses) : 0 }} 
+        {{ (summary.budget - summary.expenses >= 0 ? (summary.budget - summary.expenses) : 0) | number:'1.2-2' }}
         <span *ngIf="summary.budget - summary.expenses < 0">
-          ({{ (summary.expenses - summary.budget) | number }} spent more 🔺)
+          ({{ (summary.expenses - summary.budget) | number:'1.2-2' }} spent more 🔺)
         </span>
       </p>
     </div>
@@ -128,3 +139,5 @@
     </div>
   </div>
 </div>
+</div>
+

@@ -2,14 +2,12 @@ package com.moneyfi.expense.controller;
 
 import com.moneyfi.expense.config.JwtService;
 import com.moneyfi.expense.model.ExpenseModel;
-import com.moneyfi.expense.repository.ExpenseRepository;
 import com.moneyfi.expense.service.ExpenseService;
 import com.moneyfi.expense.service.dto.response.ExpenseDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -18,14 +16,11 @@ import java.util.List;
 public class ExpenseApiController {
 
     private final ExpenseService expenseService;
-    private final ExpenseRepository expenseRepository;
     private final JwtService jwtService;
 
     public ExpenseApiController(ExpenseService expenseService,
-                                ExpenseRepository expenseRepository,
                                 JwtService jwtService){
         this.expenseService = expenseService;
-        this.expenseRepository = expenseRepository;
         this.jwtService = jwtService;
     }
 
@@ -48,7 +43,6 @@ public class ExpenseApiController {
     @GetMapping("/getExpenses")
     public ResponseEntity<List<ExpenseModel>> getAllExpenses(@RequestHeader("Authorization") String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         List<ExpenseModel> list = expenseService.getAllExpenses(userId);
         return ResponseEntity.status(HttpStatus.OK).body(list); // 200
     }
@@ -61,7 +55,6 @@ public class ExpenseApiController {
                                                                                         @PathVariable("category") String category,
                                                                                         @PathVariable("deleteStatus") boolean deleteStatus){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllExpensesByMonthYearAndCategory(userId, month, year, category, deleteStatus));
     }
 
@@ -70,10 +63,9 @@ public class ExpenseApiController {
     public ResponseEntity<byte[]> getMonthlyExpenseReport(@RequestHeader("Authorization") String authHeader,
                                                           @PathVariable("month") int month,
                                                           @PathVariable("category") String category,
-                                                          @PathVariable("year") int year) throws IOException {
+                                                          @PathVariable("year") int year) {
 
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         byte[] excelData = expenseService.generateMonthlyExcelReport(userId, month, year, category);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Monthly expense report.xlsx")
@@ -88,7 +80,6 @@ public class ExpenseApiController {
                                                                               @PathVariable("category") String category,
                                                                               @PathVariable("deleteStatus") boolean deleteStatus){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllExpensesByYearAndCategory(userId, year, category, deleteStatus));
     }
 
@@ -96,9 +87,8 @@ public class ExpenseApiController {
     @GetMapping("/{year}/{category}/generateYearlyReport")
     public ResponseEntity<byte[]> getYearlyExpenseReport(@RequestHeader("Authorization") String authHeader,
                                                          @PathVariable("year") int year,
-                                                         @PathVariable("category") String category) throws IOException {
+                                                         @PathVariable("category") String category) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         byte[] excelData = expenseService.generateYearlyExcelReport(userId, year, category);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Yearly expense report.xlsx")
@@ -112,7 +102,6 @@ public class ExpenseApiController {
                                                     @PathVariable("month") int month,
                                                     @PathVariable("year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return expenseService.getTotalExpenseInMonthAndYear(userId, month, year);
     }
 
@@ -121,7 +110,6 @@ public class ExpenseApiController {
     public List<BigDecimal> getMonthlyTotals(@RequestHeader("Authorization") String authHeader,
                                              @PathVariable("year") int year) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return expenseService.getMonthlyExpenses(userId, year);
     }
 
@@ -130,7 +118,6 @@ public class ExpenseApiController {
     public List<BigDecimal> getMonthlySavingsList(@RequestHeader("Authorization") String authHeader,
                                                   @PathVariable("year") int year) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return expenseService.getMonthlySavingsList(userId, year);
     }
 
@@ -141,7 +128,6 @@ public class ExpenseApiController {
                                                     @PathVariable("month") int month,
                                                     @PathVariable("year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return expenseService.getTotalSavingsByMonthAndDate(userId, month, year);
     }
 
@@ -150,35 +136,16 @@ public class ExpenseApiController {
     public List<BigDecimal> getCumulativeMonthlySavings(@RequestHeader("Authorization") String authHeader,
                                                         @PathVariable("year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-
         return expenseService.getCumulativeMonthlySavings(userId, year);
     }
 
     @Operation(summary = "Method to update the expense details")
     @PutMapping("/{id}")
-    public ResponseEntity<ExpenseModel> updateExpense(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<ExpenseDetailsDto> updateExpense(@RequestHeader("Authorization") String authHeader,
                                                       @PathVariable("id") Long id,
                                                       @RequestBody ExpenseModel expense) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        expense.setUserId(userId);
-
-        ExpenseModel expenseModel = expenseRepository.findById(id).orElse(null);
-        if(expenseModel != null){
-            if(expenseModel.getAmount().compareTo(expense.getAmount()) == 0 &&
-                    expenseModel.getCategory().equals(expense.getCategory()) &&
-                    expenseModel.getDescription().equals(expense.getDescription()) &&
-                    expenseModel.getDate().equals(expense.getDate()) &&
-                    expenseModel.isRecurring() == expense.isRecurring()){
-                return ResponseEntity.noContent().build(); // 204
-            }
-        }
-        ExpenseModel updatedExpense = expenseService.updateBySource(id, expense);
-        if(updatedExpense!=null){
-            return ResponseEntity.status(HttpStatus.CREATED).body(updatedExpense);
-        }
-        else{
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
-        }
+        return expenseService.updateBySource(id, userId, expense);
     }
 
     @Operation(summary = "Method to delete the particular expense. Here which is typically soft delete")

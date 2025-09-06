@@ -5,5 +5,5 @@ import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
 import java.util.List;
 
 public interface BudgetCommonRepository {
-    List<BudgetDetailsDto> getBudgetsByUserId(Long userId, String category);
+    List<BudgetDetailsDto> getBudgetsByUserId(Long userId, int month, int year, String category);
 }

@@ -1,10 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IncomeComponent } from '../income/income.component';
 import { ExpensesComponent } from '../expenses/expenses.component';
 import { BudgetsComponent } from '../budgets/budgets.component';
 import { GoalsComponent } from '../goals/goals.component';
-import { ActivatedRoute, Route, Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { OverviewComponent } from '../overview/overview.component';
 import { ConfirmLogoutDialogComponent } from '../confirm-logout-dialog/confirm-logout-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -12,6 +12,8 @@ import { ProfileComponent } from '../profile/profile.component';
 import { AnalysisComponent } from '../analysis/analysis.component';
 import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from '../../environments/environment';
+import { NotificationService } from '../notification-service.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -31,14 +33,22 @@ import { ToastrService } from 'ngx-toastr';
     AnalysisComponent
   ]
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit{
 
   constructor(private router:Router, private dialog: MatDialog, 
-    private route: ActivatedRoute, private httpClient:HttpClient,
+    private route: ActivatedRoute, private httpClient:HttpClient, private notificationService: NotificationService,
   private toastr: ToastrService){};
 
   isLoading = false;
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
+  notificationCount : number = 0;
+
+  ngOnInit(): void {
+    this.notificationService.notificationCount$.subscribe(count => {
+      this.notificationCount = count;
+    });
+    this.notificationService.loadNotificationCount();
+  }
 
 
   logoutUser(): void {
@@ -50,14 +60,22 @@ export class DashboardComponent {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
 
-        this.httpClient.post('http://localhost:8765/api/v1/userProfile/logout', {}, { responseType: 'text' }).subscribe({
+        this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/logout`, {}, { responseType: 'text' }).subscribe({
           next: (response) => {
             const jsonResponse = JSON.parse(response);
-            this.toastr.success(jsonResponse.message, '', {
-              timeOut: 1500  // time in milliseconds (3 seconds)
-            });
-            sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['']);
+            if(jsonResponse.message === 'Logged out successfully'){
+                this.toastr.success(jsonResponse.message, '', {
+                timeOut: 1500  // time in milliseconds (3 seconds)
+              });
+              sessionStorage.removeItem('moneyfi.auth');
+              sessionStorage.removeItem('Name');
+              this.router.navigate(['']);
+            } else if(jsonResponse.message === 'Phone number is empty'){
+              alert('Kindly fill Phone number before log out')
+            }
+            else {
+              this.toastr.error('Failed to logout')
+            }
           },
           error: (error) => {
             console.error(error);

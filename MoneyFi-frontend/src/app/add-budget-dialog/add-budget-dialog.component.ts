@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-add-budget-dialog',
@@ -30,7 +31,7 @@ import { MatSelectModule } from '@angular/material/select';
   CommonModule],
 })
 export class AddBudgetDialogComponent {
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
   budgetSource = {
     moneyLimit: 0,
@@ -66,8 +67,6 @@ export class AddBudgetDialogComponent {
     const currentDate = new Date();
     const month = currentDate.getMonth() + 1; 
     const year = currentDate.getFullYear();
-    console.log(month);
-    console.log(year);
   
     this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalIncome/${month}/${year}`).subscribe({
       next: (totalIncome) => {
@@ -106,16 +105,6 @@ export class AddBudgetDialogComponent {
       moneyLimit: 0, // Initialize moneyLimit to 0
     }));
   }
-  
-  
-
-  generateRandomPercentages(count: number): number[] {
-    const percentages = Array.from({ length: count }, () => Math.random());
-    const sum = percentages.reduce((acc, value) => acc + value, 0);
-
-    // Normalize to make the sum 100
-    return percentages.map((value) => Math.round((value / sum) * 100));
-  }
 
   onBudgetChange() {
     const totalBudget = this.budgetSource.moneyLimit;
@@ -137,7 +126,7 @@ export class AddBudgetDialogComponent {
       0
     );
     
-    this.dialogRef.close(this.budgetSource);
+    this.dialogRef.close(this.budgetSource.categories);
   }
 
   onCancel() {

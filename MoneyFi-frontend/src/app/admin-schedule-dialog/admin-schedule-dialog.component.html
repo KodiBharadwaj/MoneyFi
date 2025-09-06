@@ -1,0 +1,88 @@
+<div class="dialog-overlay">
+  <div class="dialog-box">
+    <h2 class="dialog-title">Schedule Notification</h2>
+
+    <form [formGroup]="scheduleForm" (ngSubmit)="submit()" class="dialog-form">
+
+      <!-- Subject -->
+      <div class="form-group">
+        <label>Subject</label>
+        <input type="text" formControlName="subject" placeholder="Enter subject">
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label>Description</label>
+        <textarea rows="3" formControlName="description" placeholder="Enter description"></textarea>
+      </div>
+
+      <!-- Schedule From -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Schedule From (Date)</label>
+          <input type="date" formControlName="scheduleFromDate" />
+        </div>
+        <div class="form-group">
+          <label>Schedule From (Time)</label>
+          <input type="time" formControlName="scheduleFromTime" />
+        </div>
+      </div>
+
+      <!-- Schedule To -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Schedule To (Date)</label>
+          <input type="date" formControlName="scheduleToDate" />
+        </div>
+        <div class="form-group">
+          <label>Schedule To (Time)</label>
+          <input type="time" formControlName="scheduleToTime" />
+        </div>
+      </div>
+
+      <!-- Recipients -->
+      <div class="form-group">
+        <label>Recipients</label>
+        <select formControlName="recipients" (change)="onRecipientChange($event)">
+          <option value="All">All Users</option>
+          <option value="Specific">Specific Users</option>
+        </select>
+      </div>
+
+      <!-- Search (enabled only for Specific Users) -->
+      <div class="form-group">
+        <input
+          type="text"
+          placeholder="Search user..."
+          (input)="searchUsers($event)"
+          (focus)="onFocus()"
+          (blur)="onBlur()"
+          [disabled]="scheduleForm.value.recipients === 'All'" />
+      </div>
+
+      <!-- Suggestions dropdown -->
+      <div class="user-suggestions" *ngIf="searchResults.length > 0 && showSuggestions">
+        <div
+          class="suggestion"
+          *ngFor="let user of searchResults"
+          (mousedown)="addUser(user)">
+          {{ user }}
+        </div>
+      </div>
+
+      <!-- Selected users (chips/badges) -->
+      <div class="selected-users" *ngIf="selectedUsers.length > 0">
+        <span class="chip" *ngFor="let user of selectedUsers; let i = index">
+          {{ user }}
+          <button type="button" (click)="removeUser(i)">✕</button>
+        </span>
+      </div>
+
+      <!-- Actions -->
+      <div class="dialog-actions">
+        <button type="button" class="btn cancel" (click)="close()">Cancel</button>
+        <button type="submit" class="btn submit">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>

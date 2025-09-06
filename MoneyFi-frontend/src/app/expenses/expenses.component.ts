@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
+import { environment } from '../../environments/environment.development';
 
 interface Expense {
   id: number;
@@ -97,7 +98,7 @@ export class ExpensesComponent {
 
   constructor(private httpClient: HttpClient, private dialog: MatDialog, private router:Router, private toastr:ToastrService) {}
 
-  baseUrl = "http://localhost:8765";
+  baseUrl = environment.BASE_URL;
 
 
   ngOnInit() {
@@ -169,7 +170,6 @@ export class ExpensesComponent {
     this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalIncome/${this.selectedMonth}/${this.selectedYear}`).subscribe({
       next: (totalIncome) => {
         this.totalIncome = totalIncome;
-        this.calculateSpentPercentage();
       },
       error: (error) => {
         console.error('Failed to load total income:', error);
@@ -267,10 +267,10 @@ export class ExpensesComponent {
         const updatedTotalExpenses = this.totalExpenses - expense.amount + result.amount;
         
         // Check if the update would exceed income
-        if (updatedTotalExpenses > this.totalIncome) {
-          this.toastr.error('Cannot update expense. Amount exceeds available income.', 'Insufficient Income');
-          return;
-        }
+        // if (updatedTotalExpenses > this.totalIncome) {
+        //   this.toastr.error('Cannot update expense. Amount exceeds available income.', 'Insufficient Income');
+        //   return;
+        // }
 
         const formattedDate = this.formatDate(result.date);
         const updatedExpenseData = {
@@ -313,13 +313,21 @@ export class ExpensesComponent {
     });
   }
   
-  formatDate(date: string): string {
-    const d = new Date(date);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
+  formatDate(date: string | Date): string {
+    const inputDate = new Date(date);
+    const now = new Date(); // current time
+    inputDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+
+    const yyyy = inputDate.getFullYear();
+    const mm = String(inputDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(inputDate.getDate()).padStart(2, '0');
+    const hh = String(inputDate.getHours()).padStart(2, '0');
+    const min = String(inputDate.getMinutes()).padStart(2, '0');
+    const ss = String(inputDate.getSeconds()).padStart(2, '0');
+
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}`;
   }
+
 
   deleteExpense(expenseId: number): void {
     const expenseDataFetch = this.expenses.find(i=>i.id === expenseId);

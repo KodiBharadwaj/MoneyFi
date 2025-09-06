@@ -14,4 +14,5 @@ public class BudgetDetailsDto {
     private String category;
     private BigDecimal currentSpending;
     private BigDecimal moneyLimit;
+    private Long progressPercentage;
 }

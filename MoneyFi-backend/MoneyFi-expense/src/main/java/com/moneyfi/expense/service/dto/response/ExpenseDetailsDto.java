@@ -1,6 +1,5 @@
 package com.moneyfi.expense.service.dto.response;
 
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,5 +17,5 @@ public class ExpenseDetailsDto {
     private Date date;
     private boolean recurring;
     private String description;
-    private boolean is_deleted;
+    private boolean isDeleted;
 }

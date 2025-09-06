@@ -1,0 +1,100 @@
+<nav class="navbar">
+  <span class="brand-name" (click)="navigateTo('')" role="button" tabindex="0">
+    <i class="fas fa-chart-pie"></i>
+    MoneyFi
+  </span>
+  <span>
+    <button class="btn-signup" (click)="navigateTo('/raise-request')">Back to requests</button>
+  </span>
+</nav>
+
+<br>
+<br>
+<br>
+<br>
+
+<div class="container">
+  <h1>Request Tracker</h1>
+  
+  <form [formGroup]="trackingForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="referenceNumber">Reference Number</label>
+      <input 
+        type="text" 
+        id="referenceNumber" 
+        formControlName="referenceNumber"
+        placeholder="Enter your reference number"
+        [class.error]="trackingForm.get('referenceNumber')?.invalid && trackingForm.get('referenceNumber')?.touched">
+      
+      <div class="validation-error" 
+           *ngIf="trackingForm.get('referenceNumber')?.invalid && trackingForm.get('referenceNumber')?.touched">
+        <span *ngIf="trackingForm.get('referenceNumber')?.errors?.['required']">
+          Reference number is required
+        </span>
+        <span *ngIf="trackingForm.get('referenceNumber')?.errors?.['pattern']">
+          Invalid reference number format
+        </span>
+      </div>
+    </div>
+    
+    <button 
+      type="submit" 
+      class="submit-btn" 
+      [disabled]="isLoading || trackingForm.invalid">
+      {{ isLoading ? 'Tracking...' : 'Track Request' }}
+    </button>
+  </form>
+
+  <div class="loading" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Fetching request status...</p>
+  </div>
+
+  <div class="status-card" *ngIf="requestStatus && !isLoading">
+    <h2>Request Status</h2>
+    <div class="status-item">
+      <span class="status-label">Reference Number:</span>
+      <span class="status-value">{{ submittedRefNumber }}</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Requested Date:</span>
+      <span class="status-value">
+        {{ requestStatus.requestedDate | date: 'MMM d, y, h:mm a' }}
+      </span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">User Email:</span>
+      <span class="status-value">{{ requestStatus.email }}</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Name:</span>
+      <span class="status-value">{{ requestStatus.name }}</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Request Type:</span>
+      <span class="status-value">{{ requestStatus.requestType }}</span>
+    </div>
+    <div class="status-item" *ngIf="requestStatus.description">
+      <span class="status-label">Description:</span>
+      <span class="status-value">{{ requestStatus.description }}</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Active Status:</span>
+      <span class="status-value">
+        <span class="status-active" 
+              [class.active]="requestStatus.isRequestActive === 'active'"
+              [class.inactive]="requestStatus.isRequestActive === 'inactive'">
+          {{ requestStatus.isRequestActive | titlecase }}
+        </span>
+      </span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Status:</span>
+      <span class="status-value">{{ requestStatus.requestStatus }}</span>
+    </div>
+  </div>
+
+  <div class="error-message" *ngIf="errorMessage && !isLoading">
+    <p> Please check your reference number </p>
+  </div>
+</div>
