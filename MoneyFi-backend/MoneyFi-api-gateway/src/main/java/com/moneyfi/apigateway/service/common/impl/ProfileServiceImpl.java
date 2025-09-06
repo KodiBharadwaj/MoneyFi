@@ -48,6 +48,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final CommonServiceRepository commonServiceRepository;
     private final ContactUsHistRepository contactUsHistRepository;
     private final ExcelTemplateRepository excelTemplateRepository;
+    private final EmailTemplates emailTemplates;
     private final AwsServices awsServices;
 
     public ProfileServiceImpl(ProfileRepository profileRepository,
@@ -55,12 +56,14 @@ public class ProfileServiceImpl implements ProfileService {
                               CommonServiceRepository commonServiceRepository,
                               ContactUsHistRepository contactUsHistRepository,
                               ExcelTemplateRepository excelTemplateRepository,
+                              EmailTemplates emailTemplates,
                               AwsServices awsServices){
         this.profileRepository = profileRepository;
         this.contactUsRepository = contactUsRepository;
         this.commonServiceRepository = commonServiceRepository;
         this.contactUsHistRepository = contactUsHistRepository;
         this.excelTemplateRepository = excelTemplateRepository;
+        this.emailTemplates = emailTemplates;
         this.awsServices = awsServices;
     }
 
@@ -109,8 +112,8 @@ public class ProfileServiceImpl implements ProfileService {
         userDefect.setImageId("Defect_" + contactUsRepository.save(userDefect).getId() + "_" +
                 userDefect.getEmail().substring(0,userDefect.getEmail().indexOf('@')));
         new Thread(() -> {
-            EmailTemplates.sendUserRaiseDefectEmailToAdmin(userDefectRequestDto, userDefect.getImageId());
-            EmailTemplates.sendReferenceNumberEmail(userDefectRequestDto.getName(), userDefect.getEmail(), "resolve issue", referenceNumber);
+            emailTemplates.sendUserRaiseDefectEmailToAdmin(userDefectRequestDto, userDefect.getImageId());
+            emailTemplates.sendReferenceNumberEmail(userDefectRequestDto.getName(), userDefect.getEmail(), "resolve issue", referenceNumber);
             awsServices.uploadDefectPictureByUser(userDefect.getImageId(), userDefectRequestDto.getFile());
         }).start();
         ContactUs savedDefect = contactUsRepository.save(userDefect);
@@ -131,7 +134,7 @@ public class ProfileServiceImpl implements ProfileService {
         String rating = feedback.getMessage().substring(0,1);
         String message = feedback.getMessage().substring(2);
         new Thread(() ->
-                EmailTemplates.sendUserFeedbackEmailToAdmin(rating , message)
+                emailTemplates.sendUserFeedbackEmailToAdmin(rating , message)
         ).start();
 
         ContactUs userFeedback = new ContactUs();

@@ -2,17 +2,22 @@ package com.moneyfi.apigateway.util;
 
 import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 
 import static com.moneyfi.apigateway.util.constants.StringUtils.ADMIN_EMAIL;
 
+@Component
 public class EmailTemplates {
 
-    private EmailTemplates() {
+    private final EmailFilter emailFilter;
+
+    public EmailTemplates(EmailFilter emailFilter){
+        this.emailFilter = emailFilter;
     }
 
-    public static void sendPasswordChangeAlertMail(String userName, String email){
+    public void sendPasswordChangeAlertMail(String userName, String email){
         String subject = "Password Change Alert!!";
         String body = "<html>"
                 + "<body>"
@@ -27,10 +32,10 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        EmailFilter.sendEmail(email, subject, body);
+        emailFilter.sendEmail(email, subject, body);
     }
 
-    public static boolean sendOtpEmailToUserForSignup(String email, String name, String verificationCode){
+    public boolean sendOtpEmailToUserForSignup(String email, String name, String verificationCode){
         String subject = "OTP for MoneyFi's account creation";
         String body = "<html>"
                 + "<body>"
@@ -45,10 +50,10 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        return EmailFilter.sendEmail(email, subject, body);
+        return emailFilter.sendEmail(email, subject, body);
     }
 
-    public static boolean sendOtpToUserForAccountBlock(String username, String name, String verificationCode){
+    public boolean sendOtpToUserForAccountBlock(String username, String name, String verificationCode){
         String subject = "OTP to block account";
         String body = "<html>"
                 + "<body>"
@@ -63,10 +68,10 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        return EmailFilter.sendEmail(username, subject, body);
+        return emailFilter.sendEmail(username, subject, body);
     }
 
-    public static boolean sendUserNameToUser(String username){
+    public boolean sendUserNameToUser(String username){
         String subject = "MoneyFi - Username request";
         String body = "<html>"
                 + "<body>"
@@ -81,10 +86,10 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        return EmailFilter.sendEmail(username, subject, body);
+        return emailFilter.sendEmail(username, subject, body);
     }
 
-    public static boolean sendOtpForForgotPassword(String userName, String email, String verificationCode){
+    public boolean sendOtpForForgotPassword(String userName, String email, String verificationCode){
         String subject = "MoneyFi's Password Reset Verification Code";
         String body = "<html>"
                 + "<body>"
@@ -100,16 +105,16 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        return EmailFilter.sendEmail(email, subject, body);
+        return emailFilter.sendEmail(email, subject, body);
     }
 
-    public static void sendBirthdayMail(String email, String name, int numberOfYears){
+    public void sendBirthdayMail(String email, String name, int numberOfYears){
         String subject = "Happy Birthday";
         String body = "<html>"
                 + "<body>"
                 + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
                 + "<p style='font-size: 16px;'>We wish you a very happy birthday. May god bless you on this auspicious day.</p>"
-                + "<p style='font-size: 16px;'>You have completed " + numberOfYears + (numberOfYears <= 1?" year" : " years") + " in our platform. Hope you are enjoying the services.</p>"
+                + "<p style='font-size: 16px;'>You have completed " + numberOfYears + (numberOfYears == 1?" year" : " years") + " in our platform. Hope you are enjoying the services.</p>"
                 + "<hr>"
                 + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
                 + "<br>"
@@ -117,10 +122,10 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        EmailFilter.sendEmail(email, subject, body);
+        emailFilter.sendEmail(email, subject, body);
     }
 
-    public static void sendUserRaiseDefectEmailToAdmin(UserDefectRequestDto userDefectRequestDto, String images){
+    public void sendUserRaiseDefectEmailToAdmin(UserDefectRequestDto userDefectRequestDto, String images){
         String subject = "MoneyFi's User Report Alert!!";
 
         String body = "<html>"
@@ -141,10 +146,10 @@ public class EmailTemplates {
             images = images.split(",")[1];  // Only the base64 part after the comma
         }
         byte[] imageBytes = Base64.getDecoder().decode(images);
-        EmailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, "user.jpg");
+        emailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, "user.jpg");
     }
 
-    public static void sendUserFeedbackEmailToAdmin(String rating, String message){
+    public void sendUserFeedbackEmailToAdmin(String rating, String message){
         String subject = "MoneyFi's User Feedback";
 
         String body = "<html>"
@@ -155,10 +160,10 @@ public class EmailTemplates {
                 + "<br>"
                 + "<p style='font-size: 16px;'>Comment: </p>"
                 + "<p style='font-size: 16px;'>" + message + "</p>";
-        EmailFilter.sendEmail(ADMIN_EMAIL, subject, body);
+        emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
     }
 
-    public static boolean sendAccountStatementAsEmail(String name, String username, byte[] pdfBytes) {
+    public boolean sendAccountStatementAsEmail(String name, String username, byte[] pdfBytes) {
         String subject = "MoneyFi - Account Statement";
         String body = "<html>"
                 + "<body>"
@@ -176,10 +181,10 @@ public class EmailTemplates {
                 + "</html>";
         int index = name.indexOf(' ');
         String fileName = name.substring(0, index)+"_statement.pdf";
-        return EmailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, fileName);
+        return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, fileName);
     }
 
-    public static boolean sendReferenceNumberEmail(String name, String email, String description, String referenceNumber) {
+    public boolean sendReferenceNumberEmail(String name, String email, String description, String referenceNumber) {
         String subject = "MoneyFi - user requests";
         String body = "<html>"
                 + "<body>"
@@ -196,10 +201,10 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        return EmailFilter.sendEmail(email, subject, body);
+        return emailFilter.sendEmail(email, subject, body);
     }
 
-    public static SimpleMailMessage sendEmailForSuccessfulUserCreation(String name, String email){
+    public SimpleMailMessage sendEmailForSuccessfulUserCreation(String name, String email){
         String subject = "Welcome to MoneyFi";
         String body = "<html>"
                 + "<body>"

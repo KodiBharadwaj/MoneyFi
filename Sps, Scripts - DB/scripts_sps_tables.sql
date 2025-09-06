@@ -1959,8 +1959,18 @@ BEGIN
 	WHERE it.recurring = 1
 	  AND it.is_deleted = 0
 	  AND MONTH(it.date) = MONTH(DATEADD(MONTH, -1, GETDATE()))   -- last month
-	  AND YEAR(it.date)  = YEAR(DATEADD(MONTH, -1, GETDATE()));   -- last year check
-
+	  AND YEAR(it.date)  = YEAR(DATEADD(MONTH, -1, GETDATE()))   -- last year check
+	  AND NOT EXISTS (
+        SELECT 1
+        FROM income_table existing
+        WHERE existing.recurring = 1
+          AND existing.user_id = it.user_id
+          AND existing.amount = it.amount
+          AND existing.category = it.category
+		  AND existing.source = it.source
+          AND MONTH(existing.date) = MONTH(GETDATE())         -- already inserted this month?
+          AND YEAR(existing.date)  = YEAR(GETDATE())
+    );
 
 	INSERT INTO expense_table(amount, category, date, is_deleted, recurring, description, user_id)
 	SELECT 
@@ -1976,10 +1986,16 @@ BEGIN
 	  AND et.is_deleted = 0
 	  AND et.category NOT IN ('Goal')
 	  AND MONTH(et.date) = MONTH(DATEADD(MONTH, -1, GETDATE()))   -- last month
-	  AND YEAR(et.date)  = YEAR(DATEADD(MONTH, -1, GETDATE()));   -- last year check
+	  AND YEAR(et.date)  = YEAR(DATEADD(MONTH, -1, GETDATE()))   -- last year check
+	  AND NOT EXISTS (
+        SELECT 1
+        FROM expense_table existing
+        WHERE existing.recurring = 1
+          AND existing.user_id = et.user_id
+          AND existing.amount = et.amount
+          AND existing.category = et.category
+		  AND existing.description = et.description
+          AND MONTH(existing.date) = MONTH(GETDATE())         -- already inserted this month?
+          AND YEAR(existing.date)  = YEAR(GETDATE())
+    );
 END
-GO
-USE [master]
-GO
-ALTER DATABASE [moneyfi_db] SET  READ_WRITE 
-GO

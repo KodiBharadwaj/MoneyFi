@@ -66,6 +66,12 @@ eureka:
 cors:
   allowed-origins: ${ALLOWED_ORIGINS}
 
+email:
+  filter:
+    from:
+      email : ${ADMIN_EMAIL}
+      password : ${ADMIN_PASSWORD}
+
 server:
   port: 8765
 

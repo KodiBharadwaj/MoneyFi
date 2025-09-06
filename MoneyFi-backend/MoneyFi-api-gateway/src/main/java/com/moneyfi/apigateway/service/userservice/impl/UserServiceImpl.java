@@ -64,6 +64,7 @@ public class UserServiceImpl implements UserService {
     private final UserCommonService userCommonService;
     private final ContactUsRepository contactUsRepository;
     private final ContactUsHistRepository contactUsHistRepository;
+    private final EmailTemplates emailTemplates;
     private final AwsServices awsServices;
 
     private final AuthenticationManager authenticationManager;
@@ -76,6 +77,7 @@ public class UserServiceImpl implements UserService {
                            ContactUsRepository contactUsRepository,
                            ContactUsHistRepository contactUsHistRepository,
                            AuthenticationManager authenticationManager,
+                           EmailTemplates emailTemplates,
                            AwsServices awsServices){
         this.userRepository = userRepository;
         this.otpTempRepository = otpTempRepository;
@@ -85,6 +87,7 @@ public class UserServiceImpl implements UserService {
         this.contactUsRepository = contactUsRepository;
         this.contactUsHistRepository = contactUsHistRepository;
         this.authenticationManager = authenticationManager;
+        this.emailTemplates = emailTemplates;
         this.awsServices = awsServices;
     }
 
@@ -117,7 +120,7 @@ public class UserServiceImpl implements UserService {
             /** send successful email in a separate thread by aws ses **/
             new Thread(() -> {
                 try {
-                    awsServices.sendEmailToUserUsingAwsSes(EmailTemplates.sendEmailForSuccessfulUserCreation(userProfile.getName(), userProfile.getUsername()));
+                    awsServices.sendEmailToUserUsingAwsSes(emailTemplates.sendEmailForSuccessfulUserCreation(userProfile.getName(), userProfile.getUsername()));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -250,7 +253,7 @@ public class UserServiceImpl implements UserService {
 
         String userName = profileRepository.findByUserId(userAuthModel.getId()).getName();
         new Thread(() ->
-                EmailTemplates.sendPasswordChangeAlertMail(userName, userAuthModel.getUsername())
+                emailTemplates.sendPasswordChangeAlertMail(userName, userAuthModel.getUsername())
         ).start();
 
         userAuthModel.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
@@ -309,7 +312,7 @@ public class UserServiceImpl implements UserService {
         }
 
         String verificationCode = generateVerificationCode();
-        boolean isMailsent = EmailTemplates.sendOtpEmailToUserForSignup(email, name, verificationCode);
+        boolean isMailsent = emailTemplates.sendOtpEmailToUserForSignup(email, name, verificationCode);
 
         if(isMailsent){
             List<OtpTempModel> userList = otpTempRepository.findByEmail(email);
@@ -409,12 +412,12 @@ public class UserServiceImpl implements UserService {
         }
 
         log.info("Username fetched: {}", username);
-        return EmailTemplates.sendUserNameToUser(username);
+        return emailTemplates.sendUserNameToUser(username);
     }
 
     @Override
     public boolean sendAccountStatementEmail(String username, byte[] pdfBytes) {
-        return EmailTemplates.sendAccountStatementAsEmail(profileRepository.findByUserId(getUserIdByUsername(username)).getName(), username, pdfBytes);
+        return emailTemplates.sendAccountStatementAsEmail(profileRepository.findByUserId(getUserIdByUsername(username)).getName(), username, pdfBytes);
     }
 
     @Override
@@ -490,7 +493,7 @@ public class UserServiceImpl implements UserService {
             new Thread(
                     () -> {
                         otpTempRepository.deleteByEmail(username);
-                        EmailTemplates.sendReferenceNumberEmail(userProfile.getName(), username, "account block", referenceNumber);
+                        emailTemplates.sendReferenceNumberEmail(userProfile.getName(), username, "account block", referenceNumber);
                     }
             ).start();
             return ResponseEntity.ok("Account blocked successfully");
@@ -511,7 +514,7 @@ public class UserServiceImpl implements UserService {
         }
 
         String verificationCode = generateVerificationCode();
-        boolean isMailsent = EmailTemplates.sendOtpToUserForAccountBlock(username, profileRepository.findByUserId(userData.getId()).getName(), verificationCode);
+        boolean isMailsent = emailTemplates.sendOtpToUserForAccountBlock(username, profileRepository.findByUserId(userData.getId()).getName(), verificationCode);
 
         if(isMailsent){
             List<OtpTempModel> userList = otpTempRepository.findByEmail(username);

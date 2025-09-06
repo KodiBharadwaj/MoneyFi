@@ -1,5 +1,6 @@
 package com.moneyfi.apigateway.service.common;
 
+import com.ctc.wstx.shaded.msv_core.datatype.xsd.IntegerType;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
@@ -22,13 +23,16 @@ public class SchedulingService {
     private final TokenBlackListRepository tokenBlacklistRepository;
     private final UserRepository userRepository;
     private final CommonServiceRepository commonServiceRepository;
+    private final EmailTemplates emailTemplates;
 
     public SchedulingService(TokenBlackListRepository tokenBlacklistRepository,
                              UserRepository userRepository,
-                             CommonServiceRepository commonServiceRepository){
+                             CommonServiceRepository commonServiceRepository,
+                             EmailTemplates emailTemplates){
         this.tokenBlacklistRepository = tokenBlacklistRepository;
         this.userRepository = userRepository;
         this.commonServiceRepository = commonServiceRepository;
+        this.emailTemplates = emailTemplates;
     }
 
     @PostConstruct
@@ -60,7 +64,10 @@ public class SchedulingService {
         List<String> birthdayList = commonServiceRepository.getBirthdayUserNames(LocalDate.now().getMonthValue(), LocalDate.now().getDayOfMonth());
         new Thread(() -> birthdayList.forEach(user -> {
             String[] parts = user.split("-");
-            EmailTemplates.sendBirthdayMail(parts[0].trim(), parts[1], LocalDate.now().getYear()-Integer.parseInt(parts[2]));
+            int numberOfYears = LocalDate.now().getYear() - Integer.parseInt(parts[2]);
+            if(numberOfYears != 0){
+                emailTemplates.sendBirthdayMail(parts[0].trim(), parts[1], numberOfYears);
+            }
         })).start();
     }
 

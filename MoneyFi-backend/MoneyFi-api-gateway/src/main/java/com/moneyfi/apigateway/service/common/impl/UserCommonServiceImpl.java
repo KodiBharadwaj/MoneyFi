@@ -54,6 +54,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final ContactUsHistRepository contactUsHistRepository;
     private final CommonServiceRepository commonServiceRepository;
     private final UserNotificationRepository userNotificationRepository;
+    private final EmailTemplates emailTemplates;
     private final RestTemplate externalRestTemplate;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -66,6 +67,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  ContactUsHistRepository contactUsHistRepository,
                                  CommonServiceRepository commonServiceRepository,
                                  UserNotificationRepository userNotificationRepository,
+                                 EmailTemplates emailTemplates,
                                  RestTemplate externalRestTemplate){
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
@@ -75,6 +77,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.contactUsHistRepository = contactUsHistRepository;
         this.commonServiceRepository = commonServiceRepository;
         this.userNotificationRepository = userNotificationRepository;
+        this.emailTemplates = emailTemplates;
         this.externalRestTemplate = externalRestTemplate;
     }
 
@@ -108,7 +111,7 @@ public class UserCommonServiceImpl implements UserCommonService {
 
         String userName = profileRepository.findByUserId(userAuthModel.getId()).getName();
 
-        boolean isMailSent = EmailTemplates.sendOtpForForgotPassword(userName, email, verificationCode);
+        boolean isMailSent = emailTemplates.sendOtpForForgotPassword(userName, email, verificationCode);
         if(isMailSent){
             return "Verification code sent to your email!";
         }
@@ -200,7 +203,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_BLOCK_REQUEST.name()))
                     .findFirst();
 
-            boolean isEmailSent = EmailTemplates
+            boolean isEmailSent = emailTemplates
                     .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account unblock", requestDetails.get().getReferenceNumber());
 
             if(isEmailSent){
@@ -239,7 +242,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             String referenceNumber = "NA" + userProfile.getName().substring(0,2) + email.substring(0,2)
                     + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
 
-            boolean isEmailSent = EmailTemplates
+            boolean isEmailSent = emailTemplates
                     .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "change name", referenceNumber);
 
             if(isEmailSent){
@@ -280,7 +283,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             }
 
             String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
-            boolean isEmailSent = EmailTemplates
+            boolean isEmailSent = emailTemplates
                     .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account retrieve", referenceNumber);
 
             if(isEmailSent){
