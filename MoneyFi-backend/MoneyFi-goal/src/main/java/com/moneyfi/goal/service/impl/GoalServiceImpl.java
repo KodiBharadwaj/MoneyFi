@@ -1,7 +1,6 @@
 package com.moneyfi.goal.service.impl;
 
 import com.moneyfi.goal.config.JwtService;
-import com.moneyfi.goal.service.common.KafkaGoalEventProducer;
 import com.moneyfi.goal.service.dto.response.ExpenseModelDto;
 import com.moneyfi.goal.exceptions.ResourceNotFoundException;
 import com.moneyfi.goal.model.GoalModel;
@@ -37,18 +36,15 @@ public class GoalServiceImpl implements GoalService {
     private final GoalCommonRepository goalCommonRepository;
     private final RestTemplate restTemplate;
     private final JwtService jwtService;
-    private final KafkaGoalEventProducer kafkaGoalEventProducer;
 
     public GoalServiceImpl(GoalRepository goalRepository,
                            GoalCommonRepository goalCommonRepository,
                            RestTemplate restTemplate,
-                           JwtService jwtService,
-                           KafkaGoalEventProducer kafkaGoalEventProducer){
+                           JwtService jwtService){
         this.goalRepository = goalRepository;
         this.goalCommonRepository = goalCommonRepository;
         this.restTemplate = restTemplate;
         this.jwtService = jwtService;
-        this.kafkaGoalEventProducer = kafkaGoalEventProducer;
     }
 
     @Override
@@ -187,14 +183,10 @@ public class GoalServiceImpl implements GoalService {
             if(goalModel != null){
                 goalModel.setDeleted(true);
                 goalRepository.save(goalModel);
-
-                kafkaGoalEventProducer.sendExpenseIds(goalModel.getExpenseIds());
-                return true;
-                /** Rest template approach same as Kafka
                 if(functionCallToExpenseServiceToDeleteExpense(goalModel.getExpenseIds(), authHeader)){
                     return true;
                 }
-                else return false; **/
+                else return false;
             }
             return false;
         } catch (HttpClientErrorException.NotFound e) {

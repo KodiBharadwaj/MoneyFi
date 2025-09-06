@@ -1,18 +1,11 @@
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-
 spring:
   application:
     name:
       MoneyFi-goal
   datasource:
-    url: jdbc:sqlserver://${RDS_HOSTNAME:localhost}:${RDS_PORT:1433};databaseName=${RDS_DB_NAME:moneyfi_db};encrypt=true;trustServerCertificate=true
-    username: ${RDS_USERNAME:sa}
-    password: ${RDS_PASSWORD:admin@123}
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
@@ -25,10 +18,9 @@ server:
   port:
     8400
 
-
-#  Kafka producer configuration setup
-  kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL}
+  instance:
+    prefer-ip-address: true

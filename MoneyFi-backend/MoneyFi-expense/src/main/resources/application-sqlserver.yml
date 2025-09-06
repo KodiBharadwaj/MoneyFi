@@ -1,18 +1,11 @@
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-
 spring:
   application:
     name:
       MoneyFi-expense
   datasource:
-    url: jdbc:sqlserver://${RDS_HOSTNAME:localhost}:${RDS_PORT:1433};databaseName=${RDS_DB_NAME:moneyfi_db};encrypt=true;trustServerCertificate=true
-    username: ${RDS_USERNAME:sa}
-    password: ${RDS_PASSWORD:admin@123}
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
@@ -25,12 +18,9 @@ server:
   port:
     8200
 
-#  Kafka consumer configuration setup
-  kafka:
-    bootstrap-servers: localhost:9092
-    consumer:
-      group-id: expense-group
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: '*'
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL}
+  instance:
+    prefer-ip-address: true
