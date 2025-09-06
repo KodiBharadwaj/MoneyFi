@@ -14,7 +14,6 @@ import java.util.Properties;
 @Component
 @Slf4j
 public class EmailFilter {
-
     @Value("${email.filter.from.email}")
     private String fromEmail;
     @Value("${email.filter.from.password}")
