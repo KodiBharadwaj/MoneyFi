@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { KeepAliveService } from './keep-alive.service';
 
 
 @Component({
@@ -9,6 +10,12 @@ import { RouterOutlet } from '@angular/router';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnInit{
   title = 'angular-cursor';
+
+  constructor(private keepAlive: KeepAliveService) {}
+
+  ngOnInit() {
+    this.keepAlive.startPinging();
+  }
 }

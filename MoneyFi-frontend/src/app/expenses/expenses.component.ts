@@ -175,19 +175,16 @@ export class ExpensesComponent {
         console.error('Failed to load total income:', error);
         if(error.status === 401){
             if (error.error === 'TokenExpired') {
-              alert('Your session has expired. Please login again.');
               sessionStorage.removeItem('moneyfi.auth');
               this.router.navigate(['/']);
             } else if(error.error === 'Token is blacklisted'){
-              alert('Your session has expired. Please login again.');
               sessionStorage.removeItem('moneyfi.auth');
               this.router.navigate(['/']);
             }
             else if(error.error === 'AuthorizationFailed'){
-              alert('Service Unavailable!! Please try later');
             }
           } else if (error.status === 503){
-            alert('Service Unavailable!! Please try later');
+            console.log('Service Unavailable!! Please try later');
           }
       }
     });
