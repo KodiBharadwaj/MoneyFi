@@ -206,6 +206,7 @@ export class GoalsComponent {
               
               this.toastr.success('Amount added successully');
               this.loadGoals();
+              this.loadGoalTileData();
             },
             error: (error) => {
               console.error('Error adding amount:', error);
@@ -227,8 +228,8 @@ export class GoalsComponent {
               }
             }
           });
-      }else {
-        alert("Entered money is greater than the remaining amount")
+      } else if(amount > this.availableBalance){
+        alert('Entered amount is greater than the available amount');
       }
     });
   }
