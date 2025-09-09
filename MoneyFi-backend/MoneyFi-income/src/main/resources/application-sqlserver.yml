@@ -25,3 +25,9 @@ eureka:
 server:
   port:
     8100
+
+account:
+  statement:
+    admin:
+      pdf:
+        password: ${ADMIN_PDF_PASSWORD}

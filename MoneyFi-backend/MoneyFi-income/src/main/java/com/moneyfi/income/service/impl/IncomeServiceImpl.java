@@ -38,15 +38,18 @@ public class IncomeServiceImpl implements IncomeService {
     private final IncomeRepository incomeRepository;
     private final IncomeCommonRepository incomeCommonRepository;
     private final IncomeDeletedRepository incomeDeletedRepository;
+    private final GeneratePdfTemplate generatePdfTemplate;
     private final RestTemplate restTemplate;
 
     public IncomeServiceImpl(IncomeRepository incomeRepository,
                              IncomeCommonRepository incomeCommonRepository,
                              IncomeDeletedRepository incomeDeletedRepository,
+                             GeneratePdfTemplate generatePdfTemplate,
                              RestTemplate restTemplate){
         this.incomeRepository = incomeRepository;
         this.incomeCommonRepository = incomeCommonRepository;
         this.incomeDeletedRepository = incomeDeletedRepository;
+        this.generatePdfTemplate = generatePdfTemplate;
         this.restTemplate = restTemplate;
     }
 
@@ -305,7 +308,7 @@ public class IncomeServiceImpl implements IncomeService {
         List<AccountStatementResponseDto> transactions = getAccountStatementOfUser(userId, inputDto);
         UserDetailsForStatementDto userDetails = incomeCommonRepository.getUserDetailsForAccountStatement(userId);
         userDetails.setUsername(makeUsernamePrivate(userDetails.getUsername()));
-        return GeneratePdfTemplate.generatePdf(transactions, userDetails, inputDto.getFromDate(), inputDto.getToDate(),
+        return generatePdfTemplate.generatePdf(transactions, userDetails, inputDto.getFromDate(), inputDto.getToDate(),
                 generateDocumentPasswordForUser(userDetails));
     }
 

@@ -6,23 +6,27 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.moneyfi.income.service.dto.response.AccountStatementResponseDto;
 import com.moneyfi.income.service.dto.response.UserDetailsForStatementDto;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.List;
 
+@Component
 public class GeneratePdfTemplate {
 
-    private GeneratePdfTemplate() {}
+    @Value("${account.statement.admin.pdf.password}")
+    private String adminPassword;
 
-    public static byte[] generatePdf(List<AccountStatementResponseDto> transactions, UserDetailsForStatementDto userDetails, LocalDate fromDate, LocalDate toDate, String userPassword) {
+    public byte[] generatePdf(List<AccountStatementResponseDto> transactions, UserDetailsForStatementDto userDetails, LocalDate fromDate, LocalDate toDate, String userPassword) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Document document = new Document(PageSize.A4);
         PdfWriter writer = PdfWriter.getInstance(document, out);
 
         // Set encryption BEFORE opening the document
-        String ownerPassword = "moneyfi.owner.KODI.93811";
+        String ownerPassword = adminPassword;
         writer.setEncryption(
                 userPassword.getBytes(),
                 ownerPassword.getBytes(),
@@ -115,11 +119,11 @@ public class GeneratePdfTemplate {
         document.close();
         return out.toByteArray();
     }
-    private static void addCell(PdfPTable table, String text) {
+    private void addCell(PdfPTable table, String text) {
         table.addCell(new PdfPCell(new Phrase(text)));
     }
 
-    private static void addCell(PdfPTable table, String text, Font font) {
+    private void addCell(PdfPTable table, String text, Font font) {
         table.addCell(new PdfPCell(new Phrase(text, font)));
     }
 }
