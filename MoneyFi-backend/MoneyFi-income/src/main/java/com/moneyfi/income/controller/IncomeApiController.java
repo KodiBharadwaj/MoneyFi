@@ -175,13 +175,14 @@ public class IncomeApiController {
 
     @Operation(summary = "Api to generate pdf for the account statement")
     @PostMapping("/account-statement/report")
-    public byte[] generatePdfForAccountStatement(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<byte[]> generatePdfForAccountStatement(@RequestHeader("Authorization") String authHeader,
                                                  @RequestBody AccountStatementRequestDto inputDto) throws IOException {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        byte[] pdfBytes = incomeService.generatePdfForAccountStatement(userId, inputDto);
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=account-statement.pdf")
-                .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
-                .body(incomeService.generatePdfForAccountStatement(userId, inputDto));
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=account-statement.pdf")
+            .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
+            .body(pdfBytes);
     }
 
     @Operation(summary = "Api to send account statement of a user as email")
