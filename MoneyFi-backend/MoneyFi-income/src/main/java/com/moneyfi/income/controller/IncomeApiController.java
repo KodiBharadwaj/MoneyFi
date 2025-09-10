@@ -178,7 +178,10 @@ public class IncomeApiController {
     public byte[] generatePdfForAccountStatement(@RequestHeader("Authorization") String authHeader,
                                                  @RequestBody AccountStatementRequestDto inputDto) throws IOException {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return incomeService.generatePdfForAccountStatement(userId, inputDto);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=account-statement.pdf")
+                .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
+                .body(incomeService.generatePdfForAccountStatement(userId, inputDto));
     }
 
     @Operation(summary = "Api to send account statement of a user as email")
