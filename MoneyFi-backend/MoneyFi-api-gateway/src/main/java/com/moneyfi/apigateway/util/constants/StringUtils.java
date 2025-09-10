@@ -21,6 +21,11 @@ public class StringUtils {
     public static final String INVALID_CREDENTIALS = "Invalid Credentials Entered";
     public static final String LOGIN_ERROR = "An error occurred during login";
 
+    public static final String CLOUDINARY_CLOUD_NAME = "cloud_name";
+    public static final String CLOUDINARY_API_KEY = "api_key";
+    public static final String CLOUDINARY_API_SECRET = "api_secret";
+    public static final String CLOUDINARY_SECURE = "secure";
+
     public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name(), 3, UserRoles.DEVELOPER.name());
     public static final Map<String, Integer> templateIdAssociation = Map.of("profile-template", 1);
 
@@ -45,5 +50,10 @@ public class StringUtils {
         }
 
         return code.toString();
+    }
+
+    public static String generateFileNameForUserProfilePicture(Long userId, String username){
+        return "profile_pic_" + (userId) + "_" +
+                username.substring(0,username.indexOf('@'));
     }
 }

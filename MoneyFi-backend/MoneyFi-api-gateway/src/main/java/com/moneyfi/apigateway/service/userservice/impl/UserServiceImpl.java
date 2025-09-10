@@ -15,6 +15,7 @@ import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.common.AwsServices;
+import com.moneyfi.apigateway.service.common.CloudinaryService;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
@@ -32,8 +33,11 @@ import com.moneyfi.apigateway.util.enums.RequestReason;
 import com.moneyfi.apigateway.util.enums.UserRoles;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -55,6 +59,9 @@ import static com.moneyfi.apigateway.util.constants.StringUtils.*;
 @Slf4j
 public class UserServiceImpl implements UserService {
 
+    @Value("${spring.profiles.active:}")
+    private String activeProfile;
+
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     private final UserRepository userRepository;
@@ -66,6 +73,7 @@ public class UserServiceImpl implements UserService {
     private final ContactUsHistRepository contactUsHistRepository;
     private final EmailTemplates emailTemplates;
     private final AwsServices awsServices;
+    private final CloudinaryService cloudinaryService;
 
     private final AuthenticationManager authenticationManager;
 
@@ -78,7 +86,8 @@ public class UserServiceImpl implements UserService {
                            ContactUsHistRepository contactUsHistRepository,
                            AuthenticationManager authenticationManager,
                            EmailTemplates emailTemplates,
-                           AwsServices awsServices){
+                           AwsServices awsServices,
+                           @Autowired(required = false) CloudinaryService cloudinaryService){
         this.userRepository = userRepository;
         this.otpTempRepository = otpTempRepository;
         this.jwtService = jwtService;
@@ -89,6 +98,7 @@ public class UserServiceImpl implements UserService {
         this.authenticationManager = authenticationManager;
         this.emailTemplates = emailTemplates;
         this.awsServices = awsServices;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Override
@@ -228,7 +238,6 @@ public class UserServiceImpl implements UserService {
         if(userAuthModel == null){
             return null;
         }
-
         return userAuthModel.getId();
     }
 
@@ -422,17 +431,35 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String uploadUserProfilePictureToS3(String username, MultipartFile file) {
-        return awsServices.uploadUserProfilePictureToS3(getUserIdByUsername(username), username, file);
+        if ("local".equalsIgnoreCase(activeProfile)) {
+            cloudinaryService.uploadProfilePictureToCloudinary(file, getUserIdByUsername(username), username);
+            return "Upload Successful";
+        } else {
+            return awsServices.uploadUserProfilePictureToS3(getUserIdByUsername(username), username, file);
+        }
     }
 
     @Override
     public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username) {
-        return awsServices.fetchUserProfilePictureFromS3(getUserIdByUsername(username), username);
+        if ("local".equalsIgnoreCase(activeProfile)) {
+            byte[] imageBytes = cloudinaryService.getUserProfileFromCloudinary(getUserIdByUsername(username), username);
+            ByteArrayResource resource = new ByteArrayResource(imageBytes);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .contentLength(imageBytes.length)
+                    .body(resource);
+        } else {
+            return awsServices.fetchUserProfilePictureFromS3(getUserIdByUsername(username), username);
+        }
     }
 
     @Override
     public ResponseEntity<String> deleteProfilePictureFromS3(String username) {
-        return awsServices.deleteProfilePictureFromS3(getUserIdByUsername(username), username);
+        if ("local".equalsIgnoreCase(activeProfile)) {
+            return cloudinaryService.deleteProfilePictureFromCloudinary(getUserIdByUsername(username), username);
+        } else {
+            return awsServices.deleteProfilePictureFromS3(getUserIdByUsername(username), username);
+        }
     }
 
     @Override
