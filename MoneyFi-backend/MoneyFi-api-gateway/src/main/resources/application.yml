@@ -6,3 +6,8 @@ spring:
 
 jwt:
   secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
