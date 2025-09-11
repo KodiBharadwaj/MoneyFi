@@ -7,18 +7,12 @@ import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
-import com.moneyfi.apigateway.model.common.ContactUs;
-import com.moneyfi.apigateway.model.common.ContactUsHist;
-import com.moneyfi.apigateway.model.common.ProfileModel;
-import com.moneyfi.apigateway.model.common.UserNotification;
+import com.moneyfi.apigateway.model.common.*;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
-import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
-import com.moneyfi.apigateway.repository.user.ContactUsRepository;
-import com.moneyfi.apigateway.repository.user.UserNotificationRepository;
+import com.moneyfi.apigateway.repository.user.*;
 import com.moneyfi.apigateway.repository.user.auth.SessionTokenRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
-import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
@@ -56,6 +50,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final UserNotificationRepository userNotificationRepository;
     private final EmailTemplates emailTemplates;
     private final RestTemplate externalRestTemplate;
+    private final ReasonDetailsRepository reasonDetailsRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -68,7 +63,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  CommonServiceRepository commonServiceRepository,
                                  UserNotificationRepository userNotificationRepository,
                                  EmailTemplates emailTemplates,
-                                 RestTemplate externalRestTemplate){
+                                 RestTemplate externalRestTemplate,
+                                 ReasonDetailsRepository reasonDetailsRepository){
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
         this.sessionTokenRepository = sessionTokenRepository;
@@ -79,6 +75,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.userNotificationRepository = userNotificationRepository;
         this.emailTemplates = emailTemplates;
         this.externalRestTemplate = externalRestTemplate;
+        this.reasonDetailsRepository = reasonDetailsRepository;
     }
 
     private static final String REFERENCE_NUMBER_SENT = "Reference already sent, Please submit your details";
@@ -467,5 +464,15 @@ public class UserCommonServiceImpl implements UserCommonService {
             notification.setRead(true);
             userNotificationRepository.save(notification);
         });
+    }
+
+    @Override
+    public List<String> getReasonsForDialogForUser(int reasonCode) {
+        return reasonDetailsRepository.findAll()
+                .stream()
+                .filter(reasonDetails -> reasonDetails.getReasonCode() == reasonCode)
+                .filter(reasonDetails -> !reasonDetails.getIsDeleted())
+                .map(ReasonDetails::getReason)
+                .toList();
     }
 }

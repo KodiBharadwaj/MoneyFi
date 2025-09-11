@@ -9,6 +9,8 @@ import com.moneyfi.apigateway.repository.user.*;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.admin.AdminService;
 import com.moneyfi.apigateway.service.admin.dto.request.AdminScheduleRequestDto;
+import com.moneyfi.apigateway.service.admin.dto.request.ReasonDetailsRequestDto;
+import com.moneyfi.apigateway.service.admin.dto.request.ReasonUpdateRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.AwsServices;
@@ -41,6 +43,7 @@ public class AdminServiceImpl implements AdminService {
     private final ScheduleNotificationRepository scheduleNotificationRepository;
     private final UserNotificationRepository userNotificationRepository;
     private final AwsServices awsServices;
+    private final ReasonDetailsRepository reasonDetailsRepository;
 
     public AdminServiceImpl(AdminRepository adminRepository,
                             ContactUsRepository contactUsRepository,
@@ -49,7 +52,8 @@ public class AdminServiceImpl implements AdminService {
                             ContactUsHistRepository contactUsHistRepository,
                             ScheduleNotificationRepository scheduleNotificationRepository,
                             UserNotificationRepository userNotificationRepository,
-                            AwsServices awsServices){
+                            AwsServices awsServices,
+                            ReasonDetailsRepository reasonDetailsRepository){
         this.adminRepository = adminRepository;
         this.contactUsRepository = contactUsRepository;
         this.userRepository = userRepository;
@@ -58,6 +62,7 @@ public class AdminServiceImpl implements AdminService {
         this.scheduleNotificationRepository = scheduleNotificationRepository;
         this.userNotificationRepository = userNotificationRepository;
         this.awsServices = awsServices;
+        this.reasonDetailsRepository = reasonDetailsRepository;
     }
 
     @Override
@@ -471,5 +476,61 @@ public class AdminServiceImpl implements AdminService {
             userNotification.setRead(false);
             userNotificationRepository.save(userNotification);
         });
+    }
+
+    @Override
+    @Transactional
+    public void addReasonsForUserReasonDialog(ReasonDetailsRequestDto requestDto) {
+        if(requestDto.getReasonCode() == null || requestDto.getReason() == null || requestDto.getReason().isEmpty()){
+            throw new ScenarioNotPossibleException("Please add details correctly");
+        }
+        reasonDetailsRepository.findByReasonCode(requestDto.getReasonCode()).forEach(reasons -> {
+            if(reasons.getReason().toLowerCase().trim().equalsIgnoreCase(requestDto.getReason().toLowerCase().trim())){
+                throw new ScenarioNotPossibleException("Reason already exists");
+            }
+        });
+        ReasonDetails reasonDetails = new ReasonDetails();
+        reasonDetails.setReason(requestDto.getReason().trim());
+        reasonDetails.setReasonCode(requestDto.getReasonCode());
+        reasonDetails.setCreatedTime(LocalDateTime.now());
+        reasonDetailsRepository.save(reasonDetails);
+    }
+
+    @Override
+    public List<ReasonListResponseDto> getAllReasonsBasedOnReasonCode(int reasonCode) {
+        AtomicInteger i = new AtomicInteger(1);
+        return reasonDetailsRepository.findAll()
+                .stream()
+                .filter(reasonDetails -> reasonDetails.getReasonCode() == reasonCode)
+                .filter(reasonDetails ->  !reasonDetails.getIsDeleted())
+                .map(reasonDetails -> new ReasonListResponseDto(
+                        i.getAndIncrement(),
+                        reasonDetails.getId(),
+                        reasonDetails.getReason(),
+                        reasonDetails.getUpdatedTime() == null ? reasonDetails.getCreatedTime() : reasonDetails.getUpdatedTime()
+                ))
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void updateReasonsForUserReasonDialogByReasonCode(ReasonUpdateRequestDto requestDto) {
+        if(requestDto.getReason() == null || requestDto.getReason().isEmpty()){
+            throw new ScenarioNotPossibleException("Please add details correctly");
+        }
+        ReasonDetails reasonDetails = reasonDetailsRepository.findById(requestDto.getReasonId())
+                .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + requestDto.getReasonId() + " is not found"));
+        reasonDetails.setReason(requestDto.getReason());
+        reasonDetails.setUpdatedTime(LocalDateTime.now());
+        reasonDetailsRepository.save(reasonDetails);
+    }
+
+    @Override
+    @Transactional
+    public void deleteReasonByReasonId(int reasonId) {
+        ReasonDetails reasonDetails = reasonDetailsRepository.findById(reasonId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + reasonId + " is not found"));
+        reasonDetails.setIsDeleted(true);
+        reasonDetailsRepository.save(reasonDetails);
     }
 }

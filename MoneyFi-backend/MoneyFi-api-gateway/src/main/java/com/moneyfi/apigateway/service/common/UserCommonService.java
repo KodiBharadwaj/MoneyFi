@@ -45,4 +45,6 @@ public interface UserCommonService {
     Integer getUserNotificationsCount(String username);
 
     void updateUserNotificationSeenStatus(String username, String notificationIds);
+
+    List<String> getReasonsForDialogForUser(int reasonCode);
 }

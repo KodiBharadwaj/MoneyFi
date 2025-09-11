@@ -17,9 +17,15 @@ public class ReasonDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String reason;
-    private String reasonCode;
-    private String comment;
+    private int reasonCode;
     private LocalDateTime createdTime;
     private LocalDateTime updatedTime;
-    private boolean isDeleted;
+    private Boolean isDeleted;
+
+    @PrePersist
+    public void prePersist(){
+        if(this.isDeleted == null){
+            isDeleted = false;
+        }
+    }
 }
