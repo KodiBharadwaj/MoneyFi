@@ -1,0 +1,45 @@
+<div class="admin-container">
+  <nav class="top-nav">
+    <div class="brand">MoneyFi Admin</div>
+  </nav>
+
+  <div class="layout">
+    <aside class="side-nav">
+      <ul class="nav-list">
+        <li routerLink="/admin/home">Dashboard</li>
+        <li [routerLink]="['/admin/users', 'All']">Total Users</li>
+        <li [routerLink]="['/admin/requests', 'All']">User Requests</li>
+        <li routerLink="/admin/user-defects">User Issues</li>
+        <li routerLink="/admin/feedbacks">User Feedbacks</li>
+        <li routerLink="/admin/insights">Insights/Charts</li>
+        <li routerLink="/admin/configuration">Configuration</li>
+      </ul>
+      <ul class="logout-list">
+        <li (click)="logoutUser()">Logout</li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="reasons-container">
+            <div *ngFor="let category of categories" class="category-card">
+                <h2>{{ category.title }}</h2>
+
+                <div class="reasons-list">
+                <div *ngFor="let reason of category.reasons" class="reason-item">
+                    <input type="text" [(ngModel)]="reason.reason" />
+                    <button (click)="updateReason(reason)">Update</button>
+                    <button class="delete-btn" (click)="deleteReason(reason.reasonId)">Delete</button>
+                    <span class="last-updated">Last updated: {{ reason.lastUpdated | date:'short' }}</span>
+                </div>
+                </div>
+
+                <div class="add-reason">
+                <input type="text" [(ngModel)]="category.newReason" placeholder="Add new reason" />
+                <button (click)="addReason(category)">Add</button>
+                </div>
+            </div>
+            </div>
+        </main>
+  </div>
+</div>
+

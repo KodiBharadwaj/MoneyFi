@@ -11,4 +11,5 @@ public class ChangePasswordDto {
     private Long userId;
     private String currentPassword;
     private String newPassword;
+    private String description;
 }

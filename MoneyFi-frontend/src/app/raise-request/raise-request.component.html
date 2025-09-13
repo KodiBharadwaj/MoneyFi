@@ -131,6 +131,7 @@
 
         <!-- Unblock/Retrieve Form -->
         <ng-container *ngIf="selectedTab === 'unblock' || selectedTab === 'retrieve'">
+
           <div class="input-group">
             <label for="name">Full Name</label>
             <div class="input-wrapper">
@@ -146,18 +147,34 @@
           </div>
           
           <div class="input-group">
-            <label for="description">Description</label>
-            <div class="input-wrapper textarea-wrapper">
-              <!-- <i class="fas fa-comment"></i> -->
-              <textarea 
+            <label for="description">Reason</label>
+            <div class="input-wrapper">
+              <select 
                 id="description" 
                 [(ngModel)]="requestData.description" 
                 name="description" 
-                placeholder="Describe your issue in detail" 
+                required>
+                <option *ngFor="let r of (selectedTab === 'unblock' ? unblockReasons : retrievalReasons)" [value]="r">
+                  {{ r }}
+                </option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Show extra description only if Other -->
+          <div class="input-group" *ngIf="requestData.description === 'Other'">
+            <label for="customReason">Custom Reason</label>
+            <div class="input-wrapper textarea-wrapper">
+              <textarea 
+                id="customReason" 
+                [(ngModel)]="requestData.customReason" 
+                name="customReason" 
+                placeholder="Enter your custom reason"
                 required></textarea>
             </div>
           </div>
-          
+
           <div class="input-group">
             <label for="reference">Reference Number</label>
             <div class="input-wrapper">
@@ -171,7 +188,11 @@
                 required>
             </div>
           </div>
+
         </ng-container>
+
+          
+          
 
         <!-- Rename Form -->
         <ng-container *ngIf="selectedTab === 'rename'">
@@ -200,6 +221,35 @@
                 name="newName" 
                 placeholder="Enter your new name" 
                 required>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="description">Reason</label>
+            <div class="input-wrapper">
+              <select 
+                id="description" 
+                [(ngModel)]="requestData.description" 
+                name="description" 
+                required>
+                <option *ngFor="let r of nameChangeReasons" [value]="r">
+                  {{ r }}
+                </option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Show extra description only if Other -->
+          <div class="input-group" *ngIf="requestData.description === 'Other'">
+            <label for="customReason">Custom Reason</label>
+            <div class="input-wrapper textarea-wrapper">
+              <textarea 
+                id="customReason" 
+                [(ngModel)]="requestData.customReason" 
+                name="customReason" 
+                placeholder="Enter your custom reason"
+                required></textarea>
             </div>
           </div>
           

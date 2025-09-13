@@ -34,6 +34,19 @@ export class RaiseRequestComponent implements OnInit {
     private route: ActivatedRoute
   ) {}
 
+
+    // Application state
+  selectedTab: 'unblock' | 'retrieve' | 'rename' = 'unblock';
+  email = '';
+  loading = false;
+  showRequestForm = false;
+  referenceNumberSent = false;
+  skippedToForm = false;
+  currentStep = 1;
+  unblockReasons : string[] = [];
+  nameChangeReasons : string[] = [];
+  retrievalReasons : string[] = [];
+
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
       if (params['tab']) {
@@ -43,18 +56,41 @@ export class RaiseRequestComponent implements OnInit {
         this.email = params['username'];
       }
     });
+
+    this.unblockReasons = [];
+    this.http.get<string[]>(`${this.baseUrl}/api/auth/reasons-dialog/get?code=4`).subscribe({
+      next: (data) => {
+        this.unblockReasons = [...data];
+      },
+      error: () => {
+        this.unblockReasons = []; // fallback
+      }
+    });
+
+    this.nameChangeReasons = [];
+    this.http.get<string[]>(`${this.baseUrl}/api/auth/reasons-dialog/get?code=3`).subscribe({
+      next: (data) => {
+        this.nameChangeReasons = [...data];
+      },
+      error: () => {
+        this.nameChangeReasons = []; // fallback
+      }
+    });
+
+    this.retrievalReasons = [];
+    this.http.get<string[]>(`${this.baseUrl}/api/auth/reasons-dialog/get?code=6`).subscribe({
+      next: (data) => {
+        this.retrievalReasons = [...data];
+      },
+      error: () => {
+        this.retrievalReasons = []; // fallback
+      }
+    });
+
   }
   
   baseUrl = environment.BASE_URL;
-  
-  // Application state
-  selectedTab: 'unblock' | 'retrieve' | 'rename' = 'unblock';
-  email = '';
-  loading = false;
-  showRequestForm = false;
-  referenceNumberSent = false;
-  skippedToForm = false;
-  currentStep = 1;
+
   
   requestData: any = {};
 
@@ -157,10 +193,11 @@ export class RaiseRequestComponent implements OnInit {
     const requestReason = requestTypeMap[this.selectedTab];
 
     if (this.selectedTab === 'rename') {
+      this.requestData.description = this.requestData.description === 'Other' ? this.requestData.customReason : this.requestData.description;
       // For rename requests - get email from either source
       const email = this.skippedToForm ? this.requestData.email : this.email;
-      const { oldName, newName, referenceNumber } = this.requestData;
-      const body = { email, oldName, newName, referenceNumber };
+      const { oldName, newName, referenceNumber, description } = this.requestData;
+      const body = { email, oldName, newName, referenceNumber, description };
       
       this.http.post(`${this.baseUrl}/api/auth/name-change-request`, body).subscribe({
         next: (response) => {
@@ -186,6 +223,7 @@ export class RaiseRequestComponent implements OnInit {
       });
 
     } else {
+      this.requestData.description = this.requestData.description === 'Other' ? this.requestData.customReason : this.requestData.description;
       // For unblock/retrieve requests - get email from either source
       const email = this.skippedToForm ? this.requestData.email : this.email;
       const { name, description, referenceNumber } = this.requestData;

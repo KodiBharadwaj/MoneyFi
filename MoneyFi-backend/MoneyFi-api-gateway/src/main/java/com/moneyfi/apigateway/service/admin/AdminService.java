@@ -24,7 +24,7 @@ public interface AdminService {
 
     byte[] getUserDetailsExcelForAdmin(String status);
 
-    boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus);
+    boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId);
 
     Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status);
 

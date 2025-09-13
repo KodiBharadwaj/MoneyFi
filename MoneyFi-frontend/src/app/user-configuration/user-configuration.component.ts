@@ -29,6 +29,8 @@ export class UserConfigurationComponent {
   blockRequestSent = false;
   loadingBlockRequest = false;
   username = '';
+  selectedReason: string = '';
+  reasons: string[] = [];
 
   changePassword() {
     const dialogRef = this.dialog.open(ChangePasswordDialogComponent, {
@@ -83,6 +85,16 @@ export class UserConfigurationComponent {
         console.error(err);
       }
     });
+
+    this.reasons = [];
+    this.http.get<string[]>(`${this.baseUrl}/api/v1/userProfile/reasons-dialog/get?code=1`).subscribe({
+      next: (data) => {
+        this.reasons = [...data, 'Other'];
+      },
+      error: () => {
+        this.reasons = ['Other']; // fallback
+      }
+    });
   }
 
   downloadProfileTemplate() {
@@ -125,9 +137,10 @@ export class UserConfigurationComponent {
   }
 
   confirmAccountBlock() {
+    const finalReason = this.selectedReason === 'Other' ? this.description : this.selectedReason;
     const payload = {
       otp: this.otp,
-      description: this.description
+      description: finalReason
     };
 
     this.http.post(`${this.baseUrl}/api/v1/userProfile/block-account`, payload, {

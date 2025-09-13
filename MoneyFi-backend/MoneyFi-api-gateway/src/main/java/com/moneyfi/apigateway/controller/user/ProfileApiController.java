@@ -115,7 +115,12 @@ public class ProfileApiController {
                                                 @RequestBody ChangePasswordDto changePasswordDto) {
         Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         changePasswordDto.setUserId(userId);
-        return userService.changePassword(changePasswordDto);
+        try {
+            return userService.changePassword(changePasswordDto);
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     @Operation(summary = "API to send user's account statement as email")

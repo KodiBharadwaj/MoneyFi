@@ -28,6 +28,7 @@ import { UserConfigurationComponent } from './user-configuration/user-configurat
 import { AdminUserFeedbackComponent } from './admin-user-feedback/admin-user-feedback.component';
 import { AdminConfigurationComponent } from './admin-configuration/admin-configuration.component';
 import { UserNotificationsComponent } from './user-notifications/user-notifications.component';
+import { AdminReasonsComponent } from './admin-reasons/admin-reasons.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -46,6 +47,7 @@ export const routes: Routes = [
   { path: 'admin/user-defects', component: AdminUserDefectsComponent },
   { path: 'admin/feedbacks', component: AdminUserFeedbackComponent },
   { path: 'admin/configuration', component: AdminConfigurationComponent },
+  { path: 'admin/configuration/reasons', component: AdminReasonsComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard],children:[
     {path:'',component:OverviewComponent},
     {path:'overview',component:OverviewComponent},

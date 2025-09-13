@@ -18,7 +18,7 @@ public class UserAuthHist {
     private Long id;
     private Long userId;
     private LocalDateTime updatedTime;
-    private Long reasonTypeId;
+    private int reasonTypeId;
     private String comment;
     private Long updatedBy;
 }

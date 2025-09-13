@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -91,10 +93,12 @@ public class AdminController {
 
     @Operation(summary = "Api to unblock/retrieve/name change of the user account with respective details")
     @GetMapping("/admin-requests/{email}/{referenceNumber}/{requestStatus}")
-    public boolean accountReactivationAndNameChangeRequest(@PathVariable("email") String email,
+    public boolean accountReactivationAndNameChangeRequest(Authentication authentication,
+                                                           @PathVariable("email") String email,
                                                            @PathVariable("referenceNumber") String referenceNumber,
                                                            @PathVariable("requestStatus") String requestStatus){
-        return adminService.accountReactivationAndNameChangeRequest(email, referenceNumber, requestStatus);
+        Long adminUserId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        return adminService.accountReactivationAndNameChangeRequest(email, referenceNumber, requestStatus, adminUserId);
     }
 
     @Operation(summary = "Api to the user count in every month for chart")

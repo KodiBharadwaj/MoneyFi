@@ -33,24 +33,49 @@
 
   <!-- Block Account -->
   <div class="config-card">
-    <h3>Account Management 
-        <span class="hint-text">(Block your account in case of emergency)</span>
+    <h3>
+      Account Management
+      <span class="hint-text">(Block your account in case of emergency)</span>
     </h3>
-    <button 
-        class="config-btn danger" 
-        (click)="initiateAccountBlock()" 
-        [disabled]="loadingBlockRequest">
 
-        <span *ngIf="!loadingBlockRequest"> Block Account</span>
-        <span *ngIf="loadingBlockRequest" class="spinner"></span>
+    <button
+      class="config-btn danger"
+      (click)="initiateAccountBlock()"
+      [disabled]="loadingBlockRequest"
+    >
+      <span *ngIf="!loadingBlockRequest">Block Account</span>
+      <span *ngIf="loadingBlockRequest" class="spinner"></span>
     </button>
 
     <div *ngIf="blockRequestSent" class="block-inputs">
-        <input type="text" [(ngModel)]="otp" placeholder="Enter OTP" class="block-input" />
-        <input type="text" [(ngModel)]="description" placeholder="Enter Description" class="block-input" />
-        <button class="config-btn confirm" (click)="confirmAccountBlock()"> Confirm</button>
+      <input
+        type="text"
+        [(ngModel)]="otp"
+        placeholder="Enter OTP"
+        class="block-input"
+      />
+
+      <!-- Dropdown for reasons -->
+      <select [(ngModel)]="selectedReason" class="block-input">
+        <option value="" disabled selected>Select a reason</option>
+        <option *ngFor="let reason of reasons" [value]="reason">{{ reason }}</option>
+      </select>
+
+      <!-- Show extra input if "Other" selected -->
+      <input
+        *ngIf="selectedReason === 'Other'"
+        type="text"
+        [(ngModel)]="description"
+        placeholder="Enter custom reason"
+        class="block-input"
+      />
+
+      <button class="config-btn confirm" (click)="confirmAccountBlock()">
+        Confirm
+      </button>
     </div>
   </div>
+
 
 
   <!-- Profile Update -->

@@ -9,8 +9,10 @@ import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.ContactUsHist;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
+import com.moneyfi.apigateway.model.common.UserAuthHist;
 import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
 import com.moneyfi.apigateway.repository.user.ContactUsRepository;
+import com.moneyfi.apigateway.repository.user.UserAuthHistRepository;
 import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
@@ -27,10 +29,7 @@ import com.moneyfi.apigateway.service.userservice.dto.request.UserProfile;
 import com.moneyfi.apigateway.service.userservice.dto.response.ProfileChangePassword;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
-import com.moneyfi.apigateway.util.enums.OtpType;
-import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
-import com.moneyfi.apigateway.util.enums.RequestReason;
-import com.moneyfi.apigateway.util.enums.UserRoles;
+import com.moneyfi.apigateway.util.enums.*;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +73,7 @@ public class UserServiceImpl implements UserService {
     private final EmailTemplates emailTemplates;
     private final AwsServices awsServices;
     private final CloudinaryService cloudinaryService;
-
+    private final UserAuthHistRepository userAuthHistRepository;
     private final AuthenticationManager authenticationManager;
 
     public UserServiceImpl(UserRepository userRepository,
@@ -87,7 +86,8 @@ public class UserServiceImpl implements UserService {
                            AuthenticationManager authenticationManager,
                            EmailTemplates emailTemplates,
                            AwsServices awsServices,
-                           @Autowired(required = false) CloudinaryService cloudinaryService){
+                           @Autowired(required = false) CloudinaryService cloudinaryService,
+                           UserAuthHistRepository userAuthHistRepository){
         this.userRepository = userRepository;
         this.otpTempRepository = otpTempRepository;
         this.jwtService = jwtService;
@@ -99,6 +99,7 @@ public class UserServiceImpl implements UserService {
         this.emailTemplates = emailTemplates;
         this.awsServices = awsServices;
         this.cloudinaryService = cloudinaryService;
+        this.userAuthHistRepository = userAuthHistRepository;
     }
 
     @Override
@@ -242,15 +243,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public ProfileChangePassword changePassword(ChangePasswordDto changePasswordDto){
         UserAuthModel userAuthModel = userRepository.findById(changePasswordDto.getUserId()).orElse(null);
-
+        if(changePasswordDto.getDescription() == null || changePasswordDto.getDescription().trim().isEmpty()){
+            throw new ScenarioNotPossibleException("Description is mandatory");
+        }
         ProfileChangePassword dto = new ProfileChangePassword();
         if(userAuthModel == null) {
             dto.setFlag(false);
             return dto;
         }
-
         if(!encoder.matches(changePasswordDto.getCurrentPassword(), userAuthModel.getPassword())){
             dto.setFlag(false);
             return dto;
@@ -259,7 +262,6 @@ public class UserServiceImpl implements UserService {
             dto.setFlag(false);
             return dto;
         }
-
         String userName = profileRepository.findByUserId(userAuthModel.getId()).getName();
         new Thread(() ->
                 emailTemplates.sendPasswordChangeAlertMail(userName, userAuthModel.getUsername())
@@ -269,6 +271,14 @@ public class UserServiceImpl implements UserService {
         userAuthModel.setOtpCount(userAuthModel.getOtpCount()+1);
         userAuthModel.setVerificationCodeExpiration(LocalDateTime.now());
         userRepository.save(userAuthModel);
+
+        UserAuthHist userAuthHist = new UserAuthHist();
+        userAuthHist.setUserId(changePasswordDto.getUserId());
+        userAuthHist.setComment(changePasswordDto.getDescription());
+        userAuthHist.setReasonTypeId(reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT));
+        userAuthHist.setUpdatedTime(LocalDateTime.now());
+        userAuthHist.setUpdatedBy(changePasswordDto.getUserId());
+        userAuthHistRepository.save(userAuthHist);
 
         dto.setFlag(true);
         return dto;
@@ -475,26 +485,21 @@ public class UserServiceImpl implements UserService {
         if(user.isBlocked() || user.isDeleted()){
             throw new ScenarioNotPossibleException("User is not active to perform the operation");
         }
-
         List<OtpTempModel> userList = otpTempRepository.findByEmail(username);
         Optional<OtpTempModel> tempModel = userList
                 .stream()
                 .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.ACCOUNT_BLOCK.name()))
                 .findFirst();
-
         if(tempModel.isPresent()){
             if(!tempModel.get().getOtp().equals(request.getOtp())){
                 throw new ScenarioNotPossibleException("Please enter correct otp");
             }
-
             if(tempModel.get().getExpirationTime().isBefore(LocalDateTime.now())){
                 throw new ScenarioNotPossibleException("Otp expired, Try new one");
             }
-
             ProfileModel userProfile = profileRepository.findByUserId(user.getId());
             String referenceNumber = "BL" + userProfile.getName().substring(0,2) + username.substring(0,2)
                     + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
-
             user.setBlocked(true);
             userRepository.save(user);
 
@@ -517,10 +522,17 @@ public class UserServiceImpl implements UserService {
             blockAccountRequestHistory.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
             contactUsHistRepository.save(blockAccountRequestHistory);
 
+            UserAuthHist userAuthHist = new UserAuthHist();
+            userAuthHist.setUserId(user.getId());
+            userAuthHist.setComment(request.getDescription());
+            userAuthHist.setReasonTypeId(reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT));
+            userAuthHist.setUpdatedBy(user.getId());
+            userAuthHist.setUpdatedTime(LocalDateTime.now());
+            userAuthHistRepository.save(userAuthHist);
             new Thread(
                     () -> {
                         otpTempRepository.deleteByEmail(username);
-                        emailTemplates.sendReferenceNumberEmail(userProfile.getName(), username, "account block", referenceNumber);
+                        /** emailTemplates.sendReferenceNumberEmail(userProfile.getName(), username, "account block", referenceNumber); **/
                     }
             ).start();
             return ResponseEntity.ok("Account blocked successfully");
