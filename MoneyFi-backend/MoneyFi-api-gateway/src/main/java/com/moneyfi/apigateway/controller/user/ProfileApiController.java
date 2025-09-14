@@ -115,7 +115,12 @@ public class ProfileApiController {
                                                 @RequestBody ChangePasswordDto changePasswordDto) {
         Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         changePasswordDto.setUserId(userId);
-        return userService.changePassword(changePasswordDto);
+        try {
+            return userService.changePassword(changePasswordDto);
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     @Operation(summary = "API to send user's account statement as email")
@@ -199,6 +204,14 @@ public class ProfileApiController {
                                                                 @RequestParam("file") MultipartFile excel){
         Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         return profileService.parseUserProfileDataFromExcel(excel, userId);
+    }
+
+    @Operation(summary = "Api to get the reasons for the respected reason codes")
+    @GetMapping("/reasons-dialog/get")
+    public ResponseEntity<List<String>> getReasonsForDialogForUser(@RequestParam("code") int reasonCode){
+        List<String> responseList = userCommonService.getReasonsForDialogForUser(reasonCode);
+        return !responseList.isEmpty() ? ResponseEntity.status(HttpStatus.OK).body(responseList) :
+                                             ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
 
     @Operation(summary = "Method to logout/making the token blacklist")

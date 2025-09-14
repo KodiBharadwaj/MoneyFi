@@ -16,6 +16,8 @@ spring:
             user.name: client
             user.password: client123
 
+jwt:
+  secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
 
 management:
   endpoints:
@@ -25,3 +27,8 @@ management:
   endpoint:
     health:
       show-details: always
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE

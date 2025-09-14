@@ -29,6 +29,10 @@ export class UserConfigurationComponent {
   blockRequestSent = false;
   loadingBlockRequest = false;
   username = '';
+  selectedReason: string = '';
+  reasons: string[] = [];
+  isDownloading = false;
+  isUploading = false;
 
   changePassword() {
     const dialogRef = this.dialog.open(ChangePasswordDialogComponent, {
@@ -83,9 +87,20 @@ export class UserConfigurationComponent {
         console.error(err);
       }
     });
+
+    this.reasons = [];
+    this.http.get<string[]>(`${this.baseUrl}/api/v1/userProfile/reasons-dialog/get?code=1`).subscribe({
+      next: (data) => {
+        this.reasons = [...data, 'Other'];
+      },
+      error: () => {
+        this.reasons = ['Other']; // fallback
+      }
+    });
   }
 
   downloadProfileTemplate() {
+    this.isDownloading = true;
     this.http.get(`${this.baseUrl}/api/v1/userProfile/profile-details-template/download`, {
       responseType: 'blob'
     }).subscribe(blob => {
@@ -95,8 +110,10 @@ export class UserConfigurationComponent {
       a.download = 'profile-template.xlsx'; // Filename for downloaded file
       a.click();
       URL.revokeObjectURL(objectUrl);
+      this.isDownloading = false;
     }, error => {
       console.error('Download failed:', error);
+      this.isDownloading = false;
     });
   }
 
@@ -108,6 +125,7 @@ export class UserConfigurationComponent {
   uploadUserProfileExcel() {
     if (!this.selectedFile) return;
 
+    this.isUploading = true;
     const formData = new FormData();
     formData.append('file', this.selectedFile);
 
@@ -116,18 +134,21 @@ export class UserConfigurationComponent {
     }).subscribe({
       next: response => {
         this.toastr.success('Profile updated! Please check your profile page');
+        this.isUploading = false;
       },
       error: err => {
         alert('Upload failed!');
         console.error(err);
+        this.isUploading = false;
       }
     });
   }
 
   confirmAccountBlock() {
+    const finalReason = this.selectedReason === 'Other' ? this.description : this.selectedReason;
     const payload = {
       otp: this.otp,
-      description: this.description
+      description: finalReason
     };
 
     this.http.post(`${this.baseUrl}/api/v1/userProfile/block-account`, payload, {

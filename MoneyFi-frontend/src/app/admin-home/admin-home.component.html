@@ -3,6 +3,12 @@
     <div class="brand">MoneyFi Admin</div>
   </nav>
 
+  <!-- Loading Spinner -->
+  <div class="loading-spinner" *ngIf="isLogoutLoading">
+    <div class="spinner"></div>
+    <span> Logging out... </span>
+  </div>
+
   <div class="layout">
     <aside class="side-nav">
       <ul class="nav-list">

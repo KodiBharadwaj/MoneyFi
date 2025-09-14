@@ -3,6 +3,8 @@ package com.moneyfi.apigateway.controller.admin;
 import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.service.admin.AdminService;
 import com.moneyfi.apigateway.service.admin.dto.request.AdminScheduleRequestDto;
+import com.moneyfi.apigateway.service.admin.dto.request.ReasonDetailsRequestDto;
+import com.moneyfi.apigateway.service.admin.dto.request.ReasonUpdateRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
@@ -10,9 +12,12 @@ import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -88,10 +93,12 @@ public class AdminController {
 
     @Operation(summary = "Api to unblock/retrieve/name change of the user account with respective details")
     @GetMapping("/admin-requests/{email}/{referenceNumber}/{requestStatus}")
-    public boolean accountReactivationAndNameChangeRequest(@PathVariable("email") String email,
+    public boolean accountReactivationAndNameChangeRequest(Authentication authentication,
+                                                           @PathVariable("email") String email,
                                                            @PathVariable("referenceNumber") String referenceNumber,
                                                            @PathVariable("requestStatus") String requestStatus){
-        return adminService.accountReactivationAndNameChangeRequest(email, referenceNumber, requestStatus);
+        Long adminUserId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        return adminService.accountReactivationAndNameChangeRequest(email, referenceNumber, requestStatus, adminUserId);
     }
 
     @Operation(summary = "Api to the user count in every month for chart")
@@ -144,6 +151,35 @@ public class AdminController {
     @PutMapping("schedule-notification/update")
     public void updateAdminPlacedSchedules(@RequestBody @Valid AdminScheduleRequestDto requestDto){
         adminService.updateAdminPlacedSchedules(requestDto);
+    }
+
+    @Operation(summary = "Api to add the reason dropdown names")
+    @PostMapping("/reasons/add")
+    public void addReasonsForUserReasonDialog(@RequestBody ReasonDetailsRequestDto requestDto){
+        adminService.addReasonsForUserReasonDialog(requestDto);
+    }
+
+    @Operation(summary = "Api to get the reason based on reason code")
+    @GetMapping("/reasons/get")
+    public ResponseEntity<List<ReasonListResponseDto>> getAllReasonsBasedOnReasonCode(@RequestParam("code") int reasonCode){
+        List<ReasonListResponseDto> responseList = adminService.getAllReasonsBasedOnReasonCode(reasonCode);
+        if(!responseList.isEmpty()){
+            return ResponseEntity.status(HttpStatus.OK).body(responseList);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
+    @Operation(summary = "Api to update the reason string")
+    @PutMapping("/reasons/update")
+    public void updateReasonsForUserReasonDialogByReasonCode(@RequestBody ReasonUpdateRequestDto requestDto){
+        adminService.updateReasonsForUserReasonDialogByReasonCode(requestDto);
+    }
+
+    @Operation(summary = "Api to delete the reason names by admin - soft delete")
+    @DeleteMapping("/reasons/delete")
+    public void deleteReasonByReasonIdByAdmin(@RequestParam("id") int reasonId){
+        adminService.deleteReasonByReasonId(reasonId);
     }
 
     @Operation(summary = "Api to logout/making the token blacklist for admin")

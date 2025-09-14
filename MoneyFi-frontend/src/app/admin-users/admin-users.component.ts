@@ -24,6 +24,9 @@ export class AdminUsersComponent implements OnInit {
   usernameFilter: string = '';
   phoneFilter: string = '';
   isAscending: boolean = true;
+  isLoading = false;
+  isGridLoading = false;
+
 
   constructor(private router: ActivatedRoute, private adminService: AdminService, private toastr:ToastrService, private httpClient:HttpClient,
     private route:Router, private dialog: MatDialog
@@ -39,8 +42,16 @@ export class AdminUsersComponent implements OnInit {
   }
 
   fetchUsers(status: string) {
-    this.adminService.getUsersByStatus(status).subscribe(data => {
+    this.isGridLoading = true;
+    this.adminService.getUsersByStatus(status).subscribe({
+      next : (data) => {
       this.users = data;
+      this.isGridLoading = false;
+    },
+      error: (err) => {
+        console.error('Failed to fetch users', err);
+        this.isGridLoading = false;
+      }
     });
   }
 
@@ -64,6 +75,7 @@ export class AdminUsersComponent implements OnInit {
   }
 
   generateReport() {
+    this.isLoading = true;
     this.httpClient.get(`${this.baseUrl}/api/v1/admin/user-details/excel?status=${this.status}`, { responseType: 'blob' }).subscribe({
       next: (response) => {
         // Trigger File Download
@@ -76,8 +88,10 @@ export class AdminUsersComponent implements OnInit {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        this.isLoading = false;
       },
       error: (error) => {
+        this.isLoading = false;
         console.error('Failed to generate report:', error);
         // alert("Failed to generate the report. Please try again.");
         console.log(error.status)

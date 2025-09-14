@@ -1,6 +1,8 @@
 package com.moneyfi.apigateway.service.admin;
 
 import com.moneyfi.apigateway.service.admin.dto.request.AdminScheduleRequestDto;
+import com.moneyfi.apigateway.service.admin.dto.request.ReasonDetailsRequestDto;
+import com.moneyfi.apigateway.service.admin.dto.request.ReasonUpdateRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
@@ -22,7 +24,7 @@ public interface AdminService {
 
     byte[] getUserDetailsExcelForAdmin(String status);
 
-    boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus);
+    boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId);
 
     Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status);
 
@@ -41,4 +43,12 @@ public interface AdminService {
     void cancelTheUserScheduling(Long scheduleId);
 
     void updateAdminPlacedSchedules(@Valid AdminScheduleRequestDto requestDto);
+
+    void addReasonsForUserReasonDialog(ReasonDetailsRequestDto reason);
+
+    List<ReasonListResponseDto> getAllReasonsBasedOnReasonCode(int reasonCode);
+
+    void updateReasonsForUserReasonDialogByReasonCode(ReasonUpdateRequestDto requestDto);
+
+    void deleteReasonByReasonId(int reasonId);
 }

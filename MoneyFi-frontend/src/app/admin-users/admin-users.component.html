@@ -39,8 +39,19 @@
         </div>
 
         <div>
-          <button class="report-btn" (click)="generateReport()" style="margin-left: 5px;">📊 Generate Report</button>
+          <button class="report-btn" (click)="generateReport()" style="margin-left: 5px;" [disabled]="isLoading">
+            <ng-container *ngIf="!isLoading; else loadingTpl">
+              📊 Generate Report
+            </ng-container>
+            <ng-template #loadingTpl>
+              <span class="spinner"></span> Generating...
+            </ng-template>
+          </button>
         </div>
+      </div>
+
+      <div *ngIf="isGridLoading" class="grid-loader">
+        <span class="spinner"></span> Loading users...
       </div>
 
         <table class="grid-table">

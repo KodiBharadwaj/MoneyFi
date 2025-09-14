@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -149,6 +150,14 @@ private DataSource dataSource;
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
+    }
+
+    @Operation(summary = "Api to get the reasons for the respected reason codes")
+    @GetMapping("/reasons-dialog/get")
+    public ResponseEntity<List<String>> getReasonsForDialogForUser(@RequestParam("code") int reasonCode){
+        List<String> responseList = userCommonService.getReasonsForDialogForUser(reasonCode);
+        return !responseList.isEmpty() ? ResponseEntity.status(HttpStatus.OK).body(responseList) :
+                ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
 
     @GetMapping("/stream-large-data")

@@ -1,4 +1,16 @@
 <div class="goals-container">
+
+  <!-- Loading Spinner -->
+  <div class="loading-spinner" *ngIf="addGoalLoading">
+    <div class="spinner"></div>
+    <span> Adding Goal... </span>
+  </div>
+  <div class="loading-spinner" *ngIf="addAmountGoalLoading">
+    <div class="spinner"></div>
+    <span> Adding Amount... </span>
+  </div>
+
+
   <!-- Header Section -->
   <div class="header">
     <div class="title-section">

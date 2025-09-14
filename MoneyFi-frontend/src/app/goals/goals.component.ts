@@ -54,6 +54,8 @@ export class GoalsComponent {
   totalGoalSavings : number = 0;
   availableBalance : number = 0;
   totalGoalTargetAmount : number = 0;
+  addGoalLoading = false;
+  addAmountGoalLoading = false;
 
   month : number = 0;
   year : number = 0;
@@ -147,15 +149,18 @@ export class GoalsComponent {
           };
 
           if(goalData.currentAmount < this.availableBalance){
+            this.addGoalLoading = true;
             this.httpClient.post<inputGoal>(`${this.baseUrl}/api/v1/goal/saveGoal`, goalData).subscribe({
               next: (newGoal) => {
                 // const newGoalConverted = this.modelConverterFunction(newGoal); 
                 // this.goals.push(newGoalConverted); 
+                this.addGoalLoading = false;
                 this.loadGoals();
                 this.loadGoalTileData();
                 this.toastr.success('Goal ' + newGoal.goalName + ' added successfully');
               },
               error: (error) => {
+                this.addGoalLoading = false;
                 console.error('Failed to add goal data:', error);
                 if(error.status === 401){
                   if (error.error === 'TokenExpired') {
@@ -200,15 +205,16 @@ export class GoalsComponent {
 
     dialogRef.afterClosed().subscribe((amount) => {
       if (amount !== undefined && amount > 0 && amount < this.availableBalance) {
-
+        this.addAmountGoalLoading = true;
         this.httpClient.post<inputGoal>(`${this.baseUrl}/api/v1/goal/${id}/addAmount/${amount}`, null).subscribe({
             next: (response) => {
-              
+              this.addAmountGoalLoading = false;
               this.toastr.success('Amount added successully');
               this.loadGoals();
               this.loadGoalTileData();
             },
             error: (error) => {
+              this.addAmountGoalLoading = false;
               console.error('Error adding amount:', error);
               if(error.status === 401){
                 if (error.error === 'TokenExpired') {
@@ -370,6 +376,7 @@ export class GoalsComponent {
             this.toastr.warning("Goal " + goalDataFetch?.goalName +" has been deleted");
             this.loadGoals(); // Reload the data after successful deletion
             this.loadIncomeFunction();
+            this.loadGoalTileData();
           },
           error: (err) => {
             console.error('Error deleting goal:', err);

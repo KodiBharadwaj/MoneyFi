@@ -28,6 +28,7 @@ export class AdminRequestsComponent implements OnInit {
   status: string = '';
   requestType: string = '';
   requests: any[] = [];
+  isGridLoading = false;
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -37,9 +38,17 @@ export class AdminRequestsComponent implements OnInit {
   }
 
   fetchUsers(status: string) {
-    this.adminService.getUserRequestsByStatus(status).subscribe(data => {
+    this.isGridLoading = true;
+    this.adminService.getUserRequestsByStatus(status).subscribe({
+      next : (data) => {
       this.requests = data;
-    });
+      this.isGridLoading = false;
+    },
+      error: (err) => {
+        console.error('Failed to fetch requests', err);
+        this.isGridLoading = false;
+      }
+    })
   }
 
   approveUserRequest(request: any, status: string): void {

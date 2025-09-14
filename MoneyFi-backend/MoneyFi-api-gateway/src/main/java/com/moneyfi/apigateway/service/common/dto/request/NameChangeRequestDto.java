@@ -12,4 +12,5 @@ public class NameChangeRequestDto {
     private String oldName;
     private String newName;
     private String referenceNumber;
+    private String description;
 }

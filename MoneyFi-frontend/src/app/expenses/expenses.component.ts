@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AddExpenseDialogComponent } from '../add-expense-dialog/add-expense-dialog.component';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
@@ -69,6 +69,7 @@ export class ExpensesComponent {
   spentPercentage: number = 0;
   thisMonthincomeLeft: number = 0;
   overallincomeLeft: number = 0;
+  isLoading = false;
 
   public pieChartData: ChartData<'pie' | 'doughnut', number[], string> = {
     labels: [],
@@ -96,12 +97,18 @@ export class ExpensesComponent {
     },
   };
 
-  constructor(private httpClient: HttpClient, private dialog: MatDialog, private router:Router, private toastr:ToastrService) {}
+  constructor(private httpClient: HttpClient, private dialog: MatDialog, private router:Router, 
+    private toastr:ToastrService, private activateRoute: ActivatedRoute) {}
 
   baseUrl = environment.BASE_URL;
 
 
   ngOnInit() {
+    this.activateRoute.queryParams.subscribe(params => {
+      if (params['openDialog']) {
+        this.addExpense();
+      }
+    });
     this.initializeFilters();
     
     // Set the default month to the current month (1-based index)
@@ -445,6 +452,7 @@ export class ExpensesComponent {
 
 
   generateReport() {
+    this.isLoading = true;
 
     let url: string;
     if (this.selectedMonth === 0) {
@@ -466,8 +474,10 @@ export class ExpensesComponent {
           a.click();
           window.URL.revokeObjectURL(url);
           document.body.removeChild(a);
+          this.isLoading = false;
         },
         error: (error) => {
+          this.isLoading = false;
           console.error('Failed to generate report:', error);
           alert("Failed to generate the report. Please try again.");
           if(error.status === 401){

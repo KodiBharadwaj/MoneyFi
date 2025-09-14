@@ -33,44 +33,97 @@
 
   <!-- Block Account -->
   <div class="config-card">
-    <h3>Account Management 
-        <span class="hint-text">(Block your account in case of emergency)</span>
+    <h3>
+      Account Management
+      <span class="hint-text">(Block your account in case of emergency)</span>
     </h3>
-    <button 
-        class="config-btn danger" 
-        (click)="initiateAccountBlock()" 
-        [disabled]="loadingBlockRequest">
 
-        <span *ngIf="!loadingBlockRequest"> Block Account</span>
-        <span *ngIf="loadingBlockRequest" class="spinner"></span>
+    <button
+      class="config-btn danger"
+      (click)="initiateAccountBlock()"
+      [disabled]="loadingBlockRequest"
+    >
+      <span *ngIf="!loadingBlockRequest">Block Account</span>
+      <span *ngIf="loadingBlockRequest" class="spinner"></span>
     </button>
 
     <div *ngIf="blockRequestSent" class="block-inputs">
-        <input type="text" [(ngModel)]="otp" placeholder="Enter OTP" class="block-input" />
-        <input type="text" [(ngModel)]="description" placeholder="Enter Description" class="block-input" />
-        <button class="config-btn confirm" (click)="confirmAccountBlock()"> Confirm</button>
-    </div>
-  </div>
+      <input
+        type="text"
+        [(ngModel)]="otp"
+        placeholder="Enter OTP"
+        class="block-input"
+      />
 
+      <!-- Dropdown for reasons -->
+      <select [(ngModel)]="selectedReason" class="block-input">
+        <option value="" disabled selected>Select a reason</option>
+        <option *ngFor="let reason of reasons" [value]="reason">{{ reason }}</option>
+      </select>
 
-  <!-- Profile Update -->
-  <div class="config-card">
-    <h3>Profile Update 
-        <span class="hint-text">(Update your profile data with excel template)</span>
-    </h3>
-    <button class="config-btn secondary" (click)="downloadProfileTemplate()">
-       Download Profile Template
-    </button>
+      <!-- Show extra input if "Other" selected -->
+      <input
+        *ngIf="selectedReason === 'Other'"
+        type="text"
+        [(ngModel)]="description"
+        placeholder="Enter custom reason"
+        class="block-input"
+      />
 
-    <div class="upload-section">
-      <input type="file" id="fileUpload" (change)="onFileSelected($event)" accept=".xlsx" hidden />
-      <label for="fileUpload" class="file-label">📂 Choose File</label>
-      <span class="file-name" *ngIf="selectedFile">{{ selectedFile.name }}</span>
-      <button class="config-btn upload" (click)="uploadUserProfileExcel()" [disabled]="!selectedFile">
-         Upload
+      <button class="config-btn confirm" (click)="confirmAccountBlock()">
+        Confirm
       </button>
     </div>
   </div>
+
+
+
+ <!-- Profile Update -->
+<div class="config-card">
+  <h3>
+    Profile Update
+    <span class="hint-text">(Update your profile data with excel template)</span>
+  </h3>
+
+  <!-- Download Button -->
+  <button 
+    class="config-btn secondary" 
+    (click)="downloadProfileTemplate()" 
+    [disabled]="isDownloading">
+    <ng-container *ngIf="!isDownloading; else downloadSpinner">
+      Download Profile Template
+    </ng-container>
+    <ng-template #downloadSpinner>
+      <span class="spinner"></span> Downloading...
+    </ng-template>
+  </button>
+
+  <div class="upload-section">
+    <input 
+      type="file" 
+      id="fileUpload" 
+      (change)="onFileSelected($event)" 
+      accept=".xlsx" 
+      hidden 
+    />
+    <label for="fileUpload" class="file-label">📂 Choose File</label>
+    <span class="file-name" *ngIf="selectedFile">{{ selectedFile.name }}</span>
+
+    <!-- Upload Button -->
+    <button 
+      class="config-btn upload" 
+      (click)="uploadUserProfileExcel()" 
+      [disabled]="!selectedFile || isUploading">
+      <ng-container *ngIf="!isUploading; else uploadSpinner">
+        Upload
+      </ng-container>
+      <ng-template #uploadSpinner>
+        <span class="spinner"></span> Uploading...
+      </ng-template>
+    </button>
+  </div>
+</div>
+
 
   <div class="config-card">
     <h2>Raise a Report/Feedback</h2>

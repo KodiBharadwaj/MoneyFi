@@ -7,18 +7,12 @@ import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
-import com.moneyfi.apigateway.model.common.ContactUs;
-import com.moneyfi.apigateway.model.common.ContactUsHist;
-import com.moneyfi.apigateway.model.common.ProfileModel;
-import com.moneyfi.apigateway.model.common.UserNotification;
+import com.moneyfi.apigateway.model.common.*;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
-import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
-import com.moneyfi.apigateway.repository.user.ContactUsRepository;
-import com.moneyfi.apigateway.repository.user.UserNotificationRepository;
+import com.moneyfi.apigateway.repository.user.*;
 import com.moneyfi.apigateway.repository.user.auth.SessionTokenRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
-import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
@@ -56,6 +50,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final UserNotificationRepository userNotificationRepository;
     private final EmailTemplates emailTemplates;
     private final RestTemplate externalRestTemplate;
+    private final ReasonDetailsRepository reasonDetailsRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -68,7 +63,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  CommonServiceRepository commonServiceRepository,
                                  UserNotificationRepository userNotificationRepository,
                                  EmailTemplates emailTemplates,
-                                 RestTemplate externalRestTemplate){
+                                 RestTemplate externalRestTemplate,
+                                 ReasonDetailsRepository reasonDetailsRepository){
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
         this.sessionTokenRepository = sessionTokenRepository;
@@ -79,17 +75,16 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.userNotificationRepository = userNotificationRepository;
         this.emailTemplates = emailTemplates;
         this.externalRestTemplate = externalRestTemplate;
+        this.reasonDetailsRepository = reasonDetailsRepository;
     }
 
     private static final String REFERENCE_NUMBER_SENT = "Reference already sent, Please submit your details";
     private static final String USER_NOT_FOUND = "User not found. Please check your details";
     private static final String DETAILS_ALREADY_SUBMITTED = "Details are already submitted. Please check the status";
 
-
     @Override
     @Transactional
     public String forgotPassword(String email) {
-
         UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
         if(userAuthModel == null){
             throw new ResourceNotFoundException("No userAuthModel Found");
@@ -103,7 +98,6 @@ public class UserCommonServiceImpl implements UserCommonService {
 
         String verificationCode = generateVerificationCode();
 
-
         userAuthModel.setVerificationCode(verificationCode);
         userAuthModel.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(5));
         userAuthModel.setOtpCount(userAuthModel.getOtpCount() + 1);
@@ -115,7 +109,6 @@ public class UserCommonServiceImpl implements UserCommonService {
         if(isMailSent){
             return "Verification code sent to your email!";
         }
-
         return "cant send mail!";
     }
 
@@ -125,7 +118,6 @@ public class UserCommonServiceImpl implements UserCommonService {
         if(userAuthModel == null){
              throw new ResourceNotFoundException("UserAuthModel not found");
         }
-
         return userAuthModel.getVerificationCode().equals(code) && LocalDateTime.now().isBefore(userAuthModel.getVerificationCodeExpiration());
     }
 
@@ -135,7 +127,6 @@ public class UserCommonServiceImpl implements UserCommonService {
         if(userAuthModel ==null){
             return "userAuthModel not found for given email...";
         }
-
         PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
         userAuthModel.setPassword(passwordEncoder.encode(password));
         userRepository.save(userAuthModel);
@@ -171,41 +162,33 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Transactional
     public Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email) {
         Map<Boolean, String> response = new HashMap<>();
-
         UserAuthModel user = userRepository.getUserDetailsByUsername(email);
         if(user == null){
             throw new ResourceNotFoundException("User not found");
         }
-
         List<ContactUs> contactUsDetails = contactUsRepository.findByEmail(email);
-
         if(requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
             if(user.isDeleted() || !user.isBlocked()){
                 throw new ScenarioNotPossibleException(user.isDeleted()?"Account is deleted. Raise retrieval request" :
                         "User is not blocked to perform this operation");
             }
-
             Optional<ContactUs> report = contactUsDetails
                     .stream()
                     .filter(ContactUs::isRequestActive)
                     .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
                     .filter(i -> i.getReferenceNumber() != null)
                     .findFirst();
-
             if(report.isPresent()){
                 throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size()==1?REFERENCE_NUMBER_SENT :
                         DETAILS_ALREADY_SUBMITTED);
             }
-
             Optional<ContactUs> requestDetails = contactUsDetails
                     .stream()
                     .filter(ContactUs::isRequestActive)
                     .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_BLOCK_REQUEST.name()))
                     .findFirst();
-
             boolean isEmailSent = emailTemplates
                     .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account unblock", requestDetails.get().getReferenceNumber());
-
             if(isEmailSent){
                 requestDetails.get().setRequestStatus(RaiseRequestStatus.INITIATED.name());
                 requestDetails.get().setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
@@ -226,7 +209,6 @@ public class UserCommonServiceImpl implements UserCommonService {
                 throw new ScenarioNotPossibleException(user.isDeleted()?"Account is deleted. Raise retrieval request" :
                         "Name change is not possible since user is blocked");
             }
-
             Optional<ContactUs> report = contactUsDetails
                     .stream()
                     .filter(ContactUs::isRequestActive)
@@ -237,14 +219,11 @@ public class UserCommonServiceImpl implements UserCommonService {
                 throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size()==1?REFERENCE_NUMBER_SENT :
                         DETAILS_ALREADY_SUBMITTED);
             }
-
             ProfileModel userProfile = profileRepository.findByUserId(user.getId());
             String referenceNumber = "NA" + userProfile.getName().substring(0,2) + email.substring(0,2)
                     + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
-
             boolean isEmailSent = emailTemplates
                     .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "change name", referenceNumber);
-
             if(isEmailSent){
                 ContactUs saveRequest = new ContactUs();
                 saveRequest.setEmail(email);
@@ -270,7 +249,6 @@ public class UserCommonServiceImpl implements UserCommonService {
             if(!user.isDeleted()){
                 throw new ScenarioNotPossibleException("Account is already in active!");
             }
-
             Optional<ContactUs> report = contactUsDetails
                     .stream()
                     .filter(ContactUs::isRequestActive)
@@ -281,11 +259,9 @@ public class UserCommonServiceImpl implements UserCommonService {
                 throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size()==1?REFERENCE_NUMBER_SENT :
                         DETAILS_ALREADY_SUBMITTED);
             }
-
             String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
             boolean isEmailSent = emailTemplates
                     .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account retrieve", referenceNumber);
-
             if(isEmailSent){
                 ContactUs saveRequest = new ContactUs();
                 saveRequest.setEmail(email);
@@ -299,7 +275,6 @@ public class UserCommonServiceImpl implements UserCommonService {
                 return response;
             }
         }
-
         response.put(false, "Failed to send email! Try later");
         return response;
     }
@@ -308,14 +283,12 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Transactional
     public void accountUnblockRequestByUser(AccountRetrieveRequestDto requestDto) {
         List<ContactUs> contactUsDetails = contactUsRepository.findByEmail(requestDto.getUsername());
-
         if(requestDto.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
             Optional<ContactUs> report = contactUsDetails
                     .stream()
                     .filter(ContactUs::isRequestActive)
                     .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
                     .findFirst();
-
             ContactUs user = report.orElseThrow(() -> new RuntimeException());
 
             if(user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
@@ -343,7 +316,6 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
                     .findFirst();
             ContactUs user = report.orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
-
             if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
                 throw new ScenarioNotPossibleException("Incorrect Reference Number!");
             user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
@@ -356,31 +328,30 @@ public class UserCommonServiceImpl implements UserCommonService {
             userRequestHist.setUpdatedTime(LocalDateTime.now());
             contactUsHistRepository.save(userRequestHist);
         }
-
     }
 
     @Override
     @Transactional
     public void nameChangeRequestByUser(NameChangeRequestDto requestDto) {
+        if(requestDto.getDescription() == null || requestDto.getDescription().trim().isEmpty()){
+            throw new ScenarioNotPossibleException("Description can't be empty");
+        }
         List<ContactUs> contactUsDetails = contactUsRepository.findByEmail(requestDto.getEmail());
         Optional<ContactUs> report = contactUsDetails
                 .stream()
                 .filter(ContactUs::isRequestActive)
                 .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name()))
                 .findFirst();
-
         ContactUs user = report.orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
-
         if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
             throw new ScenarioNotPossibleException("Incorrect Reference Number!");
-
         user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
         ContactUs savedRequest = contactUsRepository.save(user);
 
         ContactUsHist userRequestHist = new ContactUsHist();
         userRequestHist.setContactUsId(savedRequest.getId());
         userRequestHist.setName(requestDto.getNewName());
-        userRequestHist.setMessage(requestDto.getOldName());
+        userRequestHist.setMessage(requestDto.getOldName() + "," + requestDto.getDescription());
         userRequestHist.setUpdatedTime(LocalDateTime.now());
         userRequestHist.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
         userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
@@ -419,7 +390,6 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Override
     public QuoteResponseDto getTodayQuoteByExternalCall(String externalApiUrl) {
         QuoteResponseDto quoteResponseDto = new QuoteResponseDto();
-
         try {
             String jsonStringResponse = externalRestTemplate.getForObject(DAILY_QUOTE_EXTERNAL_API_URL, String.class);
 
@@ -430,12 +400,10 @@ public class UserCommonServiceImpl implements UserCommonService {
                 quoteResponseDto.setDescription(quoteList.get(0).getDescription());
                 return quoteResponseDto;
             }
-
         } catch (Exception e){
             e.printStackTrace();
             throw new ScenarioNotPossibleException("Failed to parse the json response -> " + e);
         }
-
         throw new ResourceNotFoundException("No quote response found from external api");
     }
 
@@ -467,5 +435,15 @@ public class UserCommonServiceImpl implements UserCommonService {
             notification.setRead(true);
             userNotificationRepository.save(notification);
         });
+    }
+
+    @Override
+    public List<String> getReasonsForDialogForUser(int reasonCode) {
+        return reasonDetailsRepository.findAll()
+                .stream()
+                .filter(reasonDetails -> reasonDetails.getReasonCode() == reasonCode)
+                .filter(reasonDetails -> !reasonDetails.getIsDeleted())
+                .map(ReasonDetails::getReason)
+                .toList();
     }
 }

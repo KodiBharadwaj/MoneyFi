@@ -103,12 +103,19 @@
   <div class="table-container">
     <div class="header">
       <h2>Income Sources</h2>
-
       <div>
         <button class="report-btn" (click)="isDeletedClicked()"> Deleted Incomes </button>
-        <button class="report-btn" (click)="generateReport()" style="margin-left: 5px;">📊 Generate Report</button>
+         <button class="report-btn" (click)="generateReport()" style="margin-left: 5px;" [disabled]="isLoading">
+          <ng-container *ngIf="!isLoading; else loadingTpl">
+            📊 Generate Report
+          </ng-container>
+          <ng-template #loadingTpl>
+            <span class="spinner"></span> Generating...
+          </ng-template>
+        </button>
       </div>
     </div>
+    <p style="color:rgb(224, 5, 5);">Note: Recurring incomes of this month will be automatically added in next month.</p>
     <table *ngIf="!loading && incomeSources.length > 0">
       <thead>
         <tr>

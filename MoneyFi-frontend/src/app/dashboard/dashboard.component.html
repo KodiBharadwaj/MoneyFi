@@ -1,5 +1,11 @@
-
 <div class="dashboard-container">
+
+  <!-- Loading Spinner -->
+  <div class="loading-spinner" *ngIf="isLogoutLoading">
+    <div class="spinner"></div>
+    <span> Logging out... </span>
+  </div>
+
   <!-- Sidebar -->
   <nav class="sidebar">
     <div class="logo">
