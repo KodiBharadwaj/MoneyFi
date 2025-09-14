@@ -20,7 +20,15 @@
     </aside>
 
     <div class="table-container">
-      <table class="user-table" *ngIf="requests.length > 0; else noRequests">
+      
+
+      <ng-template #loadingTpl>
+      <div *ngIf="isGridLoading; else noRequests" class="grid-loader">
+        <span class="spinner"></span> Loading requests...
+      </div>
+    </ng-template>
+
+      <table class="user-table" *ngIf="requests.length > 0; else loadingTpl">
         <thead>
           <tr>
             <th>Username</th>

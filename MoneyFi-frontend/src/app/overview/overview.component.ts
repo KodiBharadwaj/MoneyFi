@@ -125,7 +125,9 @@ export class OverviewComponent implements OnInit {
 
 
   addExpenses() {
-    this.router.navigate(['dashboard/expenses']);
+    this.router.navigate(['dashboard/expenses'], {
+      queryParams: { openDialog: true }
+    });
   }
 
   createBudget() {

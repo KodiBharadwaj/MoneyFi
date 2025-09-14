@@ -24,6 +24,7 @@ export class UserNotificationsComponent implements OnInit {
 
   notifications: UserNotification[] = [];
   selectedIds: number[] = [];
+  isLoading = false;
 
   constructor(private http: HttpClient, private notificationService: NotificationService) {}
 
@@ -34,13 +35,16 @@ export class UserNotificationsComponent implements OnInit {
   }
 
   loadNotifications() {
+    this.isLoading = true;
     this.http.get<UserNotification[]>(`${this.baseUrl}/api/v1/userProfile/get-notifications`)
       .subscribe({
         next: (data) => {
           this.notifications = data;
+          this.isLoading = false;
         },
         error: (err) => {
           console.error('Error fetching notifications', err);
+          this.isLoading = false;
         }
       });
   }

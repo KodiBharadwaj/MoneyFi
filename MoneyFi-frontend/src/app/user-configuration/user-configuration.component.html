@@ -78,24 +78,52 @@
 
 
 
-  <!-- Profile Update -->
-  <div class="config-card">
-    <h3>Profile Update 
-        <span class="hint-text">(Update your profile data with excel template)</span>
-    </h3>
-    <button class="config-btn secondary" (click)="downloadProfileTemplate()">
-       Download Profile Template
-    </button>
+ <!-- Profile Update -->
+<div class="config-card">
+  <h3>
+    Profile Update
+    <span class="hint-text">(Update your profile data with excel template)</span>
+  </h3>
 
-    <div class="upload-section">
-      <input type="file" id="fileUpload" (change)="onFileSelected($event)" accept=".xlsx" hidden />
-      <label for="fileUpload" class="file-label">📂 Choose File</label>
-      <span class="file-name" *ngIf="selectedFile">{{ selectedFile.name }}</span>
-      <button class="config-btn upload" (click)="uploadUserProfileExcel()" [disabled]="!selectedFile">
-         Upload
-      </button>
-    </div>
+  <!-- Download Button -->
+  <button 
+    class="config-btn secondary" 
+    (click)="downloadProfileTemplate()" 
+    [disabled]="isDownloading">
+    <ng-container *ngIf="!isDownloading; else downloadSpinner">
+      Download Profile Template
+    </ng-container>
+    <ng-template #downloadSpinner>
+      <span class="spinner"></span> Downloading...
+    </ng-template>
+  </button>
+
+  <div class="upload-section">
+    <input 
+      type="file" 
+      id="fileUpload" 
+      (change)="onFileSelected($event)" 
+      accept=".xlsx" 
+      hidden 
+    />
+    <label for="fileUpload" class="file-label">📂 Choose File</label>
+    <span class="file-name" *ngIf="selectedFile">{{ selectedFile.name }}</span>
+
+    <!-- Upload Button -->
+    <button 
+      class="config-btn upload" 
+      (click)="uploadUserProfileExcel()" 
+      [disabled]="!selectedFile || isUploading">
+      <ng-container *ngIf="!isUploading; else uploadSpinner">
+        Upload
+      </ng-container>
+      <ng-template #uploadSpinner>
+        <span class="spinner"></span> Uploading...
+      </ng-template>
+    </button>
   </div>
+</div>
+
 
   <div class="config-card">
     <h2>Raise a Report/Feedback</h2>

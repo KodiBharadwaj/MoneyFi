@@ -111,8 +111,17 @@
   <div class="table-container">
     <div class="header">
       <h2>Expenses</h2>
-      <button class="report-btn" (click)="generateReport()">📊 Generate Report</button>
+      <!-- <button class="report-btn" (click)="generateReport()">📊 Generate Report</button> -->
+      <button class="report-btn" (click)="generateReport()" [disabled]="isLoading">
+        <ng-container *ngIf="!isLoading; else loadingTpl">
+          📊 Generate Report
+        </ng-container>
+        <ng-template #loadingTpl>
+          <span class="spinner"></span> Generating...
+        </ng-template>
+      </button>
     </div>
+    <p style="color:rgb(224, 5, 5);">Note: Recurring expenses of this month will be automatically added in next month.</p>
     <table *ngIf="!loading && expenses.length > 0">
       <thead>
         <tr>

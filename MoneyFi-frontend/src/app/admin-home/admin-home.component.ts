@@ -38,7 +38,8 @@ export class AdminHomeComponent implements OnInit {
   nameChangeRequests = 0;
   accountReactivateRequests = 0;
   userDefectRaises = 0;
-  userFeedbacks = 0
+  userFeedbacks = 0;
+  isLogoutLoading = false;
 
   showGrid = false;
   selectedTile = '';
@@ -127,12 +128,12 @@ export class AdminHomeComponent implements OnInit {
         width: '400px',
         panelClass: 'custom-dialog-container',
       });
-    
       dialogRef.afterClosed().subscribe((result) => {
         if (result) {
-  
+          this.isLogoutLoading = true;
           this.httpClient.post(`${this.baseUrl}/api/v1/admin/logout`, {}, { responseType: 'text' }).subscribe({
             next: (response) => {
+              this.isLogoutLoading = false;
               const jsonResponse = JSON.parse(response);
               if(jsonResponse.message === 'Logged out successfully'){
                   this.toastr.success(jsonResponse.message, '', {
@@ -146,6 +147,7 @@ export class AdminHomeComponent implements OnInit {
               }
             },
             error: (error) => {
+              this.isLogoutLoading = false;
               console.error(error);
               this.toastr.error('Failed to logout')
             }

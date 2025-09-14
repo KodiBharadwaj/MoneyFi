@@ -61,7 +61,7 @@ export class IncomeComponent {
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
-  
+  isLoading = false;
   
 
   availableYears: number[] = [];
@@ -468,6 +468,7 @@ export class IncomeComponent {
 
 
   generateReport() {
+    this.isLoading = true;
 
     let url: string;
     if (this.selectedMonth === 0) {
@@ -488,8 +489,10 @@ export class IncomeComponent {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        this.isLoading = false;
       },
       error: (error) => {
+        this.isLoading = false;
         console.error('Failed to generate report:', error);
         // alert("Failed to generate the report. Please try again.");
         console.log(error.status)

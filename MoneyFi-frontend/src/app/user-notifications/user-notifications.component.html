@@ -1,8 +1,14 @@
 <div class="notifications-container">
   <h2>User Notifications</h2>
 
+  <!-- Spinner while loading -->
+  <div class="loading" *ngIf="isLoading">
+    <span class="spinner"></span>
+    <p>Loading notifications...</p>
+  </div>
+
   <!-- Top Action Bar -->
-  <div class="action-bar" *ngIf="notifications.length > 0">
+  <div class="action-bar" *ngIf="!isLoading && notifications.length > 0">
     <button
       class="mark-read-btn"
       [disabled]="selectedIds.length === 0"
@@ -13,12 +19,13 @@
   </div>
 
   <!-- No Notifications -->
-  <div *ngIf="notifications.length === 0" class="empty-state">
+  <div *ngIf="!isLoading && notifications.length === 0" class="empty-state">
     <i class="fa fa-bell-slash"></i>
     <p>No new notifications</p>
   </div>
 
   <!-- Notifications List -->
+<ng-container *ngIf="!isLoading">
   <div
     *ngFor="let notif of notifications"
     class="notification-card"
@@ -45,4 +52,6 @@
     </div>
     <p class="description">{{ notif.description }}</p>
   </div>
+</ng-container>
+
 </div>
