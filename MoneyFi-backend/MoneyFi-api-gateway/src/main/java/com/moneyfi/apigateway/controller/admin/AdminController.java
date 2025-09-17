@@ -2,10 +2,7 @@ package com.moneyfi.apigateway.controller.admin;
 
 import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.service.admin.AdminService;
-import com.moneyfi.apigateway.service.admin.dto.request.AdminScheduleRequestDto;
-import com.moneyfi.apigateway.service.admin.dto.request.ReasonDetailsRequestDto;
-import com.moneyfi.apigateway.service.admin.dto.request.ReasonUpdateRequestDto;
-import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
+import com.moneyfi.apigateway.service.admin.dto.request.*;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.apigateway.service.userservice.UserService;
@@ -92,13 +89,11 @@ public class AdminController {
     }
 
     @Operation(summary = "Api to unblock/retrieve/name change of the user account with respective details")
-    @GetMapping("/admin-requests/{email}/{referenceNumber}/{requestStatus}")
+    @PostMapping("/user-requests/action")
     public boolean accountReactivationAndNameChangeRequest(Authentication authentication,
-                                                           @PathVariable("email") String email,
-                                                           @PathVariable("referenceNumber") String referenceNumber,
-                                                           @PathVariable("requestStatus") String requestStatus){
+                                                           @RequestBody UserRequestsApprovalDto requestDto){
         Long adminUserId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        return adminService.accountReactivationAndNameChangeRequest(email, referenceNumber, requestStatus, adminUserId);
+        return adminService.accountReactivationAndNameChangeRequest(requestDto.getEmail(), requestDto.getReferenceNumber(), requestDto.getRequestStatus(), adminUserId, requestDto.getApproveStatus(), requestDto.getDeclineReason());
     }
 
     @Operation(summary = "Api to the user count in every month for chart")

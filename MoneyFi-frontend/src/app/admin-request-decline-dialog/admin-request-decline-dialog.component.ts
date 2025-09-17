@@ -1,40 +1,41 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { HttpClient } from '@angular/common/http';
-import { CommonModule } from '@angular/common';
+import { environment } from '../../environments/environment';
 import { FormsModule } from '@angular/forms';
-import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
-import { environment } from '../../environments/environment';
+import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-admin-request-dialog',
-  templateUrl: './admin-request-dialog.component.html',
-  styleUrls: ['./admin-request-dialog.component.css'],
-  standalone : true,
+  selector: 'app-admin-request-decline-dialog',
+  standalone: true,
   imports: [FormsModule,
-      MatInputModule,
-      MatCheckboxModule,
-      MatButtonModule,
-      MatDialogModule,
-      MatFormFieldModule,
-      MatSelectModule,
-      MatDatepickerModule,
-      MatNativeDateModule,
-      MatIconModule,
-    CommonModule],
+        MatInputModule,
+        MatCheckboxModule,
+        MatButtonModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        MatIconModule,
+      CommonModule],
+  templateUrl: './admin-request-decline-dialog.component.html',
+  styleUrl: './admin-request-decline-dialog.component.css'
 })
-export class AdminRequestDialogComponent {
-  enteredRefNumber: string = '';
+export class AdminRequestDeclineDialogComponent {
+enteredRefNumber: string = '';
+declineReasonInput : string = '';
 
   constructor(
-    public dialogRef: MatDialogRef<AdminRequestDialogComponent>,
+    public dialogRef: MatDialogRef<AdminRequestDeclineDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private http: HttpClient
   ) {}
@@ -51,14 +52,14 @@ export class AdminRequestDialogComponent {
         email : this.data.username,
         referenceNumber : this.enteredRefNumber,
         requestStatus : this.data.requestType,
-        declineReason : '',
-        approveStatus : 'Approve'
+        declineReason : this.declineReasonInput,
+        approveStatus : 'Decline'
       }
       this.http.post(`${this.baseUrl}/api/v1/admin/user-requests/action`, dto).subscribe({
         next : () => {
-          this.dialogRef.close('approved');
+          this.dialogRef.close('declined');
         },
-        error : () => alert('Failed to approve')
+        error : () => alert('Failed to decline')
       })
     } else {
       alert('Reference number does not match!');

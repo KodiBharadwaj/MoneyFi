@@ -9,6 +9,7 @@ import { AdminRequestDialogComponent } from '../admin-request-dialog/admin-reque
 import { ConfirmLogoutDialogComponent } from '../confirm-logout-dialog/confirm-logout-dialog.component';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { AdminRequestDeclineDialogComponent } from '../admin-request-decline-dialog/admin-request-decline-dialog.component';
 
 @Component({
   selector: 'app-admin-requests',
@@ -52,10 +53,14 @@ export class AdminRequestsComponent implements OnInit {
   }
 
   approveUserRequest(request: any, status: string): void {
-    console.log(status)
     if(status === 'Rename') this.requestType = 'NAME_CHANGE_REQUEST';
     else if(status === 'Unblock') this.requestType = 'ACCOUNT_UNBLOCK_REQUEST';
     else if(status === 'Retrieve') this.requestType = 'ACCOUNT_NOT_DELETE_REQUEST';
+    else if(status === 'All'){
+      if(request.requestType === 'Account Unblock') this.requestType = 'ACCOUNT_UNBLOCK_REQUEST';
+      else if(request.requestType === 'Name Change') this.requestType = 'NAME_CHANGE_REQUEST';
+      else if(request.requestType === 'Account Retrieval') this.requestType = 'ACCOUNT_NOT_DELETE_REQUEST';
+    }
 
     const dialogRef = this.dialog.open(AdminRequestDialogComponent, {
       width: '400px',
@@ -71,6 +76,31 @@ export class AdminRequestsComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result === 'approved') {
         this.toastr.success('Request has been approved');
+        this.fetchUsers(status);
+      }
+    });
+  }
+
+  declineUserRequest(request: any, status: string): void {
+    console.log(status)
+    if(status === 'Rename') this.requestType = 'NAME_CHANGE_REQUEST';
+    else if(status === 'Unblock') this.requestType = 'ACCOUNT_UNBLOCK_REQUEST';
+    else if(status === 'Retrieve') this.requestType = 'ACCOUNT_NOT_DELETE_REQUEST';
+
+    const dialogRef = this.dialog.open(AdminRequestDeclineDialogComponent, {
+      width: '400px',
+      data: {
+        name: request.name,
+        username: request.username,
+        description: request.description,
+        referenceNumber: request.referenceNumber,
+        requestType : this.requestType
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'declined') {
+        this.toastr.success('Request has been declined');
         this.fetchUsers(status);
       }
     });
