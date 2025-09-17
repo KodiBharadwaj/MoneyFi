@@ -50,7 +50,10 @@
               <button class="copy-btn" (click)="copyToClipboard(request.referenceNumber)">📋</button>
             </td>
             <td>
-              <button class="approve-btn" (click)="approveUserRequest(request, status)">Approve</button>
+              <div class="action-buttons">
+                <button class="approve-btn" (click)="approveUserRequest(request, status)">Approve</button>
+                <button class="decline-btn" (click)="declineUserRequest(request, status)">Decline</button>
+              </div>
             </td>
 
           </tr>

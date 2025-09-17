@@ -15,10 +15,7 @@ import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequ
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.AwsServices;
 import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
-import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
-import com.moneyfi.apigateway.util.enums.ReasonEnum;
-import com.moneyfi.apigateway.util.enums.RequestReason;
-import com.moneyfi.apigateway.util.enums.UserRoles;
+import com.moneyfi.apigateway.util.enums.*;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -163,15 +160,17 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId) {
+    public boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId, String approveStatus, String declineReason) {
         return contactUsRepository.findByEmail(email)
                 .stream()
                 .filter(ContactUs::isRequestActive)
                 .filter(i -> i.getReferenceNumber() != null &&
                         i.getReferenceNumber().trim().equalsIgnoreCase(referenceNumber.trim()))
                 .findFirst()
-                .map(i -> {
-                    functionCallToChangeDetails(email, i, requestStatus, adminUserId);
+                .map(request -> {
+                    if(approveStatus.equalsIgnoreCase(ApproveStatus.APPROVE.name()))
+                    functionCallToChangeDetails(email, request, requestStatus, adminUserId);
+                    else if(approveStatus.equalsIgnoreCase(ApproveStatus.DECLINE.name())) functionCallToDeclineTheUserRequest(request, declineReason);
                     return true;
                 })
                 .orElse(false);
@@ -243,6 +242,26 @@ public class AdminServiceImpl implements AdminService {
         userAuthHist.setComment(comment);
         userAuthHist.setUpdatedBy(updatedUserId);
         userAuthHistRepository.save(userAuthHist);
+    }
+
+    private void functionCallToDeclineTheUserRequest(ContactUs contactUs, String declineReason){
+        if(declineReason == null || declineReason.trim().isEmpty()){
+            throw new ScenarioNotPossibleException("Decline reason should not be empty");
+        }
+        contactUs.setCompletedTime(LocalDateTime.now());
+        contactUs.setRequestActive(false);
+        contactUs.setVerified(true);
+        contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
+        contactUs.setRequestStatus(RaiseRequestStatus.CANCELLED.name());
+        ContactUs response = contactUsRepository.save(contactUs);
+
+        ContactUsHist contactUsHist = new ContactUsHist();
+        contactUsHist.setContactUsId(response.getId());
+        contactUsHist.setMessage(declineReason);
+        contactUsHist.setRequestReason(response.getRequestReason());
+        contactUsHist.setRequestStatus(response.getRequestStatus());
+        contactUsHist.setUpdatedTime(response.getCompletedTime());
+        contactUsHistRepository.save(contactUsHist);
     }
 
     @Override
