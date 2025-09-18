@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
 
-    @Query(nativeQuery = true, value = "exec getAllIncomesOfUser @userId = :userId")
+    @Query("SELECT i FROM IncomeModel i WHERE i.userId = :userId")
     List<IncomeModel> findIncomesOfUser(Long userId);
 
     @Query(nativeQuery = true, value = "exec getMonthlyIncomesListInAYear @userId = :userId, " +
@@ -21,7 +21,7 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
             "@source = :source, @category = :category, @date = :date")
     IncomeModel getIncomeBySourceAndCategory(Long userId, String source, String category, LocalDateTime date);
 
-    @Query(nativeQuery = true, value = "exec getIncomeByIncomeId @incomeId = :incomeId")
+    @Query("SELECT i.amount FROM IncomeModel i WHERE i.id = :incomeId")
     BigDecimal getIncomeByIncomeId(Long incomeId);
 
     @Query(nativeQuery = true, value = "exec getTotalIncomeInMonthAndYear @userId = :userId, " +

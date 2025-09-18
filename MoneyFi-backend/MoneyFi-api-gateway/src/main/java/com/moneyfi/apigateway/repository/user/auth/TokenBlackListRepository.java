@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface TokenBlackListRepository extends JpaRepository<BlackListedToken, Long> {
 
-    @Query(nativeQuery = true, value = "exec getBlackListTokenDetailsByToken @token = :token")
+    @Query("SELECT b FROM BlackListedToken b WHERE b.token = :token")
     List<BlackListedToken> findByToken(String token);
 
     void deleteByExpiryBefore(LocalDateTime now);

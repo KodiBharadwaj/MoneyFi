@@ -6,9 +6,9 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface SessionTokenRepository extends JpaRepository<SessionTokenModel, Long> {
 
-    @Query(nativeQuery = true, value = "exec getSessionTokenModelByUsername  @username = :username")
+    @Query("SELECT s FROM SessionTokenModel s WHERE s.username = :username")
     SessionTokenModel findByUsername(String username);
 
-    @Query(nativeQuery = true, value = "exec getSessionTokenModelByToken @token = :token")
+    @Query("SELECT s FROM SessionTokenModel s WHERE s.token = :token")
     SessionTokenModel getSessionTokenModelByToken(String token);
 }

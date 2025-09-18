@@ -8,8 +8,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface ExpenseRepository extends JpaRepository<ExpenseModel, Long> {
-
-    @Query(nativeQuery = true, value = "exec getAllExpensesByUserId @userId = :userId")
+    @Query("SELECT e FROM ExpenseModel e WHERE e.userId = :userId")
     List<ExpenseModel> findExpensesByUserId(Long userId);
 
     @Query(nativeQuery = true, value = "exec getMonthlyExpensesListInAYear @userId = :userId, " +
