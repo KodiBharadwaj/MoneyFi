@@ -44,13 +44,16 @@
         <h4 *ngIf="userProfileDetails.createdDate">
           since {{ userProfileDetails.createdDate | date: 'longDate' }}
         </h4>
-
       </div>
 
       <button class="edit-profile-btn" (click)="toggleEdit()">
         <i class="fas" [ngClass]="isEditing ? 'fa-times' : 'fa-edit'"></i>
         {{ isEditing ? 'Cancel' : 'Edit Profile' }}
       </button>
+      <a [routerLink]="['/dashboard/user-configuration']" fragment="profile-update" class="manage-link">
+        Want to update using excel upload?
+      </a>
+
     </div>
 
     <div class="profile-info">

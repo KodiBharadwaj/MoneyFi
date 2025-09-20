@@ -1,9 +1,9 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, ElementRef } from '@angular/core';
 import { ChangePasswordDialogComponent } from '../change-password-dialog/change-password-dialog.component';
 import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -18,9 +18,11 @@ import { SurveyFormComponent } from '../forms/survey-form/survey-form.component'
   templateUrl: './user-configuration.component.html',
   styleUrl: './user-configuration.component.css'
 })
-export class UserConfigurationComponent {
+export class UserConfigurationComponent implements AfterViewInit{
 
-  constructor(private http: HttpClient, private toastr:ToastrService, private dialog:MatDialog, private router: Router) { }
+  constructor(private http: HttpClient, private toastr:ToastrService, private dialog:MatDialog, private router: Router,
+    private route: ActivatedRoute, private el: ElementRef
+  ) { }
   baseUrl = environment.BASE_URL;
 
   selectedFile: File | null = null;
@@ -33,6 +35,21 @@ export class UserConfigurationComponent {
   reasons: string[] = [];
   isDownloading = false;
   isUploading = false;
+
+  ngAfterViewInit() {
+    this.route.fragment.subscribe(fragment => {
+      if (fragment) {
+        const element = this.el.nativeElement.querySelector('#' + fragment);
+        if (element) {
+          // Scroll to element
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Add highlight effect
+          element.classList.add('highlight');
+          setTimeout(() => element.classList.remove('highlight'), 2000);
+        }
+      }
+    });
+  }
 
   changePassword() {
     const dialogRef = this.dialog.open(ChangePasswordDialogComponent, {
@@ -133,8 +150,9 @@ export class UserConfigurationComponent {
       responseType: 'text' // Because backend returns ResponseEntity<String>
     }).subscribe({
       next: response => {
-        this.toastr.success('Profile updated! Please check your profile page');
+        this.toastr.success('Profile updated! Redirecting you to profile page...');
         this.isUploading = false;
+        this.router.navigate(['/dashboard/profile']);
       },
       error: err => {
         alert('Upload failed!');

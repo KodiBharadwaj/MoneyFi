@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ToastrService } from 'ngx-toastr';
 import { ChangePasswordDialogComponent } from '../change-password-dialog/change-password-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { environment } from '../../environments/environment';
 
 interface UserProfileDetails {
@@ -37,7 +37,8 @@ interface UserProfileDetails {
     MatNativeDateModule,
     MatInputModule,
     MatOption,
-    MatIconModule],
+    MatIconModule,
+  RouterModule],
 })
 export class ProfileComponent implements OnInit {
   userProfileDetails: UserProfileDetails = {

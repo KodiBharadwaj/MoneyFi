@@ -1,6 +1,0 @@
-drop procedure getAllExpensesByUserId;
-drop procedure getAllIncomesOfUser;
-drop procedure getIncomeByIncomeId;
-drop procedure getProfileDetailsByUserId;
-drop procedure getSessionTokenModelByToken;
-drop procedure getSessionTokenModelByUsername;

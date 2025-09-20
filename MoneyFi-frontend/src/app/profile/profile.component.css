@@ -405,3 +405,20 @@ body {
   color: #ff4d4d; /* red trash */
 }
 
+
+.manage-link {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #007bff; /* bootstrap primary blue */
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.manage-link:hover {
+  color: #0056b3; /* darker blue on hover */
+  text-decoration: underline;
+}
+

@@ -246,3 +246,10 @@ select:focus {
 }
 
 
+.highlight-target.highlight {
+  border: 2px solid #007bff;
+  box-shadow: 0 0 12px rgba(0, 123, 255, 0.6);
+  transition: all 0.3s ease-in-out;
+}
+
+
