@@ -2,7 +2,11 @@ package com.moneyfi.apigateway.util.constants;
 
 import com.moneyfi.apigateway.util.enums.ReasonEnum;
 import com.moneyfi.apigateway.util.enums.UserRoles;
-
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.HttpURLConnection;
 import java.util.Map;
 import java.util.Random;
 
@@ -60,5 +64,23 @@ public class StringUtils {
     public static String generateFileNameForUserProfilePicture(Long userId, String username){
         return "profile_pic_" + (userId) + "_" +
                 username.substring(0,username.indexOf('@'));
+    }
+
+    public static MultipartFile convertImageUrlToMultipartFile(String imageUrl) throws Exception {
+        URL url = new URL(imageUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setDoOutput(false);
+        connection.connect();
+
+        try (InputStream inputStream = connection.getInputStream()) {
+            MultipartFile multipartFile = new MockMultipartFile(
+                    "file",
+                    imageUrl,
+                    "image/jpeg",
+                    inputStream
+            );
+            return multipartFile;
+        }
     }
 }

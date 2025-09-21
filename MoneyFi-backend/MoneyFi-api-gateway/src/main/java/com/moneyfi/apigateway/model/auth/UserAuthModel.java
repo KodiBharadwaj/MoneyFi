@@ -21,6 +21,6 @@ public class UserAuthModel {
     private int otpCount;
     private boolean isBlocked;
     private boolean isDeleted;
-
+    private Integer loginCodeValue;
     private int roleId;
 }

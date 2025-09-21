@@ -16,9 +16,11 @@ import java.util.Map;
 
 public interface UserService {
 
-    UserAuthModel registerUser(UserProfile userProfile);
+    UserAuthModel registerUser(UserProfile userProfile, String loginMode);
 
     ResponseEntity<Map<String, String>> login(UserAuthModel userAuthModel);
+
+    ResponseEntity<Map<String, String>> loginViaGoogleOAuth(Map<String, String> googleAuthToken);
 
     Long getUserIdByUsername(String email);
 

@@ -29,21 +29,23 @@ import com.moneyfi.apigateway.service.userservice.dto.request.UserProfile;
 import com.moneyfi.apigateway.service.userservice.dto.response.ProfileChangePassword;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
+import com.moneyfi.apigateway.util.constants.StringUtils;
 import com.moneyfi.apigateway.util.enums.*;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -60,8 +62,21 @@ public class UserServiceImpl implements UserService {
 
     @Value("${spring.profiles.active:}")
     private String activeProfile;
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String clientId;
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+    private String clientSecret;
+    @Value("${cors.allowed-origins}")
+    private String allowedOrigins;
+
+    @Autowired
+    private RestTemplate externalRestTemplateForOAuth;
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+
+    private static final String GOOGLE_TOKEN_END_POINT_URL = "https://oauth2.googleapis.com/token";
+    private static final String GOOGLE_USER_INFO_URL = "https://oauth2.googleapis.com/tokeninfo?id_token=";
+    private static final String GOOGLE_AUTH_CONSTANT_PASSWORD = "123456";
 
     private final UserRepository userRepository;
     private final OtpTempRepository otpTempRepository;
@@ -104,29 +119,34 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserAuthModel registerUser(UserProfile userProfile) {
+    public UserAuthModel registerUser(UserProfile userProfile, String loginMode) {
         UserAuthModel getUser = userRepository.getUserDetailsByUsername(userProfile.getUsername());
         if(getUser != null){
             return null;
         }
-
         UserAuthModel userAuthModel = new UserAuthModel();
-        userAuthModel.setUsername(userProfile.getUsername());
-        userAuthModel.setPassword(encoder.encode(userProfile.getPassword()));
-        userAuthModel.setOtpCount(0);
-        userAuthModel.setDeleted(false);
-        userAuthModel.setBlocked(false);
+        saveUserAuthDetails(userAuthModel, userProfile.getUsername(), encoder.encode(userProfile.getPassword()));
 
         int roleId = 0;
-        for(Map.Entry<Integer, String> it: userRoleAssociation.entrySet()){
-            if(it.getValue().equalsIgnoreCase(userProfile.getRole())){
-                roleId = it.getKey();
+        if(loginMode.equalsIgnoreCase(LoginMode.EMAIL_PASSWORD.name())){
+            for(Map.Entry<Integer, String> it: userRoleAssociation.entrySet()){
+                if(it.getValue().equalsIgnoreCase(userProfile.getRole())){
+                    roleId = it.getKey();
+                }
             }
+            userAuthModel.setLoginCodeValue(LoginMode.EMAIL_PASSWORD.getLoginProcessCode());
+        } else if(loginMode.equalsIgnoreCase(LoginMode.GOOGLE_OAUTH.name())){
+            for(Map.Entry<Integer, String> it: userRoleAssociation.entrySet()){
+                if(it.getValue().equalsIgnoreCase(UserRoles.USER.name())){
+                    roleId = it.getKey();
+                }
+            }
+            userAuthModel.setLoginCodeValue(LoginMode.GOOGLE_OAUTH.getLoginProcessCode());
         }
         userAuthModel.setRoleId(roleId);
         UserAuthModel user = userRepository.save(userAuthModel);
 
-        if(!userRoleAssociation.get(roleId).equalsIgnoreCase(UserRoles.ADMIN.name())) {
+        if(!userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.ADMIN.name())) {
             saveUserProfileDetails(user.getId(), userProfile);
             /** send successful email in a separate thread by aws ses **/
             new Thread(() -> {
@@ -134,11 +154,20 @@ public class UserServiceImpl implements UserService {
                     awsServices.sendEmailToUserUsingAwsSes(emailTemplates.sendEmailForSuccessfulUserCreation(userProfile.getName(), userProfile.getUsername()));
                 } catch (Exception e) {
                     e.printStackTrace();
+                    throw new RuntimeException("Exception occurred while sending email: " + e);
                 }
             }
             ).start();
         }
         return user;
+    }
+
+    private void saveUserAuthDetails(UserAuthModel userAuthModel, String username, String password){
+        userAuthModel.setUsername(username);
+        userAuthModel.setPassword(password);
+        userAuthModel.setOtpCount(0);
+        userAuthModel.setDeleted(false);
+        userAuthModel.setBlocked(false);
     }
 
     private void saveUserProfileDetails(Long userId, UserProfile userProfile){
@@ -152,33 +181,28 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public ResponseEntity<Map<String,String>> login(UserAuthModel userAuthModel) {
-        Map<String,String> userRoleToken = new HashMap<>();
-
-        makeOldSessionInActiveOfUserForNewLogin(userAuthModel);
-
+        Map<String, String> userRoleToken = new HashMap<>();
+        makeOldSessionInActiveOfUserForNewLogin(userAuthModel.getUsername());
         try {
             if (userAuthModel.getUsername() == null || userAuthModel.getUsername().isEmpty() ||
                     userAuthModel.getPassword() == null || userAuthModel.getPassword().isEmpty()) {
                 userRoleToken.put(ERROR, USERNAME_PASSWORD_REQUIRED);
                 return ResponseEntity.badRequest().body(userRoleToken);
             }
-
             UserAuthModel existingUser = userRepository.getUserDetailsByUsername(userAuthModel.getUsername());
             if (existingUser == null) {
                 userRoleToken.put(ERROR, USER_NOT_FOUND);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userRoleToken);
-            } else if(existingUser.isBlocked()){
+            } else if (existingUser.isBlocked()) {
                 userRoleToken.put(ERROR, ACCOUNT_BLOCKED);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
-            } else if(existingUser.isDeleted()){
+            } else if (existingUser.isDeleted()) {
                 userRoleToken.put(ERROR, ACCOUNT_DELETED);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
             }
-
             try {
                 Authentication authentication = authenticationManager
                         .authenticate(new UsernamePasswordAuthenticationToken(userAuthModel.getUsername(), userAuthModel.getPassword()));
-
                 if (authentication.isAuthenticated()) {
                     JwtToken token = jwtService.generateToken(userAuthModel);
                     functionToPreventMultipleLogins(userAuthModel, token);
@@ -190,7 +214,6 @@ public class UserServiceImpl implements UserService {
                 userRoleToken.put(ERROR, INCORRECT_PASSWORD);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
             }
-
             userRoleToken.put(ERROR, INVALID_CREDENTIALS);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
         } catch (Exception e) {
@@ -200,12 +223,10 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void makeOldSessionInActiveOfUserForNewLogin(UserAuthModel userAuthModel){
-
-        SessionTokenModel sessionTokenUser = userCommonService.getUserByUsername(userAuthModel.getUsername());
+    private void makeOldSessionInActiveOfUserForNewLogin(String username){
+        SessionTokenModel sessionTokenUser = userCommonService.getUserByUsername(username);
         if(sessionTokenUser != null && sessionTokenUser.getIsActive()){
             String oldToken = sessionTokenUser.getToken();
-
             BlackListedToken blackListedToken = new BlackListedToken();
             blackListedToken.setToken(oldToken);
             Date expiryDate = new Date(System.currentTimeMillis() + 3600000);
@@ -231,6 +252,64 @@ public class UserServiceImpl implements UserService {
             sessionTokens.setIsActive(true);
             userCommonService.save(sessionTokens);
         }
+    }
+
+    @Override
+    public ResponseEntity<Map<String, String>> loginViaGoogleOAuth(Map<String, String> googleAuthToken) {
+        Map<String, String> userRoleToken = new HashMap<>();
+        if (googleAuthToken == null || googleAuthToken.isEmpty()) {
+            userRoleToken.put(ERROR, "Google Authorization code cannot be null");
+            return ResponseEntity.badRequest().body(userRoleToken);
+        }
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(mapFunctionToStoreGoogleSecureDetails(googleAuthToken.get("code")), headers);
+            // Step 1: Exchange code for tokens
+            ResponseEntity<Map> tokenResponse =
+                    externalRestTemplateForOAuth.postForEntity(GOOGLE_TOKEN_END_POINT_URL, request, Map.class);
+            // Step 2: Verify ID token with Google
+            ResponseEntity<Map> userInfoResponse = externalRestTemplateForOAuth.getForEntity(GOOGLE_USER_INFO_URL + (String) tokenResponse.getBody().get("id_token"), Map.class);
+            if (userInfoResponse.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> userInfo = userInfoResponse.getBody();
+                String email = (String) userInfo.get("email");
+                String name = (String) userInfo.get("name");
+                String picture = (String) userInfo.get("picture");
+
+                UserAuthModel newOrExistingUser = userRepository.getUserDetailsByUsername(email);
+                if (newOrExistingUser == null) {
+                    newOrExistingUser = registerUser(new UserProfile(name, email, GOOGLE_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()), LoginMode.GOOGLE_OAUTH.name());
+                    uploadUserProfilePictureToS3(email, StringUtils.convertImageUrlToMultipartFile(picture));
+                }
+                if (newOrExistingUser.isBlocked()) {
+                    userRoleToken.put(ERROR, ACCOUNT_BLOCKED);
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
+                } else if (newOrExistingUser.isDeleted()) {
+                    userRoleToken.put(ERROR, ACCOUNT_DELETED);
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
+                }
+                makeOldSessionInActiveOfUserForNewLogin(email);
+                JwtToken jwtToken = jwtService.generateToken(newOrExistingUser);
+                functionToPreventMultipleLogins(newOrExistingUser, jwtToken);
+                userRoleToken.put(userRoleAssociation.get(newOrExistingUser.getRoleId()), jwtToken.getJwtToken());
+                return ResponseEntity.ok(userRoleToken);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Exception while login via Google OAuth: " + e);
+        }
+        userRoleToken.put(ERROR, LOGIN_ERROR);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(userRoleToken);
+    }
+
+    private MultiValueMap<String, String> mapFunctionToStoreGoogleSecureDetails(String code){
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("code", code); // Authentication code from Google comes here via frontend
+        params.add("client_id", clientId);
+        params.add("client_secret", clientSecret);
+        params.add("redirect_uri", allowedOrigins.trim()); // your Angular app URL
+        params.add("grant_type", "authorization_code");
+        return params;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.moneyfi.apigateway.util;
 
 import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +14,7 @@ public class EmailTemplates {
 
     private final EmailFilter emailFilter;
 
-    public EmailTemplates(EmailFilter emailFilter){
+    public EmailTemplates(@Autowired(required = false) EmailFilter emailFilter){
         this.emailFilter = emailFilter;
     }
 

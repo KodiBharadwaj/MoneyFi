@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -7,6 +7,10 @@ import { LoginCredentials } from '../model/LoginCredentials';
 import { ToastrService } from 'ngx-toastr';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+
+declare const google: any;
 
 @Component({
   selector: 'app-login',
@@ -15,11 +19,10 @@ import { ChartConfiguration, ChartData } from 'chart.js';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit{
   loginForm: FormGroup;
   showPassword = false;
   isLoading = false;
-
 
   public radarChartData: ChartData<'radar'> = {
     labels: ['Budgeting', 'Saving', 'Investing', 'Planning', 'Spending', 'Goals'],
@@ -73,12 +76,66 @@ export class LoginComponent {
     }
   };
 
-  constructor(private fb: FormBuilder, private router: Router, private authApiService:AuthApiService, private toastr:ToastrService) {
+  constructor(private fb: FormBuilder, private router: Router, private authApiService:AuthApiService, private toastr:ToastrService, private http : HttpClient) {
     this.loginForm = this.fb.group({
       username: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
+
+  baseUrl = environment.BASE_URL;
+
+  ngOnInit(): void {
+    setTimeout(() => {
+      const buttonDiv = document.getElementById("google-btn");
+      if (!buttonDiv) {
+        console.error("Google button div not found!");
+        return;
+      }
+      // Initialize Code Client
+      const client = google.accounts.oauth2.initCodeClient({
+        client_id: environment.GOOGLE_CLIENT_ID,
+        scope: "openid email profile",
+        ux_mode: "popup",
+        callback: (response: any) => this.handleGoogleResponse(response)
+      });
+      // Trigger requestCode on click
+      buttonDiv.addEventListener("click", () => {
+        client.requestCode();
+      });
+    }, 0);
+  }
+
+  handleGoogleResponse(response: any) {
+    this.isLoading = true;
+    this.http.post(`${this.baseUrl}/api/v1/Oauth/google/callback`, { code: response.code })
+      .subscribe((res: any) => {
+        this.isLoading = false;
+        const role = Object.keys(res)[0];
+        const token = res[role];
+        if (role === 'USER') {
+          sessionStorage.setItem('moneyfi.auth', token);
+          this.toastr.success('Google login successful', 'Success', { timeOut: 1500 });
+          this.router.navigate(['dashboard']);
+        } else {
+          this.toastr.error('User not authorized to login');
+        }
+      },
+        error => {
+          this.isLoading = false; // Hide loading spinner
+          if (error.status === 404) {
+            this.toastr.error('User not found. Please sign up.', 'Login Failed');
+          } 
+          else if (error.status === 401) {
+            this.toastr.error(error.error.error);
+          } else {
+            console.error('Login Failed', error);
+            this.toastr.error('An error occurred. Please try again.', 'Login Failed');
+          }
+        }
+    );
+  }
+
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
@@ -127,8 +184,6 @@ export class LoginComponent {
       );
   }
   
-  
-
   navigateTo(route: string): void {
     this.router.navigate([route]);
   }
