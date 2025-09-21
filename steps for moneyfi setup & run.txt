@@ -8,6 +8,23 @@ steps to user docker with eureka:
 
 similarly with the other services with respective image names.
 
+Steps to push docker image and deploy service using docker image
+-> first create docker file
+-> do mvn clean install
+
+docker build -t moneyfi-income .
+docker tag moneyfi-income kodibharadwaj/moneyfi-income:latest
+docker push kodibharadwaj/moneyfi-income:latest (pushing into docker hub)
+
+-> Open render and in the docker image section, paste the below to deploy
+docker.io/kodibharadwaj/moneyfi-api-gateway:latest
+
+
+first eureka:
+EUREKA_URL=https://moneyfi-eureka.onrender.com/eureka/
+
+Paste this url in yml of all the services so that they will be connected to eureka
+
 
 steps to run kafka:
 Go to the c drive and locate kafka. Go inside and run these:

@@ -63,9 +63,13 @@ public class UserServiceImpl implements UserService {
     @Value("${spring.profiles.active:}")
     private String activeProfile;
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
-    private String clientId;
+    private String googleClientId;
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
-    private String clientSecret;
+    private String googleClientSecret;
+    @Value("${spring.security.oauth2.client.registration.github.client-id}")
+    private String githubClientId;
+    @Value("${spring.security.oauth2.client.registration.github.client-secret}")
+    private String githubClientSecret;
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
 
@@ -77,6 +81,10 @@ public class UserServiceImpl implements UserService {
     private static final String GOOGLE_TOKEN_END_POINT_URL = "https://oauth2.googleapis.com/token";
     private static final String GOOGLE_USER_INFO_URL = "https://oauth2.googleapis.com/tokeninfo?id_token=";
     private static final String GOOGLE_AUTH_CONSTANT_PASSWORD = "123456";
+    private static final String GITHUB_TOKEN_END_POINT_URL = "https://github.com/login/oauth/access_token";
+    private static final String GITHUB_USER_URL = "https://api.github.com/user";
+    private static final String GITHUB_USER_EMAILS = "https://api.github.com/user/emails";
+
 
     private final UserRepository userRepository;
     private final OtpTempRepository otpTempRepository;
@@ -119,7 +127,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserAuthModel registerUser(UserProfile userProfile, String loginMode) {
+    public UserAuthModel registerUser(UserProfile userProfile, String loginMode, String address) {
         UserAuthModel getUser = userRepository.getUserDetailsByUsername(userProfile.getUsername());
         if(getUser != null){
             return null;
@@ -128,26 +136,33 @@ public class UserServiceImpl implements UserService {
         saveUserAuthDetails(userAuthModel, userProfile.getUsername(), encoder.encode(userProfile.getPassword()));
 
         int roleId = 0;
-        if(loginMode.equalsIgnoreCase(LoginMode.EMAIL_PASSWORD.name())){
-            for(Map.Entry<Integer, String> it: userRoleAssociation.entrySet()){
-                if(it.getValue().equalsIgnoreCase(userProfile.getRole())){
+        if (loginMode.equalsIgnoreCase(LoginMode.EMAIL_PASSWORD.name())) {
+            for (Map.Entry<Integer, String> it : userRoleAssociation.entrySet()) {
+                if (it.getValue().equalsIgnoreCase(userProfile.getRole())) {
                     roleId = it.getKey();
                 }
             }
             userAuthModel.setLoginCodeValue(LoginMode.EMAIL_PASSWORD.getLoginProcessCode());
-        } else if(loginMode.equalsIgnoreCase(LoginMode.GOOGLE_OAUTH.name())){
-            for(Map.Entry<Integer, String> it: userRoleAssociation.entrySet()){
-                if(it.getValue().equalsIgnoreCase(UserRoles.USER.name())){
+        } else if (loginMode.equalsIgnoreCase(LoginMode.GOOGLE_OAUTH.name())) {
+            for (Map.Entry<Integer, String> it : userRoleAssociation.entrySet()) {
+                if (it.getValue().equalsIgnoreCase(UserRoles.USER.name())) {
                     roleId = it.getKey();
                 }
             }
             userAuthModel.setLoginCodeValue(LoginMode.GOOGLE_OAUTH.getLoginProcessCode());
+        } else if (loginMode.equalsIgnoreCase(LoginMode.GITHUB_OAUTH.name())) {
+            for (Map.Entry<Integer, String> it : userRoleAssociation.entrySet()) {
+                if (it.getValue().equalsIgnoreCase(UserRoles.USER.name())) {
+                    roleId = it.getKey();
+                }
+            }
+            userAuthModel.setLoginCodeValue(LoginMode.GITHUB_OAUTH.getLoginProcessCode());
         }
         userAuthModel.setRoleId(roleId);
         UserAuthModel user = userRepository.save(userAuthModel);
 
         if(!userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.ADMIN.name())) {
-            saveUserProfileDetails(user.getId(), userProfile);
+            saveUserProfileDetails(user.getId(), userProfile, address);
             /** send successful email in a separate thread by aws ses **/
             new Thread(() -> {
                 try {
@@ -170,11 +185,12 @@ public class UserServiceImpl implements UserService {
         userAuthModel.setBlocked(false);
     }
 
-    private void saveUserProfileDetails(Long userId, UserProfile userProfile){
+    private void saveUserProfileDetails(Long userId, UserProfile userProfile, String address){
         ProfileModel profile = new ProfileModel();
         profile.setUserId(userId);
         profile.setName(userProfile.getName());
         profile.setCreatedDate(LocalDateTime.now());
+        if(address != null && !address.isEmpty()) profile.setAddress(address);
         profileRepository.save(profile);
     }
 
@@ -255,6 +271,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<Map<String, String>> loginViaGoogleOAuth(Map<String, String> googleAuthToken) {
         Map<String, String> userRoleToken = new HashMap<>();
         if (googleAuthToken == null || googleAuthToken.isEmpty()) {
@@ -278,8 +295,8 @@ public class UserServiceImpl implements UserService {
 
                 UserAuthModel newOrExistingUser = userRepository.getUserDetailsByUsername(email);
                 if (newOrExistingUser == null) {
-                    newOrExistingUser = registerUser(new UserProfile(name, email, GOOGLE_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()), LoginMode.GOOGLE_OAUTH.name());
-                    uploadUserProfilePictureToS3(email, StringUtils.convertImageUrlToMultipartFile(picture));
+                    newOrExistingUser = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Google User", email, GOOGLE_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()), LoginMode.GOOGLE_OAUTH.name(), null);
+                    if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(email, StringUtils.convertImageUrlToMultipartFile(picture));
                 }
                 if (newOrExistingUser.isBlocked()) {
                     userRoleToken.put(ERROR, ACCOUNT_BLOCKED);
@@ -302,11 +319,91 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(userRoleToken);
     }
 
+    @Override
+    @Transactional
+    public String loginViaGithubOAuth(String code) {
+        if (code == null || code.isEmpty()) {
+            throw new RuntimeException("Authorization code is invalid");
+        }
+        try {
+            String tokenUrl = GITHUB_TOKEN_END_POINT_URL;
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("client_id", githubClientId);
+            params.add("client_secret", githubClientSecret);
+            params.add("code", code);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+            ResponseEntity<Map> tokenResponse = externalRestTemplateForOAuth.postForEntity(tokenUrl, request, Map.class);
+            String accessToken = (String) tokenResponse.getBody().get("access_token");
+            // 2. Get user info
+            HttpHeaders userHeaders = new HttpHeaders();
+            userHeaders.setBearerAuth(accessToken);
+            HttpEntity<Void> userRequest = new HttpEntity<>(userHeaders);
+
+            ResponseEntity<Map> userResponse = externalRestTemplateForOAuth.exchange(
+                    GITHUB_USER_URL,
+                    HttpMethod.GET,
+                    userRequest,
+                    Map.class
+            );
+            Map<String, Object> userInfo = userResponse.getBody();
+            System.out.println("Checking github output: " + userInfo);
+            String email = (String) userInfo.get("email");
+            String picture = (String) userInfo.get("avatar_url");
+            String name = (String) userInfo.get("name");
+            String address = (String) userInfo.get("location");
+            if (email == null) {
+                ResponseEntity<List> emailResponse = externalRestTemplateForOAuth.exchange(
+                        GITHUB_USER_EMAILS,
+                        HttpMethod.GET,
+                        userRequest,
+                        List.class
+                );
+                List<Map<String, Object>> emails = emailResponse.getBody();
+                email = (String) emails.stream()
+                        .filter(e -> Boolean.TRUE.equals(e.get("primary")))
+                        .findFirst()
+                        .map(e -> e.get("email"))
+                        .orElse(null);
+            }
+            // 3. Check or create user in DB
+            UserAuthModel user = userRepository.getUserDetailsByUsername(email);
+            if (user == null) {
+                user = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Github User", email, GOOGLE_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()),
+                        LoginMode.GITHUB_OAUTH.name(), (address != null && !address.trim().isEmpty()) ? address : null);
+                if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(email, StringUtils.convertImageUrlToMultipartFile(picture));
+            }
+            if (user.isBlocked()) {
+                throw new ScenarioNotPossibleException("User is blocked, Kindly contact admin");
+            } else if (user.isDeleted()) {
+                throw new ScenarioNotPossibleException("User is deleted. Kindly contact admin");
+            }
+            makeOldSessionInActiveOfUserForNewLogin(email);
+            // 4. Generate JWT
+            JwtToken jwtToken = jwtService.generateToken(user);
+            functionToPreventMultipleLogins(user, jwtToken);
+            String token = jwtToken.getJwtToken().replace("'", "\\'"); // escape quotes
+
+            String angularOrigin = allowedOrigins.trim(); // wherever your frontend runs
+            return "<script>" +
+                    "window.opener.postMessage({USER: '" + token + "'}, '" + angularOrigin + "');" +
+                    "window.close();" +
+                    "</script>";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "<script>alert('GitHub login failed');window.close();</script>";
+        }
+    }
+
     private MultiValueMap<String, String> mapFunctionToStoreGoogleSecureDetails(String code){
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("code", code); // Authentication code from Google comes here via frontend
-        params.add("client_id", clientId);
-        params.add("client_secret", clientSecret);
+        params.add("client_id", googleClientId);
+        params.add("client_secret", googleClientSecret);
         params.add("redirect_uri", allowedOrigins.trim()); // your Angular app URL
         params.add("grant_type", "authorization_code");
         return params;

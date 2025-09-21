@@ -352,30 +352,56 @@
     }
   }
 
-
-.google-signin-btn {
-  margin-top: 5px;
+.google-signin-btn,
+.github-signin-btn {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background-color: white;
-  border: 1px solid #dadce0;
-  border-radius: 4px;
-  padding: 10px 20px;
+  padding: 10px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  color: #3c4043;
-  cursor: pointer;
-  transition: box-shadow 0.2s ease;
-
-  img {
-    width: 20px;
-    height: 20px;
-  }
-
-  &:hover {
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  }
+  transition: background-color 0.2s;
 }
 
+.google-signin-btn {
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #dcdcdc;
+}
+
+.google-signin-btn:hover {
+  background-color: #f7f7f7;
+}
+
+.github-signin-btn {
+  background-color: #4a4e53;
+  color: #fff;
+}
+
+.github-signin-btn:hover {
+  background-color: #262b2f;
+}
+
+.google-signin-btn img,
+.github-signin-btn img {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+}
+
+
+.oauth-buttons {
+  display: flex;
+  gap: 10px; /* space between buttons */
+  margin-top: 10px;
+}
+
+.oauth-buttons button {
+  flex: 1; /* equal width for both buttons */
+  width: auto; /* override width: 100% */
+}

@@ -15,14 +15,16 @@ declare const google: any;
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, NgChartsModule,RouterModule],
+  imports: [ReactiveFormsModule, CommonModule, NgChartsModule, RouterModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent implements OnInit{
+export class LoginComponent implements OnInit {
+
   loginForm: FormGroup;
   showPassword = false;
   isLoading = false;
+  baseUrl = environment.BASE_URL;
 
   public radarChartData: ChartData<'radar'> = {
     labels: ['Budgeting', 'Saving', 'Investing', 'Planning', 'Spending', 'Goals'],
@@ -51,141 +53,154 @@ export class LoginComponent implements OnInit{
   public radarChartOptions: ChartConfiguration['options'] = {
     responsive: true,
     plugins: {
-      legend: {
-        position: 'top',
-      },
+      legend: { position: 'top' },
       title: {
         display: true,
         text: 'Financial Health Analysis',
-        font: {
-          size: 18,
-          family: 'Roboto',
-        },
+        font: { size: 18, family: 'Roboto' },
         color: '#1e3c72',
       }
     },
     scales: {
-      r: {
-        ticks: {
-          display: false, // Hide the numbers on the scale
-        },
-        angleLines: {
-          display: true, // Keep the radial axis lines
-        },
-      }
+      r: { ticks: { display: false }, angleLines: { display: true } }
     }
   };
 
-  constructor(private fb: FormBuilder, private router: Router, private authApiService:AuthApiService, private toastr:ToastrService, private http : HttpClient) {
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private authApiService: AuthApiService,
+    private toastr: ToastrService,
+    private http: HttpClient
+  ) {
     this.loginForm = this.fb.group({
       username: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
-  baseUrl = environment.BASE_URL;
-
   ngOnInit(): void {
+    this.initGoogleLogin();
+    this.initGithubLogin();
+  }
+
+  /** GOOGLE LOGIN */
+  private initGoogleLogin() {
     setTimeout(() => {
       const buttonDiv = document.getElementById("google-btn");
-      if (!buttonDiv) {
-        console.error("Google button div not found!");
-        return;
-      }
-      // Initialize Code Client
+      if (!buttonDiv) return console.error("Google button div not found!");
+
       const client = google.accounts.oauth2.initCodeClient({
         client_id: environment.GOOGLE_CLIENT_ID,
         scope: "openid email profile",
         ux_mode: "popup",
         callback: (response: any) => this.handleGoogleResponse(response)
       });
-      // Trigger requestCode on click
-      buttonDiv.addEventListener("click", () => {
-        client.requestCode();
-      });
+
+      buttonDiv.addEventListener("click", () => client.requestCode());
     }, 0);
   }
 
-  handleGoogleResponse(response: any) {
+  private handleGoogleResponse(response: any) {
     this.isLoading = true;
     this.http.post(`${this.baseUrl}/api/v1/Oauth/google/callback`, { code: response.code })
-      .subscribe((res: any) => {
-        this.isLoading = false;
-        const role = Object.keys(res)[0];
-        const token = res[role];
-        if (role === 'USER') {
-          sessionStorage.setItem('moneyfi.auth', token);
-          this.toastr.success('Google login successful', 'Success', { timeOut: 1500 });
-          this.router.navigate(['dashboard']);
-        } else {
-          this.toastr.error('User not authorized to login');
-        }
-      },
-        error => {
-          this.isLoading = false; // Hide loading spinner
-          if (error.status === 404) {
-            this.toastr.error('User not found. Please sign up.', 'Login Failed');
-          } 
-          else if (error.status === 401) {
-            this.toastr.error(error.error.error);
+      .subscribe({
+        next: (res: any) => {
+          this.isLoading = false;
+          const role = Object.keys(res)[0];
+          const token = res[role];
+          if (role === 'USER') {
+            sessionStorage.setItem('moneyfi.auth', token);
+            this.toastr.success('Google login successful', 'Success', { timeOut: 1500 });
+            this.router.navigate(['dashboard']);
           } else {
-            console.error('Login Failed', error);
+            this.toastr.error('User not authorized to login');
+          }
+        },
+        error: err => {
+          this.isLoading = false;
+          if (err.status === 404) this.toastr.error('User not found. Please sign up.', 'Login Failed');
+          else if (err.status === 401) this.toastr.error(err.error.error);
+          else {
+            console.error('Login Failed', err);
             this.toastr.error('An error occurred. Please try again.', 'Login Failed');
           }
         }
+      });
+  }
+
+  private initGithubLogin() {
+  const githubBtn = document.getElementById("github-btn");
+  if (!githubBtn) return console.error("GitHub button not found!");
+
+  githubBtn.addEventListener("click", () => {
+    const clientId = environment.GITHUB_CLIENT_ID;
+    const redirectUri = `${this.baseUrl}/api/v1/Oauth/github/popup-callback`;
+    const scope = "read:user user:email";
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
+
+    const width = 600;
+    const height = 700;
+    const left = (window.screen.width / 2) - (width / 2);
+    const top = (window.screen.height / 2) - (height / 2);
+
+    const popup = window.open(
+      githubAuthUrl,
+      "GitHub Login",
+      `width=${width},height=${height},top=${top},left=${left}`
     );
-  }
 
+    window.addEventListener("message", (event) => {
+    const allowedOrigin = this.baseUrl;
+    if (event.origin !== allowedOrigin) return;
 
-  togglePasswordVisibility() {
-    this.showPassword = !this.showPassword;
-  }
+    const res = event.data;
+    console.log(res);
 
-  goToSignup() {
-    this.router.navigate(['/signup']);
-  }
+    if (res.USER) {
+      sessionStorage.setItem('moneyfi.auth', res.USER);
+      this.toastr.success('GitHub login successful', 'Success', { timeOut: 1500 });
+      this.router.navigate(['dashboard']);
+    } else if (res.ERROR) {
+      this.toastr.error(res.ERROR, 'Login Failed', { timeOut: 3000 });
+    } else {
+      this.toastr.error('GitHub login failed', 'Error');
+    }
+  }, { once: true });
 
-  goToForgotPassword() {
-    // Add your forgot password navigation or modal logic here
-    console.log('Forgot password clicked');
-  }
+  });
+}
 
+  /** FORM METHODS */
+  togglePasswordVisibility() { this.showPassword = !this.showPassword; }
+  goToSignup() { this.router.navigate(['/signup']); }
+  goToForgotPassword() { console.log('Forgot password clicked'); }
 
   onSubmit(loginCredentials: LoginCredentials) {
-    this.isLoading = true; // Show loading spinner
-  
+    this.isLoading = true;
     this.authApiService.loginApiFunction(loginCredentials)
-      .subscribe(
-        response => {
+      .subscribe({
+        next: response => {
+          this.isLoading = false;
           const role = Object.keys(response)[0];
           const token = response[role];
-          this.isLoading = false; // Hide loading spinner
-          if(role === 'USER'){
+          if (role === 'USER') {
             sessionStorage.setItem('moneyfi.auth', token);
-            this.toastr.success('Login successful', 'Success', {
-              timeOut: 1500  // 
-            });
-            
+            this.toastr.success('Login successful', 'Success', { timeOut: 1500 });
             this.router.navigate(['dashboard']);
-          } else this.toastr.error('User is not authorized to login')
+          } else this.toastr.error('User is not authorized to login');
         },
-        error => {
-          this.isLoading = false; // Hide loading spinner
-          if (error.status === 404) {
-            this.toastr.error('User not found. Please sign up.', 'Login Failed');
-          } 
-          else if (error.status === 401) {
-            this.toastr.error(error.error.error);
-          } else {
+        error: error => {
+          this.isLoading = false;
+          if (error.status === 404) this.toastr.error('User not found. Please sign up.', 'Login Failed');
+          else if (error.status === 401) this.toastr.error(error.error.error);
+          else {
             console.error('Login Failed', error);
             this.toastr.error('An error occurred. Please try again.', 'Login Failed');
           }
         }
-      );
+      });
   }
-  
-  navigateTo(route: string): void {
-    this.router.navigate([route]);
-  }
-  
+
+  navigateTo(route: string): void { this.router.navigate([route]); }
 }
