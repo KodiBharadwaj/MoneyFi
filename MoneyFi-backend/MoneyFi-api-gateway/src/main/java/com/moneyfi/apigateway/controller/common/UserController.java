@@ -10,6 +10,7 @@ import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.userservice.dto.request.ForgotUsernameDto;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.UserProfile;
+import com.moneyfi.apigateway.util.enums.LoginMode;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +57,7 @@ private DataSource dataSource;
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserProfile userProfile) {
 
-        UserAuthModel user = userService.registerUser(userProfile);
+        UserAuthModel user = userService.registerUser(userProfile, LoginMode.EMAIL_PASSWORD.name());
         if(user == null){
             return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists"); //409
         } else {

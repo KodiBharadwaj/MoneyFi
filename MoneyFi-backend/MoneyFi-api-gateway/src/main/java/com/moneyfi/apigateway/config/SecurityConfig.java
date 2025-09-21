@@ -7,6 +7,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.moneyfi.apigateway.util.enums.UserRoles;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -72,6 +73,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("api/v1/admin/**").hasRole(UserRoles.ADMIN.name())
                         .requestMatchers("api/auth/**").permitAll()
+                        .requestMatchers("/api/v1/Oauth/**").permitAll()
                         .requestMatchers("/api/v1/external-api/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().hasRole(UserRoles.USER.name()))
@@ -110,6 +112,11 @@ public class SecurityConfig {
     @Bean
     public RestTemplate externalRestTemplate() {
         return new RestTemplate();
+    }
+
+    @Bean
+    public RestTemplate externalRestTemplateForOAuth(RestTemplateBuilder builder) {
+        return builder.build(); // No @LoadBalanced
     }
 
     /** Aws s3 security connection **/
