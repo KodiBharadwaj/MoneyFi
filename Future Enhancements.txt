@@ -2,7 +2,6 @@ Project MoneyFi:
 
 Major Changes:
 - Admin role implementation (progress)
-- Google authentication
 
 
 Minor Changes:
@@ -65,7 +64,8 @@ completed changes:
 - Change reference number which should consider user's name, phone, etc details.
 - Implement block account feature in user profile with mail confirmation. (ui enhance pending)
 - Implement triggers/scheduled (birthday, recurring income saving)
-
+- Google authentication
+- Github authentication
 
 
 

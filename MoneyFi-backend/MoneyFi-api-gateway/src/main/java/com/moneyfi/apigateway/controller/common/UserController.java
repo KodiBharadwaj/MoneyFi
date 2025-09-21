@@ -57,7 +57,7 @@ private DataSource dataSource;
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserProfile userProfile) {
 
-        UserAuthModel user = userService.registerUser(userProfile, LoginMode.EMAIL_PASSWORD.name());
+        UserAuthModel user = userService.registerUser(userProfile, LoginMode.EMAIL_PASSWORD.name(), null);
         if(user == null){
             return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists"); //409
         } else {
