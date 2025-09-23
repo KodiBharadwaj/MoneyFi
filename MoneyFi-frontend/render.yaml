@@ -1,7 +1,7 @@
 services:
   - type: static
     name: finance-app
-    repo: https://github.com/MoneyFi/MoneyFi-frontend
+    repo: https://github.com/KodiBharadwaj/MoneyFi/MoneyFi-frontend
     branch: main
     buildCommand: npx ng build --configuration=production
     publishPath: dist/finance-app/browser
