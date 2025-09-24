@@ -982,9 +982,10 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE PROCEDURE [dbo].[getBirthdayUserEmailAndName] (
+CREATE PROCEDURE [dbo].[getBirthdayOrAnniversaryUserEmailAndName] (
 	@month INT,
-	@day INT
+	@day INT,
+	@occasion VARCHAR(50)
 	)
 AS
 BEGIN
@@ -998,11 +999,13 @@ BEGIN
 		AND uat.is_deleted = 0
 	INNER JOIN user_role_table urt WITH (NOLOCK) ON urt.role_id = uat.role_id
 		AND urt.role_name IN ('USER')
-	WHERE MONTH(updt.created_date) = @month
-		AND DAY(updt.created_date) = @day
+	WHERE (
+		@occasion = 'Anniversary' AND MONTH(updt.created_date) = @month AND DAY(updt.created_date) = @day
+		OR
+		@occasion = 'Birthday' AND MONTH(updt.date_of_birth) = @month AND DAY(updt.date_of_birth) = @day
+	)
 	ORDER BY updt.created_date
 END
-GO
 /****** Object:  StoredProcedure [dbo].[getBlackListTokenDetailsByToken]    Script Date: 04-09-2025 23:59:42 ******/
 SET ANSI_NULLS ON
 GO
@@ -1720,6 +1723,7 @@ BEGIN
 		,COUNT(uat.id) AS userCount
 	FROM user_auth_table uat WITH (NOLOCK)
 	INNER JOIN user_profile_details_table updt WITH (NOLOCK) ON updt.user_id = uat.id
+	WHERE YEAR(updt.created_date) = @year
 	GROUP BY MONTH(updt.created_date)
 END
 GO

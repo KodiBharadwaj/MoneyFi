@@ -1,6 +1,5 @@
 package com.moneyfi.apigateway.service.common;
 
-import com.ctc.wstx.shaded.msv_core.datatype.xsd.IntegerType;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
@@ -44,30 +43,35 @@ public class SchedulingService {
     @Scheduled(fixedRate = 3600000) // Runs every 1 hour
     @Transactional
     public void removeExpiredTokens() {
-        LocalDateTime now = LocalDateTime.now();
-        log.info("Checking for expired tokens at: " + now);
-        tokenBlacklistRepository.deleteByExpiryBefore(now);  // Deletes expired tokens
+        /** Scheduling algorithm to delete the expired tokens in the table **/
+        tokenBlacklistRepository.deleteByExpiryBefore(LocalDateTime.now());
     }
 
-    @Scheduled(fixedRate = 3600000) // Method Runs for every 1 hour
-    public void removeOtpCountOfPreviousDay(){
+    @Scheduled(cron = "0 0 0 * * *") // Runs at every 12 am of the day (starting of the day)
+    public void dailyJobRunInBeginningOfTheDay(){
+        /** Scheduling algorithm to remove the previous day otp count **/
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
         List<UserAuthModel> userAuthModelList = userRepository.getUserListWhoseOtpCountGreaterThanThree(startOfToday);
         for (UserAuthModel userAuthModel : userAuthModelList) {
             userAuthModel.setOtpCount(0);
             userRepository.save(userAuthModel);
         }
-    }
 
-    @Scheduled(cron = "0 0 0 * * *") // Runs at every 12 am of the day (starting of the day)
-    public void dailyJobRunInBeginningOfTheDay(){
-        List<String> birthdayList = commonServiceRepository.getBirthdayUserNames(LocalDate.now().getMonthValue(), LocalDate.now().getDayOfMonth());
-        new Thread(() -> birthdayList.forEach(user -> {
+        /** Scheduling algorithm to find the users who completed more than 1 year in MoneyFi **/
+        List<String> anniversaryUsersList = commonServiceRepository.getBirthdayAndAnniversaryUsersList(LocalDate.now().getMonthValue(), LocalDate.now().getDayOfMonth(), "Birthday");
+        new Thread(() -> anniversaryUsersList.forEach(user -> {
             String[] parts = user.split("-");
             int numberOfYears = LocalDate.now().getYear() - Integer.parseInt(parts[2]);
             if(numberOfYears != 0){
-                emailTemplates.sendBirthdayMail(parts[0].trim(), parts[1], numberOfYears);
+                emailTemplates.sendAnniversaryCongratulationsMailToUser(parts[0].trim(), parts[1], numberOfYears);
             }
+        })).start();
+
+        /** Scheduling algorithm to find the birthday users **/
+        List<String> birthdayList = commonServiceRepository.getBirthdayAndAnniversaryUsersList(LocalDate.now().getMonthValue(), LocalDate.now().getDayOfMonth(), "Anniversary");
+        new Thread(() -> birthdayList.forEach(user -> {
+            String[] parts = user.split("-");
+            emailTemplates.sendBirthdayWishEmailToUsers(parts[0].trim(), parts[1]);
         })).start();
     }
 

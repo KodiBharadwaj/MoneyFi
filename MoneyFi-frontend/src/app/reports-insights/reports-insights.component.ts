@@ -60,6 +60,14 @@ export class ReportsInsightsComponent implements OnInit   {
       this.toastr.warning('Please provide date range');
       return;
     }
+
+    const from = new Date(this.fromDate);
+    const to = new Date(this.toDate);
+
+    if (from > to) {
+        this.toastr.warning('From date should be before End Date');
+        return;
+    }
     
     // Reset pagination when generating new statement
     this.startIndex = 0;

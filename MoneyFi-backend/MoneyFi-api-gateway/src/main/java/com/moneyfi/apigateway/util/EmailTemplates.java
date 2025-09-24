@@ -109,13 +109,29 @@ public class EmailTemplates {
         return emailFilter.sendEmail(email, subject, body);
     }
 
-    public void sendBirthdayMail(String email, String name, int numberOfYears){
+    public void sendAnniversaryCongratulationsMailToUser(String email, String name, int numberOfYears){
+        String subject = "Happy Anniversary - MoneyFi";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
+                + "<p style='font-size: 16px;'>We wish you a very happy anniversary in our moneyfi. May god bless you on this auspicious day.</p>"
+                + "<p style='font-size: 16px;'>You have completed " + numberOfYears + (numberOfYears == 1?" year" : " years") + " in our platform. Hope you are enjoying the services.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(email, subject, body);
+    }
+
+    public void sendBirthdayWishEmailToUsers(String email, String name){
         String subject = "Happy Birthday";
         String body = "<html>"
                 + "<body>"
                 + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
-                + "<p style='font-size: 16px;'>We wish you a very happy birthday. May god bless you on this auspicious day.</p>"
-                + "<p style='font-size: 16px;'>You have completed " + numberOfYears + (numberOfYears == 1?" year" : " years") + " in our platform. Hope you are enjoying the services.</p>"
+                + "<p style='font-size: 16px;'>We wish you a very happy birthday to you. May god bless you on this auspicious day.</p>"
                 + "<hr>"
                 + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
                 + "<br>"

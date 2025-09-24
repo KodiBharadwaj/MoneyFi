@@ -1,6 +1,7 @@
 package com.moneyfi.apigateway.service.common.impl;
 
 import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
+import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.ContactUsHist;
 import com.moneyfi.apigateway.model.common.ExcelTemplate;
@@ -169,14 +170,16 @@ public class ProfileServiceImpl implements ProfileService {
             Workbook workbook = new XSSFWorkbook(is);
             Sheet sheet = workbook.getSheetAt(0);
             Row row = sheet.getRow(1);
-
             java.util.Date dobDate = row.getCell(1).getDateCellValue();
             double incomeRange = row.getCell(4).getNumericCellValue();
-
+            BigDecimal phoneCellValue = BigDecimal.valueOf(row.getCell(0).getNumericCellValue());
+            String phoneNumber = phoneCellValue.toBigInteger().toString();
+            if (phoneNumber.length() != 10) {
+                throw new ScenarioNotPossibleException("Phone number should be 10 digits");
+            }
             ProfileModel fetchProfile = profileRepository.findByUserId(userId);
-
             if (fetchProfile != null) {
-                fetchProfile.setPhone(String.valueOf(BigDecimal.valueOf(row.getCell(0).getNumericCellValue()).toBigInteger()));
+                fetchProfile.setPhone(phoneNumber);
                 fetchProfile.setDateOfBirth(dobDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
                 fetchProfile.setGender(row.getCell(2).getStringCellValue());
                 fetchProfile.setMaritalStatus(row.getCell(3).getStringCellValue());
@@ -186,7 +189,6 @@ public class ProfileServiceImpl implements ProfileService {
             } else {
                 throw new ResourceNotFoundException("User profile not found for userId: " + userId);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResourceNotFoundException("Invalid Excel format");
