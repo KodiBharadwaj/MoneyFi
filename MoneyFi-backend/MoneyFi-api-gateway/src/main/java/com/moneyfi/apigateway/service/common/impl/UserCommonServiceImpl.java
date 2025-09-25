@@ -187,53 +187,35 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .filter(ContactUs::isRequestActive)
                     .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_BLOCK_REQUEST.name()))
                     .findFirst();
+            String referenceNumber = null;
+            ContactUs savedRequest = null;
             if(requestDetails.isPresent()){
-                boolean isEmailSent = emailTemplates
-                        .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account unblock", requestDetails.get().getReferenceNumber());
-                if(isEmailSent){
-                    requestDetails.get().setRequestStatus(RaiseRequestStatus.INITIATED.name());
-                    requestDetails.get().setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-                    ContactUs savedRequest = contactUsRepository.save(requestDetails.get());
-
-                    ContactUsHist requestDetailsHist = new ContactUsHist();
-                    requestDetailsHist.setContactUsId(savedRequest.getId());
-                    requestDetailsHist.setMessage("Reference number requested to unblock the account");
-                    requestDetailsHist.setRequestStatus(RaiseRequestStatus.INITIATED.name());
-                    requestDetailsHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-                    requestDetailsHist.setUpdatedTime(LocalDateTime.now());
-                    contactUsHistRepository.save(requestDetailsHist);
-                    response.put(true, "Reference Number sent to your email");
-                    return response;
-                }
+                referenceNumber = requestDetails.get().getReferenceNumber();
+                requestDetails.get().setRequestStatus(RaiseRequestStatus.INITIATED.name());
+                requestDetails.get().setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
+                savedRequest = contactUsRepository.save(requestDetails.get());
             } else {
                 ProfileModel userProfile = profileRepository.findByUserId(user.getId());
-                String referenceNumber = "BL" + userProfile.getName().substring(0,2) + email.substring(0,2)
+                referenceNumber = "BL" + userProfile.getName().substring(0,2) + email.substring(0,2)
                         + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
-                boolean isEmailSent = emailTemplates
-                        .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account unblock", referenceNumber);
-                if(isEmailSent){
-                    ContactUs saveRequest = new ContactUs();
-                    saveRequest.setEmail(email);
-                    saveRequest.setReferenceNumber(referenceNumber);
-                    saveRequest.setRequestActive(true);
-                    saveRequest.setVerified(false);
-                    saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
-                    saveRequest.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-                    saveRequest.setStartTime(LocalDateTime.now());
-                    ContactUs savedRequest = contactUsRepository.save(saveRequest);
-
-                    ContactUsHist userRequestHist = new ContactUsHist();
-                    userRequestHist.setContactUsId(savedRequest.getId());
-                    userRequestHist.setRequestStatus(RaiseRequestStatus.INITIATED.name());
-                    userRequestHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-                    userRequestHist.setMessage("Reference number requested to unblock the account");
-                    userRequestHist.setUpdatedTime(savedRequest.getStartTime());
-                    contactUsHistRepository.save(userRequestHist);
-                    response.put(true, "Reference Number sent to your email");
-                    return response;
-                }
+                ContactUs saveRequest = new ContactUs();
+                saveRequest.setEmail(email);
+                saveRequest.setReferenceNumber(referenceNumber);
+                saveRequest.setRequestActive(true);
+                saveRequest.setVerified(false);
+                saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
+                saveRequest.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
+                saveRequest.setStartTime(LocalDateTime.now());
+                savedRequest = contactUsRepository.save(saveRequest);
             }
-
+            boolean isEmailSent = emailTemplates
+                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account unblock", referenceNumber);
+            if(isEmailSent){
+                contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), null, "Reference number requested to unblock the account", savedRequest.getStartTime(),
+                        RequestReason.ACCOUNT_UNBLOCK_REQUEST.name(), RaiseRequestStatus.INITIATED.name()));
+                response.put(true, "Reference Number sent to your email");
+                return response;
+            }
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
             if(user.isDeleted() || user.isBlocked()){
                 throw new ScenarioNotPossibleException(user.isDeleted()?"Account is deleted. Raise retrieval request" :

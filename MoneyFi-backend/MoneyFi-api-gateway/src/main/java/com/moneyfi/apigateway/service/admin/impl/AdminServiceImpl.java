@@ -586,7 +586,7 @@ public class AdminServiceImpl implements AdminService {
         userRepository.save(user);
         userAuthHistRepository.save(new UserAuthHist(user.getId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT), reason, adminUserId));
         new Thread(
-                () -> emailTemplates.sendBlockAlertMailToUser(email, reason, convertMultipartFileToPdfBytes(file))
+                () -> emailTemplates.sendBlockAlertMailToUser(email, reason, profileRepository.findByUserId(user.getId()).getName(), convertMultipartFileToPdfBytes(file))
         ).start();
         return "User is successfully blocked";
     }

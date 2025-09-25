@@ -243,11 +243,11 @@ public class EmailTemplates {
         return simpleMailMessage;
     }
 
-    public void sendBlockAlertMailToUser(String email, String reason, byte[] file) {
+    public void sendBlockAlertMailToUser(String email, String reason, String name, byte[] file) {
         String subject = "Account Block Alert!!";
         String body = "<html>"
                 + "<body>"
-                + "<p style='font-size: 16px;'>Hello User,</p>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
                 + "<p style='font-size: 16px;'>Your account has been blocked by admin due to the reason: " + reason + "</p>"
                 + "<p style='font-size: 16px;'>Please contact admin for more details or raise unblock request</p>"
                 + "<hr>"
