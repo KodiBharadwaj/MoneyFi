@@ -242,4 +242,21 @@ public class EmailTemplates {
         simpleMailMessage.setText(body);
         return simpleMailMessage;
     }
+
+    public void sendBlockAlertMailToUser(String email, String reason, byte[] file) {
+        String subject = "Account Block Alert!!";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello User,</p>"
+                + "<p style='font-size: 16px;'>Your account has been blocked by admin due to the reason: " + reason + "</p>"
+                + "<p style='font-size: 16px;'>Please contact admin for more details or raise unblock request</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmailWithAttachment(email, subject, body, file, "reason-attachment.pdf");
+    }
 }

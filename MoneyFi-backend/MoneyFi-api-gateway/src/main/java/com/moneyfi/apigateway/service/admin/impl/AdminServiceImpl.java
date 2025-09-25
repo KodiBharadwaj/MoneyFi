@@ -15,12 +15,14 @@ import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequ
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.AwsServices;
 import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
+import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.enums.*;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,6 +46,7 @@ public class AdminServiceImpl implements AdminService {
     private final AwsServices awsServices;
     private final ReasonDetailsRepository reasonDetailsRepository;
     private final UserAuthHistRepository userAuthHistRepository;
+    private final EmailTemplates emailTemplates;
 
     public AdminServiceImpl(AdminRepository adminRepository,
                             ContactUsRepository contactUsRepository,
@@ -54,7 +57,8 @@ public class AdminServiceImpl implements AdminService {
                             UserNotificationRepository userNotificationRepository,
                             AwsServices awsServices,
                             ReasonDetailsRepository reasonDetailsRepository,
-                            UserAuthHistRepository userAuthHistRepository){
+                            UserAuthHistRepository userAuthHistRepository,
+                            EmailTemplates emailTemplates){
         this.adminRepository = adminRepository;
         this.contactUsRepository = contactUsRepository;
         this.userRepository = userRepository;
@@ -65,6 +69,7 @@ public class AdminServiceImpl implements AdminService {
         this.awsServices = awsServices;
         this.reasonDetailsRepository = reasonDetailsRepository;
         this.userAuthHistRepository = userAuthHistRepository;
+        this.emailTemplates = emailTemplates;
     }
 
     @Override
@@ -559,5 +564,39 @@ public class AdminServiceImpl implements AdminService {
                 .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + reasonId + " is not found"));
         reasonDetails.setIsDeleted(true);
         reasonDetailsRepository.save(reasonDetails);
+    }
+
+    @Override
+    @Transactional
+    public String blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) {
+        if(email == null || email.trim().isEmpty() || reason == null || reason.trim().isEmpty()){
+            throw new ScenarioNotPossibleException("Please provide all the details correctly");
+        }
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found with username: " + email);
+        }
+        if (user.isBlocked()) {
+            throw new ScenarioNotPossibleException("User account is already blocked");
+        }
+        if(user.isDeleted()){
+            throw new ScenarioNotPossibleException("User account is deleted, can't block the user");
+        }
+        user.setBlocked(true);
+        userRepository.save(user);
+        userAuthHistRepository.save(new UserAuthHist(user.getId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT), reason, adminUserId));
+        new Thread(
+                () -> emailTemplates.sendBlockAlertMailToUser(email, reason, convertMultipartFileToPdfBytes(file))
+        ).start();
+        return "User is successfully blocked";
+    }
+
+    private byte[] convertMultipartFileToPdfBytes(MultipartFile file){
+        try {
+            return file.getBytes();
+        } catch (IOException e) {
+            e.printStackTrace();;
+        }
+        return null;
     }
 }
