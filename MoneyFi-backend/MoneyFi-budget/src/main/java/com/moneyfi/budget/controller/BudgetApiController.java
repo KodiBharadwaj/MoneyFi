@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -64,6 +65,15 @@ public class BudgetApiController {
                                                     @RequestHeader("Authorization") String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         budgetService.updateBudget(userId, budgetList);
+    }
+
+    @Operation(summary = "Api to get the user spending anlaysis in a particular time period")
+    @GetMapping("/spending-analysis")
+    public BigDecimal getUserSpendingAnalysisByBudgetCategories(@RequestHeader("Authorization") String authHeader,
+                                                          @RequestParam LocalDate fromDate,
+                                                          @RequestParam LocalDate toDate){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return budgetService.getUserSpendingAnalysisByBudgetCategories(userId, fromDate, toDate, authHeader);
     }
 
 }

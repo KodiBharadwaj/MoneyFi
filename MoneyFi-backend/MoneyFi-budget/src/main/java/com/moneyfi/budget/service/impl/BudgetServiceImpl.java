@@ -7,11 +7,15 @@ import com.moneyfi.budget.repository.common.BudgetCommonRepository;
 import com.moneyfi.budget.service.BudgetService;
 import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
+import com.moneyfi.budget.utils.StringConstants;
 import jakarta.transaction.Transactional;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -20,11 +24,14 @@ public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetRepository budgetRepository;
     private final BudgetCommonRepository budgetCommonRepository;
+    private final RestTemplate restTemplate;
 
     public BudgetServiceImpl(BudgetRepository budgetRepository,
-                             BudgetCommonRepository budgetCommonRepository){
+                             BudgetCommonRepository budgetCommonRepository,
+                             RestTemplate restTemplate){
         this.budgetRepository = budgetRepository;
         this.budgetCommonRepository = budgetCommonRepository;
+        this.restTemplate = restTemplate;
     }
 
     @Override
@@ -91,5 +98,28 @@ public class BudgetServiceImpl implements BudgetService {
 
             budgetRepository.save(budgetModel);
         }
+    }
+
+    @Override
+    public BigDecimal getUserSpendingAnalysisByBudgetCategories(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", authHeader);
+        HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
+
+        ResponseEntity<BigDecimal> incomeResponse = restTemplate.exchange(
+                StringConstants.EUREKA_INCOME_SERVICE_URL + "/total-income/specified-range?fromDate=" + fromDate + "&toDate=" + toDate,
+                HttpMethod.GET,
+                requestEntity,
+                BigDecimal.class
+        );
+
+        ResponseEntity<BigDecimal> expenseResponse = restTemplate.exchange(
+                StringConstants.EUREKA_EXPENSE_SERVICE_URL + "/total-expenses/specified-range?fromDate=" + fromDate + "&toDate=" + toDate,
+                HttpMethod.GET,
+                requestEntity,
+                BigDecimal.class
+        );
+        return expenseResponse.getBody();
     }
 }

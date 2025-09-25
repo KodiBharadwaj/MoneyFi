@@ -5,6 +5,7 @@ import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface BudgetService {
@@ -16,4 +17,6 @@ public interface BudgetService {
     BigDecimal budgetProgress(Long userId, int month, int year);
 
     void updateBudget(Long userId, List<BudgetModel> budgetList);
+
+    BigDecimal getUserSpendingAnalysisByBudgetCategories(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader);
 }

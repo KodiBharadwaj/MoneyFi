@@ -9,6 +9,8 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @RestController
@@ -137,6 +139,15 @@ public class ExpenseApiController {
                                                         @PathVariable("year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return expenseService.getCumulativeMonthlySavings(userId, year);
+    }
+
+    @Operation(summary = "Api to get the total expense in a specified period")
+    @GetMapping("/total-expenses/specified-range")
+    public BigDecimal getTotalExpensesInSpecifiedRange(@RequestHeader("Authorization") String authHeader,
+                                                       @RequestParam LocalDate fromDate,
+                                                       @RequestParam LocalDate toDate){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return expenseService.getTotalExpensesInSpecifiedRange(userId, fromDate.atStartOfDay(), toDate.atTime(LocalTime.MAX));
     }
 
     @Operation(summary = "Method to update the expense details")

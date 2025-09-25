@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @RestController
@@ -200,6 +202,15 @@ public class IncomeApiController {
                                                              @PathVariable("year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return incomeService.getOverviewPageTileDetails(userId, month, year);
+    }
+
+    @Operation(summary = "Api to get the total income in a specified date range")
+    @GetMapping("/total-income/specified-range")
+    public BigDecimal getTotalIncomeInSpecifiedRange(@RequestHeader("Authorization") String authHeader,
+                                                     @RequestParam LocalDate fromDate,
+                                                     @RequestParam LocalDate toDate){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return incomeService.getTotalIncomeInSpecifiedRange(userId, fromDate.atStartOfDay(), toDate.atTime(LocalTime.MAX));
     }
 
     @Operation(summary = "Method to update the income details")

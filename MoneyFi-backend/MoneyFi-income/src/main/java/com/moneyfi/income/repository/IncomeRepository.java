@@ -3,8 +3,10 @@ package com.moneyfi.income.repository;
 import com.moneyfi.income.model.IncomeModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -37,4 +39,7 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
 
     @Query(nativeQuery = true, value =  "exec getUserIdFromUsernameAndToken @username = :username, @token = :token")
     Long getUserIdFromUsernameAndToken(String username, String token);
+
+    @Query("SELECT SUM(i.amount) FROM IncomeModel i WHERE i.userId = :userId AND i.isDeleted = false AND i.date BETWEEN :fromDate AND :toDate")
+    BigDecimal getTotalIncomeInSpecifiedRange(@Param("userId") Long userId, @Param("fromDate") LocalDateTime fromDate, @Param("toDate") LocalDateTime toDate);
 }

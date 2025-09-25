@@ -3,8 +3,10 @@ package com.moneyfi.expense.repository;
 import com.moneyfi.expense.model.ExpenseModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ExpenseRepository extends JpaRepository<ExpenseModel, Long> {
@@ -29,4 +31,7 @@ public interface ExpenseRepository extends JpaRepository<ExpenseModel, Long> {
 
     @Query(nativeQuery = true, value =  "exec getUserIdFromUsernameAndToken @username = :username, @token = :token")
     Long getUserIdFromUsernameAndToken(String username, String token);
+
+    @Query("SELECT SUM(e.amount) FROM ExpenseModel e WHERE e.userId = :userId AND e.isDeleted = false AND e.date BETWEEN :fromDate AND :toDate")
+    BigDecimal getTotalIncomeInSpecifiedRange(@Param("userId") Long userId, @Param("fromDate") LocalDateTime fromDate, @Param("toDate") LocalDateTime toDate);
 }

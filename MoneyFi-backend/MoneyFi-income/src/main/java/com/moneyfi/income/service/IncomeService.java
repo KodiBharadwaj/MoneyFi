@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface IncomeService {
@@ -51,4 +53,6 @@ public interface IncomeService {
     ResponseEntity<String> sendAccountStatementEmailToUser(Long userId, AccountStatementRequestDto inputDto, String token);
 
     OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year);
+
+    BigDecimal getTotalIncomeInSpecifiedRange(Long userId, LocalDateTime fromDate, LocalDateTime toDate);
 }

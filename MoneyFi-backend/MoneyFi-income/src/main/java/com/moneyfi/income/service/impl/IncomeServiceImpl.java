@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -339,6 +340,11 @@ public class IncomeServiceImpl implements IncomeService {
     @Override
     public OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year) {
         return incomeCommonRepository.getOverviewPageTileDetails(userId, month, year);
+    }
+
+    @Override
+    public BigDecimal getTotalIncomeInSpecifiedRange(Long userId, LocalDateTime fromDate, LocalDateTime toDate) {
+        return incomeRepository.getTotalIncomeInSpecifiedRange(userId, fromDate, toDate);
     }
 
     private void apiCallToGatewayServiceToSendEmail(byte[] pdfBytes, String authHeader){
