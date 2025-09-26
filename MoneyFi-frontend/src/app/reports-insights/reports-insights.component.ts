@@ -180,4 +180,48 @@ export class ReportsInsightsComponent implements OnInit   {
       }
     });
   }
+
+
+  spendingAnalysis: any = null;
+  incomeCategories: { key: string, value: number }[] = [];
+  expenseCategories: { key: string, value: number }[] = [];
+
+  getSpendingAnalysis(): void {
+    if (!this.fromDate || !this.toDate) {
+      this.toastr.warning('Please provide date range');
+      return;
+    }
+
+    const from = new Date(this.fromDate);
+    const to = new Date(this.toDate);
+
+    if (from > to) {
+        this.toastr.warning('From date should be before End Date');
+        return;
+    }
+    
+    this.isGenerating = true;
+    this.fetchSpendingAnalysis(from, to);
+  }
+
+  private fetchSpendingAnalysis(fromDate : Date, toDate : Date): void {
+    const formattedFromDate = fromDate.toISOString().split('T')[0]; // yyyy-MM-dd
+    const formattedToDate = toDate.toISOString().split('T')[0];     // yyyy-MM-dd
+
+    this.httpClient.get<any>(
+      `${this.baseUrl}/api/v1/budget/spending-analysis?fromDate=${formattedFromDate}&toDate=${formattedToDate}`
+    ).subscribe({
+      next: (analysis) => {
+        console.log(analysis);
+        this.spendingAnalysis = analysis;
+        this.incomeCategories = Object.entries(analysis.incomeByCategory)
+          .map(([key, value]) => ({ key, value: Number(value) }));
+        this.expenseCategories = Object.entries(analysis.expenseByCategory)
+          .map(([key, value]) => ({ key, value: Number(value) }));
+
+        this.isGenerating = false;
+      }
+    });
+
+  }
 }

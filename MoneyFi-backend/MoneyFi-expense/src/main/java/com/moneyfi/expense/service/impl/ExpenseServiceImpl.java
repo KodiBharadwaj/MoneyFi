@@ -326,7 +326,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public BigDecimal getTotalExpensesInSpecifiedRange(Long userId, LocalDateTime fromDate, LocalDateTime toDate) {
+    public List<Object[]> getTotalExpensesInSpecifiedRange(Long userId, LocalDateTime fromDate, LocalDateTime toDate) {
         return expenseRepository.getTotalIncomeInSpecifiedRange(userId, fromDate, toDate);
     }
 }

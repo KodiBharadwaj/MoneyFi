@@ -5,7 +5,9 @@ import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.service.BudgetService;
 import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
+import com.moneyfi.budget.service.dto.response.SpendingAnalysisResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -67,13 +69,26 @@ public class BudgetApiController {
         budgetService.updateBudget(userId, budgetList);
     }
 
-    @Operation(summary = "Api to get the user spending anlaysis in a particular time period")
+    @Operation(summary = "Api to get the user spending analysis in a particular time period")
     @GetMapping("/spending-analysis")
-    public BigDecimal getUserSpendingAnalysisByBudgetCategories(@RequestHeader("Authorization") String authHeader,
-                                                          @RequestParam LocalDate fromDate,
-                                                          @RequestParam LocalDate toDate){
+    public SpendingAnalysisResponseDto getUserSpendingAnalysisByBudgetCategories(@RequestHeader("Authorization") String authHeader,
+                                                                                 @RequestParam LocalDate fromDate,
+                                                                                 @RequestParam LocalDate toDate){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return budgetService.getUserSpendingAnalysisByBudgetCategories(userId, fromDate, toDate, authHeader);
+    }
+
+    @Operation(summary = "Api to get the user spending analysis in pdf format in a particular time period")
+    @GetMapping("/spending-analysis/report")
+    public ResponseEntity<byte[]> getUserSpendingAnalysisByBudgetCategoriesPdf(@RequestHeader("Authorization") String authHeader,
+                                                                               @RequestParam LocalDate fromDate,
+                                                                               @RequestParam LocalDate toDate){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        byte[] pdfBytes = budgetService.getUserSpendingAnalysisByBudgetCategoriesPdf(userId, fromDate, toDate, authHeader);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=spending-analysis.pdf")
+                .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
+                .body(pdfBytes);
     }
 
 }

@@ -343,7 +343,7 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public BigDecimal getTotalIncomeInSpecifiedRange(Long userId, LocalDateTime fromDate, LocalDateTime toDate) {
+    public List<Object[]> getTotalIncomeInSpecifiedRange(Long userId, LocalDateTime fromDate, LocalDateTime toDate) {
         return incomeRepository.getTotalIncomeInSpecifiedRange(userId, fromDate, toDate);
     }
 

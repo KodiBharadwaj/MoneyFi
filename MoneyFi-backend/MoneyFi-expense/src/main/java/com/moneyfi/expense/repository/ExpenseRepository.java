@@ -32,6 +32,15 @@ public interface ExpenseRepository extends JpaRepository<ExpenseModel, Long> {
     @Query(nativeQuery = true, value =  "exec getUserIdFromUsernameAndToken @username = :username, @token = :token")
     Long getUserIdFromUsernameAndToken(String username, String token);
 
-    @Query("SELECT SUM(e.amount) FROM ExpenseModel e WHERE e.userId = :userId AND e.isDeleted = false AND e.date BETWEEN :fromDate AND :toDate")
-    BigDecimal getTotalIncomeInSpecifiedRange(@Param("userId") Long userId, @Param("fromDate") LocalDateTime fromDate, @Param("toDate") LocalDateTime toDate);
+    @Query(
+            value = "SELECT e.category, " +
+                    "CAST(SUM(CAST(e.amount AS DECIMAL(18,2))) AS DECIMAL(18,2)) AS totalAmount " +
+                    "FROM expense_table e " +
+                    "WHERE e.user_id = :userId " +
+                    "AND e.is_deleted = 0 " +
+                    "AND e.date BETWEEN :fromDate AND :toDate " +
+                    "GROUP BY e.category",
+            nativeQuery = true
+    )
+    List<Object[]> getTotalIncomeInSpecifiedRange(@Param("userId") Long userId, @Param("fromDate") LocalDateTime fromDate, @Param("toDate") LocalDateTime toDate);
 }

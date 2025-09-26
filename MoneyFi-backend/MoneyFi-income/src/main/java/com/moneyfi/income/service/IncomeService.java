@@ -54,5 +54,5 @@ public interface IncomeService {
 
     OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year);
 
-    BigDecimal getTotalIncomeInSpecifiedRange(Long userId, LocalDateTime fromDate, LocalDateTime toDate);
+    List<Object[]> getTotalIncomeInSpecifiedRange(Long userId, LocalDateTime fromDate, LocalDateTime toDate);
 }

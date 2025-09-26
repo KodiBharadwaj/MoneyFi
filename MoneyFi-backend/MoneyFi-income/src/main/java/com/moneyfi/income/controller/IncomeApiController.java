@@ -206,9 +206,9 @@ public class IncomeApiController {
 
     @Operation(summary = "Api to get the total income in a specified date range")
     @GetMapping("/total-income/specified-range")
-    public BigDecimal getTotalIncomeInSpecifiedRange(@RequestHeader("Authorization") String authHeader,
-                                                     @RequestParam LocalDate fromDate,
-                                                     @RequestParam LocalDate toDate){
+    public List<Object[]> getTotalIncomeInSpecifiedRange(@RequestHeader("Authorization") String authHeader,
+                                                         @RequestParam LocalDate fromDate,
+                                                         @RequestParam LocalDate toDate){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return incomeService.getTotalIncomeInSpecifiedRange(userId, fromDate.atStartOfDay(), toDate.atTime(LocalTime.MAX));
     }

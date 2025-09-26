@@ -7,8 +7,11 @@ import com.moneyfi.budget.repository.common.BudgetCommonRepository;
 import com.moneyfi.budget.service.BudgetService;
 import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
+import com.moneyfi.budget.service.dto.response.SpendingAnalysisResponseDto;
+import com.moneyfi.budget.utils.GeneratePdfTemplate;
 import com.moneyfi.budget.utils.StringConstants;
 import jakarta.transaction.Transactional;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -16,7 +19,10 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 
 @Service
@@ -101,25 +107,72 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    public BigDecimal getUserSpendingAnalysisByBudgetCategories(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader) {
+    public SpendingAnalysisResponseDto getUserSpendingAnalysisByBudgetCategories(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader) {
+        SpendingAnalysisResponseDto spendingAnalysis = new SpendingAnalysisResponseDto(new HashMap<>(), new HashMap<>(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", authHeader);
         HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
-
-        ResponseEntity<BigDecimal> incomeResponse = restTemplate.exchange(
+        ResponseEntity<List<Object[]>> incomeResponse = restTemplate.exchange(
                 StringConstants.EUREKA_INCOME_SERVICE_URL + "/total-income/specified-range?fromDate=" + fromDate + "&toDate=" + toDate,
                 HttpMethod.GET,
                 requestEntity,
-                BigDecimal.class
+                new ParameterizedTypeReference<List<Object[]>>() {}
         );
-
-        ResponseEntity<BigDecimal> expenseResponse = restTemplate.exchange(
+        ResponseEntity<List<Object[]>> expenseResponse = restTemplate.exchange(
                 StringConstants.EUREKA_EXPENSE_SERVICE_URL + "/total-expenses/specified-range?fromDate=" + fromDate + "&toDate=" + toDate,
                 HttpMethod.GET,
                 requestEntity,
-                BigDecimal.class
+                new ParameterizedTypeReference<List<Object[]>>() {}
         );
-        return expenseResponse.getBody();
+        ResponseEntity<List<Object[]>> incomeResponseTillToDate = restTemplate.exchange(
+                StringConstants.EUREKA_INCOME_SERVICE_URL + "/total-income/specified-range?fromDate=" + LocalDate.of(1, 1, 1) + "&toDate=" + toDate,
+                HttpMethod.GET,
+                requestEntity,
+                new ParameterizedTypeReference<List<Object[]>>() {}
+        );
+        ResponseEntity<List<Object[]>> expenseResponseTillToDate = restTemplate.exchange(
+                StringConstants.EUREKA_EXPENSE_SERVICE_URL + "/total-expenses/specified-range?fromDate=" + LocalDate.of(1, 1, 1) + "&toDate=" + toDate,
+                HttpMethod.GET,
+                requestEntity,
+                new ParameterizedTypeReference<List<Object[]>>() {}
+        );
+
+        Map<String, BigDecimal> incomeByCategoryMap = new HashMap<>();
+        Objects.requireNonNull(incomeResponse.getBody())
+            .forEach(income -> {
+                String category = (String) income[0];
+                BigDecimal amount = BigDecimal.valueOf(((Number) income[1]).doubleValue());
+                incomeByCategoryMap.put(category, amount);
+                spendingAnalysis.setTotalIncome(spendingAnalysis.getTotalIncome().add(amount));
+            });
+        spendingAnalysis.setIncomeByCategory(incomeByCategoryMap);
+
+        Map<String, BigDecimal> expenseByCategoryMap = new HashMap<>();
+        Objects.requireNonNull(expenseResponse.getBody())
+            .forEach(expense -> {
+                String category = (String) expense[0];
+                BigDecimal amount = BigDecimal.valueOf(((Number) expense[1]).doubleValue());
+                expenseByCategoryMap.put(category, amount);
+                spendingAnalysis.setTotalExpense(spendingAnalysis.getTotalExpense().add(amount));
+            });
+        spendingAnalysis.setExpenseByCategory(expenseByCategoryMap);
+
+        BigDecimal totalIncomeTillEndDate = Objects.requireNonNull(incomeResponseTillToDate.getBody())
+                .stream()
+                .map(income -> BigDecimal.valueOf(((Number) income[1]).doubleValue()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalExpensesTillEndDate = Objects.requireNonNull(expenseResponseTillToDate.getBody())
+                .stream()
+                .map(expense -> BigDecimal.valueOf(((Number) expense[1]).doubleValue()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        spendingAnalysis.setAmountAvailableTillNow(totalIncomeTillEndDate.subtract(totalExpensesTillEndDate));
+        return spendingAnalysis;
+    }
+
+    @Override
+    public byte[] getUserSpendingAnalysisByBudgetCategoriesPdf(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader) {
+        SpendingAnalysisResponseDto responseDto = getUserSpendingAnalysisByBudgetCategories(userId, fromDate, toDate, authHeader);
+        return GeneratePdfTemplate.generatePdf(responseDto);
     }
 }

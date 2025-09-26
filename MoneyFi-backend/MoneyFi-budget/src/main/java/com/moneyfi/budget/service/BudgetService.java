@@ -3,6 +3,7 @@ package com.moneyfi.budget.service;
 import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
+import com.moneyfi.budget.service.dto.response.SpendingAnalysisResponseDto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,5 +19,7 @@ public interface BudgetService {
 
     void updateBudget(Long userId, List<BudgetModel> budgetList);
 
-    BigDecimal getUserSpendingAnalysisByBudgetCategories(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader);
+    SpendingAnalysisResponseDto getUserSpendingAnalysisByBudgetCategories(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader);
+
+    byte[] getUserSpendingAnalysisByBudgetCategoriesPdf(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader);
 }

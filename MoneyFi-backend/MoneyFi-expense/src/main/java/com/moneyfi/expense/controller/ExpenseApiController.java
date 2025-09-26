@@ -143,7 +143,7 @@ public class ExpenseApiController {
 
     @Operation(summary = "Api to get the total expense in a specified period")
     @GetMapping("/total-expenses/specified-range")
-    public BigDecimal getTotalExpensesInSpecifiedRange(@RequestHeader("Authorization") String authHeader,
+    public List<Object[]> getTotalExpensesInSpecifiedRange(@RequestHeader("Authorization") String authHeader,
                                                        @RequestParam LocalDate fromDate,
                                                        @RequestParam LocalDate toDate){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));

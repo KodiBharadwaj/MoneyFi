@@ -551,3 +551,104 @@
   align-items: center;
   gap: 6px;
 }
+
+
+
+
+
+
+
+
+
+
+.analysis-result {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 15px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+.analysis-result h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #343a40;
+}
+
+.summary-cards {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 25px;
+}
+
+.summary-cards .card {
+  flex: 1;
+  margin: 0 10px;
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+  color: #fff;
+  font-weight: bold;
+  transition: transform 0.3s;
+}
+
+.summary-cards .card:hover {
+  transform: translateY(-5px);
+}
+
+.total-income {
+  background: #28a745; /* green */
+}
+
+.total-expense {
+  background: #dc3545; /* red */
+}
+
+.available-amount {
+  background: #007bff; /* blue */
+}
+
+.category-analysis {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.category-column {
+  flex: 1;
+  background: #fff;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.category-column h4 {
+  margin-bottom: 15px;
+  color: #495057;
+}
+
+.category-column div {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f3f5;
+}
+
+.category-column div:last-child {
+  border-bottom: none;
+}
+
+.category-name {
+  font-weight: 500;
+}
+
+.category-value {
+  font-weight: bold;
+  color: #17a2b8;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

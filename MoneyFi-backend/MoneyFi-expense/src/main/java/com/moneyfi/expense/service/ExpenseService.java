@@ -36,5 +36,5 @@ public interface ExpenseService {
 
     boolean deleteExpenseById(List<Long> ids);
 
-    BigDecimal getTotalExpensesInSpecifiedRange(Long userId, LocalDateTime fromDate, LocalDateTime toDate);
+    List<Object[]> getTotalExpensesInSpecifiedRange(Long userId, LocalDateTime fromDate, LocalDateTime toDate);
 }
