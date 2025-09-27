@@ -16,7 +16,6 @@ public class StringUtils {
 
     private StringUtils() {}
 
-    public static final String ADMIN_EMAIL = "moneyfi.owner@gmail.com";
     public static final String MESSAGE = "message";
 
     public static final String ERROR = "error";

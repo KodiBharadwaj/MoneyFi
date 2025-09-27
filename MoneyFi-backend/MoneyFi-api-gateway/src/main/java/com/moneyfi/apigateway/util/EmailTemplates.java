@@ -2,15 +2,17 @@ package com.moneyfi.apigateway.util;
 
 import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 
-import static com.moneyfi.apigateway.util.constants.StringUtils.ADMIN_EMAIL;
-
 @Component
 public class EmailTemplates {
+
+    @Value("${email.filter.from.email}")
+    private String ADMIN_EMAIL;
 
     private final EmailFilter emailFilter;
 
