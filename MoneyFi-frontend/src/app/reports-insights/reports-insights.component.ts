@@ -30,6 +30,8 @@ export class ReportsInsightsComponent implements OnInit   {
 
   fromDate: string = ''; 
   toDate: string = '';
+  analysisFromDate: string = ''; 
+  analysisToDate: string = '';
   
   // Pagination properties
   startIndex: number = 0;
@@ -48,6 +50,8 @@ export class ReportsInsightsComponent implements OnInit   {
 
   this.toDate = today.toISOString().split('T')[0];      // Format: YYYY-MM-DD
   this.fromDate = sevenDaysAgo.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+  this.analysisToDate = today.toISOString().split('T')[0];      // Format: YYYY-MM-DD
+  this.analysisFromDate = sevenDaysAgo.toISOString().split('T')[0]; // Format: YYYY-MM-DD
 }
 
   constructor(private httpClient : HttpClient, private toastr:ToastrService) {}
@@ -187,13 +191,13 @@ export class ReportsInsightsComponent implements OnInit   {
   expenseCategories: { key: string, value: number }[] = [];
 
   getSpendingAnalysis(): void {
-    if (!this.fromDate || !this.toDate) {
+    if (!this.analysisFromDate || !this.analysisToDate) {
       this.toastr.warning('Please provide date range');
       return;
     }
 
-    const from = new Date(this.fromDate);
-    const to = new Date(this.toDate);
+    const from = new Date(this.analysisFromDate);
+    const to = new Date(this.analysisToDate);
 
     if (from > to) {
         this.toastr.warning('From date should be before End Date');
@@ -220,8 +224,61 @@ export class ReportsInsightsComponent implements OnInit   {
           .map(([key, value]) => ({ key, value: Number(value) }));
 
         this.isGenerating = false;
+      },error: (error) => {
+        this.toastr.error('Error fetching spending analysis');
+        console.error('Error fetching spending analysis:', error);
+        this.isGenerating = false;
       }
     });
+  }
 
+  downloadSpendingAnalysis(){
+    this.isDownloading = true;
+    const from = new Date(this.analysisFromDate);
+    const to = new Date(this.analysisToDate);
+    const formattedFromDate = from.toISOString().split('T')[0]; // yyyy-MM-dd
+    const formattedToDate = to.toISOString().split('T')[0];     // yyyy-MM-dd
+    this.httpClient.get(`${this.baseUrl}/api/v1/budget/spending-analysis/report?fromDate=${formattedFromDate}&toDate=${formattedToDate}`, {
+      responseType: 'blob'
+    }).subscribe({
+      next: (blob) => {
+        const fileURL = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = fileURL;
+        a.download = 'spending-analysis.pdf';
+        a.click();
+        URL.revokeObjectURL(fileURL);
+        this.isDownloading = false;
+      },
+      error: (error) => {
+        console.error('Error downloading spending analysis:', error);
+        this.toastr.error('Error downloading spending analysis');
+        this.isDownloading = false;
+      }
+    });
+  }
+
+  sendSpendingAnalysisEmail(){
+    this.isSendingEmail = true;
+    const from = new Date(this.analysisFromDate);
+    const to = new Date(this.analysisToDate);
+    const formattedFromDate = from.toISOString().split('T')[0]; // yyyy-MM-dd
+    const formattedToDate = to.toISOString().split('T')[0];     // yyyy-MM-dd
+    this.httpClient.get(`${this.baseUrl}/api/v1/budget/spending-analysis/report-email?fromDate=${formattedFromDate}&toDate=${formattedToDate}`, { responseType: 'text' })
+    .subscribe({
+      next: (response: string) => {
+        if (response === 'Email sent successfully') {
+          this.toastr.success(response);
+        } else {
+          this.toastr.error("Failed to send email, Please try later")
+        }
+        this.isSendingEmail = false;
+      },
+      error: (error) => {
+        console.error('Error occurred:', error);
+        this.toastr.error("Failed to send email, Please try later");
+        this.isSendingEmail = false;
+      }
+    });
   }
 }

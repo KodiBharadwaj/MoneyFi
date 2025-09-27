@@ -616,6 +616,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean sendSpendingAnalysisEmail(String username, byte[] pdfBytes) {
+        return emailTemplates.sendSpendingAnalysisEmail(profileRepository.findByUserId(getUserIdByUsername(username)).getName(), username, pdfBytes);
+    }
+
+    @Override
     public String uploadUserProfilePictureToS3(String username, MultipartFile file) {
         if ("local".equalsIgnoreCase(activeProfile)) {
             cloudinaryService.uploadProfilePictureToCloudinary(file, getUserIdByUsername(username), username);

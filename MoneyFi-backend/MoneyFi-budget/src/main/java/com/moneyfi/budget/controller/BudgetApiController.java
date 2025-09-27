@@ -91,4 +91,13 @@ public class BudgetApiController {
                 .body(pdfBytes);
     }
 
+    @Operation(summary = "Api to get the user spending analysis in pdf format and send email to user in a particular time period")
+    @GetMapping("/spending-analysis/report-email")
+    public ResponseEntity<String> getUserSpendingAnalysisByBudgetCategoriesPdfEmail(@RequestHeader("Authorization") String authHeader,
+                                                                                    @RequestParam LocalDate fromDate,
+                                                                                    @RequestParam LocalDate toDate){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return budgetService.getUserSpendingAnalysisByBudgetCategoriesPdfEmail(userId, fromDate, toDate, authHeader);
+    }
+
 }

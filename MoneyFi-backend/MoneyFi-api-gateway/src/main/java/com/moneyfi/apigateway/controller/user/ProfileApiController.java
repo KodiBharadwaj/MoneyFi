@@ -133,6 +133,16 @@ public class ProfileApiController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Api to send user's account spending analysis as email")
+    @PostMapping("/spending-analysis/email")
+    public ResponseEntity<Void> sendSpendingAnalysisEmail(Authentication authentication,
+                                                          @RequestBody byte[] pdfBytes) {
+        if(!userService.sendSpendingAnalysisEmail(((UserDetails) authentication.getPrincipal()).getUsername(), pdfBytes)){
+            throw new ResourceNotFoundException("Error in sending email, internal error");
+        }
+        return ResponseEntity.ok().build();
+    }
+
     @Operation(summary = "Api to upload profile pic to aws s3")
     @PostMapping("/profile-picture/upload")
     public ResponseEntity<String> uploadUserProfilePictureToS3(Authentication authentication,

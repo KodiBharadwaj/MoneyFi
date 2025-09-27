@@ -201,6 +201,27 @@ public class EmailTemplates {
         return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, fileName);
     }
 
+    public boolean sendSpendingAnalysisEmail(String name, String username, byte[] pdfBytes) {
+        String subject = "MoneyFi - Spending Analysis Report";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ", </p>"
+                + "<p style='font-size: 16px;'>You have requested for spending analysis report. Kindly find the attached PDF.</p>"
+                + "<p style='font-size: 16px;'>The format for the password is: </p>"
+                + "<p style='font-size: 16px;'>First four characters in your name in capital + First four characters in username in small letters </p> <br>"
+                + "<p style='font-size: 16px;'>Lets say the name and username are: abcxyz, sample123@gmail.com. Then the password will be <strong> ABCXsamp </strong> </p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL + "</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        int index = name.indexOf(' ');
+        String fileName = name.substring(0, index)+"_spending_analysis.pdf";
+        return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, fileName);
+    }
+
     public boolean sendReferenceNumberEmail(String name, String email, String description, String referenceNumber) {
         String subject = "MoneyFi - user requests";
         String body = "<html>"

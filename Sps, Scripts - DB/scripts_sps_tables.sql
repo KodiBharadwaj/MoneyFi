@@ -977,7 +977,7 @@ BEGIN
 
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getBirthdayUserEmailAndName]    Script Date: 04-09-2025 23:59:42 ******/
+/****** Object:  StoredProcedure [dbo].[getBirthdayOrAnniversaryUserEmailAndName]    Script Date: 04-09-2025 23:59:42 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1592,12 +1592,12 @@ BEGIN
 		AND uat.verification_code_expiration < @startOfToday;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getUserDetailsForAccountStatement]    Script Date: 04-09-2025 23:59:42 ******/
+/****** Object:  StoredProcedure [dbo].[getUserDetailsForPdfGeneration]    Script Date: 04-09-2025 23:59:42 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE procedure [dbo].[getUserDetailsForAccountStatement] (
+CREATE procedure [dbo].[getUserDetailsForPdfGeneration] (
 	@userId BIGINT
 	)
 AS

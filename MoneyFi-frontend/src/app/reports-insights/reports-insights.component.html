@@ -192,7 +192,7 @@
   </div>
 
   <!-- Empty State -->
-  <div class="empty-state" *ngIf="accountStatementGenerated.length === 0">
+  <!-- <div class="empty-state" *ngIf="accountStatementGenerated.length === 0">
     <div class="empty-content">
       <i class="empty-icon icon-document"></i>
       <h3 class="empty-title">No Statements Generated</h3>
@@ -200,7 +200,7 @@
         Select a date range and click "Generate Statement" to view your transaction history.
       </p>
     </div>
-  </div>
+  </div> -->
 </div>
 </div>
 
@@ -236,14 +236,14 @@
               <mat-label>From Date</mat-label>
               <input 
                 matInput 
-                [matDatepicker]="fromDatePicker"
-                [(ngModel)]="fromDate"
-                name="fromDate"
+                [matDatepicker]="analysisFromDatePicker"
+                [(ngModel)]="analysisFromDate"
+                name="analysisFromDate"
                 placeholder="Select start date"
                 readonly
               >
-              <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
-              <mat-datepicker #fromDatePicker></mat-datepicker>
+              <mat-datepicker-toggle matSuffix [for]="analysisFromDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #analysisFromDatePicker></mat-datepicker>
             </mat-form-field>
           </div>
           <div class="input-group">
@@ -251,14 +251,14 @@
               <mat-label>To Date</mat-label>
               <input 
                 matInput 
-                [matDatepicker]="toDatePicker"
-                [(ngModel)]="toDate"
-                name="toDate"
+                [matDatepicker]="analysisToDatePicker"
+                [(ngModel)]="analysisToDate"
+                name="analysisToDate"
                 placeholder="Select end date"
                 readonly
               >
-              <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
-              <mat-datepicker #toDatePicker></mat-datepicker>
+              <mat-datepicker-toggle matSuffix [for]="analysisToDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #analysisToDatePicker></mat-datepicker>
             </mat-form-field>
           </div>
         </div>
@@ -280,9 +280,9 @@
           </button>
           <button 
             type="button"
-            (click)="downloadStatement()" 
+            (click)="downloadSpendingAnalysis()" 
             class="btn btn-secondary"
-            [disabled]="accountStatementGenerated.length === 0 || isDownloading"
+            [disabled]="spendingAnalysis === null || isDownloading"
           >
             <div class="btn-content">
               <div class="spinner" *ngIf="isDownloading"></div>
@@ -292,9 +292,9 @@
           </button>
           <button 
             type="button"
-            (click)="sendStatementEmail()" 
+            (click)="sendSpendingAnalysisEmail()" 
             class="btn btn-tertiary"
-            [disabled]="accountStatementGenerated.length === 0 || isSendingEmail"
+            [disabled]="spendingAnalysis === null || isSendingEmail"
           >
             <div class="btn-content">
               <div class="spinner" *ngIf="isSendingEmail"></div>

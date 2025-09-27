@@ -8,6 +8,7 @@ import com.moneyfi.budget.service.BudgetService;
 import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
 import com.moneyfi.budget.service.dto.response.SpendingAnalysisResponseDto;
+import com.moneyfi.budget.service.dto.response.UserDetailsForSpendingAnalysisDto;
 import com.moneyfi.budget.utils.GeneratePdfTemplate;
 import com.moneyfi.budget.utils.StringConstants;
 import jakarta.transaction.Transactional;
@@ -31,13 +32,16 @@ public class BudgetServiceImpl implements BudgetService {
     private final BudgetRepository budgetRepository;
     private final BudgetCommonRepository budgetCommonRepository;
     private final RestTemplate restTemplate;
+    private final GeneratePdfTemplate generatePdfTemplate;
 
     public BudgetServiceImpl(BudgetRepository budgetRepository,
                              BudgetCommonRepository budgetCommonRepository,
-                             RestTemplate restTemplate){
+                             RestTemplate restTemplate,
+                             GeneratePdfTemplate generatePdfTemplate) {
         this.budgetRepository = budgetRepository;
         this.budgetCommonRepository = budgetCommonRepository;
         this.restTemplate = restTemplate;
+        this.generatePdfTemplate = generatePdfTemplate;
     }
 
     @Override
@@ -167,12 +171,56 @@ public class BudgetServiceImpl implements BudgetService {
                 .map(expense -> BigDecimal.valueOf(((Number) expense[1]).doubleValue()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         spendingAnalysis.setAmountAvailableTillNow(totalIncomeTillEndDate.subtract(totalExpensesTillEndDate));
-        return spendingAnalysis;
+        return (spendingAnalysis.getIncomeByCategory().isEmpty() && spendingAnalysis.getExpenseByCategory().isEmpty() && spendingAnalysis.getTotalIncome().compareTo(BigDecimal.ZERO) == 0
+                && spendingAnalysis.getTotalExpense().compareTo(BigDecimal.ZERO) == 0 && spendingAnalysis.getAmountAvailableTillNow().compareTo(BigDecimal.ZERO) == 0) ? null : spendingAnalysis;
     }
 
     @Override
     public byte[] getUserSpendingAnalysisByBudgetCategoriesPdf(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader) {
-        SpendingAnalysisResponseDto responseDto = getUserSpendingAnalysisByBudgetCategories(userId, fromDate, toDate, authHeader);
-        return GeneratePdfTemplate.generatePdf(responseDto);
+        UserDetailsForSpendingAnalysisDto userDetails = budgetCommonRepository.getUserDetailsForAccountSpendingAnalysisStatement(userId);
+        userDetails.setUsername(makeUsernamePrivate(userDetails.getUsername()));
+        return generatePdfTemplate.generatePdf(getUserSpendingAnalysisByBudgetCategories(userId, fromDate, toDate, authHeader), generateDocumentPasswordForUser(userDetails), userDetails, fromDate, toDate);
+    }
+
+    @Override
+    public ResponseEntity<String> getUserSpendingAnalysisByBudgetCategoriesPdfEmail(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader) {
+        try {
+            byte[] pdfBytes = getUserSpendingAnalysisByBudgetCategoriesPdf(userId, fromDate, toDate, authHeader);
+            apiCallToGatewayServiceToSendEmail(pdfBytes, authHeader);
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to send email: " + e.getMessage());
+        }
+    }
+
+    private void apiCallToGatewayServiceToSendEmail(byte[] pdfBytes, String authHeader){
+        String token = authHeader.substring(7);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setBearerAuth(token);
+
+        HttpEntity<byte[]> requestEntity = new HttpEntity<>(pdfBytes, headers);
+        ResponseEntity<Void> response = restTemplate.exchange(
+                StringConstants.API_GATEWAY_URL_PROFILE_CONTROLLER + "spending-analysis/email",
+                HttpMethod.POST,
+                requestEntity,
+                Void.class
+        );
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new ResourceNotFoundException("Failed to send email: " + response.getStatusCode());
+        }
+    }
+
+    private String makeUsernamePrivate(String username){
+        int index = username.indexOf('@');
+        return username.substring(0, index/3) +
+                "x".repeat(index - index/3) + username.substring(index);
+    }
+
+    private String generateDocumentPasswordForUser(UserDetailsForSpendingAnalysisDto userDetails){
+        return userDetails.getName().substring(0,4).toUpperCase() +
+                userDetails.getUsername().substring(0,4).toLowerCase();
     }
 }

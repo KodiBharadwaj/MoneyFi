@@ -40,6 +40,8 @@ public interface UserService {
 
     boolean sendAccountStatementEmail(String username, byte[] pdfBytes);
 
+    boolean sendSpendingAnalysisEmail(String username, byte[] pdfBytes);
+
     String uploadUserProfilePictureToS3(String username, MultipartFile file) throws IOException;
 
     ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username);
