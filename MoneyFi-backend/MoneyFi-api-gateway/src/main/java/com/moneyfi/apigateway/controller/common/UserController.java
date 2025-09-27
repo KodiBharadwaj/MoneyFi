@@ -81,8 +81,7 @@ private DataSource dataSource;
     @PostMapping("/verify-code")
     public String verifyCode(@RequestParam String email,
                              @RequestParam String code) {
-        boolean isValid = userCommonService.verifyCode(email, code);
-        if (isValid) {
+        if (userCommonService.verifyCode(email, code)) {
             return "Verification successful!";
         } else {
             throw new IllegalArgumentException("Invalid verification code");

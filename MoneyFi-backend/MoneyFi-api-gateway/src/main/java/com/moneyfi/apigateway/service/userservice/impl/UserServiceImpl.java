@@ -45,6 +45,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -463,7 +464,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public RemainingTimeCountDto checkOtpActiveMethod(String email){
         RemainingTimeCountDto remainingTimeCountDto = new RemainingTimeCountDto();
-
         UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
         if(userAuthModel == null){
             remainingTimeCountDto.setComment("User not exist");
@@ -723,43 +723,29 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<String> sendOtpToBlockAccount(String username) {
         UserAuthModel userData = userRepository.getUserDetailsByUsername(username);
         if(userData == null){
-            throw new ResourceNotFoundException("User not found");
+            throw new ResourceNotFoundException("User not found with username " + username);
         }
         if(userData.isBlocked() || userData.isDeleted()){
             throw new ScenarioNotPossibleException("You are not allowed to perform this operation");
         }
-
-        String verificationCode = generateVerificationCode();
-        boolean isMailsent = emailTemplates.sendOtpToUserForAccountBlock(username, profileRepository.findByUserId(userData.getId()).getName(), verificationCode);
-
-        if(isMailsent){
-            List<OtpTempModel> userList = otpTempRepository.findByEmail(username);
-            Optional<OtpTempModel> tempModel = userList
-                    .stream()
-                    .filter(user -> user.getOtpType().equalsIgnoreCase(OtpType.ACCOUNT_BLOCK.name()))
-                    .findFirst();
-
-            if(tempModel.isPresent()){
-                tempModel.get().setOtp(verificationCode);
-                tempModel.get().setExpirationTime(LocalDateTime.now().plusMinutes(5));
-                otpTempRepository.save(tempModel.get());
-            } else {
-                OtpTempModel otpTempModel = new OtpTempModel();
-                otpTempModel.setEmail(username);
-                otpTempModel.setOtp(verificationCode);
-                otpTempModel.setExpirationTime(LocalDateTime.now().plusMinutes(5));
-                otpTempModel.setOtpType(OtpType.ACCOUNT_BLOCK.name());
-                otpTempRepository.save(otpTempModel);
-            }
-
+        String verificationCode = otpTempRepository.findByEmail(username)
+                .stream()
+                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.ACCOUNT_BLOCK.name()) && tempOtp.getExpirationTime().isAfter(LocalDateTime.now()))
+                .map(OtpTempModel::getOtp)
+                .findFirst()
+                .orElseGet(() -> {
+                    String newOtp = StringUtils.generateVerificationCode();
+                    otpTempRepository.save(new OtpTempModel(username, newOtp, LocalDateTime.now().plusMinutes(5), OtpType.ACCOUNT_BLOCK.name()));
+                    return newOtp;
+                });
+        if (emailTemplates.sendOtpToUserForAccountBlock(username, profileRepository.findByUserId(userData.getId()).getName(), verificationCode)) {
             return ResponseEntity.ok("Email sent successfully!");
-
         } else {
-            return ResponseEntity.internalServerError().body("Cant send email!");
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't send email!");
         }
     }
 
