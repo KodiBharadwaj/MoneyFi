@@ -696,7 +696,7 @@ public class UserServiceImpl implements UserService {
 
             ContactUsHist blockAccountRequestHistory = new ContactUsHist();
             blockAccountRequestHistory.setName(userProfile.getName());
-            blockAccountRequestHistory.setMessage(request.getDescription());
+            blockAccountRequestHistory.setMessage(BLOCKED_BY_USER + ", " + request.getDescription());
             blockAccountRequestHistory.setContactUsId(savedRequest.getId());
             blockAccountRequestHistory.setUpdatedTime(savedRequest.getStartTime());
             blockAccountRequestHistory.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());

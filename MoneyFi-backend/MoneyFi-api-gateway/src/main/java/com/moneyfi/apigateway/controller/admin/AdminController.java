@@ -117,7 +117,13 @@ public class AdminController {
     @Operation(summary = "Api to get the user profile details for admin")
     @GetMapping("/user-profile-details")
     public UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(@RequestParam("username") String username){
-        return adminService.getCompleteUserDetailsForAdmin(username);
+        try {
+            UserProfileAndRequestDetailsDto response = adminService.getCompleteUserDetailsForAdmin(username);
+            return response;
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Operation(summary = "Api to get all the usernames of all the users for the admin")

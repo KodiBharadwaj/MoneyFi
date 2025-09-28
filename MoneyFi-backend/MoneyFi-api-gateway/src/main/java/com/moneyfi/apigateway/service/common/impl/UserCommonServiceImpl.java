@@ -218,7 +218,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                         RequestReason.ACCOUNT_UNBLOCK_REQUEST.name(), RaiseRequestStatus.INITIATED.name()));
                 response.put(true, "Reference Number sent to your email");
                 return response;
-            }
+            } else throw new RuntimeException("Failed to send email");
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
             if(user.isDeleted() || user.isBlocked()){
                 throw new ScenarioNotPossibleException(user.isDeleted()?"Account is deleted. Raise retrieval request" :
