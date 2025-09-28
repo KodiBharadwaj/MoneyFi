@@ -1051,44 +1051,10 @@ BEGIN
 		,updt.marital_status AS maritalStatus
 		,updt.date_of_birth AS dateOfBirth
 		,updt.address AS address
-		,cut.image_id AS imageId
 		,uat.id as userId
-		,SUM(CASE
-				WHEN cut.is_request_active = 1 AND (cut.request_reason = 'NAME_CHANGE_REQUEST' OR cut.request_reason = 'ACCOUNT_NOT_DELETE_REQUEST'
-														OR cut.request_reason = 'ACCOUNT_UNBLOCK_REQUEST')
-					THEN 1
-				ELSE 0
-				END ) AS activeRequestsCount
-		,SUM(CASE
-				WHEN cut.request_status = 'COMPLETED' OR cut.is_request_active = 0
-					THEN 1
-				ELSE 0
-				END ) AS completedRequestsCount
-		,SUM(CASE
-				WHEN cut.is_request_active = 1 AND cut.request_reason = 'USER_DEFECT_UPDATE' 
-					THEN 1
-				ELSE 0
-				END ) AS issuesRaisedCount
-		,SUM(CASE
-				WHEN cut.is_request_active = 1 AND cut.request_reason = 'USER_FEEDBACK_UPDATE' 
-					THEN 1
-				ELSE 0
-				END ) AS feedbackCount
 	FROM user_auth_table uat WITH (NOLOCK)
 	INNER JOIN user_profile_details_table updt WITH (NOLOCK) ON updt.user_id = uat.id
-	LEFT JOIN contact_us_table cut WITH (NOLOCK) ON cut.email = uat.username
 	WHERE uat.username = @username
-
-	GROUP BY updt.name
-		,uat.username
-		,updt.phone
-		,updt.created_date
-		,updt.marital_status
-		,updt.date_of_birth
-		,updt.address
-		,updt.gender
-		,cut.image_id
-		,uat.id
 
 END
 GO
