@@ -4,6 +4,7 @@ import com.moneyfi.apigateway.model.auth.OtpTempModel;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
@@ -13,5 +14,6 @@ public interface OtpTempRepository extends JpaRepository<OtpTempModel, Long> {
 
     @Transactional
     @Modifying
-    void deleteByEmail(String email);
+    @Query("DELETE FROM OtpTempModel o WHERE o.email = :email AND o.otpType = :requestType")
+    int deleteByEmailAndRequestType(String email, String requestType);
 }

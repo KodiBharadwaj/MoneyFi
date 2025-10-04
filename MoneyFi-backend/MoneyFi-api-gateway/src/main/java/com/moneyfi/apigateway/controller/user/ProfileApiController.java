@@ -12,7 +12,7 @@ import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.service.common.ProfileService;
 import com.moneyfi.apigateway.service.userservice.UserService;
-import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockRequestDto;
+import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockOrDeleteRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.core.io.ByteArrayResource;
@@ -188,18 +188,19 @@ public class ProfileApiController {
     }
 
     @Operation(summary = "Api to send otp to block the account")
-    @GetMapping("/otp-request/block-account")
-    public ResponseEntity<String> sendOtpForSignup(Authentication authentication){
+    @GetMapping("/otp-request/account-deactivate-actions")
+    public ResponseEntity<String> sendOtpForBlockAndDeleteAccountByUserRequest(Authentication authentication,
+                                                   @RequestParam String type){
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        return userService.sendOtpToBlockAccount(username);
+        return userService.sendOtpToBlockAccount(username, type);
     }
 
-    @Operation(summary = "Api to block the account based on user request")
-    @PostMapping("/block-account")
-    public ResponseEntity<String> blockAccountByUserRequest(Authentication authentication,
-                                                            @RequestBody AccountBlockRequestDto request) {
+    @Operation(summary = "Api to block/delete account based on user request")
+    @PostMapping("/deactivate-account")
+    public ResponseEntity<String> blockOrDeleteAccountByUserRequest(Authentication authentication,
+                                                                    @RequestBody AccountBlockOrDeleteRequestDto request) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        return userService.blockAccountByUserRequest(username, request);
+        return userService.blockOrDeleteAccountByUserRequest(username, request);
     }
 
     @Operation(summary = "Api to download the empty template of excel for user profile details to be saved")

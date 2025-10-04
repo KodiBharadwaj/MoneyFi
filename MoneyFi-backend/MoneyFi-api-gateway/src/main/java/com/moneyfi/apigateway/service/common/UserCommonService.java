@@ -30,7 +30,7 @@ public interface UserCommonService {
 
     boolean isTokenBlacklisted(String token);
 
-    void accountUnblockRequestByUser(AccountRetrieveRequestDto requestDto);
+    void accountReactivateRequestByUser(AccountRetrieveRequestDto requestDto);
 
     Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email);
 

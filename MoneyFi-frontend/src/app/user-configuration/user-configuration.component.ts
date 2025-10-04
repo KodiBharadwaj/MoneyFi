@@ -27,12 +27,16 @@ export class UserConfigurationComponent implements AfterViewInit{
 
   selectedFile: File | null = null;
   otp = '';
+  password = '';
   description = '';
   blockRequestSent = false;
-  loadingBlockRequest = false;
+  deleteRequestSent = false;
+  loadingAccountDeactivationRequest = false;
+  loadingAccountDeleteRequest = false;
   username = '';
   selectedReason: string = '';
-  reasons: string[] = [];
+  blockReasons: string[] = [];
+  deleteReasons: string[] = [];
   isDownloading = false;
   isUploading = false;
 
@@ -89,29 +93,58 @@ export class UserConfigurationComponent implements AfterViewInit{
   }
 
   initiateAccountBlock() {
-    this.loadingBlockRequest = true;
-    this.http.get(`${this.baseUrl}/api/v1/userProfile/otp-request/block-account`, {
+    this.loadingAccountDeactivationRequest = true;
+    this.http.get(`${this.baseUrl}/api/v1/userProfile/otp-request/account-deactivate-actions?type=BLOCK`, {
       responseType: 'text'
     }).subscribe({
       next: response => {
         this.blockRequestSent = true;
-        this.loadingBlockRequest = false;
+        this.loadingAccountDeactivationRequest = false;
         this.toastr.success('Otp sent to your email')
       },
       error: err => {
         alert('Failed to initiate block request.');
-        this.loadingBlockRequest = false;
+        this.loadingAccountDeactivationRequest = false;
         console.error(err);
       }
     });
 
-    this.reasons = [];
+    this.blockReasons = [];
     this.http.get<string[]>(`${this.baseUrl}/api/v1/userProfile/reasons-dialog/get?code=1`).subscribe({
       next: (data) => {
-        this.reasons = [...data, 'Other'];
+        this.blockReasons = [...data, 'Other'];
       },
       error: () => {
-        this.reasons = ['Other']; // fallback
+        this.blockReasons = ['Other']; // fallback
+      }
+    });
+  }
+
+
+  initiateAccountDelete() {
+    this.loadingAccountDeleteRequest = true;
+    this.http.get(`${this.baseUrl}/api/v1/userProfile/otp-request/account-deactivate-actions?type=DELETE`, {
+      responseType: 'text'
+    }).subscribe({
+      next: response => {
+        this.deleteRequestSent = true;
+        this.loadingAccountDeleteRequest = false;
+        this.toastr.success('Otp sent to your email')
+      },
+      error: err => {
+        alert('Failed to initiate block request.');
+        this.loadingAccountDeleteRequest = false;
+        console.error(err);
+      }
+    });
+
+    this.deleteReasons = [];
+    this.http.get<string[]>(`${this.baseUrl}/api/v1/userProfile/reasons-dialog/get?code=5`).subscribe({
+      next: (data) => {
+        this.deleteReasons = [...data, 'Other'];
+      },
+      error: () => {
+        this.deleteReasons = ['Other']; // fallback
       }
     });
   }
@@ -166,10 +199,12 @@ export class UserConfigurationComponent implements AfterViewInit{
     const finalReason = this.selectedReason === 'Other' ? this.description : this.selectedReason;
     const payload = {
       otp: this.otp,
-      description: finalReason
+      description: finalReason,
+      deactivationType : 'BLOCK',
+      password : null
     };
 
-    this.http.post(`${this.baseUrl}/api/v1/userProfile/block-account`, payload, {
+    this.http.post(`${this.baseUrl}/api/v1/userProfile/deactivate-account`, payload, {
       responseType: 'text'
     }).subscribe({
       next: response => {
@@ -182,7 +217,54 @@ export class UserConfigurationComponent implements AfterViewInit{
                 timeOut: 1500  // time in milliseconds (3 seconds)
               });
               sessionStorage.removeItem('moneyfi.auth');
-              sessionStorage.removeItem('Name');
+              localStorage.removeItem('moneyfi.user.name');
+              localStorage.removeItem('moneyfi.user.profile.image');
+              this.router.navigate(['']);
+            } else if(jsonResponse.message === 'Phone number is empty'){
+              alert('Kindly fill Phone number before log out')
+            }
+            else {
+              this.toastr.error('Failed to logout')
+            }
+          },
+          error: (error) => {
+            console.error(error);
+            this.toastr.error('Failed to logout')
+          }
+        });
+      },
+      error: err => {
+        alert('Failed to confirm block request.');
+        console.error(err);
+      }
+    });
+  }
+
+
+  confirmAccountDelete() {
+    const finalReason = this.selectedReason === 'Other' ? this.description : this.selectedReason;
+    const payload = {
+      otp: this.otp,
+      description: finalReason,
+      deactivationType : 'DELETE',
+      password : this.password
+    };
+
+    this.http.post(`${this.baseUrl}/api/v1/userProfile/deactivate-account`, payload, {
+      responseType: 'text'
+    }).subscribe({
+      next: response => {
+        alert('Account has been deleted. Please raise retrieve request before 30 days to use again.');
+        this.http.post(`${this.baseUrl}/api/v1/userProfile/logout`, {}, { responseType: 'text' }).subscribe({
+          next: (response) => {
+            const jsonResponse = JSON.parse(response);
+            if(jsonResponse.message === 'Logged out successfully'){
+                this.toastr.success(jsonResponse.message, '', {
+                timeOut: 1500  // time in milliseconds (3 seconds)
+              });
+              sessionStorage.removeItem('moneyfi.auth');
+              localStorage.removeItem('moneyfi.user.name');
+              localStorage.removeItem('moneyfi.user.profile.image');
               this.router.navigate(['']);
             } else if(jsonResponse.message === 'Phone number is empty'){
               alert('Kindly fill Phone number before log out')

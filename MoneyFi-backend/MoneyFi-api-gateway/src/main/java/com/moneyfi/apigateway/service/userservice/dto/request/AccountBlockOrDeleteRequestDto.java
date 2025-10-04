@@ -5,14 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.lang.reflect.Type;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountBlockRequestDto {
+public class AccountBlockOrDeleteRequestDto {
     private String otp;
-
+    private String deactivationType;
+    private String password;
     @Column(columnDefinition = "TEXT")
     private String description;
 }

@@ -56,12 +56,18 @@ public class EmailTemplates {
         return emailFilter.sendEmail(email, subject, body);
     }
 
-    public boolean sendOtpToUserForAccountBlock(String username, String name, String verificationCode){
-        String subject = "OTP to block account";
+    public boolean sendOtpToUserForAccountBlock(String username, String name, String verificationCode, String type){
+        String message = null;
+        if (type.equalsIgnoreCase("BLOCK")) {
+            message = "Block";
+        } else if (type.equalsIgnoreCase("DELETE")) {
+            message = "Delete";
+        }
+        String subject = "OTP to " + message + " account";
         String body = "<html>"
                 + "<body>"
                 + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
-                + "<p style='font-size: 16px;'>You have requested otp for account block. Please use the following verification code:</p>"
+                + "<p style='font-size: 16px;'>You have requested otp for account " + message + ". Please use the following verification code:</p>"
                 + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'>" + verificationCode + "</p>"
                 + "<p style='font-size: 16px;'>This code is valid for 5 minutes only. If you did not raise, please ignore this email.</p>"
                 + "<hr>"

@@ -20,7 +20,6 @@ import com.moneyfi.apigateway.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
-import com.moneyfi.apigateway.util.constants.StringUtils;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.ReasonEnum;
 import com.moneyfi.apigateway.util.enums.RequestReason;
@@ -219,6 +218,54 @@ public class UserCommonServiceImpl implements UserCommonService {
                 response.put(true, "Reference Number sent to your email");
                 return response;
             } else throw new RuntimeException("Failed to send email");
+        } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
+            if(!user.isDeleted()){
+                throw new ScenarioNotPossibleException("Account is already in active!");
+            }
+            Optional<ContactUs> report = contactUsDetails
+                    .stream()
+                    .filter(ContactUs::isRequestActive)
+                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
+                    .filter(i -> i.getReferenceNumber() != null)
+                    .findFirst();
+            if(report.isPresent()){
+                throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size()==1?REFERENCE_NUMBER_SENT :
+                        DETAILS_ALREADY_SUBMITTED);
+            }
+            Optional<ContactUs> requestDetails = contactUsDetails
+                    .stream()
+                    .filter(ContactUs::isRequestActive)
+                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_DELETE_REQUEST.name()))
+                    .findFirst();
+            String referenceNumber = null;
+            ContactUs savedRequest = null;
+            if(requestDetails.isPresent()){
+                referenceNumber = requestDetails.get().getReferenceNumber();
+                requestDetails.get().setRequestStatus(RaiseRequestStatus.INITIATED.name());
+                requestDetails.get().setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
+                savedRequest = contactUsRepository.save(requestDetails.get());
+            } else {
+                ProfileModel userProfile = profileRepository.findByUserId(user.getId());
+                referenceNumber = "DL" + userProfile.getName().substring(0,2) + email.substring(0,2)
+                        + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
+                ContactUs saveRequest = new ContactUs();
+                saveRequest.setEmail(email);
+                saveRequest.setReferenceNumber(referenceNumber);
+                saveRequest.setRequestActive(true);
+                saveRequest.setVerified(false);
+                saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
+                saveRequest.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
+                saveRequest.setStartTime(LocalDateTime.now());
+                savedRequest = contactUsRepository.save(saveRequest);
+            }
+            boolean isEmailSent = emailTemplates
+                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account retrieval", referenceNumber);
+            if(isEmailSent){
+                contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), null, "Reference number requested to retrieve the account", savedRequest.getStartTime(),
+                        RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name(), RaiseRequestStatus.INITIATED.name()));
+                response.put(true, "Reference Number sent to your email");
+                return response;
+            } else throw new RuntimeException("Failed to send email");
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
             if(user.isDeleted() || user.isBlocked()){
                 throw new ScenarioNotPossibleException(user.isDeleted()?"Account is deleted. Raise retrieval request" :
@@ -260,35 +307,6 @@ public class UserCommonServiceImpl implements UserCommonService {
                 response.put(true, "Reference Number sent to your email");
                 return response;
             }
-        } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
-            if(!user.isDeleted()){
-                throw new ScenarioNotPossibleException("Account is already in active!");
-            }
-            Optional<ContactUs> report = contactUsDetails
-                    .stream()
-                    .filter(ContactUs::isRequestActive)
-                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
-                    .filter(i -> i.getReferenceNumber() != null)
-                    .findFirst();
-            if(report.isPresent()){
-                throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size()==1?REFERENCE_NUMBER_SENT :
-                        DETAILS_ALREADY_SUBMITTED);
-            }
-            String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
-            boolean isEmailSent = emailTemplates
-                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account retrieve", referenceNumber);
-            if(isEmailSent){
-                ContactUs saveRequest = new ContactUs();
-                saveRequest.setEmail(email);
-                saveRequest.setReferenceNumber(referenceNumber);
-                saveRequest.setRequestActive(true);
-                saveRequest.setVerified(false);
-                saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
-                saveRequest.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
-                contactUsRepository.save(saveRequest);
-                response.put(true, "Reference Number sent");
-                return response;
-            }
         }
         response.put(false, "Failed to send email! Try later");
         return response;
@@ -296,52 +314,38 @@ public class UserCommonServiceImpl implements UserCommonService {
 
     @Override
     @Transactional
-    public void accountUnblockRequestByUser(AccountRetrieveRequestDto requestDto) {
-        List<ContactUs> contactUsDetails = contactUsRepository.findByEmail(requestDto.getUsername());
+    public void accountReactivateRequestByUser(AccountRetrieveRequestDto requestDto) {
+        String requestReason;
+        ContactUsHist userRequestHist = new ContactUsHist();
         if(requestDto.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
-            Optional<ContactUs> report = contactUsDetails
-                    .stream()
-                    .filter(ContactUs::isRequestActive)
-                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
-                    .findFirst();
-            ContactUs user = report.orElseThrow(() -> new RuntimeException());
-
-            if(user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
-                if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
-                    throw new ScenarioNotPossibleException("Incorrect Reference Number!");
-
-                user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-                ContactUs savedRequest = contactUsRepository.save(user);
-
-                ContactUsHist userRequestHist = new ContactUsHist();
-                userRequestHist.setContactUsId(savedRequest.getId());
-                userRequestHist.setName(requestDto.getName());
-                userRequestHist.setMessage(requestDto.getDescription());
-                userRequestHist.setUpdatedTime(LocalDateTime.now());
-                userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-                userRequestHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-                contactUsHistRepository.save(userRequestHist);
-            } else if(user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name())){
-                throw new ScenarioNotPossibleException("Request already raised");
-            }
+            requestReason = RequestReason.ACCOUNT_UNBLOCK_REQUEST.name();
+            userRequestHist.setRequestReason(requestReason);
         } else if (requestDto.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
-            Optional<ContactUs> report = contactUsDetails
-                    .stream()
-                    .filter(ContactUs::isRequestActive)
-                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
-                    .findFirst();
-            ContactUs user = report.orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
+            requestReason = RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name();
+            userRequestHist.setRequestReason(requestReason);
+        } else {
+            requestReason = null;
+        }
+        Optional<ContactUs> report = contactUsRepository.findByEmail(requestDto.getUsername())
+                .stream()
+                .filter(ContactUs::isRequestActive)
+                .filter(i -> i.getRequestReason().equalsIgnoreCase(requestReason))
+                .findFirst();
+        ContactUs user = report.orElseThrow(() -> new RuntimeException());
+        if(user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
             if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
                 throw new ScenarioNotPossibleException("Incorrect Reference Number!");
             user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
             ContactUs savedRequest = contactUsRepository.save(user);
 
-            ContactUsHist userRequestHist = new ContactUsHist();
             userRequestHist.setContactUsId(savedRequest.getId());
             userRequestHist.setName(requestDto.getName());
             userRequestHist.setMessage(requestDto.getDescription());
             userRequestHist.setUpdatedTime(LocalDateTime.now());
+            userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
             contactUsHistRepository.save(userRequestHist);
+        } else if(user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name())){
+            throw new ScenarioNotPossibleException("Request already raised");
         }
     }
 

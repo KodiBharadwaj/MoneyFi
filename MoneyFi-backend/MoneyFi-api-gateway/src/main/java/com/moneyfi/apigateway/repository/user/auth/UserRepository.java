@@ -21,4 +21,26 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
     @Transactional
     @Modifying
     void updateRecurringIncomesAndExpenses();
+
+    @Query(value = """
+            SELECT uat.*
+            FROM user_auth_table uat WITH (NOLOCK)
+            INNER JOIN user_auth_hist_table uaht WITH (NOLOCK) ON uaht.user_id = uat.id
+            WHERE uat.is_deleted = 1
+            	AND uaht.reason_type_id = :reasonTypeId
+            	AND uat.role_id = :roleId
+            	AND uaht.updated_time < DATEADD(DAY, -30, GETDATE())
+            """, nativeQuery = true)
+    List<UserAuthModel> getDeletedUsersList(int roleId, int reasonTypeId);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            DELETE FROM income_table_deleted WHERE income_id IN (SELECT id FROM income_table WHERE user_id IN (:list));
+            DELETE FROM income_table WHERE user_id IN (:list);
+            DELETE FROM expense_table WHERE user_id IN (:list);
+            DELETE FROM budget_table WHERE user_id IN (:list);
+            DELETE FROM goal_table WHERE user_id IN (:list);
+            """, nativeQuery = true)
+    void deleteIncomeExpenseBudgetGoalsOfDeletedUsers(List<Long> list);
 }
