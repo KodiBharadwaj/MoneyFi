@@ -1,7 +1,7 @@
 package com.moneyfi.apigateway.service.userservice;
 
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
-import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockRequestDto;
+import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockOrDeleteRequestDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.ChangePasswordDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.ForgotUsernameDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.UserProfile;
@@ -40,13 +40,15 @@ public interface UserService {
 
     boolean sendAccountStatementEmail(String username, byte[] pdfBytes);
 
+    boolean sendSpendingAnalysisEmail(String username, byte[] pdfBytes);
+
     String uploadUserProfilePictureToS3(String username, MultipartFile file) throws IOException;
 
     ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username);
 
     ResponseEntity<String> deleteProfilePictureFromS3(String username);
 
-    ResponseEntity<String> blockAccountByUserRequest(String username, AccountBlockRequestDto request);
+    ResponseEntity<String> blockOrDeleteAccountByUserRequest(String username, AccountBlockOrDeleteRequestDto request);
 
-    ResponseEntity<String> sendOtpToBlockAccount(String username);
+    ResponseEntity<String> sendOtpToBlockAccount(String username, String type);
 }

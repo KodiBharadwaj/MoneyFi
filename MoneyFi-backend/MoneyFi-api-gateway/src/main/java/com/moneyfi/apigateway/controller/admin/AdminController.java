@@ -16,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -96,6 +97,16 @@ public class AdminController {
         return adminService.accountReactivationAndNameChangeRequest(requestDto.getEmail(), requestDto.getReferenceNumber(), requestDto.getRequestStatus(), adminUserId, requestDto.getApproveStatus(), requestDto.getDeclineReason());
     }
 
+    @Operation(summary = "Api to block the user's account by admin")
+    @PostMapping("/user-account/block")
+    public ResponseEntity<String> blockTheUserAccountByAdmin(Authentication authentication,
+                                                             @RequestParam String email,
+                                                             @RequestParam String reason,
+                                                             @RequestParam MultipartFile file){
+        Long adminUserId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        return ResponseEntity.ok(adminService.blockTheUserAccountByAdmin(email, reason, file, adminUserId));
+    }
+
     @Operation(summary = "Api to the user count in every month for chart")
     @GetMapping("/{year}/user-monthly-count/chart")
     public Map<Integer, Integer> getUserMonthlyCountInAYear(@PathVariable("year") int year,
@@ -106,7 +117,13 @@ public class AdminController {
     @Operation(summary = "Api to get the user profile details for admin")
     @GetMapping("/user-profile-details")
     public UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(@RequestParam("username") String username){
-        return adminService.getCompleteUserDetailsForAdmin(username);
+        try {
+            UserProfileAndRequestDetailsDto response = adminService.getCompleteUserDetailsForAdmin(username);
+            return response;
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Operation(summary = "Api to get all the usernames of all the users for the admin")

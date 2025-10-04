@@ -3,8 +3,10 @@ package com.moneyfi.income.repository;
 import com.moneyfi.income.model.IncomeModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -37,4 +39,16 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
 
     @Query(nativeQuery = true, value =  "exec getUserIdFromUsernameAndToken @username = :username, @token = :token")
     Long getUserIdFromUsernameAndToken(String username, String token);
+
+    @Query(
+            value = "SELECT i.category, " +
+                    "CAST(SUM(CAST(i.amount AS DECIMAL(18,2))) AS DECIMAL(18,2)) AS totalAmount " +
+                    "FROM income_table i " +
+                    "WHERE i.user_id = :userId " +
+                    "AND i.is_deleted = 0 " +
+                    "AND i.date BETWEEN :fromDate AND :toDate " +
+                    "GROUP BY i.category",
+            nativeQuery = true
+    )
+    List<Object[]> getTotalIncomeInSpecifiedRange(@Param("userId") Long userId, @Param("fromDate") LocalDateTime fromDate, @Param("toDate") LocalDateTime toDate);
 }

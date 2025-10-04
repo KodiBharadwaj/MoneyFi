@@ -192,7 +192,7 @@
   </div>
 
   <!-- Empty State -->
-  <div class="empty-state" *ngIf="accountStatementGenerated.length === 0">
+  <!-- <div class="empty-state" *ngIf="accountStatementGenerated.length === 0">
     <div class="empty-content">
       <i class="empty-icon icon-document"></i>
       <h3 class="empty-title">No Statements Generated</h3>
@@ -200,6 +200,162 @@
         Select a date range and click "Generate Statement" to view your transaction history.
       </p>
     </div>
+  </div> -->
+</div>
+</div>
+
+
+
+
+
+
+
+
+
+
+<div class="feature-box">
+  <div class="feature-legend">
+    <!-- <i class="icon-document"></i> -->
+    <span>2. Spending Analysis</span>
+  </div>
+  <div class="feature-content">
+
+  <!-- Filter Section -->
+  <div class="filter-card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <!-- <i class="icon-calendar"></i> -->
+        Date Range Filter
+      </h3>
+    </div>
+    <div class="card-body">
+      <form class="date-form">
+        <div class="date-inputs">
+          <div class="input-group">
+            <mat-form-field appearance="outline" class="date-field">
+              <mat-label>From Date</mat-label>
+              <input 
+                matInput 
+                [matDatepicker]="analysisFromDatePicker"
+                [(ngModel)]="analysisFromDate"
+                name="analysisFromDate"
+                placeholder="Select start date"
+                readonly
+              >
+              <mat-datepicker-toggle matSuffix [for]="analysisFromDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #analysisFromDatePicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+          <div class="input-group">
+            <mat-form-field appearance="outline" class="date-field">
+              <mat-label>To Date</mat-label>
+              <input 
+                matInput 
+                [matDatepicker]="analysisToDatePicker"
+                [(ngModel)]="analysisToDate"
+                name="analysisToDate"
+                placeholder="Select end date"
+                readonly
+              >
+              <mat-datepicker-toggle matSuffix [for]="analysisToDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #analysisToDatePicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+        <font color = "red"><p> * The date range is set for last seven days. Please change for other date range</p></font>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button 
+            type="button"
+            (click)="getSpendingAnalysis()" 
+            class="btn btn-primary"
+            [disabled]="isGenerating"
+          >
+            <div class="btn-content">
+              <div class="spinner" *ngIf="isGenerating"></div>
+              <i class="icon-search" *ngIf="!isGenerating"></i>
+              <span>{{ isGenerating ? 'Generating...' : 'Get Analysis' }}</span>
+            </div>
+          </button>
+          <button 
+            type="button"
+            (click)="downloadSpendingAnalysis()" 
+            class="btn btn-secondary"
+            [disabled]="spendingAnalysis === null || isDownloading"
+          >
+            <div class="btn-content">
+              <div class="spinner" *ngIf="isDownloading"></div>
+              <i class="icon-download" *ngIf="!isDownloading"></i>
+              <span>{{ isDownloading ? 'Downloading...' : 'Download PDF' }}</span>
+            </div>
+          </button>
+          <button 
+            type="button"
+            (click)="sendSpendingAnalysisEmail()" 
+            class="btn btn-tertiary"
+            [disabled]="spendingAnalysis === null || isSendingEmail"
+          >
+            <div class="btn-content">
+              <div class="spinner" *ngIf="isSendingEmail"></div>
+              <i class="icon-email" *ngIf="!isSendingEmail"></i>
+              <span>{{ isSendingEmail ? 'Sending...' : 'Send Email' }}</span>
+            </div>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Spending Analysis Result Section -->
+    <div class="analysis-result" *ngIf="spendingAnalysis">
+      <h3>Spending Analysis Summary</h3>
+
+      <div class="summary-cards">
+        <div class="card total-income">
+          <h4>Total Income</h4>
+          <p>{{ spendingAnalysis.totalIncome | currency:'INR':'symbol' }}</p>
+        </div>
+        <div class="card total-expense">
+          <h4>Total Expense</h4>
+          <p>{{ spendingAnalysis.totalExpense | currency:'INR':'symbol' }}</p>
+        </div>
+        <div class="card available-amount">
+          <h4>Available Amount</h4>
+          <p>{{ spendingAnalysis.amountAvailableTillNow | currency:'INR':'symbol' }}</p>
+        </div>
+      </div>
+
+      <div class="category-analysis">
+        <div class="category-column">
+          <h4>Income by Category</h4>
+          <div *ngFor="let category of incomeCategories">
+            <span class="category-name">{{ category.key }}</span>
+            <span class="category-value">{{ category.value | currency:'INR':'symbol' }}</span>
+          </div>
+        </div>
+        <div class="category-column">
+          <h4>Expense by Category</h4>
+          <div *ngFor="let category of expenseCategories">
+            <span class="category-name">{{ category.key }}</span>
+            <span class="category-value">{{ category.value | currency:'INR':'symbol' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="accountStatementGenerated.length === 0">
+    
   </div>
 </div>
 </div>
+
+
+
+
+
+
+
+
+
+

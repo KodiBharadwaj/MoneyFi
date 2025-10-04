@@ -977,14 +977,15 @@ BEGIN
 
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getBirthdayUserEmailAndName]    Script Date: 04-09-2025 23:59:42 ******/
+/****** Object:  StoredProcedure [dbo].[getBirthdayOrAnniversaryUserEmailAndName]    Script Date: 04-09-2025 23:59:42 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE PROCEDURE [dbo].[getBirthdayUserEmailAndName] (
+CREATE PROCEDURE [dbo].[getBirthdayOrAnniversaryUserEmailAndName] (
 	@month INT,
-	@day INT
+	@day INT,
+	@occasion VARCHAR(50)
 	)
 AS
 BEGIN
@@ -998,11 +999,13 @@ BEGIN
 		AND uat.is_deleted = 0
 	INNER JOIN user_role_table urt WITH (NOLOCK) ON urt.role_id = uat.role_id
 		AND urt.role_name IN ('USER')
-	WHERE MONTH(updt.created_date) = @month
-		AND DAY(updt.created_date) = @day
+	WHERE (
+		@occasion = 'Anniversary' AND MONTH(updt.created_date) = @month AND DAY(updt.created_date) = @day
+		OR
+		@occasion = 'Birthday' AND MONTH(updt.date_of_birth) = @month AND DAY(updt.date_of_birth) = @day
+	)
 	ORDER BY updt.created_date
 END
-GO
 /****** Object:  StoredProcedure [dbo].[getBlackListTokenDetailsByToken]    Script Date: 04-09-2025 23:59:42 ******/
 SET ANSI_NULLS ON
 GO
@@ -1048,44 +1051,10 @@ BEGIN
 		,updt.marital_status AS maritalStatus
 		,updt.date_of_birth AS dateOfBirth
 		,updt.address AS address
-		,cut.image_id AS imageId
 		,uat.id as userId
-		,SUM(CASE
-				WHEN cut.is_request_active = 1 AND (cut.request_reason = 'NAME_CHANGE_REQUEST' OR cut.request_reason = 'ACCOUNT_NOT_DELETE_REQUEST'
-														OR cut.request_reason = 'ACCOUNT_UNBLOCK_REQUEST')
-					THEN 1
-				ELSE 0
-				END ) AS activeRequestsCount
-		,SUM(CASE
-				WHEN cut.request_status = 'COMPLETED' OR cut.is_request_active = 0
-					THEN 1
-				ELSE 0
-				END ) AS completedRequestsCount
-		,SUM(CASE
-				WHEN cut.is_request_active = 1 AND cut.request_reason = 'USER_DEFECT_UPDATE' 
-					THEN 1
-				ELSE 0
-				END ) AS issuesRaisedCount
-		,SUM(CASE
-				WHEN cut.is_request_active = 1 AND cut.request_reason = 'USER_FEEDBACK_UPDATE' 
-					THEN 1
-				ELSE 0
-				END ) AS feedbackCount
 	FROM user_auth_table uat WITH (NOLOCK)
 	INNER JOIN user_profile_details_table updt WITH (NOLOCK) ON updt.user_id = uat.id
-	LEFT JOIN contact_us_table cut WITH (NOLOCK) ON cut.email = uat.username
 	WHERE uat.username = @username
-
-	GROUP BY updt.name
-		,uat.username
-		,updt.phone
-		,updt.created_date
-		,updt.marital_status
-		,updt.date_of_birth
-		,updt.address
-		,updt.gender
-		,cut.image_id
-		,uat.id
 
 END
 GO
@@ -1589,12 +1558,12 @@ BEGIN
 		AND uat.verification_code_expiration < @startOfToday;
 END
 GO
-/****** Object:  StoredProcedure [dbo].[getUserDetailsForAccountStatement]    Script Date: 04-09-2025 23:59:42 ******/
+/****** Object:  StoredProcedure [dbo].[getUserDetailsForPdfGeneration]    Script Date: 04-09-2025 23:59:42 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE procedure [dbo].[getUserDetailsForAccountStatement] (
+CREATE procedure [dbo].[getUserDetailsForPdfGeneration] (
 	@userId BIGINT
 	)
 AS
@@ -1720,6 +1689,7 @@ BEGIN
 		,COUNT(uat.id) AS userCount
 	FROM user_auth_table uat WITH (NOLOCK)
 	INNER JOIN user_profile_details_table updt WITH (NOLOCK) ON updt.user_id = uat.id
+	WHERE YEAR(updt.created_date) = @year
 	GROUP BY MONTH(updt.created_date)
 END
 GO

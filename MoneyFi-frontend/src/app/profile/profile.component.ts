@@ -97,6 +97,14 @@ export class ProfileComponent implements OnInit {
 
   loadProfilePicture(): void {
     this.isImageLoading = true;
+
+    // Check if already in localStorage
+    const cachedImage = localStorage.getItem('moneyfi.user.profile.image');
+    if (cachedImage) {
+      this.profileImage = cachedImage;
+      this.isImageLoading = false;
+      return; // ✅ Do not call API again
+    }
     this.http.get(`${this.baseUrl}/api/v1/userProfile/profile-picture/get`, { responseType: 'blob' })
       .subscribe({
         next: (blob) => {
@@ -104,6 +112,7 @@ export class ProfileComponent implements OnInit {
             const reader = new FileReader();
             reader.onload = (e: any) => {
               this.profileImage = e.target.result; // base64 string
+              localStorage.setItem('moneyfi.user.profile.image', this.profileImage);
               this.isImageLoading = false;
             };
             reader.readAsDataURL(blob);

@@ -81,8 +81,7 @@ private DataSource dataSource;
     @PostMapping("/verify-code")
     public String verifyCode(@RequestParam String email,
                              @RequestParam String code) {
-        boolean isValid = userCommonService.verifyCode(email, code);
-        if (isValid) {
+        if (userCommonService.verifyCode(email, code)) {
             return "Verification successful!";
         } else {
             throw new IllegalArgumentException("Invalid verification code");
@@ -130,10 +129,10 @@ private DataSource dataSource;
         return userCommonService.sendReferenceRequestNumberEmail(requestStatus, email);
     }
 
-    @Operation(summary = "Api request to get account unblock")
+    @Operation(summary = "Api request to get account unblock/retrieve")
     @PostMapping("/account-retrieve-request")
-    public void accountUnblockRequestByUser(@RequestBody AccountRetrieveRequestDto requestDto){
-        userCommonService.accountUnblockRequestByUser(requestDto);
+    public void accountUnblockOrRetrieveRequestByUser(@RequestBody AccountRetrieveRequestDto requestDto){
+        userCommonService.accountReactivateRequestByUser(requestDto);
     }
 
     @Operation(summary = "Api request to save the user details to change name of the user")

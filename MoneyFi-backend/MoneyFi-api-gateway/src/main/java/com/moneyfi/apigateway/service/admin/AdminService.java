@@ -7,6 +7,7 @@ import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequ
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
 import jakarta.validation.Valid;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -51,4 +52,6 @@ public interface AdminService {
     void updateReasonsForUserReasonDialogByReasonCode(ReasonUpdateRequestDto requestDto);
 
     void deleteReasonByReasonId(int reasonId);
+
+    String blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId);
 }

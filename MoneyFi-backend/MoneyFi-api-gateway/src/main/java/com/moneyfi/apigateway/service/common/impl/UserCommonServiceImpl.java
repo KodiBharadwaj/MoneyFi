@@ -20,8 +20,8 @@ import com.moneyfi.apigateway.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
-import com.moneyfi.apigateway.util.constants.StringUtils;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
+import com.moneyfi.apigateway.util.enums.ReasonEnum;
 import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -33,8 +33,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static com.moneyfi.apigateway.util.constants.StringUtils.DAILY_QUOTE_EXTERNAL_API_URL;
-import static com.moneyfi.apigateway.util.constants.StringUtils.generateVerificationCode;
+import static com.moneyfi.apigateway.util.constants.StringUtils.*;
 
 @Service
 @Slf4j
@@ -51,6 +50,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final EmailTemplates emailTemplates;
     private final RestTemplate externalRestTemplate;
     private final ReasonDetailsRepository reasonDetailsRepository;
+    private final UserAuthHistRepository userAuthHistRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -64,7 +64,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  UserNotificationRepository userNotificationRepository,
                                  EmailTemplates emailTemplates,
                                  RestTemplate externalRestTemplate,
-                                 ReasonDetailsRepository reasonDetailsRepository){
+                                 ReasonDetailsRepository reasonDetailsRepository,
+                                 UserAuthHistRepository userAuthHistRepository){
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
         this.sessionTokenRepository = sessionTokenRepository;
@@ -76,6 +77,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.emailTemplates = emailTemplates;
         this.externalRestTemplate = externalRestTemplate;
         this.reasonDetailsRepository = reasonDetailsRepository;
+        this.userAuthHistRepository = userAuthHistRepository;
     }
 
     private static final String REFERENCE_NUMBER_SENT = "Reference already sent, Please submit your details";
@@ -85,51 +87,51 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Override
     @Transactional
     public String forgotPassword(String email) {
-        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
-        if(userAuthModel == null){
-            throw new ResourceNotFoundException("No userAuthModel Found");
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email);
+        if(user == null){
+            throw new ResourceNotFoundException("No user found");
         }
-        else if(userAuthModel.isBlocked()){
+        else if(user.isBlocked()){
             return "Account Blocked! Please contact admin";
         }
-        else if(userAuthModel.isDeleted()){
+        else if(user.isDeleted()){
             return "Account Deleted! Please contact admin";
         }
-
-        String verificationCode = generateVerificationCode();
-
-        userAuthModel.setVerificationCode(verificationCode);
-        userAuthModel.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(5));
-        userAuthModel.setOtpCount(userAuthModel.getOtpCount() + 1);
-        userRepository.save(userAuthModel);
-
-        String userName = profileRepository.findByUserId(userAuthModel.getId()).getName();
-
-        boolean isMailSent = emailTemplates.sendOtpForForgotPassword(userName, email, verificationCode);
-        if(isMailSent){
-            return "Verification code sent to your email!";
+        String verificationCode = null;
+        if(user.getVerificationCode() != null && LocalDateTime.now().isBefore(user.getVerificationCodeExpiration())){
+            verificationCode = user.getVerificationCode();
+        } else {
+            verificationCode = generateVerificationCode();
+            user.setVerificationCode(verificationCode);
+            user.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(5));
+            user.setOtpCount(user.getOtpCount() + 1);
+            userRepository.save(user);
         }
-        return "cant send mail!";
+        if(emailTemplates.sendOtpForForgotPassword(profileRepository.findByUserId(user.getId()).getName(), email, verificationCode)){
+            return "Verification code sent to your email!";
+        } else return "cant send mail!";
     }
 
     @Override
     public boolean verifyCode(String email, String code) {
-        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
-        if(userAuthModel == null){
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email);
+        if(user == null){
              throw new ResourceNotFoundException("UserAuthModel not found");
         }
-        return userAuthModel.getVerificationCode().equals(code) && LocalDateTime.now().isBefore(userAuthModel.getVerificationCodeExpiration());
+        return user.getVerificationCode().equals(code) && LocalDateTime.now().isBefore(user.getVerificationCodeExpiration());
     }
 
     @Override
+    @Transactional
     public String updatePassword(String email, String password){
-        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
-        if(userAuthModel ==null){
-            return "userAuthModel not found for given email...";
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email);
+        if(user ==null){
+            return "user not found for given email...";
         }
-        PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
-        userAuthModel.setPassword(passwordEncoder.encode(password));
-        userRepository.save(userAuthModel);
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+        userAuthHistRepository.save(new UserAuthHist(user.getId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE), "Password changed using forgot password", user.getId()));
         return "Password updated successfully!...";
     }
 
@@ -187,23 +189,83 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .filter(ContactUs::isRequestActive)
                     .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_BLOCK_REQUEST.name()))
                     .findFirst();
-            boolean isEmailSent = emailTemplates
-                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account unblock", requestDetails.get().getReferenceNumber());
-            if(isEmailSent){
+            String referenceNumber = null;
+            ContactUs savedRequest = null;
+            if(requestDetails.isPresent()){
+                referenceNumber = requestDetails.get().getReferenceNumber();
                 requestDetails.get().setRequestStatus(RaiseRequestStatus.INITIATED.name());
                 requestDetails.get().setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-                ContactUs savedRequest = contactUsRepository.save(requestDetails.get());
-
-                ContactUsHist requestDetailsHist = new ContactUsHist();
-                requestDetailsHist.setContactUsId(savedRequest.getId());
-                requestDetailsHist.setMessage("Reference number requested to unblock the account");
-                requestDetailsHist.setRequestStatus(RaiseRequestStatus.INITIATED.name());
-                requestDetailsHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-                requestDetailsHist.setUpdatedTime(LocalDateTime.now());
-                contactUsHistRepository.save(requestDetailsHist);
+                savedRequest = contactUsRepository.save(requestDetails.get());
+            } else {
+                ProfileModel userProfile = profileRepository.findByUserId(user.getId());
+                referenceNumber = "BL" + userProfile.getName().substring(0,2) + email.substring(0,2)
+                        + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
+                ContactUs saveRequest = new ContactUs();
+                saveRequest.setEmail(email);
+                saveRequest.setReferenceNumber(referenceNumber);
+                saveRequest.setRequestActive(true);
+                saveRequest.setVerified(false);
+                saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
+                saveRequest.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
+                saveRequest.setStartTime(LocalDateTime.now());
+                savedRequest = contactUsRepository.save(saveRequest);
+            }
+            boolean isEmailSent = emailTemplates
+                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account unblock", referenceNumber);
+            if(isEmailSent){
+                contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), null, "Reference number requested to unblock the account", savedRequest.getStartTime(),
+                        RequestReason.ACCOUNT_UNBLOCK_REQUEST.name(), RaiseRequestStatus.INITIATED.name()));
                 response.put(true, "Reference Number sent to your email");
                 return response;
+            } else throw new RuntimeException("Failed to send email");
+        } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
+            if(!user.isDeleted()){
+                throw new ScenarioNotPossibleException("Account is already in active!");
             }
+            Optional<ContactUs> report = contactUsDetails
+                    .stream()
+                    .filter(ContactUs::isRequestActive)
+                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
+                    .filter(i -> i.getReferenceNumber() != null)
+                    .findFirst();
+            if(report.isPresent()){
+                throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size()==1?REFERENCE_NUMBER_SENT :
+                        DETAILS_ALREADY_SUBMITTED);
+            }
+            Optional<ContactUs> requestDetails = contactUsDetails
+                    .stream()
+                    .filter(ContactUs::isRequestActive)
+                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_DELETE_REQUEST.name()))
+                    .findFirst();
+            String referenceNumber = null;
+            ContactUs savedRequest = null;
+            if(requestDetails.isPresent()){
+                referenceNumber = requestDetails.get().getReferenceNumber();
+                requestDetails.get().setRequestStatus(RaiseRequestStatus.INITIATED.name());
+                requestDetails.get().setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
+                savedRequest = contactUsRepository.save(requestDetails.get());
+            } else {
+                ProfileModel userProfile = profileRepository.findByUserId(user.getId());
+                referenceNumber = "DL" + userProfile.getName().substring(0,2) + email.substring(0,2)
+                        + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
+                ContactUs saveRequest = new ContactUs();
+                saveRequest.setEmail(email);
+                saveRequest.setReferenceNumber(referenceNumber);
+                saveRequest.setRequestActive(true);
+                saveRequest.setVerified(false);
+                saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
+                saveRequest.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
+                saveRequest.setStartTime(LocalDateTime.now());
+                savedRequest = contactUsRepository.save(saveRequest);
+            }
+            boolean isEmailSent = emailTemplates
+                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account retrieval", referenceNumber);
+            if(isEmailSent){
+                contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), null, "Reference number requested to retrieve the account", savedRequest.getStartTime(),
+                        RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name(), RaiseRequestStatus.INITIATED.name()));
+                response.put(true, "Reference Number sent to your email");
+                return response;
+            } else throw new RuntimeException("Failed to send email");
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
             if(user.isDeleted() || user.isBlocked()){
                 throw new ScenarioNotPossibleException(user.isDeleted()?"Account is deleted. Raise retrieval request" :
@@ -245,35 +307,6 @@ public class UserCommonServiceImpl implements UserCommonService {
                 response.put(true, "Reference Number sent to your email");
                 return response;
             }
-        } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
-            if(!user.isDeleted()){
-                throw new ScenarioNotPossibleException("Account is already in active!");
-            }
-            Optional<ContactUs> report = contactUsDetails
-                    .stream()
-                    .filter(ContactUs::isRequestActive)
-                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
-                    .filter(i -> i.getReferenceNumber() != null)
-                    .findFirst();
-            if(report.isPresent()){
-                throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size()==1?REFERENCE_NUMBER_SENT :
-                        DETAILS_ALREADY_SUBMITTED);
-            }
-            String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
-            boolean isEmailSent = emailTemplates
-                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account retrieve", referenceNumber);
-            if(isEmailSent){
-                ContactUs saveRequest = new ContactUs();
-                saveRequest.setEmail(email);
-                saveRequest.setReferenceNumber(referenceNumber);
-                saveRequest.setRequestActive(true);
-                saveRequest.setVerified(false);
-                saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
-                saveRequest.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
-                contactUsRepository.save(saveRequest);
-                response.put(true, "Reference Number sent");
-                return response;
-            }
         }
         response.put(false, "Failed to send email! Try later");
         return response;
@@ -281,52 +314,38 @@ public class UserCommonServiceImpl implements UserCommonService {
 
     @Override
     @Transactional
-    public void accountUnblockRequestByUser(AccountRetrieveRequestDto requestDto) {
-        List<ContactUs> contactUsDetails = contactUsRepository.findByEmail(requestDto.getUsername());
+    public void accountReactivateRequestByUser(AccountRetrieveRequestDto requestDto) {
+        String requestReason;
+        ContactUsHist userRequestHist = new ContactUsHist();
         if(requestDto.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
-            Optional<ContactUs> report = contactUsDetails
-                    .stream()
-                    .filter(ContactUs::isRequestActive)
-                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
-                    .findFirst();
-            ContactUs user = report.orElseThrow(() -> new RuntimeException());
-
-            if(user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
-                if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
-                    throw new ScenarioNotPossibleException("Incorrect Reference Number!");
-
-                user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-                ContactUs savedRequest = contactUsRepository.save(user);
-
-                ContactUsHist userRequestHist = new ContactUsHist();
-                userRequestHist.setContactUsId(savedRequest.getId());
-                userRequestHist.setName(requestDto.getName());
-                userRequestHist.setMessage(requestDto.getDescription());
-                userRequestHist.setUpdatedTime(LocalDateTime.now());
-                userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-                userRequestHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-                contactUsHistRepository.save(userRequestHist);
-            } else if(user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name())){
-                throw new ScenarioNotPossibleException("Request already raised");
-            }
+            requestReason = RequestReason.ACCOUNT_UNBLOCK_REQUEST.name();
+            userRequestHist.setRequestReason(requestReason);
         } else if (requestDto.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
-            Optional<ContactUs> report = contactUsDetails
-                    .stream()
-                    .filter(ContactUs::isRequestActive)
-                    .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
-                    .findFirst();
-            ContactUs user = report.orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
+            requestReason = RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name();
+            userRequestHist.setRequestReason(requestReason);
+        } else {
+            requestReason = null;
+        }
+        Optional<ContactUs> report = contactUsRepository.findByEmail(requestDto.getUsername())
+                .stream()
+                .filter(ContactUs::isRequestActive)
+                .filter(i -> i.getRequestReason().equalsIgnoreCase(requestReason))
+                .findFirst();
+        ContactUs user = report.orElseThrow(() -> new RuntimeException());
+        if(user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
             if(!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
                 throw new ScenarioNotPossibleException("Incorrect Reference Number!");
             user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
             ContactUs savedRequest = contactUsRepository.save(user);
 
-            ContactUsHist userRequestHist = new ContactUsHist();
             userRequestHist.setContactUsId(savedRequest.getId());
             userRequestHist.setName(requestDto.getName());
             userRequestHist.setMessage(requestDto.getDescription());
             userRequestHist.setUpdatedTime(LocalDateTime.now());
+            userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
             contactUsHistRepository.save(userRequestHist);
+        } else if(user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name())){
+            throw new ScenarioNotPossibleException("Request already raised");
         }
     }
 

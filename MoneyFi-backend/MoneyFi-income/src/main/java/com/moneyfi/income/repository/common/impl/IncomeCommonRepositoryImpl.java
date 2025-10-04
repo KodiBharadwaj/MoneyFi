@@ -176,7 +176,7 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
     public UserDetailsForStatementDto getUserDetailsForAccountStatement(Long userId) {
         try {
             Query query = entityManager.createNativeQuery(
-                    "exec getUserDetailsForAccountStatement " +
+                    "exec getUserDetailsForPdfGeneration " +
                             "@userId = :userId ")
                     .setParameter(USER_ID, userId)
                     .unwrap(NativeQuery.class)

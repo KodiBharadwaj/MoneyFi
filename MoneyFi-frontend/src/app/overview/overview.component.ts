@@ -88,7 +88,7 @@ export class OverviewComponent implements OnInit {
   private loadFinancialData() {
     this.loading = true;
 
-    const storedName = sessionStorage.getItem('Name');
+    const storedName = localStorage.getItem('moneyfi.user.name');
     if (storedName !== null) {
       this.summary.username = storedName;
     }
@@ -96,7 +96,7 @@ export class OverviewComponent implements OnInit {
     else {
       this.httpClient.get(`${this.baseUrl}/api/v1/userProfile/getName`, {responseType : 'text'}).subscribe({
         next : (userName : string) => {
-          sessionStorage.setItem('Name', userName);
+          localStorage.setItem('moneyfi.user.name', userName);
           this.summary.username = userName;
         },
         error : (error) => {

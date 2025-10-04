@@ -7,11 +7,13 @@ import { ToastrService } from 'ngx-toastr';
 import { Router, RouterModule } from '@angular/router';
 import { ConfirmLogoutDialogComponent } from '../confirm-logout-dialog/confirm-logout-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-admin-insights',
   standalone: true,
-  imports: [NgChartsModule, RouterModule],
+  imports: [NgChartsModule, RouterModule, FormsModule, CommonModule],
   templateUrl: './admin-insights.component.html',
   styleUrl: './admin-insights.component.css'
 })
@@ -20,9 +22,21 @@ export class AdminInsightsComponent implements OnInit{
   constructor(private http: HttpClient, private router:Router, private dialog: MatDialog, private toastr:ToastrService) {}
   baseUrl = environment.BASE_URL;
 
+  selectedYear: number = new Date().getFullYear();
+  years: number[] = []; // will hold last 10 years
+
   ngOnInit(): void {
+    this.initYears();
     this.loadUserMonthlyData();
     this.loadUserCountChart();
+  }
+
+  initYears(): void {
+    const currentYear = new Date().getFullYear();
+    this.years = [];           // ← re-initialize just to be safe
+    for (let i = 0; i < 10; i++) {
+      this.years.push(currentYear - i);
+    }
   }
 
 
@@ -71,12 +85,9 @@ userMonthlyChartData: ChartConfiguration<'bar'>['data'] = {
     }
   };
 
-
   loadUserMonthlyData(): void {
-    const currentYear = new Date().getFullYear();
     const status = 'All'; // or any status you want to filter
-
-    this.http.get<{ [key: number]: number }>(`${this.baseUrl}/api/v1/admin/${currentYear}/user-monthly-count/chart?status=${status}`)
+    this.http.get<{ [key: number]: number }>(`${this.baseUrl}/api/v1/admin/${this.selectedYear}/user-monthly-count/chart?status=${status}`)
       .subscribe(data => {
         const monthlyCounts = Array(12).fill(0);
         for (let month = 1; month <= 12; month++) {
@@ -237,4 +248,8 @@ dummyChartOptions: ChartConfiguration<'bar'>['options'] = {
           }
         });
       }
+
+  onYearChange(): void {
+    this.loadUserMonthlyData();
+  }
 }

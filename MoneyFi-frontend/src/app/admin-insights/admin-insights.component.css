@@ -1,6 +1,8 @@
-/* admin-home.component.css */
 .admin-container {
   font-family: 'Segoe UI', sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .top-nav {
@@ -14,17 +16,16 @@
   font-weight: bold;
 }
 
-
 .layout {
   display: flex;
-  height: calc(100vh - 64px); /* full height minus top nav */
+  flex-grow: 1;
+  overflow: hidden;
 }
 
-
+/* Side Navigation */
 .side-nav {
   width: 220px;
   background-color: #f1f5f9;
-  height: calc(100vh - 64px);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -47,17 +48,38 @@
   background-color: #e2e8f0;
 }
 
-.chart-container {
+/* Main Content */
+.main-content {
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* Year Selector */
+.chart-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+#yearSelect {
+  padding: 0.4rem 0.6rem;
+  border-radius: 5px;
+  border: 1px solid #cbd5e1;
+  background-color: white;
+  font-size: 1rem;
+}
+
+/* Chart Container */
+.chart-container {
   display: flex;
   flex-wrap: wrap;
   gap: 2rem;
-  padding: 2rem;
-  justify-content: space-evenly;
-  align-items: flex-start;
-  box-sizing: border-box;
+  justify-content: flex-start;
 }
-
 
 .chart-box {
   flex: 1 1 400px;
@@ -68,16 +90,6 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-
 .chart-box.clickable canvas {
   cursor: pointer;
 }
-
-
-.additional-info {
-  margin-top: 3rem;
-  background: #f5f5f5;
-  padding: 1.5rem;
-  border-radius: 10px;
-}
-

@@ -16,7 +16,6 @@ public class StringUtils {
 
     private StringUtils() {}
 
-    public static final String ADMIN_EMAIL = "moneyfi.owner@gmail.com";
     public static final String MESSAGE = "message";
 
     public static final String ERROR = "error";
@@ -32,11 +31,13 @@ public class StringUtils {
     public static final String CLOUDINARY_API_KEY = "api_key";
     public static final String CLOUDINARY_API_SECRET = "api_secret";
     public static final String CLOUDINARY_SECURE = "secure";
+    public static final String BLOCKED_BY_ADMIN = "Blocked by Admin";
+    public static final String BLOCKED_BY_USER = "Blocked by User";
 
     public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name(), 3, UserRoles.DEVELOPER.name());
     public static final Map<String, Integer> templateIdAssociation = Map.of("profile-template", 1);
     public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation = Map.of(BLOCK_ACCOUNT, 1, PASSWORD_CHANGE, 2, NAME_CHANGE, 3,
-            UNBLOCK_ACCOUNT, 4, DELETE_ACCOUNT, 5, ACCOUNT_RETRIEVAL, 6, PHONE_NUMBER_CHANGE, 7);
+            UNBLOCK_ACCOUNT, 4, DELETE_ACCOUNT, 5, ACCOUNT_RETRIEVAL, 6, PHONE_NUMBER_CHANGE, 7, FORGOT_PASSWORD, 8);
 
     public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
     public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

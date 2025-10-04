@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SignupCredentials } from '../model/SignupCredentials';
 import { AuthApiService } from '../auth-api.service';
@@ -15,7 +15,7 @@ import { environment } from '../../environments/environment';
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, NgChartsModule, ToastrModule, SignupOtpConfirmDialogComponent],
+  imports: [ReactiveFormsModule, CommonModule, NgChartsModule, ToastrModule, SignupOtpConfirmDialogComponent, RouterModule],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']
 })

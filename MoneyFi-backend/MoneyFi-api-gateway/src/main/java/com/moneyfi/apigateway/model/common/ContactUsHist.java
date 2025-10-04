@@ -22,4 +22,13 @@ public class ContactUsHist {
     private LocalDateTime updatedTime;
     private String requestReason;
     private String requestStatus;
+
+    public ContactUsHist(Long contactUsId, String name, String message, LocalDateTime updatedTime, String requestReason, String requestStatus) {
+        this.contactUsId = contactUsId;
+        this.name = name;
+        this.message = message;
+        this.updatedTime = updatedTime;
+        this.requestReason = requestReason;
+        this.requestStatus = requestStatus;
+    }
 }

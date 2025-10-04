@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -289,26 +290,26 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     public List<AccountStatementResponseDto> getAccountStatementOfUser(Long userId, AccountStatementRequestDto inputDto) {
-        List<AccountStatementResponseDto> accountStatementList = incomeCommonRepository.getAccountStatementOfUser(userId, inputDto);
-        accountStatementList.forEach(transaction -> {
-            transaction.setTransactionTime(
-                    StringConstants.changeTransactionTimeToTwelveHourFormat(transaction.getTransactionTime())
-            );
-        });
-
+        if(inputDto.getFromDate().isAfter(inputDto.getToDate())){
+            throw new IllegalArgumentException("From date should be less than To date");
+        }
         AtomicInteger i = new AtomicInteger(1);
-        accountStatementList.forEach(statement -> statement.setId(i.getAndIncrement()));
-
-        return accountStatementList;
+        return incomeCommonRepository.getAccountStatementOfUser(userId, inputDto)
+                .stream()
+                .peek(transaction -> {
+                    transaction.setTransactionTime(
+                            StringConstants.changeTransactionTimeToTwelveHourFormat(transaction.getTransactionTime())
+                    );
+                    transaction.setId(i.getAndIncrement());
+                }).toList();
     }
 
     @Override
     public byte[] generatePdfForAccountStatement(Long userId, AccountStatementRequestDto inputDto) throws IOException {
         inputDto.setThreshold(-1); /** to get all the transactions without pagination **/
-        List<AccountStatementResponseDto> transactions = getAccountStatementOfUser(userId, inputDto);
         UserDetailsForStatementDto userDetails = incomeCommonRepository.getUserDetailsForAccountStatement(userId);
         userDetails.setUsername(makeUsernamePrivate(userDetails.getUsername()));
-        return generatePdfTemplate.generatePdf(transactions, userDetails, inputDto.getFromDate(), inputDto.getToDate(),
+        return generatePdfTemplate.generatePdf(getAccountStatementOfUser(userId, inputDto), userDetails, inputDto.getFromDate(), inputDto.getToDate(),
                 generateDocumentPasswordForUser(userDetails));
     }
 
@@ -325,7 +326,6 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     public ResponseEntity<String> sendAccountStatementEmailToUser(Long userId, AccountStatementRequestDto inputDto, String token) {
-
         try {
             byte[] pdfBytes = generatePdfForAccountStatement(userId, inputDto);
             apiCallToGatewayServiceToSendEmail(pdfBytes, token);
@@ -340,6 +340,11 @@ public class IncomeServiceImpl implements IncomeService {
     @Override
     public OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year) {
         return incomeCommonRepository.getOverviewPageTileDetails(userId, month, year);
+    }
+
+    @Override
+    public List<Object[]> getTotalIncomeInSpecifiedRange(Long userId, LocalDateTime fromDate, LocalDateTime toDate) {
+        return incomeRepository.getTotalIncomeInSpecifiedRange(userId, fromDate, toDate);
     }
 
     private void apiCallToGatewayServiceToSendEmail(byte[] pdfBytes, String authHeader){

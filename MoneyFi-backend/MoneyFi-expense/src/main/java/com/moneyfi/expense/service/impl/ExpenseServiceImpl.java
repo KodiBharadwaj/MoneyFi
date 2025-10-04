@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -322,5 +323,10 @@ public class ExpenseServiceImpl implements ExpenseService {
             return false;
         }
 
+    }
+
+    @Override
+    public List<Object[]> getTotalExpensesInSpecifiedRange(Long userId, LocalDateTime fromDate, LocalDateTime toDate) {
+        return expenseRepository.getTotalIncomeInSpecifiedRange(userId, fromDate, toDate);
     }
 }

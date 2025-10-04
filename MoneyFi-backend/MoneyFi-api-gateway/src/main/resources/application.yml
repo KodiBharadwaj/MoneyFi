@@ -13,6 +13,10 @@ spring:
           github:
             client-id: ${GITHUB_CLIENT_ID}
             client-secret: ${GITHUB_CLIENT_SECRET}
+          facebook:
+            client-id: xxxxxxxxxxxxxxxxxx
+            client-secret: xxxxxxxxxxxxxxxxxxxxxxxxxx
+            redirect-uri: "xxxxxxxxxxxxxxxxxxxxx"
 
   datasource:
     url: ${DB_URL}

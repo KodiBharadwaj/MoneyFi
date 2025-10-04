@@ -5,12 +5,15 @@ import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.service.BudgetService;
 import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
+import com.moneyfi.budget.service.dto.response.SpendingAnalysisResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -64,6 +67,37 @@ public class BudgetApiController {
                                                     @RequestHeader("Authorization") String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         budgetService.updateBudget(userId, budgetList);
+    }
+
+    @Operation(summary = "Api to get the user spending analysis in a particular time period")
+    @GetMapping("/spending-analysis")
+    public SpendingAnalysisResponseDto getUserSpendingAnalysisByBudgetCategories(@RequestHeader("Authorization") String authHeader,
+                                                                                 @RequestParam LocalDate fromDate,
+                                                                                 @RequestParam LocalDate toDate){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return budgetService.getUserSpendingAnalysisByBudgetCategories(userId, fromDate, toDate, authHeader);
+    }
+
+    @Operation(summary = "Api to get the user spending analysis in pdf format in a particular time period")
+    @GetMapping("/spending-analysis/report")
+    public ResponseEntity<byte[]> getUserSpendingAnalysisByBudgetCategoriesPdf(@RequestHeader("Authorization") String authHeader,
+                                                                               @RequestParam LocalDate fromDate,
+                                                                               @RequestParam LocalDate toDate){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        byte[] pdfBytes = budgetService.getUserSpendingAnalysisByBudgetCategoriesPdf(userId, fromDate, toDate, authHeader);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=spending-analysis.pdf")
+                .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
+                .body(pdfBytes);
+    }
+
+    @Operation(summary = "Api to get the user spending analysis in pdf format and send email to user in a particular time period")
+    @GetMapping("/spending-analysis/report-email")
+    public ResponseEntity<String> getUserSpendingAnalysisByBudgetCategoriesPdfEmail(@RequestHeader("Authorization") String authHeader,
+                                                                                    @RequestParam LocalDate fromDate,
+                                                                                    @RequestParam LocalDate toDate){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return budgetService.getUserSpendingAnalysisByBudgetCategoriesPdfEmail(userId, fromDate, toDate, authHeader);
     }
 
 }

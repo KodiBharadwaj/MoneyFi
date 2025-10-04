@@ -22,7 +22,7 @@ import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
-import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockRequestDto;
+import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockOrDeleteRequestDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.ChangePasswordDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.ForgotUsernameDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.UserProfile;
@@ -45,6 +45,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -463,7 +464,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public RemainingTimeCountDto checkOtpActiveMethod(String email){
         RemainingTimeCountDto remainingTimeCountDto = new RemainingTimeCountDto();
-
         UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
         if(userAuthModel == null){
             remainingTimeCountDto.setComment("User not exist");
@@ -544,9 +544,10 @@ public class UserServiceImpl implements UserService {
                 .findFirst();
 
         if(tempModel.isPresent()){
-            new Thread(()->
-                    otpTempRepository.deleteByEmail(email)
-            ).start(); return true;
+            new Thread(()-> {
+                int rowsAffected = otpTempRepository.deleteByEmailAndRequestType(email, OtpType.USER_CREATION.name());
+                log.info("Number of OTP records deleted: {}", rowsAffected);
+            }).start(); return true;
         } else return !(!tempModel.get().getOtp().equals(inputOtp) ||
                 tempModel.get().getExpirationTime().isBefore(LocalDateTime.now()));
     }
@@ -616,6 +617,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean sendSpendingAnalysisEmail(String username, byte[] pdfBytes) {
+        return emailTemplates.sendSpendingAnalysisEmail(profileRepository.findByUserId(getUserIdByUsername(username)).getName(), username, pdfBytes);
+    }
+
+    @Override
     public String uploadUserProfilePictureToS3(String username, MultipartFile file) {
         if ("local".equalsIgnoreCase(activeProfile)) {
             cloudinaryService.uploadProfilePictureToCloudinary(file, getUserIdByUsername(username), username);
@@ -650,7 +656,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ResponseEntity<String> blockAccountByUserRequest(String username, AccountBlockRequestDto request) {
+    public ResponseEntity<String> blockOrDeleteAccountByUserRequest(String username, AccountBlockOrDeleteRequestDto request) {
         if(request.getOtp() == null || request.getOtp().isEmpty() || request.getDescription() == null || request.getDescription().isEmpty()){
             throw new ScenarioNotPossibleException("Input fields should not be empty");
         }
@@ -661,100 +667,120 @@ public class UserServiceImpl implements UserService {
         if(user.isBlocked() || user.isDeleted()){
             throw new ScenarioNotPossibleException("User is not active to perform the operation");
         }
-        List<OtpTempModel> userList = otpTempRepository.findByEmail(username);
-        Optional<OtpTempModel> tempModel = userList
+
+        String deactivationType; String referencePrefix;
+        if(request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.BLOCK.name())){
+            deactivationType = OtpType.ACCOUNT_BLOCK.name();
+            referencePrefix = "BL";
+        } else if(request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.DELETE.name())){
+            deactivationType = OtpType.ACCOUNT_DELETE.name();
+            referencePrefix = "DL";
+        } else {
+            throw new ScenarioNotPossibleException("Invalid deactivation type");
+        }
+        Optional<OtpTempModel> tempModel = otpTempRepository.findByEmail(username)
                 .stream()
-                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.ACCOUNT_BLOCK.name()))
+                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(deactivationType) && tempOtp.getExpirationTime().isAfter(LocalDateTime.now()))
                 .findFirst();
         if(tempModel.isPresent()){
-            if(!tempModel.get().getOtp().equals(request.getOtp())){
+            OtpTempModel response = tempModel.get();
+            if(!response.getOtp().equals(request.getOtp())){
                 throw new ScenarioNotPossibleException("Please enter correct otp");
             }
-            if(tempModel.get().getExpirationTime().isBefore(LocalDateTime.now())){
+            if(response.getExpirationTime().isBefore(LocalDateTime.now())){
                 throw new ScenarioNotPossibleException("Otp expired, Try new one");
             }
+            if(request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.DELETE.name())){
+                String userPassword = request.getPassword();
+                if(userPassword == null || userPassword.isEmpty() || !encoder.matches(userPassword, user.getPassword())){
+                    throw new ScenarioNotPossibleException("Incorrect Password entered!");
+                }
+            }
             ProfileModel userProfile = profileRepository.findByUserId(user.getId());
-            String referenceNumber = "BL" + userProfile.getName().substring(0,2) + username.substring(0,2)
+            String referenceNumber = referencePrefix + userProfile.getName().substring(0,2) + username.substring(0,2)
                     + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
-            user.setBlocked(true);
-            userRepository.save(user);
 
-            ContactUs blockAccountRequest = new ContactUs();
-            blockAccountRequest.setEmail(username);
-            blockAccountRequest.setReferenceNumber(referenceNumber);
-            blockAccountRequest.setRequestActive(true);
-            blockAccountRequest.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
-            blockAccountRequest.setVerified(false);
-            blockAccountRequest.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-            blockAccountRequest.setStartTime(LocalDateTime.now());
-            ContactUs savedRequest = contactUsRepository.save(blockAccountRequest);
-
-            ContactUsHist blockAccountRequestHistory = new ContactUsHist();
-            blockAccountRequestHistory.setName(userProfile.getName());
-            blockAccountRequestHistory.setMessage(request.getDescription());
-            blockAccountRequestHistory.setContactUsId(savedRequest.getId());
-            blockAccountRequestHistory.setUpdatedTime(savedRequest.getStartTime());
-            blockAccountRequestHistory.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
-            blockAccountRequestHistory.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-            contactUsHistRepository.save(blockAccountRequestHistory);
-
+            ContactUs accountDeactivationRequest = new ContactUs();
             UserAuthHist userAuthHist = new UserAuthHist();
+            ContactUsHist blockAccountOrDeleteRequestHistory = new ContactUsHist();
+            if (deactivationType.equalsIgnoreCase(OtpType.ACCOUNT_BLOCK.name())) {
+                user.setBlocked(true);
+                accountDeactivationRequest.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
+                userAuthHist.setReasonTypeId(reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT));
+                blockAccountOrDeleteRequestHistory.setMessage(BLOCKED_BY_USER + ", " + request.getDescription());
+            } else {
+                user.setDeleted(true);
+                accountDeactivationRequest.setRequestReason(RequestReason.ACCOUNT_DELETE_REQUEST.name());
+                userAuthHist.setReasonTypeId(reasonCodeIdAssociation.get(ReasonEnum.DELETE_ACCOUNT));
+                blockAccountOrDeleteRequestHistory.setMessage("Deleted by User," + request.getDescription());
+            }
+            userRepository.save(user);
+            accountDeactivationRequest.setEmail(username);
+            accountDeactivationRequest.setReferenceNumber(referenceNumber);
+            accountDeactivationRequest.setRequestActive(true);
+            accountDeactivationRequest.setVerified(false);
+            accountDeactivationRequest.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+            accountDeactivationRequest.setStartTime(LocalDateTime.now());
+            ContactUs savedRequest = contactUsRepository.save(accountDeactivationRequest);
+
+            blockAccountOrDeleteRequestHistory.setName(userProfile.getName());
+            blockAccountOrDeleteRequestHistory.setContactUsId(savedRequest.getId());
+            blockAccountOrDeleteRequestHistory.setUpdatedTime(savedRequest.getStartTime());
+            blockAccountOrDeleteRequestHistory.setRequestReason(savedRequest.getRequestReason());
+            blockAccountOrDeleteRequestHistory.setRequestStatus(savedRequest.getRequestStatus());
+            contactUsHistRepository.save(blockAccountOrDeleteRequestHistory);
+
             userAuthHist.setUserId(user.getId());
             userAuthHist.setComment(request.getDescription());
-            userAuthHist.setReasonTypeId(reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT));
             userAuthHist.setUpdatedBy(user.getId());
-            userAuthHist.setUpdatedTime(LocalDateTime.now());
+            userAuthHist.setUpdatedTime(savedRequest.getStartTime());
             userAuthHistRepository.save(userAuthHist);
             new Thread(
                     () -> {
-                        otpTempRepository.deleteByEmail(username);
+                        int rowsAffected = otpTempRepository.deleteByEmailAndRequestType(username, deactivationType);
+                        log.info("Number of OTP entries deleted: {}", rowsAffected);
                         /** emailTemplates.sendReferenceNumberEmail(userProfile.getName(), username, "account block", referenceNumber); **/
                     }
             ).start();
-            return ResponseEntity.ok("Account blocked successfully");
+            return ResponseEntity.ok("Account " + (request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.BLOCK.name()) ? "Blocked" : "Deleted") + " successfully");
         } else {
             throw new ResourceNotFoundException("Otp request not found");
         }
     }
 
     @Override
-    @Transactional
-    public ResponseEntity<String> sendOtpToBlockAccount(String username) {
+    @Transactional(rollbackOn = Exception.class)
+    public ResponseEntity<String> sendOtpToBlockAccount(String username, String type) {
         UserAuthModel userData = userRepository.getUserDetailsByUsername(username);
         if(userData == null){
-            throw new ResourceNotFoundException("User not found");
+            throw new ResourceNotFoundException("User not found with username " + username);
         }
         if(userData.isBlocked() || userData.isDeleted()){
             throw new ScenarioNotPossibleException("You are not allowed to perform this operation");
         }
-
-        String verificationCode = generateVerificationCode();
-        boolean isMailsent = emailTemplates.sendOtpToUserForAccountBlock(username, profileRepository.findByUserId(userData.getId()).getName(), verificationCode);
-
-        if(isMailsent){
-            List<OtpTempModel> userList = otpTempRepository.findByEmail(username);
-            Optional<OtpTempModel> tempModel = userList
-                    .stream()
-                    .filter(user -> user.getOtpType().equalsIgnoreCase(OtpType.ACCOUNT_BLOCK.name()))
-                    .findFirst();
-
-            if(tempModel.isPresent()){
-                tempModel.get().setOtp(verificationCode);
-                tempModel.get().setExpirationTime(LocalDateTime.now().plusMinutes(5));
-                otpTempRepository.save(tempModel.get());
-            } else {
-                OtpTempModel otpTempModel = new OtpTempModel();
-                otpTempModel.setEmail(username);
-                otpTempModel.setOtp(verificationCode);
-                otpTempModel.setExpirationTime(LocalDateTime.now().plusMinutes(5));
-                otpTempModel.setOtpType(OtpType.ACCOUNT_BLOCK.name());
-                otpTempRepository.save(otpTempModel);
-            }
-
-            return ResponseEntity.ok("Email sent successfully!");
-
+        String verificationCode; String otpType;
+        if (type.equalsIgnoreCase("BLOCK")) {
+            otpType = OtpType.ACCOUNT_BLOCK.name();
+        } else if (type.equalsIgnoreCase("DELETE")) {
+            otpType = OtpType.ACCOUNT_DELETE.name();
         } else {
-            return ResponseEntity.internalServerError().body("Cant send email!");
+            otpType = null;
+        }
+
+        verificationCode = otpTempRepository.findByEmail(username)
+                .stream()
+                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(otpType) && tempOtp.getExpirationTime().isAfter(LocalDateTime.now()))
+                .map(OtpTempModel::getOtp)
+                .findFirst()
+                .orElseGet(() -> {
+                    String newOtp = StringUtils.generateVerificationCode();
+                    otpTempRepository.save(new OtpTempModel(username, newOtp, LocalDateTime.now().plusMinutes(5), otpType));
+                    return newOtp;
+                });
+        if (emailTemplates.sendOtpToUserForAccountBlock(username, profileRepository.findByUserId(userData.getId()).getName(), verificationCode, type)) {
+            return ResponseEntity.ok("Email sent successfully!");
+        } else {
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't send email!");
         }
     }
 

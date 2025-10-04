@@ -22,6 +22,12 @@ eureka:
   instance:
     prefer-ip-address: true
 
+account:
+  statement:
+    admin:
+      pdf:
+        password: ${ADMIN_PDF_PASSWORD}
+
 server:
   port:
     8300

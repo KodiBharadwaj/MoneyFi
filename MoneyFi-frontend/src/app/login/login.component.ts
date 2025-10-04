@@ -82,6 +82,7 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     this.initGoogleLogin();
     this.initGithubLogin();
+    // this.initFacebookLogin();
   }
 
   /** GOOGLE LOGIN */
@@ -170,6 +171,40 @@ export class LoginComponent implements OnInit {
 
   });
 }
+
+private fbClientId = '1488343345815971';
+  private redirectUri = 'https://localhost:8765/api/v1/Oauth/facebook/callback';
+
+ initFacebookLogin(){
+  const state = Math.random().toString(36).substring(2); // CSRF token
+  const fbAuthUrl = `https://www.facebook.com/v16.0/dialog/oauth?client_id=${this.fbClientId}&redirect_uri=${encodeURIComponent(this.redirectUri)}&state=${state}&scope=email,public_profile&response_type=code`;
+
+    // Open Facebook login popup
+    const width = 500, height = 600;
+    const left = (screen.width - width) / 2;
+    const top = (screen.height - height) / 2;
+    const popup = window.open(fbAuthUrl, 'fbLogin', `width=${width},height=${height},top=${top},left=${left}`);
+
+    // Listen for message from popup
+    window.addEventListener('message', (event) => {
+      if (event.origin !== window.location.origin) return; // security check
+
+      const code = event.data?.code;
+      if (code) {
+        this.authApiService.loginWithFacebook(code).subscribe({
+          next: (res) => {
+            console.log('Facebook login successful', res);
+            this.authApiService.setFbLoginData(res);
+            popup?.close();
+          },
+          error: (err) => {
+            console.error('Facebook login failed', err);
+          }
+        });
+      }
+    }, { once: true });
+  }
+
 
   /** FORM METHODS */
   togglePasswordVisibility() { this.showPassword = !this.showPassword; }

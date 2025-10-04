@@ -21,4 +21,11 @@ public class OtpTempModel {
     private String otp;
     private LocalDateTime expirationTime;
     private String otpType;
+
+    public OtpTempModel(String email, String otp, LocalDateTime expirationTime, String otpType) {
+        this.email = email;
+        this.otp = otp;
+        this.expirationTime = expirationTime;
+        this.otpType = otpType;
+    }
 }

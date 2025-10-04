@@ -3,6 +3,7 @@ package com.moneyfi.budget.repository.common.impl;
 import com.moneyfi.budget.exceptions.QueryValidationException;
 import com.moneyfi.budget.repository.common.BudgetCommonRepository;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
+import com.moneyfi.budget.service.dto.response.UserDetailsForSpendingAnalysisDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -60,6 +61,23 @@ public class BudgetCommonRepositoryImpl implements BudgetCommonRepository {
         } catch (Exception e) {
             e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching budget data");
+        }
+    }
+
+    @Override
+    public UserDetailsForSpendingAnalysisDto getUserDetailsForAccountSpendingAnalysisStatement(Long userId) {
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getUserDetailsForPdfGeneration " +
+                                    "@userId = :userId ")
+                    .setParameter("userId", userId)
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserDetailsForSpendingAnalysisDto.class));
+
+            return (UserDetailsForSpendingAnalysisDto) query.getSingleResult();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user's details");
         }
     }
 }

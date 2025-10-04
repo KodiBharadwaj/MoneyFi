@@ -81,20 +81,22 @@ public class CommonServiceRepositoryImpl implements CommonServiceRepository {
     }
 
     @Override
-    public List<String> getBirthdayUserNames(int month, int day) {
+    public List<String> getBirthdayAndAnniversaryUsersList(int month, int day, String occasion) {
         List<String> userNames = new ArrayList<>();
         try {
             Query query = entityManager.createNativeQuery(
-                            "exec getBirthdayUserEmailAndName " +
+                            "exec getBirthdayOrAnniversaryUserEmailAndName " +
                                     "@month = :month, " +
-                                    "@day = :day ")
+                                    "@day = :day, " +
+                                    "@occasion = :occasion")
                     .setParameter("month", month)
-                    .setParameter("day", day);
+                    .setParameter("day", day)
+                    .setParameter("occasion", occasion);
             userNames.addAll(query.getResultList());
             return userNames;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new QueryValidationException("Error occurred while fetching birthday user names");
+            throw new QueryValidationException("Error occurred while fetching " + occasion + " user names");
         }
     }
 
