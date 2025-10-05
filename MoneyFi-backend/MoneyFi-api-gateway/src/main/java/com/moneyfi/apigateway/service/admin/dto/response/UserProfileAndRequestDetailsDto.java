@@ -28,9 +28,13 @@ public class UserProfileAndRequestDetailsDto {
     private String address;
     @JsonIgnore
     private Long userId;
+    @JsonIgnore
+    private Integer loginCodeValue;
+    private String accountCreationSource;
 //    private ResponseEntity<ByteArrayResource> profileImage;
 
     private AdminUserRequestsCountDto userRequestCount;
     private List<AdminUserNameChangeDetailsDto> nameChangeRequests = new ArrayList<>();
     private List<AdminUserUnblockRequestDetailsDto> unblockAccountRequests = new ArrayList<>();
+    private List<AdminUserAccRetrievalRequestDetailsDto> accountRetrievalRequests = new ArrayList<>();
 }

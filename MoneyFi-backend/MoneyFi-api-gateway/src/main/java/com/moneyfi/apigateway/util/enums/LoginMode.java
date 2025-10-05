@@ -14,4 +14,13 @@ public enum LoginMode {
     public Integer getLoginProcessCode() {
         return loginProcessCode;
     }
+
+    public static LoginMode fromCode(Integer code) {
+        for (LoginMode mode : values()) {
+            if (mode.getLoginProcessCode().equals(code)) {
+                return mode;
+            }
+        }
+        return null;
+    }
 }

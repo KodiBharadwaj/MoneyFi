@@ -1,6 +1,6 @@
 package com.moneyfi.apigateway.service.jwtservice.impl;
 
-import com.moneyfi.apigateway.model.auth.UserAuthModel;
+import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.model.UserPrincipal;
 import lombok.extern.slf4j.Slf4j;
@@ -21,14 +21,6 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-
-        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(username);
-
-        if (userAuthModel == null) {
-            log.info("No user found with this username: " + username);
-            throw new UsernameNotFoundException("User not found");
-        } else {
-            return new UserPrincipal(userAuthModel);
-        }
+        return new UserPrincipal(userRepository.getUserDetailsByUsername(username).orElseThrow(()-> new ResourceNotFoundException("User not found")));
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
 
@@ -15,7 +16,7 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
     List<UserAuthModel> getUserListWhoseOtpCountGreaterThanThree(LocalDateTime startOfToday);
 
     @Query(nativeQuery = true, value = "exec getUserAuthDetailsByUsername @username = :email")
-    UserAuthModel getUserDetailsByUsername(String email);
+    Optional<UserAuthModel> getUserDetailsByUsername(String email);
 
     @Query(nativeQuery = true, value = "exec updateRecurringIncomesAndExpenses")
     @Transactional
@@ -27,10 +28,18 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
             FROM user_auth_table uat WITH (NOLOCK)
             INNER JOIN user_auth_hist_table uaht WITH (NOLOCK) ON uaht.user_id = uat.id
             WHERE uat.is_deleted = 1
-            	AND uaht.reason_type_id = :reasonTypeId
-            	AND uat.role_id = :roleId
-            	AND uaht.updated_time < DATEADD(DAY, -30, GETDATE())
-            """, nativeQuery = true)
+                 AND uaht.reason_type_id = 5
+                 AND uat.role_id = 2
+                 AND uaht.updated_time < DATEADD(DAY, -30, GETDATE())
+                 AND NOT EXISTS (
+                    SELECT 1
+                    FROM contact_us_table cut WITH (NOLOCK)
+                    WHERE cut.email = uat.username
+                         AND cut.request_reason = 'ACCOUNT_NOT_DELETE_REQUEST'
+                         AND cut.request_status = 'SUBMITTED'
+                         AND cut.is_request_active = 1
+                         AND cut.is_verified = 0
+                 )""", nativeQuery = true)
     List<UserAuthModel> getDeletedUsersList(int roleId, int reasonTypeId);
 
     @Modifying
