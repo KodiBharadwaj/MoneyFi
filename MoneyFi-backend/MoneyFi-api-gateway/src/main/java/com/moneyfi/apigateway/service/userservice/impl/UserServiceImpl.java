@@ -129,7 +129,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserAuthModel registerUser(UserProfile userProfile, String loginMode, String address) {
-        UserAuthModel getUser = userRepository.getUserDetailsByUsername(userProfile.getUsername());
+        UserAuthModel getUser = userRepository.getUserDetailsByUsername(userProfile.getUsername()).orElse(null);
         if(getUser != null){
             return null;
         }
@@ -206,7 +206,7 @@ public class UserServiceImpl implements UserService {
                 userRoleToken.put(ERROR, USERNAME_PASSWORD_REQUIRED);
                 return ResponseEntity.badRequest().body(userRoleToken);
             }
-            UserAuthModel existingUser = userRepository.getUserDetailsByUsername(userAuthModel.getUsername());
+            UserAuthModel existingUser = userRepository.getUserDetailsByUsername(userAuthModel.getUsername()).orElse(null);
             if (existingUser == null) {
                 userRoleToken.put(ERROR, USER_NOT_FOUND);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userRoleToken);
@@ -294,7 +294,7 @@ public class UserServiceImpl implements UserService {
                 String name = (String) userInfo.get("name");
                 String picture = (String) userInfo.get("picture");
 
-                UserAuthModel newOrExistingUser = userRepository.getUserDetailsByUsername(email);
+                UserAuthModel newOrExistingUser = userRepository.getUserDetailsByUsername(email).orElse(null);
                 if (newOrExistingUser == null) {
                     newOrExistingUser = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Google User", email, GOOGLE_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()), LoginMode.GOOGLE_OAUTH.name(), null);
                     if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(email, StringUtils.convertImageUrlToMultipartFile(picture));
@@ -372,7 +372,7 @@ public class UserServiceImpl implements UserService {
                         .orElse(null);
             }
             // 3. Check or create user in DB
-            UserAuthModel user = userRepository.getUserDetailsByUsername(email);
+            UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElse(null);
             if (user == null) {
                 user = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Github User", email, GOOGLE_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()),
                         LoginMode.GITHUB_OAUTH.name(), (address != null && !address.trim().isEmpty()) ? address : null);
@@ -412,7 +412,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Long getUserIdByUsername(String email) {
-        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
+        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email).orElse(null);
         if(userAuthModel == null){
             return null;
         }
@@ -464,7 +464,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public RemainingTimeCountDto checkOtpActiveMethod(String email){
         RemainingTimeCountDto remainingTimeCountDto = new RemainingTimeCountDto();
-        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email);
+        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email).orElse(null);
         if(userAuthModel == null){
             remainingTimeCountDto.setComment("User not exist");
             remainingTimeCountDto.setResult(false);
@@ -501,7 +501,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String sendOtpForSignup(String email, String name) {
 
-        UserAuthModel userData = userRepository.getUserDetailsByUsername(email);
+        UserAuthModel userData = userRepository.getUserDetailsByUsername(email).orElse(null);
         if(userData != null){
             return "User already exists!";
         }
@@ -561,7 +561,7 @@ public class UserServiceImpl implements UserService {
             token = token.substring(7);
         }
 
-        UserAuthModel user = userRepository.getUserDetailsByUsername(jwtService.extractUserName(token));
+        UserAuthModel user = userRepository.getUserDetailsByUsername(jwtService.extractUserName(token)).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         if(userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase("USER")){
             String phoneNumber = profileRepository.findByUserId(user.getId()).getPhone();
             if(phoneNumber == null || phoneNumber.isEmpty()){
@@ -660,10 +660,7 @@ public class UserServiceImpl implements UserService {
         if(request.getOtp() == null || request.getOtp().isEmpty() || request.getDescription() == null || request.getDescription().isEmpty()){
             throw new ScenarioNotPossibleException("Input fields should not be empty");
         }
-        UserAuthModel user = userRepository.getUserDetailsByUsername(username);
-        if(user == null){
-            throw new ResourceNotFoundException("User not found");
-        }
+        UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         if(user.isBlocked() || user.isDeleted()){
             throw new ScenarioNotPossibleException("User is not active to perform the operation");
         }
@@ -751,14 +748,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<String> sendOtpToBlockAccount(String username, String type) {
-        UserAuthModel userData = userRepository.getUserDetailsByUsername(username);
-        if(userData == null){
-            throw new ResourceNotFoundException("User not found with username " + username);
-        }
+        UserAuthModel userData = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found with username " + username));
         if(userData.isBlocked() || userData.isDeleted()){
             throw new ScenarioNotPossibleException("You are not allowed to perform this operation");
         }
-        String verificationCode; String otpType;
+        String verificationCode;
+        String otpType;
         if (type.equalsIgnoreCase("BLOCK")) {
             otpType = OtpType.ACCOUNT_BLOCK.name();
         } else if (type.equalsIgnoreCase("DELETE")) {

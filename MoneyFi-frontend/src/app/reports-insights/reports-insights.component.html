@@ -270,36 +270,36 @@
             type="button"
             (click)="getSpendingAnalysis()" 
             class="btn btn-primary"
-            [disabled]="isGenerating"
+            [disabled]="isGeneratingForSpendingAnalysis"
           >
             <div class="btn-content">
-              <div class="spinner" *ngIf="isGenerating"></div>
-              <i class="icon-search" *ngIf="!isGenerating"></i>
-              <span>{{ isGenerating ? 'Generating...' : 'Get Analysis' }}</span>
+              <div class="spinner" *ngIf="isGeneratingForSpendingAnalysis"></div>
+              <i class="icon-search" *ngIf="!isGeneratingForSpendingAnalysis"></i>
+              <span>{{ isGeneratingForSpendingAnalysis ? 'Generating...' : 'Get Analysis' }}</span>
             </div>
           </button>
           <button 
             type="button"
             (click)="downloadSpendingAnalysis()" 
             class="btn btn-secondary"
-            [disabled]="spendingAnalysis === null || isDownloading"
+            [disabled]="spendingAnalysis === null || isDownloadingForSpendingAnalysis"
           >
             <div class="btn-content">
-              <div class="spinner" *ngIf="isDownloading"></div>
-              <i class="icon-download" *ngIf="!isDownloading"></i>
-              <span>{{ isDownloading ? 'Downloading...' : 'Download PDF' }}</span>
+              <div class="spinner" *ngIf="isDownloadingForSpendingAnalysis"></div>
+              <i class="icon-download" *ngIf="!isDownloadingForSpendingAnalysis"></i>
+              <span>{{ isDownloadingForSpendingAnalysis ? 'Downloading...' : 'Download PDF' }}</span>
             </div>
           </button>
           <button 
             type="button"
             (click)="sendSpendingAnalysisEmail()" 
             class="btn btn-tertiary"
-            [disabled]="spendingAnalysis === null || isSendingEmail"
+            [disabled]="spendingAnalysis === null || isSendingEmailForSpendingAnalysis"
           >
             <div class="btn-content">
-              <div class="spinner" *ngIf="isSendingEmail"></div>
-              <i class="icon-email" *ngIf="!isSendingEmail"></i>
-              <span>{{ isSendingEmail ? 'Sending...' : 'Send Email' }}</span>
+              <div class="spinner" *ngIf="isSendingEmailForSpendingAnalysis"></div>
+              <i class="icon-email" *ngIf="!isSendingEmailForSpendingAnalysis"></i>
+              <span>{{ isSendingEmailForSpendingAnalysis ? 'Sending...' : 'Send Email' }}</span>
             </div>
           </button>
         </div>

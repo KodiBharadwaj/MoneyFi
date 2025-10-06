@@ -108,7 +108,10 @@ public class SchedulingService {
         List<String> birthdayList = commonServiceRepository.getBirthdayAndAnniversaryUsersList(LocalDate.now().getMonthValue(), LocalDate.now().getDayOfMonth(), "Anniversary");
         new Thread(() -> birthdayList.forEach(user -> {
             String[] parts = user.split("-");
-            emailTemplates.sendBirthdayWishEmailToUsers(parts[0].trim(), parts[1]);
+            int numberOfYears = LocalDate.now().getYear() - Integer.parseInt(parts[2]);
+            if(numberOfYears > 0){
+                emailTemplates.sendBirthdayWishEmailToUsers(parts[0].trim(), parts[1]);
+            }
         })).start();
 
         /** Scheduling algorithm to delete the users who are deleted their account 30 days before **/

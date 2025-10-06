@@ -87,11 +87,8 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Override
     @Transactional
     public String forgotPassword(String email) {
-        UserAuthModel user = userRepository.getUserDetailsByUsername(email);
-        if(user == null){
-            throw new ResourceNotFoundException("No user found");
-        }
-        else if(user.isBlocked()){
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(()-> new ResourceNotFoundException("User not found"));
+        if(user.isBlocked()){
             return "Account Blocked! Please contact admin";
         }
         else if(user.isDeleted()){
@@ -114,20 +111,14 @@ public class UserCommonServiceImpl implements UserCommonService {
 
     @Override
     public boolean verifyCode(String email, String code) {
-        UserAuthModel user = userRepository.getUserDetailsByUsername(email);
-        if(user == null){
-             throw new ResourceNotFoundException("UserAuthModel not found");
-        }
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(()-> new ResourceNotFoundException("User not found"));
         return user.getVerificationCode().equals(code) && LocalDateTime.now().isBefore(user.getVerificationCodeExpiration());
     }
 
     @Override
     @Transactional
     public String updatePassword(String email, String password){
-        UserAuthModel user = userRepository.getUserDetailsByUsername(email);
-        if(user ==null){
-            return "user not found for given email...";
-        }
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(()-> new ResourceNotFoundException("User not found"));
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
@@ -164,10 +155,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Transactional
     public Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email) {
         Map<Boolean, String> response = new HashMap<>();
-        UserAuthModel user = userRepository.getUserDetailsByUsername(email);
-        if(user == null){
-            throw new ResourceNotFoundException("User not found");
-        }
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(()-> new ResourceNotFoundException("User not found"));
         List<ContactUs> contactUsDetails = contactUsRepository.findByEmail(email);
         if(requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
             if(user.isDeleted() || !user.isBlocked()){
