@@ -40,8 +40,11 @@ export class ReportsInsightsComponent implements OnInit   {
 
   // Loading states for buttons
   isGenerating: boolean = false;
+  isGeneratingForSpendingAnalysis: boolean = false;
   isDownloading: boolean = false;
+  isDownloadingForSpendingAnalysis: boolean = false;
   isSendingEmail: boolean = false;
+  isSendingEmailForSpendingAnalysis: boolean = false;
 
  ngOnInit() {
   const today = new Date();
@@ -204,7 +207,7 @@ export class ReportsInsightsComponent implements OnInit   {
         return;
     }
     
-    this.isGenerating = true;
+    this.isGeneratingForSpendingAnalysis = true;
     this.fetchSpendingAnalysis(from, to);
   }
 
@@ -223,17 +226,17 @@ export class ReportsInsightsComponent implements OnInit   {
         this.expenseCategories = Object.entries(analysis.expenseByCategory)
           .map(([key, value]) => ({ key, value: Number(value) }));
 
-        this.isGenerating = false;
+        this.isGeneratingForSpendingAnalysis = false;
       },error: (error) => {
         this.toastr.error('Error fetching spending analysis');
         console.error('Error fetching spending analysis:', error);
-        this.isGenerating = false;
+        this.isGeneratingForSpendingAnalysis = false;
       }
     });
   }
 
   downloadSpendingAnalysis(){
-    this.isDownloading = true;
+    this.isDownloadingForSpendingAnalysis = true;
     const from = new Date(this.analysisFromDate);
     const to = new Date(this.analysisToDate);
     const formattedFromDate = from.toISOString().split('T')[0]; // yyyy-MM-dd
@@ -248,18 +251,18 @@ export class ReportsInsightsComponent implements OnInit   {
         a.download = 'spending-analysis.pdf';
         a.click();
         URL.revokeObjectURL(fileURL);
-        this.isDownloading = false;
+        this.isDownloadingForSpendingAnalysis = false;
       },
       error: (error) => {
         console.error('Error downloading spending analysis:', error);
         this.toastr.error('Error downloading spending analysis');
-        this.isDownloading = false;
+        this.isDownloadingForSpendingAnalysis = false;
       }
     });
   }
 
   sendSpendingAnalysisEmail(){
-    this.isSendingEmail = true;
+    this.isSendingEmailForSpendingAnalysis = true;
     const from = new Date(this.analysisFromDate);
     const to = new Date(this.analysisToDate);
     const formattedFromDate = from.toISOString().split('T')[0]; // yyyy-MM-dd
@@ -272,12 +275,12 @@ export class ReportsInsightsComponent implements OnInit   {
         } else {
           this.toastr.error("Failed to send email, Please try later")
         }
-        this.isSendingEmail = false;
+        this.isSendingEmailForSpendingAnalysis = false;
       },
       error: (error) => {
         console.error('Error occurred:', error);
         this.toastr.error("Failed to send email, Please try later");
-        this.isSendingEmail = false;
+        this.isSendingEmailForSpendingAnalysis = false;
       }
     });
   }
