@@ -122,7 +122,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
-        userAuthHistRepository.save(new UserAuthHist(user.getId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE), "Password changed using forgot password", user.getId()));
+        userAuthHistRepository.save(new UserAuthHist(user.getId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.FORGOT_PASSWORD), "Password changed using forgot password", user.getId()));
         return "Password updated successfully!...";
     }
 
