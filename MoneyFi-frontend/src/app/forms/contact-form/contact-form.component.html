@@ -26,5 +26,9 @@
         </div>
     </div>
 
-    <button type="submit" class="submit-btn">Submit</button>
+    <button type="submit" class="submit-btn" [disabled]="isSubmitting || !contactForm.valid">
+      <span *ngIf="!isSubmitting">Submit</span>
+      <span *ngIf="isSubmitting" class="spinner">Submitting...</span>
+    </button>
+
 </form>

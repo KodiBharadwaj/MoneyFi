@@ -18,6 +18,7 @@ export class FeedbackFormComponent {
 
   constructor(private httpClient:HttpClient, private router:Router, private toastr:ToastrService){};
   baseUrl = environment.BASE_URL;
+  isSubmitting = false;
   
   feedback = {
     name: '',
@@ -51,7 +52,7 @@ export class FeedbackFormComponent {
 
   submitFeedback() {
     if (this.feedback.name && this.feedback.email && this.feedback.rating) {
-
+      this.isSubmitting = true; 
       const contactData = {
         name: this.feedback.name,
         email: this.feedback.email,
@@ -67,10 +68,12 @@ export class FeedbackFormComponent {
           setTimeout(() => {
             window.location.reload();
           }, 1500);
+          this.isSubmitting = false;
         },
         error => {
           console.error('Error submitting feedback form:', error);
           alert('Failed to submit feedback form. Please try again.');
+          this.isSubmitting = false;
         }
       );
       
