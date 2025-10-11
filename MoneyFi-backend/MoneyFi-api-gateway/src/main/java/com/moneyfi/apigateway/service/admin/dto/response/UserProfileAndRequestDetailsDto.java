@@ -37,4 +37,7 @@ public class UserProfileAndRequestDetailsDto {
     private List<AdminUserNameChangeDetailsDto> nameChangeRequests = new ArrayList<>();
     private List<AdminUserUnblockRequestDetailsDto> unblockAccountRequests = new ArrayList<>();
     private List<AdminUserAccRetrievalRequestDetailsDto> accountRetrievalRequests = new ArrayList<>();
+
+    private List<PasswordChangeHistoryTrackDto> passwordChangeHistoryTrackDtoList = new ArrayList<>();
+    private List<ForgotPasswordHistoryTrackDto> forgotPasswordHistoryTrackDtoList = new ArrayList<>();
 }

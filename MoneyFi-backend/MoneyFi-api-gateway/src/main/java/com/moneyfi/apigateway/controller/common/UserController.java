@@ -71,13 +71,13 @@ private DataSource dataSource;
         return userService.login(userAuthModel);
     }
 
-    @Operation(summary = "Method for password forgot")
+    @Operation(summary = "Api end point to send otp for forgot password")
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestParam String email) {
         return ResponseEntity.ok(userCommonService.forgotPassword(email));
     }
 
-    @Operation(summary = "Method for verification of code/otp")
+    @Operation(summary = "Api end point for verification of code/otp during forgot password process")
     @PostMapping("/verify-code")
     public String verifyCode(@RequestParam String email,
                              @RequestParam String code) {
@@ -88,7 +88,7 @@ private DataSource dataSource;
         }
     }
 
-    @Operation(summary = "Method to update the user's password")
+    @Operation(summary = "Api end point to update the user's password for forgot password")
     @PutMapping("/update-password")
     public String updatePassword(@RequestParam String email,
                                  @RequestParam String password){

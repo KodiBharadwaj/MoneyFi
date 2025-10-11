@@ -449,14 +449,7 @@ public class UserServiceImpl implements UserService {
         userAuthModel.setVerificationCodeExpiration(LocalDateTime.now());
         userRepository.save(userAuthModel);
 
-        UserAuthHist userAuthHist = new UserAuthHist();
-        userAuthHist.setUserId(changePasswordDto.getUserId());
-        userAuthHist.setComment(changePasswordDto.getDescription());
-        userAuthHist.setReasonTypeId(reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT));
-        userAuthHist.setUpdatedTime(LocalDateTime.now());
-        userAuthHist.setUpdatedBy(changePasswordDto.getUserId());
-        userAuthHistRepository.save(userAuthHist);
-
+        userAuthHistRepository.save(new UserAuthHist(changePasswordDto.getUserId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE), changePasswordDto.getDescription(), changePasswordDto.getUserId()));
         dto.setFlag(true);
         return dto;
     }

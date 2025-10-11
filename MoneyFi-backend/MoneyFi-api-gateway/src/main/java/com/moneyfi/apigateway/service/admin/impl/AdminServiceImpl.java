@@ -379,6 +379,21 @@ public class AdminServiceImpl implements AdminService {
         addUnblockRequestDetailsToUserDetails(userDetails, allUserRequests, saveCountDto);
         addAccRetrievalRequestDetailsToUserDetails(userDetails, allUserRequests, saveCountDto);
         userDetails.setUserRequestCount(saveCountDto);
+
+        userDetails.getPasswordChangeHistoryTrackDtoList()
+                .addAll(
+                        userAuthHistRepository.findTopByUserIdAndReasonTypeId(userDetails.getUserId(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE))
+                                .stream()
+                                .map(responseHistory -> new PasswordChangeHistoryTrackDto(responseHistory.getComment(), responseHistory.getUpdatedTime()))
+                                .toList()
+                );
+        userDetails.getForgotPasswordHistoryTrackDtoList()
+                .addAll(
+                        userAuthHistRepository.findTopByUserIdAndReasonTypeId(userDetails.getUserId(), reasonCodeIdAssociation.get(ReasonEnum.FORGOT_PASSWORD))
+                                .stream()
+                                .map(responseHistory -> new ForgotPasswordHistoryTrackDto(responseHistory.getComment(), responseHistory.getUpdatedTime()))
+                                .toList()
+                );
         return userDetails;
     }
 

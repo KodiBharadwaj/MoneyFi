@@ -5,6 +5,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,8 +29,8 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
             FROM user_auth_table uat WITH (NOLOCK)
             INNER JOIN user_auth_hist_table uaht WITH (NOLOCK) ON uaht.user_id = uat.id
             WHERE uat.is_deleted = 1
-                 AND uaht.reason_type_id = 5
-                 AND uat.role_id = 2
+                 AND uaht.reason_type_id = :reasonTypeId
+                 AND uat.role_id = :roleId
                  AND uaht.updated_time < DATEADD(DAY, -30, GETDATE())
                  AND NOT EXISTS (
                     SELECT 1
@@ -40,7 +41,7 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
                          AND cut.is_request_active = 1
                          AND cut.is_verified = 0
                  )""", nativeQuery = true)
-    List<UserAuthModel> getDeletedUsersList(int roleId, int reasonTypeId);
+    List<UserAuthModel> getDeletedUsersList(@Param("roleId") int roleId, @Param("reasonTypeId") int reasonTypeId);
 
     @Modifying
     @Transactional

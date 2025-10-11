@@ -27,10 +27,12 @@
         <textarea id="comments" [(ngModel)]="feedback.comments" name="comments" rows="4"></textarea>
       </div>
   
-      <button type="submit" [disabled]="!feedbackForm.valid" class="submit-btn">
-        Submit Feedback
+      <button type="submit" 
+        [disabled]="!feedbackForm.valid || isSubmitting" 
+        class="submit-btn">
+        <span *ngIf="!isSubmitting">Submit Feedback</span>
+        <span *ngIf="isSubmitting" class="spinner"> Submitting... </span>
       </button>
-  
     </form>
   </div>
   

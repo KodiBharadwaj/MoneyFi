@@ -69,12 +69,13 @@ export class ContactFormComponent {
   }
 
 
+  isSubmitting = false;
   onSubmit() {
     if (!this.contactData.name || !this.contactData.email || !this.contactData.message) {
       alert('Please fill out all required fields.');
       return;
     }
-
+    this.isSubmitting = true;
 
     const formData = new FormData();
 
@@ -85,12 +86,6 @@ export class ContactFormComponent {
     if (this.selectedFile) {
       formData.append('file', this.selectedFile); // This matches the `MultipartFile file` field
     }
-    // const contactDto = {
-    //   name : this.contactData.name,
-    //   email : this.contactData.email,
-    //   message : this.contactData.message,
-    //   images : this.contactData.images || ""
-    // }
 
     this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/report-issue`, formData).subscribe(
       (response) => {
@@ -102,10 +97,12 @@ export class ContactFormComponent {
         setTimeout(() => {
           window.location.reload();
         }, 1500);
+        this.isSubmitting = false;
       },
       error => {
         console.error('Error submitting form:', error);
         alert('Failed to submit form. Please try again.');
+        this.isSubmitting = false;
       }
     );
   }
