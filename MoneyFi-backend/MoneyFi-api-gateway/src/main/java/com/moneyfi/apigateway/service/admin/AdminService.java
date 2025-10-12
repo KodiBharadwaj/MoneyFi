@@ -54,4 +54,6 @@ public interface AdminService {
     void deleteReasonByReasonId(int reasonId);
 
     String blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId);
+
+    Map<String, List<UserDefectHistDetailsResponseDto>> getUserDefectHistDetails(List<Long> defectIds);
 }

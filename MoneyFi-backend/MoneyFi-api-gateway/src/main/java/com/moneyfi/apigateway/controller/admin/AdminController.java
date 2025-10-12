@@ -126,6 +126,17 @@ public class AdminController {
         return null;
     }
 
+    @Operation(summary = "Api to get the user defect history details for admin")
+    @PostMapping("/user-defects/history-details")
+    public ResponseEntity<Map<String, List<UserDefectHistDetailsResponseDto>>> getUserDefectHistDetails(@RequestBody List<Long> defectIds){
+        Map<String, List<UserDefectHistDetailsResponseDto>> response = adminService.getUserDefectHistDetails(defectIds);
+        if(!response.isEmpty()){
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
     @Operation(summary = "Api to get all the usernames of all the users for the admin")
     @GetMapping("/get-usernames")
     public ResponseEntity<List<String>> getUsernamesOfAllUsers(){

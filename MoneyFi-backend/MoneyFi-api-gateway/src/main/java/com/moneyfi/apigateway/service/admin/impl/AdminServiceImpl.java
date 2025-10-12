@@ -19,6 +19,7 @@ import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.enums.*;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
@@ -37,7 +38,11 @@ import static com.moneyfi.apigateway.util.constants.StringUtils.*;
 import static com.moneyfi.apigateway.util.constants.StringUtils.generateVerificationCode;
 
 @Service
+@Slf4j
 public class AdminServiceImpl implements AdminService {
+
+    private static final String STATUS_REJECTED = "REJECTED";
+    private static final String STATUS_APPROVED = "APPROVED";
 
     private final AdminRepository adminRepository;
     private final ContactUsRepository contactUsRepository;
@@ -317,11 +322,14 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public void updateDefectStatus(Long defectId, String status) {
-        ContactUs userDefect = contactUsRepository.findById(defectId).orElse(null);
-        ContactUsHist userDefectHist = new ContactUsHist();
-        if(userDefect == null){
-            throw new ResourceNotFoundException("Not able to obtain the user defect details");
+        ContactUs userDefect = contactUsRepository.findById(defectId).orElseThrow(() -> new ResourceNotFoundException("User defect details not found"));
+        if(userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) ||
+                userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.IGNORED.name()) ||
+                userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.PENDED.name()) ||
+                userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())){
+            throw new ScenarioNotPossibleException("Action already done");
         }
+        ContactUsHist userDefectHist = new ContactUsHist();
         if(status.equalsIgnoreCase("Solved")){
             userDefect.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
             userDefect.setRequestActive(false);
@@ -367,18 +375,17 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username) {
         UserProfileAndRequestDetailsDto userDetails = adminRepository.getCompleteUserDetailsForAdmin(username);
-        userDetails.setAccountCreationSource(Objects.requireNonNull(LoginMode.fromCode(userDetails.getLoginCodeValue())).name());
+        List<ContactUs> allUserRequests = contactUsRepository.findByEmail(username);
+        AdminUserRequestsCountDto saveCountDto = new AdminUserRequestsCountDto();
+
 //        new Thread(
 //                () -> userDetails.setImageFromS3(awsServices.fetchUserProfilePictureFromS3(userDetails.getUserId(), username))
 //        ).start();
 //        userDetails.setProfileImage(userService.fetchUserProfilePictureFromS3(username))
 
-        List<ContactUs> allUserRequests = contactUsRepository.findByEmail(username);
-        AdminUserRequestsCountDto saveCountDto = new AdminUserRequestsCountDto();
         addNameRequestDetailsToUserDetails(userDetails, allUserRequests, saveCountDto);
         addUnblockRequestDetailsToUserDetails(userDetails, allUserRequests, saveCountDto);
         addAccRetrievalRequestDetailsToUserDetails(userDetails, allUserRequests, saveCountDto);
-        userDetails.setUserRequestCount(saveCountDto);
 
         userDetails.getPasswordChangeHistoryTrackDtoList()
                 .addAll(
@@ -394,6 +401,19 @@ public class AdminServiceImpl implements AdminService {
                                 .map(responseHistory -> new ForgotPasswordHistoryTrackDto(responseHistory.getComment(), responseHistory.getUpdatedTime()))
                                 .toList()
                 );
+
+        allUserRequests
+                .stream()
+                .filter(nameChangeRequest -> nameChangeRequest.getRequestReason().equalsIgnoreCase(RequestReason.USER_DEFECT_UPDATE.name()))
+                .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
+                .forEach(userDefect -> {
+                    userDetails.getUserDefectTrackingForAdminDtoList().add(
+                            new UserDefectTrackingForAdminDto(userDefect.getStartTime(), userDefect.getCompletedTime(),
+                                    (userDefect.getReferenceNumber().startsWith("COM_") ? userDefect.getReferenceNumber().substring(4) : userDefect.getReferenceNumber()),
+                                            userDefect.getRequestStatus(), userDefect.getId()));
+                });
+        userDetails.setUserRequestCount(saveCountDto);
+        userDetails.setAccountCreationSource(Objects.requireNonNull(LoginMode.fromCode(userDetails.getLoginCodeValue())).name());
         return userDetails;
     }
 
@@ -404,7 +424,7 @@ public class AdminServiceImpl implements AdminService {
         allUserRequests
                 .stream()
                 .filter(nameChangeRequest -> nameChangeRequest.getRequestReason().equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name()))
-                .sorted((a, b) -> a.getStartTime().compareTo(b.getCompletedTime()))
+                .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
                 .forEach(request -> {
                     if(request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name()) || request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
                         nameChangeActiveRequestsCount.getAndIncrement();
@@ -431,8 +451,8 @@ public class AdminServiceImpl implements AdminService {
                                 nameChangeRequestHist.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())) {
                             requestTimeStatusHistoryMap.put(RaiseRequestStatus.COMPLETED, new UserRequestsUpdatedHistDto(Timestamp.valueOf(nameChangeRequestHist.getUpdatedTime())));
                             if (nameChangeRequestHist.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name()))
-                                approvedOrRejectedMap.put("REJECTED", nameChangeRequestHist.getMessage());
-                            else approvedOrRejectedMap.put("APPROVED", nameChangeRequestHist.getMessage());
+                                approvedOrRejectedMap.put(STATUS_REJECTED, nameChangeRequestHist.getMessage());
+                            else approvedOrRejectedMap.put(STATUS_APPROVED, nameChangeRequestHist.getMessage());
                         }
                         dto.setApprovedOrRejected(approvedOrRejectedMap);
                         dto.setRequestTimeStatusHistory(requestTimeStatusHistoryMap);
@@ -459,7 +479,7 @@ public class AdminServiceImpl implements AdminService {
         allUserRequests
                 .stream()
                 .filter(accUnblockRequest -> accUnblockRequest.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
-                .sorted((a, b) -> a.getStartTime().compareTo(b.getCompletedTime()))
+                .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
                 .forEach(request -> {
                     if(request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name()) || request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
                         accBlockActiveRequestsCount.getAndIncrement();
@@ -489,8 +509,8 @@ public class AdminServiceImpl implements AdminService {
                                     accUnblockHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())) {
                                 requestTimeStatusHistoryMap.put(RaiseRequestStatus.COMPLETED, new UserRequestsUpdatedHistDto(Timestamp.valueOf(accUnblockHistRequest.getUpdatedTime())));
                                 if (accUnblockHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name()))
-                                    approvedOrRejectedMap.put("REJECTED", accUnblockHistRequest.getMessage());
-                                else approvedOrRejectedMap.put("APPROVED", accUnblockHistRequest.getMessage());
+                                    approvedOrRejectedMap.put(STATUS_REJECTED, accUnblockHistRequest.getMessage());
+                                else approvedOrRejectedMap.put(STATUS_APPROVED, accUnblockHistRequest.getMessage());
                             }
                             dto.setApprovedOrRejected(approvedOrRejectedMap);
                             dto.setRequestTimeStatusHistory(requestTimeStatusHistoryMap);
@@ -518,7 +538,7 @@ public class AdminServiceImpl implements AdminService {
         allUserRequests
                 .stream()
                 .filter(accUnblockRequest -> accUnblockRequest.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
-                .sorted((a, b) -> a.getStartTime().compareTo(b.getCompletedTime()))
+                .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
                 .forEach(request -> {
                     if(request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name()) || request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
                         accRetrievalActiveRequestsCount.getAndIncrement();
@@ -543,8 +563,8 @@ public class AdminServiceImpl implements AdminService {
                                 accRetrievalHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())) {
                             requestTimeStatusHistoryMap.put(RaiseRequestStatus.COMPLETED, new UserRequestsUpdatedHistDto(Timestamp.valueOf(accRetrievalHistRequest.getUpdatedTime())));
                             if (accRetrievalHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name()))
-                                approvedOrRejectedMap.put("REJECTED", accRetrievalHistRequest.getMessage());
-                            else approvedOrRejectedMap.put("APPROVED", accRetrievalHistRequest.getMessage());
+                                approvedOrRejectedMap.put(STATUS_REJECTED, accRetrievalHistRequest.getMessage());
+                            else approvedOrRejectedMap.put(STATUS_APPROVED, accRetrievalHistRequest.getMessage());
                         }
                         dto.setApprovedOrRejected(approvedOrRejectedMap);
                         dto.setRequestTimeStatusHistory(requestTimeStatusHistoryMap);
@@ -808,6 +828,27 @@ public class AdminServiceImpl implements AdminService {
                 () -> emailTemplates.sendBlockAlertMailToUser(email, reason, profileRepository.findByUserId(user.getId()).getName(), convertMultipartFileToPdfBytes(file))
         ).start();
         return "User is successfully blocked";
+    }
+
+    @Override
+    public Map<String, List<UserDefectHistDetailsResponseDto>> getUserDefectHistDetails(List<Long> defectIds) {
+        if(defectIds.isEmpty()){
+            throw new ScenarioNotPossibleException("Defect Ids list can't be empty");
+        }
+        Map<String, List<UserDefectHistDetailsResponseDto>> responseMap = new HashMap<>();
+        defectIds.forEach(defectId -> {
+            ContactUs defect = contactUsRepository.findById(defectId).orElseThrow(() -> new ResourceNotFoundException("Defect with id " + defectId + " is not found"));
+            List<ContactUsHist> defectHistList = contactUsHistRepository.findByContactUsId(defectId);
+            if(defectHistList.isEmpty()){
+                throw new ResourceNotFoundException("Defect history with defect id " + defectId + " is not found");
+            }
+            List<UserDefectHistDetailsResponseDto> responseList = new ArrayList<>();
+            defectHistList.forEach(defectHistData -> {
+                responseList.add(new UserDefectHistDetailsResponseDto(defectHistData.getRequestStatus(), defectHistData.getMessage(), defectHistData.getUpdatedTime()));
+            });
+            responseMap.put(defectId + "+" + (defect.getReferenceNumber().startsWith("COM_") ? defect.getReferenceNumber().substring(4) : defect.getReferenceNumber()), responseList);
+        });
+        return responseMap;
     }
 
     private byte[] convertMultipartFileToPdfBytes(MultipartFile file){

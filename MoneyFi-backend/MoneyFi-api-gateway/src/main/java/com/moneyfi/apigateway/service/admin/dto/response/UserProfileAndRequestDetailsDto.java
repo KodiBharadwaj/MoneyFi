@@ -40,4 +40,6 @@ public class UserProfileAndRequestDetailsDto {
 
     private List<PasswordChangeHistoryTrackDto> passwordChangeHistoryTrackDtoList = new ArrayList<>();
     private List<ForgotPasswordHistoryTrackDto> forgotPasswordHistoryTrackDtoList = new ArrayList<>();
+
+    private List<UserDefectTrackingForAdminDto> userDefectTrackingForAdminDtoList = new ArrayList<>();
 }
