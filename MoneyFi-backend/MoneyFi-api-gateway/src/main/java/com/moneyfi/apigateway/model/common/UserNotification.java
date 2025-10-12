@@ -17,4 +17,10 @@ public class UserNotification {
     private String username;
     private Long scheduleId;
     private boolean isRead;
+
+    public UserNotification(String username, Long scheduleId, boolean isRead) {
+        this.username = username;
+        this.scheduleId = scheduleId;
+        this.isRead = isRead;
+    }
 }

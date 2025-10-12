@@ -3,15 +3,9 @@ package com.moneyfi.apigateway.service.common;
 import com.moneyfi.apigateway.model.auth.OtpTempModel;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
-import com.moneyfi.apigateway.model.common.ContactUs;
-import com.moneyfi.apigateway.model.common.ContactUsHist;
-import com.moneyfi.apigateway.model.common.ProfileModel;
-import com.moneyfi.apigateway.model.common.UserAuthHist;
+import com.moneyfi.apigateway.model.common.*;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
-import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
-import com.moneyfi.apigateway.repository.user.ContactUsRepository;
-import com.moneyfi.apigateway.repository.user.ProfileRepository;
-import com.moneyfi.apigateway.repository.user.UserAuthHistRepository;
+import com.moneyfi.apigateway.repository.user.*;
 import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.auth.SessionTokenRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
@@ -23,6 +17,7 @@ import com.moneyfi.apigateway.util.enums.UserRoles;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -48,6 +43,7 @@ public class SchedulingService {
     private final ProfileRepository profileRepository;
     private final SessionTokenRepository sessionTokenRepository;
     private final OtpTempRepository otpTempRepository;
+    private final UserNotificationRepository userNotificationRepository;
 
     public SchedulingService(TokenBlackListRepository tokenBlacklistRepository,
                              UserRepository userRepository,
@@ -58,7 +54,8 @@ public class SchedulingService {
                              ContactUsHistRepository contactUsHistRepository,
                              ProfileRepository profileRepository,
                              SessionTokenRepository sessionTokenRepository,
-                             OtpTempRepository otpTempRepository){
+                             OtpTempRepository otpTempRepository,
+                             UserNotificationRepository userNotificationRepository){
         this.tokenBlacklistRepository = tokenBlacklistRepository;
         this.userRepository = userRepository;
         this.commonServiceRepository = commonServiceRepository;
@@ -69,6 +66,7 @@ public class SchedulingService {
         this.profileRepository = profileRepository;
         this.sessionTokenRepository = sessionTokenRepository;
         this.otpTempRepository = otpTempRepository;
+        this.userNotificationRepository = userNotificationRepository;
     }
 
     @PostConstruct
@@ -152,5 +150,20 @@ public class SchedulingService {
     @Scheduled(cron = "0 0 0 1 * *") //Runs on 1st of every month
     public void runOnFirstDayOfMonthAtMidnightForRecurringIncomeAndExpense() {
         userRepository.updateRecurringIncomesAndExpenses();
+    }
+
+    @Async
+    public void scheduleForAllUsers(List<UserAuthModel> users, Long notificationId) {
+        List<UserNotification> batch = new ArrayList<>();
+        for (UserAuthModel user : users) {
+            batch.add(new UserNotification(user.getUsername(), notificationId, false));
+            if (batch.size() == 1000) {
+                userNotificationRepository.saveAll(batch);
+                batch.clear();
+            }
+        }
+        if (!batch.isEmpty()) {
+            userNotificationRepository.saveAll(batch);
+        }
     }
 }

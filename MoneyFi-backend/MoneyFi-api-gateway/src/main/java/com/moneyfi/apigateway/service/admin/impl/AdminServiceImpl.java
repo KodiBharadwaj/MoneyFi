@@ -14,6 +14,7 @@ import com.moneyfi.apigateway.service.admin.dto.request.ReasonUpdateRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.apigateway.service.admin.dto.response.*;
 import com.moneyfi.apigateway.service.common.AwsServices;
+import com.moneyfi.apigateway.service.common.SchedulingService;
 import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.util.EmailTemplates;
@@ -56,6 +57,7 @@ public class AdminServiceImpl implements AdminService {
     private final UserAuthHistRepository userAuthHistRepository;
     private final EmailTemplates emailTemplates;
     private final UserService userService;
+    private final SchedulingService schedulingService;
 
     public AdminServiceImpl(AdminRepository adminRepository,
                             ContactUsRepository contactUsRepository,
@@ -68,7 +70,8 @@ public class AdminServiceImpl implements AdminService {
                             ReasonDetailsRepository reasonDetailsRepository,
                             UserAuthHistRepository userAuthHistRepository,
                             EmailTemplates emailTemplates,
-                            UserService userService){
+                            UserService userService,
+                            SchedulingService schedulingService){
         this.adminRepository = adminRepository;
         this.contactUsRepository = contactUsRepository;
         this.userRepository = userRepository;
@@ -81,6 +84,7 @@ public class AdminServiceImpl implements AdminService {
         this.userAuthHistRepository = userAuthHistRepository;
         this.emailTemplates = emailTemplates;
         this.userService = userService;
+        this.schedulingService = schedulingService;
     }
 
     @Override
@@ -92,10 +96,10 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<UserGridDto> getUserDetailsGridForAdmin(String status) {
-        List<UserGridDto> userGridDtoList = adminRepository.getUserDetailsGridForAdmin(status);
         AtomicInteger i = new AtomicInteger(1);
-        userGridDtoList.forEach(user -> user.setSlNo(i.getAndIncrement()));
-        return userGridDtoList;
+        return adminRepository.getUserDetailsGridForAdmin(status)
+                .stream()
+                .peek(user -> user.setSlNo(i.getAndIncrement())).toList();
     }
 
     @Override
@@ -610,30 +614,24 @@ public class AdminServiceImpl implements AdminService {
         ScheduleNotification response = scheduleNotificationRepository.save(scheduleNotification);
 
         if (!requestDto.getRecipients().equalsIgnoreCase("All")) {
+            List<UserNotification> userNotificationListForSpecifiedUsers = new ArrayList<>();
             Arrays.stream(requestDto.getRecipients().split(","))
                     .map(String::trim)
-                    .map(username -> {
-                        UserNotification userNotification = new UserNotification();
-                        userNotification.setScheduleId(response.getId());
-                        userNotification.setUsername(username);
-                        userNotification.setRead(false);
-                        return userNotification;
-                    })
-                    .forEach(userNotificationRepository::save);
+                    .forEach(username -> userNotificationListForSpecifiedUsers.add(new UserNotification(username, response.getId(), false)));
+            userNotificationRepository.saveAll(userNotificationListForSpecifiedUsers);
         } else {
-            new Thread(() -> userRepository.findAll()
+            /** Currently using @Async batch process for saving notifications for all the users.
+             * For more traffic of users, It is advisable to use direct insert queries.
+             * Else For more efficient approach, we can use Kafka or any messaging queue to handle such huge number of people scenarios.
+             */
+            schedulingService.scheduleForAllUsers(userRepository.findAll()
                     .stream()
-                    .filter(user -> !userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.ADMIN.name()))
-                    .forEach(user -> {
-                        UserNotification userNotification = new UserNotification();
-                        userNotification.setScheduleId(response.getId());
-                        userNotification.setUsername(user.getUsername());
-                        userNotification.setRead(false);
-                        userNotificationRepository.save(userNotification);
-                    })).start();
+                    .filter(user -> !userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.ADMIN.name())).toList(), response.getId()
+            );
         }
         return "Notification set successfully";
     }
+
 
     @Override
     public List<UserFeedbackResponseDto> getUserFeedbackListForAdmin() {
