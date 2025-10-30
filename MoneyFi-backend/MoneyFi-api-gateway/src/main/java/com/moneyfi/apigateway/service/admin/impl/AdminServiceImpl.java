@@ -225,7 +225,7 @@ public class AdminServiceImpl implements AdminService {
             requestUserHist.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
             methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
-            ProfileModel userProfile = profileRepository.findByUserId(user.getId());
+            ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("User profile not found"));
             ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
                     .stream()
                     .findFirst()
@@ -800,7 +800,7 @@ public class AdminServiceImpl implements AdminService {
         user.setBlocked(true);
         userRepository.save(user);
 
-        ProfileModel userProfile = profileRepository.findByUserId(user.getId());
+        ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("User profile not found"));
         ContactUs contactUs = new ContactUs();
         contactUs.setEmail(email);
         contactUs.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
@@ -823,7 +823,7 @@ public class AdminServiceImpl implements AdminService {
         contactUsHistRepository.save(contactUsHist);
         userAuthHistRepository.save(new UserAuthHist(user.getId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT), reason, adminUserId));
         new Thread(
-                () -> emailTemplates.sendBlockAlertMailToUser(email, reason, profileRepository.findByUserId(user.getId()).getName(), convertMultipartFileToPdfBytes(file))
+                () -> emailTemplates.sendBlockAlertMailToUser(email, reason, profileRepository.findByUserId(user.getId()).get().getName(), convertMultipartFileToPdfBytes(file))
         ).start();
         return "User is successfully blocked";
     }

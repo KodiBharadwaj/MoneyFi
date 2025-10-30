@@ -6,10 +6,11 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface ProfileRepository extends JpaRepository<ProfileModel, Long> {
 
-    ProfileModel findByUserId(Long userId);
+    Optional<ProfileModel> findByUserId(Long userId);
 
     List<ProfileModel> findByPhone(String phoneNumber);
 

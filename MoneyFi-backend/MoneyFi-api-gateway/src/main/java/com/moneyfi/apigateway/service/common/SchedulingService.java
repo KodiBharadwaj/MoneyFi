@@ -130,7 +130,7 @@ public class SchedulingService {
         accountDeletedUsersList.forEach(user -> {
             userAuthHistList.addAll(userAuthHistRepository.findByUserId(user.getId()));
             contactUsList.addAll(contactUsRepository.findByEmail(user.getUsername()));
-            userProfileDetailsList.add(profileRepository.findByUserId(user.getId()));
+            userProfileDetailsList.add(profileRepository.findByUserId(user.getId()).get());
             sessionTokenModelList.add(sessionTokenRepository.findByUsername(user.getUsername()));
             otpTempModelList.addAll(otpTempRepository.findByEmail(user.getUsername()));
         });

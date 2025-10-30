@@ -69,22 +69,38 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Transactional
     public ProfileDetailsDto saveUserDetails(Long userId, ProfileModel profile) {
-        ProfileModel fetchProfile = profileRepository.findByUserId(userId);
+        ProfileModel fetchProfile = profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("User profile not found for userId: " + userId));
+        String phone = profile.getPhone().trim();
+        if (!phone.matches("\\d+")) {
+            throw new ScenarioNotPossibleException("Phone number must contain only digits");
+        }
+        if (phone.length() != 10) {
+            throw new ScenarioNotPossibleException("Phone number should be 10 digits");
+        }
 
-        fetchProfile.setName(profile.getName());
-        fetchProfile.setPhone(profile.getPhone());
-        fetchProfile.setGender(profile.getGender());
-        fetchProfile.setDateOfBirth(profile.getDateOfBirth());
-        fetchProfile.setMaritalStatus(profile.getMaritalStatus());
+        if (!profile.getName().trim().equals(fetchProfile.getName())) {
+            fetchProfile.setName(profile.getName().trim());
+        }
+        if (phone.equals(fetchProfile.getPhone())) {
+            fetchProfile.setPhone(phone);
+        }
+        if (!profile.getGender().trim().equals(fetchProfile.getGender())) {
+            fetchProfile.setGender(profile.getGender().trim());
+        }
+        if (!profile.getMaritalStatus().trim().equals(fetchProfile.getMaritalStatus())) {
+            fetchProfile.setMaritalStatus(profile.getMaritalStatus().trim());
+        }
+        if (!profile.getDateOfBirth().equals(fetchProfile.getDateOfBirth())) {
+            fetchProfile.setDateOfBirth(profile.getDateOfBirth());
+        }
         fetchProfile.setAddress(profile.getAddress());
         fetchProfile.setIncomeRange(profile.getIncomeRange());
-
-        ProfileModel savedProfile = profileRepository.save(fetchProfile);
-        return convertProfileModelToProfileDetailsDto(savedProfile);
+        return convertProfileModelToProfileDetailsDto(profileRepository.save(fetchProfile));
     }
 
-    private ProfileDetailsDto convertProfileModelToProfileDetailsDto(ProfileModel savedProfile){
+    private ProfileDetailsDto convertProfileModelToProfileDetailsDto(ProfileModel savedProfile) {
         ProfileDetailsDto profileDetailsDto = new ProfileDetailsDto();
         BeanUtils.copyProperties(savedProfile, profileDetailsDto);
         profileDetailsDto.setCreatedDate(Date.valueOf(savedProfile.getCreatedDate().toLocalDate()));
@@ -94,7 +110,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public ProfileModel getUserDetailsByUserId(Long userId) {
-        return profileRepository.findByUserId(userId);
+        return profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("User profile not found for userId: " + userId));
     }
 
     @Override
@@ -177,7 +193,7 @@ public class ProfileServiceImpl implements ProfileService {
             if (phoneNumber.length() != 10) {
                 throw new ScenarioNotPossibleException("Phone number should be 10 digits");
             }
-            ProfileModel fetchProfile = profileRepository.findByUserId(userId);
+            ProfileModel fetchProfile = profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("User profile not found for userId: " + userId));
             if (fetchProfile != null) {
                 fetchProfile.setPhone(phoneNumber);
                 fetchProfile.setDateOfBirth(dobDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());

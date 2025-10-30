@@ -162,6 +162,7 @@ export class ProfileComponent implements OnInit {
         if(error.status === 401){
           alert('Service Unavailable!! Please try later')
         }
+        else this.toastr.error(error.error.message);
       }
     );
   }

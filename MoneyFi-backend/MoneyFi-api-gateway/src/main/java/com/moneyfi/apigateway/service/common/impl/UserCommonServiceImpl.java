@@ -104,7 +104,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             user.setOtpCount(user.getOtpCount() + 1);
             userRepository.save(user);
         }
-        if(emailTemplates.sendOtpForForgotPassword(profileRepository.findByUserId(user.getId()).getName(), email, verificationCode)){
+        if(emailTemplates.sendOtpForForgotPassword(profileRepository.findByUserId(user.getId()).get().getName(), email, verificationCode)){
             return "Verification code sent to your email!";
         } else return "cant send mail!";
     }
@@ -185,7 +185,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 requestDetails.get().setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
                 savedRequest = contactUsRepository.save(requestDetails.get());
             } else {
-                ProfileModel userProfile = profileRepository.findByUserId(user.getId());
+                ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("User profile not found"));
                 referenceNumber = "BL" + userProfile.getName().substring(0,2) + email.substring(0,2)
                         + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
                 ContactUs saveRequest = new ContactUs();
@@ -199,7 +199,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 savedRequest = contactUsRepository.save(saveRequest);
             }
             boolean isEmailSent = emailTemplates
-                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account unblock", referenceNumber);
+                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).get().getName(), email, "account unblock", referenceNumber);
             if(isEmailSent){
                 contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), null, "Reference number requested to unblock the account", savedRequest.getStartTime(),
                         RequestReason.ACCOUNT_UNBLOCK_REQUEST.name(), RaiseRequestStatus.INITIATED.name()));
@@ -233,7 +233,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 requestDetails.get().setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
                 savedRequest = contactUsRepository.save(requestDetails.get());
             } else {
-                ProfileModel userProfile = profileRepository.findByUserId(user.getId());
+                ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("User profile not found"));
                 referenceNumber = "DL" + userProfile.getName().substring(0,2) + email.substring(0,2)
                         + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
                 ContactUs saveRequest = new ContactUs();
@@ -247,7 +247,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 savedRequest = contactUsRepository.save(saveRequest);
             }
             boolean isEmailSent = emailTemplates
-                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "account retrieval", referenceNumber);
+                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).get().getName(), email, "account retrieval", referenceNumber);
             if(isEmailSent){
                 contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), null, "Reference number requested to retrieve the account", savedRequest.getStartTime(),
                         RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name(), RaiseRequestStatus.INITIATED.name()));
@@ -269,11 +269,11 @@ public class UserCommonServiceImpl implements UserCommonService {
                 throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size()==1?REFERENCE_NUMBER_SENT :
                         DETAILS_ALREADY_SUBMITTED);
             }
-            ProfileModel userProfile = profileRepository.findByUserId(user.getId());
+            ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("User profile not found"));
             String referenceNumber = "NA" + userProfile.getName().substring(0,2) + email.substring(0,2)
                     + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
             boolean isEmailSent = emailTemplates
-                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).getName(), email, "change name", referenceNumber);
+                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).get().getName(), email, "change name", referenceNumber);
             if(isEmailSent){
                 ContactUs saveRequest = new ContactUs();
                 saveRequest.setEmail(email);

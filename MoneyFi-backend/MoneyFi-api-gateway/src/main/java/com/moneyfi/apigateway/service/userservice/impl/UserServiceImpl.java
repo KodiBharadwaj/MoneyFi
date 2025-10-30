@@ -439,7 +439,7 @@ public class UserServiceImpl implements UserService {
             dto.setFlag(false);
             return dto;
         }
-        String userName = profileRepository.findByUserId(userAuthModel.getId()).getName();
+        String userName = profileRepository.findByUserId(userAuthModel.getId()).get().getName();
         new Thread(() ->
                 emailTemplates.sendPasswordChangeAlertMail(userName, userAuthModel.getUsername())
         ).start();
@@ -556,7 +556,7 @@ public class UserServiceImpl implements UserService {
 
         UserAuthModel user = userRepository.getUserDetailsByUsername(jwtService.extractUserName(token)).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         if(userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase("USER")){
-            String phoneNumber = profileRepository.findByUserId(user.getId()).getPhone();
+            String phoneNumber = profileRepository.findByUserId(user.getId()).get().getPhone();
             if(phoneNumber == null || phoneNumber.isEmpty()){
                 response.put(MESSAGE, "Phone number is empty");
                 return response;
@@ -606,12 +606,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean sendAccountStatementEmail(String username, byte[] pdfBytes) {
-        return emailTemplates.sendAccountStatementAsEmail(profileRepository.findByUserId(getUserIdByUsername(username)).getName(), username, pdfBytes);
+        return emailTemplates.sendAccountStatementAsEmail(profileRepository.findByUserId(getUserIdByUsername(username)).get().getName(), username, pdfBytes);
     }
 
     @Override
     public boolean sendSpendingAnalysisEmail(String username, byte[] pdfBytes) {
-        return emailTemplates.sendSpendingAnalysisEmail(profileRepository.findByUserId(getUserIdByUsername(username)).getName(), username, pdfBytes);
+        return emailTemplates.sendSpendingAnalysisEmail(profileRepository.findByUserId(getUserIdByUsername(username)).get().getName(), username, pdfBytes);
     }
 
     @Override
@@ -686,7 +686,7 @@ public class UserServiceImpl implements UserService {
                     throw new ScenarioNotPossibleException("Incorrect Password entered!");
                 }
             }
-            ProfileModel userProfile = profileRepository.findByUserId(user.getId());
+            ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("User profile not found"));
             String referenceNumber = referencePrefix + userProfile.getName().substring(0,2) + username.substring(0,2)
                     + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
 
@@ -765,7 +765,7 @@ public class UserServiceImpl implements UserService {
                     otpTempRepository.save(new OtpTempModel(username, newOtp, LocalDateTime.now().plusMinutes(5), otpType));
                     return newOtp;
                 });
-        if (emailTemplates.sendOtpToUserForAccountBlock(username, profileRepository.findByUserId(userData.getId()).getName(), verificationCode, type)) {
+        if (emailTemplates.sendOtpToUserForAccountBlock(username, profileRepository.findByUserId(userData.getId()).get().getName(), verificationCode, type)) {
             return ResponseEntity.ok("Email sent successfully!");
         } else {
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't send email!");
