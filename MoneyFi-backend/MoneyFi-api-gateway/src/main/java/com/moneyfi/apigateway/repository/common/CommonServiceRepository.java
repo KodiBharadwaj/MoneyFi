@@ -7,7 +7,7 @@ import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
 import java.util.List;
 
 public interface CommonServiceRepository {
-    ProfileDetailsDto getProfileDetailsOfUser(Long userId);
+    ProfileDetailsDto getProfileDetailsOfUser(String username);
 
     UserRequestStatusDto trackUserRequestUsingReferenceNumber(String referenceNumber);
 

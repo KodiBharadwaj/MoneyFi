@@ -43,7 +43,7 @@ export class ChangePasswordDialogComponent implements OnInit{
 
   ngOnInit(): void {
     this.reasons = [];
-    this.http.get<string[]>(`${this.baseUrl}/api/v1/userProfile/reasons-dialog/get?code=2`).subscribe({
+    this.http.get<string[]>(`${this.baseUrl}/api/v1/user/reasons-dialog/get?code=2`).subscribe({
       next: (data) => {
         this.reasons = [...data, 'Other'];
       },
@@ -92,7 +92,7 @@ export class ChangePasswordDialogComponent implements OnInit{
       };
 
       if(changePasswordDto.currentPassword !== changePasswordDto.newPassword){
-        this.http.post<ProfileChangePassword>(`${this.baseUrl}/api/v1/userProfile/change-password`, changePasswordDto)
+        this.http.post<ProfileChangePassword>(`${this.baseUrl}/api/v1/user/change-password`, changePasswordDto)
         .subscribe({
           next: (profileChangeDto) => {
 

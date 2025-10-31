@@ -71,7 +71,7 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     @Transactional
     public ProfileDetailsDto saveUserDetails(Long userId, ProfileModel profile) {
-        ProfileModel fetchProfile = profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("User profile not found for userId: " + userId));
+        ProfileModel fetchProfile = profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("User profile details not found"));
         String phone = profile.getPhone().trim();
         if (!phone.matches("\\d+")) {
             throw new ScenarioNotPossibleException("Phone number must contain only digits");
@@ -83,7 +83,7 @@ public class ProfileServiceImpl implements ProfileService {
         if (!profile.getName().trim().equals(fetchProfile.getName())) {
             fetchProfile.setName(profile.getName().trim());
         }
-        if (phone.equals(fetchProfile.getPhone())) {
+        if (!phone.equals(fetchProfile.getPhone())) {
             fetchProfile.setPhone(phone);
         }
         if (!profile.getGender().trim().equals(fetchProfile.getGender())) {
@@ -176,8 +176,12 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public ProfileDetailsDto getProfileDetailsOfUser(Long userId) {
-        return commonServiceRepository.getProfileDetailsOfUser(userId);
+    public ProfileDetailsDto getProfileDetailsOfUser(String username) {
+        ProfileDetailsDto profileDetailsDto = commonServiceRepository.getProfileDetailsOfUser(username);
+        if(profileDetailsDto == null){
+            throw new ResourceNotFoundException("Details not found for " + username);
+        }
+        return profileDetailsDto;
     }
 
     @Override

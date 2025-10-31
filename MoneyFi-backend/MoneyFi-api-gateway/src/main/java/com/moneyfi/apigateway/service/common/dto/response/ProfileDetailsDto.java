@@ -18,6 +18,5 @@ public class ProfileDetailsDto {
     private Date dateOfBirth;
     private String address;
     private double incomeRange;
-    private String profileImage;
     private Date createdDate;
 }

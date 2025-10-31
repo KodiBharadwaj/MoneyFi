@@ -94,7 +94,7 @@ export class OverviewComponent implements OnInit {
     }
 
     else {
-      this.httpClient.get(`${this.baseUrl}/api/v1/userProfile/getName`, {responseType : 'text'}).subscribe({
+      this.httpClient.get(`${this.baseUrl}/api/v1/user/getName`, {responseType : 'text'}).subscribe({
         next : (userName : string) => {
           localStorage.setItem('moneyfi.user.name', userName);
           this.summary.username = userName;

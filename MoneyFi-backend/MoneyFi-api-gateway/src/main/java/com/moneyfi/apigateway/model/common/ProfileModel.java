@@ -18,6 +18,7 @@ public class ProfileModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(unique = true)
     private Long userId;
     private String name;
     private LocalDateTime createdDate;

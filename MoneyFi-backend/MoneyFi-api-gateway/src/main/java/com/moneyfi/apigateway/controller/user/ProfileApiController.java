@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/userProfile")
+@RequestMapping("/api/v1/user")
 public class ProfileApiController {
 
     private final ProfileService profileService;
@@ -52,19 +52,19 @@ public class ProfileApiController {
         return null;
     }
 
-    @Operation(summary = "Method to save/update the profile details of a user")
-    @PostMapping("saveProfile")
-    public ResponseEntity<ProfileDetailsDto> saveProfile(Authentication authentication,
-                                                         @RequestBody ProfileModel profile){
+    @Operation(summary = "Api to save/update the profile details of a user")
+    @PostMapping("/profile-details/save")
+    public ResponseEntity<ProfileDetailsDto> saveProfileDetails(Authentication authentication,
+                                                                @RequestBody ProfileModel profile){
         Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         return ResponseEntity.ok(profileService.saveUserDetails(userId, profile));
     }
 
-    @Operation(summary = "Method to get the profile details of a user")
-    @GetMapping("/getProfile")
-    public ResponseEntity<ProfileDetailsDto> getProfile(Authentication authentication){
-        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        ProfileDetailsDto profileDetails = profileService.getProfileDetailsOfUser(userId);
+    @Operation(summary = "Api to get profile details of a user")
+    @GetMapping("/profile-details/get")
+    public ResponseEntity<ProfileDetailsDto> getProfileDetails(Authentication authentication){
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        ProfileDetailsDto profileDetails = profileService.getProfileDetailsOfUser(username);
         if (profileDetails != null) {
             return ResponseEntity.ok(profileDetails);
         } else {

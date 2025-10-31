@@ -72,7 +72,7 @@ export class UserConfigurationComponent implements AfterViewInit{
 
   changeMyName() {
     
-    this.http.get(`${this.baseUrl}/api/v1/userProfile/get-username`, { responseType: 'text' }).subscribe({
+    this.http.get(`${this.baseUrl}/api/v1/user/get-username`, { responseType: 'text' }).subscribe({
       next: (data: string) => {
         this.username = data;
         this.callNameChangeRequestMethod(this.username);
@@ -94,7 +94,7 @@ export class UserConfigurationComponent implements AfterViewInit{
 
   initiateAccountBlock() {
     this.loadingAccountDeactivationRequest = true;
-    this.http.get(`${this.baseUrl}/api/v1/userProfile/otp-request/account-deactivate-actions?type=BLOCK`, {
+    this.http.get(`${this.baseUrl}/api/v1/user/otp-request/account-deactivate-actions?type=BLOCK`, {
       responseType: 'text'
     }).subscribe({
       next: response => {
@@ -110,7 +110,7 @@ export class UserConfigurationComponent implements AfterViewInit{
     });
 
     this.blockReasons = [];
-    this.http.get<string[]>(`${this.baseUrl}/api/v1/userProfile/reasons-dialog/get?code=1`).subscribe({
+    this.http.get<string[]>(`${this.baseUrl}/api/v1/user/reasons-dialog/get?code=1`).subscribe({
       next: (data) => {
         this.blockReasons = [...data, 'Other'];
       },
@@ -123,7 +123,7 @@ export class UserConfigurationComponent implements AfterViewInit{
 
   initiateAccountDelete() {
     this.loadingAccountDeleteRequest = true;
-    this.http.get(`${this.baseUrl}/api/v1/userProfile/otp-request/account-deactivate-actions?type=DELETE`, {
+    this.http.get(`${this.baseUrl}/api/v1/user/otp-request/account-deactivate-actions?type=DELETE`, {
       responseType: 'text'
     }).subscribe({
       next: response => {
@@ -139,7 +139,7 @@ export class UserConfigurationComponent implements AfterViewInit{
     });
 
     this.deleteReasons = [];
-    this.http.get<string[]>(`${this.baseUrl}/api/v1/userProfile/reasons-dialog/get?code=5`).subscribe({
+    this.http.get<string[]>(`${this.baseUrl}/api/v1/user/reasons-dialog/get?code=5`).subscribe({
       next: (data) => {
         this.deleteReasons = [...data, 'Other'];
       },
@@ -151,7 +151,7 @@ export class UserConfigurationComponent implements AfterViewInit{
 
   downloadProfileTemplate() {
     this.isDownloading = true;
-    this.http.get(`${this.baseUrl}/api/v1/userProfile/profile-details-template/download`, {
+    this.http.get(`${this.baseUrl}/api/v1/user/profile-details-template/download`, {
       responseType: 'blob'
     }).subscribe(blob => {
       const a = document.createElement('a');
@@ -179,7 +179,7 @@ export class UserConfigurationComponent implements AfterViewInit{
     const formData = new FormData();
     formData.append('file', this.selectedFile);
 
-    this.http.post(`${this.baseUrl}/api/v1/userProfile/user-profile/excel-upload`, formData, {
+    this.http.post(`${this.baseUrl}/api/v1/user/user-profile/excel-upload`, formData, {
       responseType: 'text' // Because backend returns ResponseEntity<String>
     }).subscribe({
       next: response => {
@@ -204,12 +204,12 @@ export class UserConfigurationComponent implements AfterViewInit{
       password : null
     };
 
-    this.http.post(`${this.baseUrl}/api/v1/userProfile/deactivate-account`, payload, {
+    this.http.post(`${this.baseUrl}/api/v1/user/deactivate-account`, payload, {
       responseType: 'text'
     }).subscribe({
       next: response => {
         alert('Account block confirmed.');
-        this.http.post(`${this.baseUrl}/api/v1/userProfile/logout`, {}, { responseType: 'text' }).subscribe({
+        this.http.post(`${this.baseUrl}/api/v1/user/logout`, {}, { responseType: 'text' }).subscribe({
           next: (response) => {
             const jsonResponse = JSON.parse(response);
             if(jsonResponse.message === 'Logged out successfully'){
@@ -250,12 +250,12 @@ export class UserConfigurationComponent implements AfterViewInit{
       password : this.password
     };
 
-    this.http.post(`${this.baseUrl}/api/v1/userProfile/deactivate-account`, payload, {
+    this.http.post(`${this.baseUrl}/api/v1/user/deactivate-account`, payload, {
       responseType: 'text'
     }).subscribe({
       next: response => {
         alert('Account has been deleted. Please raise retrieve request before 30 days to use again.');
-        this.http.post(`${this.baseUrl}/api/v1/userProfile/logout`, {}, { responseType: 'text' }).subscribe({
+        this.http.post(`${this.baseUrl}/api/v1/user/logout`, {}, { responseType: 'text' }).subscribe({
           next: (response) => {
             const jsonResponse = JSON.parse(response);
             if(jsonResponse.message === 'Logged out successfully'){

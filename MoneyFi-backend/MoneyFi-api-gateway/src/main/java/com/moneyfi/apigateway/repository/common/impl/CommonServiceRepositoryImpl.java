@@ -23,16 +23,17 @@ public class CommonServiceRepositoryImpl implements CommonServiceRepository {
     private EntityManager entityManager;
 
     @Override
-    public ProfileDetailsDto getProfileDetailsOfUser(Long userId) {
+    public ProfileDetailsDto getProfileDetailsOfUser(String username) {
         try {
             Query query = entityManager.createNativeQuery(
-                    "exec getProfileDetailsOfUser " +
-                            "@userId = :userId ")
-                    .setParameter("userId", userId)
+                            "exec getProfileDetailsOfUser " +
+                                    "@username = :username ")
+                    .setParameter("username", username)
                     .unwrap(NativeQuery.class)
                     .setResultTransformer(Transformers.aliasToBean(ProfileDetailsDto.class));
-
             return (ProfileDetailsDto) query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
         } catch (Exception e) {
             e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching user profile data");
