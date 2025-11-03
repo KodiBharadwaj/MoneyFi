@@ -5,8 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Base64;
+import java.io.IOException;
 
 @Component
 public class EmailTemplates {
@@ -150,7 +151,7 @@ public class EmailTemplates {
         emailFilter.sendEmail(email, subject, body);
     }
 
-    public void sendUserRaiseDefectEmailToAdmin(UserDefectRequestDto userDefectRequestDto, String images){
+    public void sendUserRaiseDefectEmailToAdmin(UserDefectRequestDto userDefectRequestDto, MultipartFile image){
         String subject = "MoneyFi's User Report Alert!!";
 
         String body = "<html>"
@@ -166,12 +167,16 @@ public class EmailTemplates {
                 + "<p style='font-size: 16px;'>Please login for more details</p>"
                 + "</body>"
                 + "</html>";
-
-        if (images.contains(",")) {
-            images = images.split(",")[1];  // Only the base64 part after the comma
+        if (image != null && !image.isEmpty()) {
+            try {
+                byte[] imageBytes = image.getBytes();
+                emailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, image.getOriginalFilename() != null ? image.getOriginalFilename() : "attachment.jpg");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
         }
-        byte[] imageBytes = Base64.getDecoder().decode(images);
-        emailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, "user.jpg");
     }
 
     public void sendUserFeedbackEmailToAdmin(String rating, String message){
@@ -230,7 +235,7 @@ public class EmailTemplates {
         return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, fileName);
     }
 
-    public boolean sendReferenceNumberEmail(String name, String email, String description, String referenceNumber) {
+    public boolean sendReferenceNumberEmailToUser(String name, String email, String description, String referenceNumber) {
         String subject = "MoneyFi - user requests";
         String body = "<html>"
                 + "<body>"

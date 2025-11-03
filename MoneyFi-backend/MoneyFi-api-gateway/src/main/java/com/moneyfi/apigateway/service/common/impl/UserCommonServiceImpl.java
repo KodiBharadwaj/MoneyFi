@@ -199,7 +199,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 savedRequest = contactUsRepository.save(saveRequest);
             }
             boolean isEmailSent = emailTemplates
-                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).get().getName(), email, "account unblock", referenceNumber);
+                    .sendReferenceNumberEmailToUser(profileRepository.findByUserId(user.getId()).get().getName(), email, "account unblock", referenceNumber);
             if(isEmailSent){
                 contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), null, "Reference number requested to unblock the account", savedRequest.getStartTime(),
                         RequestReason.ACCOUNT_UNBLOCK_REQUEST.name(), RaiseRequestStatus.INITIATED.name()));
@@ -247,7 +247,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 savedRequest = contactUsRepository.save(saveRequest);
             }
             boolean isEmailSent = emailTemplates
-                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).get().getName(), email, "account retrieval", referenceNumber);
+                    .sendReferenceNumberEmailToUser(profileRepository.findByUserId(user.getId()).get().getName(), email, "account retrieval", referenceNumber);
             if(isEmailSent){
                 contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), null, "Reference number requested to retrieve the account", savedRequest.getStartTime(),
                         RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name(), RaiseRequestStatus.INITIATED.name()));
@@ -273,7 +273,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             String referenceNumber = "NA" + userProfile.getName().substring(0,2) + email.substring(0,2)
                     + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
             boolean isEmailSent = emailTemplates
-                    .sendReferenceNumberEmail(profileRepository.findByUserId(user.getId()).get().getName(), email, "change name", referenceNumber);
+                    .sendReferenceNumberEmailToUser(profileRepository.findByUserId(user.getId()).get().getName(), email, "change name", referenceNumber);
             if(isEmailSent){
                 ContactUs saveRequest = new ContactUs();
                 saveRequest.setEmail(email);

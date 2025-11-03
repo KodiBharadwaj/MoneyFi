@@ -11,6 +11,8 @@ import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
 import com.moneyfi.apigateway.repository.user.ContactUsRepository;
 import com.moneyfi.apigateway.repository.user.ExcelTemplateRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
+import com.moneyfi.apigateway.repository.user.auth.UserRepository;
+import com.moneyfi.apigateway.service.common.CloudinaryService;
 import com.moneyfi.apigateway.service.common.ProfileService;
 import com.moneyfi.apigateway.service.common.AwsServices;
 import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
@@ -21,11 +23,13 @@ import com.moneyfi.apigateway.util.constants.StringUtils;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.BadRequestException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,11 +42,13 @@ import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-import static com.moneyfi.apigateway.util.constants.StringUtils.generateVerificationCode;
-import static com.moneyfi.apigateway.util.constants.StringUtils.templateIdAssociation;
+import static com.moneyfi.apigateway.util.constants.StringUtils.*;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
+
+    @Value("${spring.profiles.active:}")
+    private String activeProfile;
 
     private final ProfileRepository profileRepository;
     private final ContactUsRepository contactUsRepository;
@@ -51,6 +57,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final ExcelTemplateRepository excelTemplateRepository;
     private final EmailTemplates emailTemplates;
     private final AwsServices awsServices;
+    private final CloudinaryService cloudinaryService;
 
     public ProfileServiceImpl(ProfileRepository profileRepository,
                               ContactUsRepository contactUsRepository,
@@ -58,7 +65,8 @@ public class ProfileServiceImpl implements ProfileService {
                               ContactUsHistRepository contactUsHistRepository,
                               ExcelTemplateRepository excelTemplateRepository,
                               EmailTemplates emailTemplates,
-                              AwsServices awsServices){
+                              AwsServices awsServices,
+                              CloudinaryService cloudinaryService){
         this.profileRepository = profileRepository;
         this.contactUsRepository = contactUsRepository;
         this.commonServiceRepository = commonServiceRepository;
@@ -66,12 +74,13 @@ public class ProfileServiceImpl implements ProfileService {
         this.excelTemplateRepository = excelTemplateRepository;
         this.emailTemplates = emailTemplates;
         this.awsServices = awsServices;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Override
     @Transactional
     public ProfileDetailsDto saveUserDetails(Long userId, ProfileModel profile) {
-        ProfileModel fetchProfile = profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("User profile details not found"));
+        ProfileModel fetchProfile = profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_DETAILS_NOT_FOUND));
         String phone = profile.getPhone().trim();
         if (!phone.matches("\\d+")) {
             throw new ScenarioNotPossibleException("Phone number must contain only digits");
@@ -109,13 +118,27 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public ProfileModel getUserDetailsByUserId(Long userId) {
-        return profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("User profile not found for userId: " + userId));
+    public ProfileDetailsDto getProfileDetailsOfUser(String username) {
+        ProfileDetailsDto profileDetailsDto = commonServiceRepository.getProfileDetailsOfUser(username);
+        if (profileDetailsDto == null) {
+            throw new ResourceNotFoundException("Details not found for " + username);
+        }
+        return profileDetailsDto;
     }
 
     @Override
-    @Transactional
-    public ContactUs saveContactUsDetails(UserDefectRequestDto userDefectRequestDto) {
+    public String getUserDetailsByUserId(Long userId) {
+        return profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_DETAILS_NOT_FOUND)).getName();
+    }
+
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) {
+        if (!username.equals(userDefectRequestDto.getEmail().trim())) {
+            throw new BadRequestException("Email mismatch detected");
+        }
+        String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
+
         ContactUs userDefect = new ContactUs();
         userDefect.setEmail(userDefectRequestDto.getEmail());
         userDefect.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
@@ -123,36 +146,37 @@ public class ProfileServiceImpl implements ProfileService {
         userDefect.setStartTime(LocalDateTime.now());
         userDefect.setRequestActive(true);
         userDefect.setVerified(false);
-
-        String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
         userDefect.setReferenceNumber(referenceNumber);
-        userDefect.setImageId("Defect_" + contactUsRepository.save(userDefect).getId() + "_" +
-                userDefect.getEmail().substring(0,userDefect.getEmail().indexOf('@')));
-        new Thread(() -> {
-            emailTemplates.sendUserRaiseDefectEmailToAdmin(userDefectRequestDto, userDefect.getImageId());
-            emailTemplates.sendReferenceNumberEmail(userDefectRequestDto.getName(), userDefect.getEmail(), "resolve issue", referenceNumber);
-            awsServices.uploadDefectPictureByUser(userDefect.getImageId(), userDefectRequestDto.getFile());
-        }).start();
+        userDefect.setImageId("Defect_" + userId + "_" + userDefectRequestDto.getEmail().substring(0, userDefect.getEmail().indexOf('@')));
         ContactUs savedDefect = contactUsRepository.save(userDefect);
 
         ContactUsHist userDefectHist = new ContactUsHist();
         userDefectHist.setContactUsId(savedDefect.getId());
         userDefectHist.setName(userDefectRequestDto.getName());
         userDefectHist.setMessage(userDefectRequestDto.getMessage());
-        userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
-        userDefectHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+        userDefectHist.setRequestReason(savedDefect.getRequestReason());
+        userDefectHist.setRequestStatus(savedDefect.getRequestStatus());
         userDefectHist.setUpdatedTime(savedDefect.getStartTime());
         contactUsHistRepository.save(userDefectHist);
-        return savedDefect;
+
+        if (userDefectRequestDto.getFile() != null && !userDefectRequestDto.getFile().isEmpty()) {
+            if ("local".equalsIgnoreCase(activeProfile)) {
+                cloudinaryService.uploadPictureToCloudinary(userDefectRequestDto.getFile(), savedDefect.getId(), userDefectRequestDto.getEmail().trim(), UPLOAD_USER_RAISED_REPORT_PICTURE);
+            } else {
+                awsServices.uploadPictureToS3(savedDefect.getId(), userDefectRequestDto.getEmail().trim(), userDefectRequestDto.getFile(), UPLOAD_USER_RAISED_REPORT_PICTURE);
+            }
+        }
+        new Thread(() -> {
+            emailTemplates.sendUserRaiseDefectEmailToAdmin(userDefectRequestDto, userDefectRequestDto.getFile() != null && !userDefectRequestDto.getFile().isEmpty() ? userDefectRequestDto.getFile() : null);
+            emailTemplates.sendReferenceNumberEmailToUser(userDefectRequestDto.getName(), userDefect.getEmail(), "resolve issue", referenceNumber);
+        }).start();
     }
 
     @Override
-    public ContactUs saveFeedback(UserFeedbackRequestDto feedback) {
-        String rating = feedback.getMessage().substring(0,1);
+    @Transactional
+    public void saveFeedback(UserFeedbackRequestDto feedback) {
+        String rating = feedback.getMessage().substring(0, 1);
         String message = feedback.getMessage().substring(2);
-        new Thread(() ->
-                emailTemplates.sendUserFeedbackEmailToAdmin(rating , message)
-        ).start();
 
         ContactUs userFeedback = new ContactUs();
         userFeedback.setEmail(feedback.getEmail());
@@ -167,21 +191,13 @@ public class ProfileServiceImpl implements ProfileService {
         userFeedbackHist.setContactUsId(savedFeedback.getId());
         userFeedbackHist.setMessage(feedback.getMessage());
         userFeedbackHist.setName(feedback.getName());
-        userFeedbackHist.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
-        userFeedbackHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+        userFeedbackHist.setRequestReason(savedFeedback.getRequestReason());
+        userFeedbackHist.setRequestStatus(savedFeedback.getRequestStatus());
         userFeedbackHist.setUpdatedTime(savedFeedback.getStartTime());
         contactUsHistRepository.save(userFeedbackHist);
-
-        return savedFeedback;
-    }
-
-    @Override
-    public ProfileDetailsDto getProfileDetailsOfUser(String username) {
-        ProfileDetailsDto profileDetailsDto = commonServiceRepository.getProfileDetailsOfUser(username);
-        if(profileDetailsDto == null){
-            throw new ResourceNotFoundException("Details not found for " + username);
-        }
-        return profileDetailsDto;
+        new Thread(() ->
+                emailTemplates.sendUserFeedbackEmailToAdmin(rating, message)
+        ).start();
     }
 
     @Override

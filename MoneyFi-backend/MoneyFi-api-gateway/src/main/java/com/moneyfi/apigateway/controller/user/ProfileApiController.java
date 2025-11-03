@@ -7,8 +7,6 @@ import com.moneyfi.apigateway.service.common.dto.request.UserFeedbackRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.ProfileDetailsDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.ChangePasswordDto;
-import com.moneyfi.apigateway.service.userservice.dto.response.ProfileChangePassword;
-import com.moneyfi.apigateway.model.common.ContactUs;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.service.common.ProfileService;
 import com.moneyfi.apigateway.service.userservice.UserService;
@@ -64,63 +62,50 @@ public class ProfileApiController {
     @GetMapping("/profile-details/get")
     public ResponseEntity<ProfileDetailsDto> getProfileDetails(Authentication authentication){
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        ProfileDetailsDto profileDetails = profileService.getProfileDetailsOfUser(username);
-        if (profileDetails != null) {
-            return ResponseEntity.ok(profileDetails);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        return ResponseEntity.ok(profileService.getProfileDetailsOfUser(username));
     }
 
-    @Operation(summary = "Method to get the name of a user")
-    @GetMapping("/getName")
-    public ResponseEntity<String> getNameFromUserId(Authentication authentication){
+    @Operation(summary = "Api to get the name of a user")
+    @GetMapping("/name/get")
+    public ResponseEntity<String> getNameOfUserByUserId(Authentication authentication){
         Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        ProfileModel profile = profileService.getUserDetailsByUserId(userId);
-        if (profile != null) {
-            return ResponseEntity.ok(profile.getName());
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        return ResponseEntity.ok(profileService.getUserDetailsByUserId(userId));
     }
 
-    @Operation(summary = "Api to save the user defect request details")
+    @Operation(summary = "Api to save the user raised defect details")
     @PostMapping("/report-issue")
-    public ResponseEntity<ContactUs> saveContactUsDetails(@Valid @ModelAttribute UserDefectRequestDto userDefectRequestDto){
-        return ResponseEntity.ok(profileService.saveContactUsDetails(userDefectRequestDto));
+    public void saveUserRaisedReports(Authentication authentication,
+                                      @Valid @ModelAttribute UserDefectRequestDto userDefectRequestDto){
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        profileService.saveContactUsDetails(userDefectRequestDto, userService.getUserIdByUsername(username), username);
     }
 
-    @Operation(summary = "Method which deals with user feedback")
-    @PostMapping("/feedback")
-    public ResponseEntity<ContactUs> saveFeedback(@RequestBody @Valid UserFeedbackRequestDto feedback){
-        return ResponseEntity.ok(profileService.saveFeedback(feedback));
+    @Operation(summary = "Api to save the user feedback details")
+    @PostMapping("/submit-feedback")
+    public void saveUserFeedback(@RequestBody @Valid UserFeedbackRequestDto feedback){
+        profileService.saveFeedback(feedback);
     }
 
-    @Operation(summary = "Method to get the user id from user's email")
+    @Operation(summary = "Api to get the user id from user's email")
     @GetMapping("/getUserId/{email}")
-    public Long getUserId(@PathVariable("email") String email){
+    public Long getUserIdByUserEmail(@PathVariable("email") String email){
         return userService.getUserIdByUsername(email);
     }
 
-    @Operation(summary = "Method to get the username from token and return")
+    @Operation(summary = "Api to get the username from token and simply return")
     @GetMapping("/get-username")
     public ResponseEntity<String> getUsername(Authentication authentication){
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         return ResponseEntity.ok(username);
     }
 
-    @Operation(summary = "Method to change the password for the logged in user in the profile section")
+    @Operation(summary = "Api to change password for logged in user")
     @PostMapping("/change-password")
-    public ProfileChangePassword changePassword(Authentication authentication,
+    public void changePassword(Authentication authentication,
                                                 @RequestBody ChangePasswordDto changePasswordDto) {
         Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         changePasswordDto.setUserId(userId);
-        try {
-            return userService.changePassword(changePasswordDto);
-        } catch (Exception e){
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+        userService.changePassword(changePasswordDto);
     }
 
     @Operation(summary = "API to send user's account statement as email")

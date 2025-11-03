@@ -6,11 +6,11 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface AwsServices {
-    String uploadUserProfilePictureToS3(Long userIdByUsername, String username, MultipartFile file);
+    String uploadPictureToS3(Long id, String username, MultipartFile file, String uploadPurpose);
 
-    ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(Long userId, String username);
+    ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(Long id, String username);
 
-    ResponseEntity<String> deleteProfilePictureFromS3(Long userIdByUsername, String username);
+    ResponseEntity<String> deleteProfilePictureFromS3(Long id, String username);
 
     String uploadDefectPictureByUser(String imageId, MultipartFile file);
 

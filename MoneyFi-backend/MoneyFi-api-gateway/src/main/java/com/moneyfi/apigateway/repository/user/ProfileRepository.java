@@ -3,11 +3,13 @@ package com.moneyfi.apigateway.repository.user;
 import com.moneyfi.apigateway.model.common.ProfileModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface ProfileRepository extends JpaRepository<ProfileModel, Long> {
 
     Optional<ProfileModel> findByUserId(Long userId);

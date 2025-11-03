@@ -5,7 +5,6 @@ import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockOrDele
 import com.moneyfi.apigateway.service.userservice.dto.request.ChangePasswordDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.ForgotUsernameDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.UserProfile;
-import com.moneyfi.apigateway.service.userservice.dto.response.ProfileChangePassword;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +25,7 @@ public interface UserService {
 
     Long getUserIdByUsername(String email);
 
-    ProfileChangePassword changePassword(ChangePasswordDto changePasswordDto);
+    void changePassword(ChangePasswordDto changePasswordDto);
 
     RemainingTimeCountDto checkOtpActiveMethod(String email);
 

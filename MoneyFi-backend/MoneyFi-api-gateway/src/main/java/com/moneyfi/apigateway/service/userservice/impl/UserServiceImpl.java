@@ -26,7 +26,6 @@ import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockOrDele
 import com.moneyfi.apigateway.service.userservice.dto.request.ChangePasswordDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.ForgotUsernameDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.UserProfile;
-import com.moneyfi.apigateway.service.userservice.dto.response.ProfileChangePassword;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.constants.StringUtils;
@@ -81,7 +80,8 @@ public class UserServiceImpl implements UserService {
 
     private static final String GOOGLE_TOKEN_END_POINT_URL = "https://oauth2.googleapis.com/token";
     private static final String GOOGLE_USER_INFO_URL = "https://oauth2.googleapis.com/tokeninfo?id_token=";
-    private static final String GOOGLE_AUTH_CONSTANT_PASSWORD = "123456";
+    private static final String GOOGLE_AUTH_CONSTANT_PASSWORD = null;
+    private static final String GITHUB_AUTH_CONSTANT_PASSWORD = null;
     private static final String GITHUB_TOKEN_END_POINT_URL = "https://github.com/login/oauth/access_token";
     private static final String GITHUB_USER_URL = "https://api.github.com/user";
     private static final String GITHUB_USER_EMAILS = "https://api.github.com/user/emails";
@@ -374,7 +374,7 @@ public class UserServiceImpl implements UserService {
             // 3. Check or create user in DB
             UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElse(null);
             if (user == null) {
-                user = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Github User", email, GOOGLE_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()),
+                user = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Github User", email, GITHUB_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()),
                         LoginMode.GITHUB_OAUTH.name(), (address != null && !address.trim().isEmpty()) ? address : null);
                 if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(email, StringUtils.convertImageUrlToMultipartFile(picture));
             }
@@ -413,7 +413,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Long getUserIdByUsername(String email) {
         UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email).orElse(null);
-        if(userAuthModel == null){
+        if (userAuthModel == null) {
             return null;
         }
         return userAuthModel.getId();
@@ -421,37 +421,25 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ProfileChangePassword changePassword(ChangePasswordDto changePasswordDto){
-        UserAuthModel userAuthModel = userRepository.findById(changePasswordDto.getUserId()).orElse(null);
-        if(changePasswordDto.getDescription() == null || changePasswordDto.getDescription().trim().isEmpty()){
+    public void changePassword(ChangePasswordDto changePasswordDto) {
+        UserAuthModel user = userRepository.findById(changePasswordDto.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (changePasswordDto.getDescription() == null || changePasswordDto.getDescription().trim().isEmpty()) {
             throw new ScenarioNotPossibleException("Description is mandatory");
         }
-        ProfileChangePassword dto = new ProfileChangePassword();
-        if(userAuthModel == null) {
-            dto.setFlag(false);
-            return dto;
+        if (!encoder.matches(changePasswordDto.getCurrentPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Incorrect old password");
+        } else if (user.getOtpCount() >= 3) {
+            throw new ScenarioNotPossibleException("Your Password change limit reached for today, Try tomorrow");
         }
-        if(!encoder.matches(changePasswordDto.getCurrentPassword(), userAuthModel.getPassword())){
-            dto.setFlag(false);
-            return dto;
-        } else if(userAuthModel.getOtpCount() >= 3){
-            dto.setOtpCount(userAuthModel.getOtpCount());
-            dto.setFlag(false);
-            return dto;
-        }
-        String userName = profileRepository.findByUserId(userAuthModel.getId()).get().getName();
-        new Thread(() ->
-                emailTemplates.sendPasswordChangeAlertMail(userName, userAuthModel.getUsername())
-        ).start();
-
-        userAuthModel.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
-        userAuthModel.setOtpCount(userAuthModel.getOtpCount()+1);
-        userAuthModel.setVerificationCodeExpiration(LocalDateTime.now());
-        userRepository.save(userAuthModel);
-
+        user.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
+        user.setOtpCount(user.getOtpCount() + 1);
+        user.setVerificationCodeExpiration(LocalDateTime.now());
+        userRepository.save(user);
         userAuthHistRepository.save(new UserAuthHist(changePasswordDto.getUserId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE), changePasswordDto.getDescription(), changePasswordDto.getUserId()));
-        dto.setFlag(true);
-        return dto;
+        ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElse(null);
+        new Thread(() ->
+                emailTemplates.sendPasswordChangeAlertMail(userProfile != null ? userProfile.getName() : "", user.getUsername())
+        ).start();
     }
 
     @Override
@@ -617,10 +605,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public String uploadUserProfilePictureToS3(String username, MultipartFile file) {
         if ("local".equalsIgnoreCase(activeProfile)) {
-            cloudinaryService.uploadProfilePictureToCloudinary(file, getUserIdByUsername(username), username);
+            cloudinaryService.uploadPictureToCloudinary(file, getUserIdByUsername(username), username, UPLOAD_PROFILE_PICTURE);
             return "Upload Successful";
         } else {
-            return awsServices.uploadUserProfilePictureToS3(getUserIdByUsername(username), username, file);
+            return awsServices.uploadPictureToS3(getUserIdByUsername(username), username, file, UPLOAD_PROFILE_PICTURE);
         }
     }
 

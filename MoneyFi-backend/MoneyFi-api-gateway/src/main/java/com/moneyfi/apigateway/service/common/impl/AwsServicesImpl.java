@@ -22,6 +22,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import static com.moneyfi.apigateway.util.constants.StringUtils.UPLOAD_PROFILE_PICTURE;
+import static com.moneyfi.apigateway.util.constants.StringUtils.generateFileNameForPictureUpload;
+
 @Service
 public class AwsServicesImpl implements AwsServices {
 
@@ -38,12 +41,12 @@ public class AwsServicesImpl implements AwsServices {
     }
 
     @Override
-    public String uploadUserProfilePictureToS3(Long userId, String username, MultipartFile file) {
+    public String uploadPictureToS3(Long id, String username, MultipartFile file, String uploadPurpose) {
         File fileObj = null;
 
         try {
             fileObj = convertMultiPartFileToFile(file);
-            s3Client.putObject(new PutObjectRequest(bucketName, generateFileNameForUserProfilePicture(userId, username), fileObj));
+            s3Client.putObject(new PutObjectRequest(bucketName, generateFileNameForPictureUpload(id, username, uploadPurpose), fileObj));
             return "Profile Picture Uploaded!";
         } catch (AmazonServiceException e) {
             e.printStackTrace();
@@ -60,10 +63,10 @@ public class AwsServicesImpl implements AwsServices {
     }
 
     @Override
-    public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(Long userId, String username) {
+    public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(Long id, String username) {
 
         try {
-            S3Object s3Object = s3Client.getObject(bucketName,generateFileNameForUserProfilePicture(userId, username));
+            S3Object s3Object = s3Client.getObject(bucketName,generateFileNameForPictureUpload(id, username, UPLOAD_PROFILE_PICTURE));
             S3ObjectInputStream inputStream = s3Object.getObjectContent();
             byte[] data = IOUtils.toByteArray(inputStream);
             ByteArrayResource resource = new ByteArrayResource(data);
@@ -86,7 +89,7 @@ public class AwsServicesImpl implements AwsServices {
     @Override
     public ResponseEntity<String> deleteProfilePictureFromS3(Long userId, String username) {
         try {
-            s3Client.deleteObject(bucketName,generateFileNameForUserProfilePicture(userId, username));
+            s3Client.deleteObject(bucketName, generateFileNameForPictureUpload(userId, username, UPLOAD_PROFILE_PICTURE));
             return ResponseEntity.ok().body("profile_picture_removed");
         } catch (AmazonServiceException e) {
             e.printStackTrace();
@@ -125,11 +128,6 @@ public class AwsServicesImpl implements AwsServices {
             e.printStackTrace();
         }
         return convertedFile;
-    }
-
-    private String generateFileNameForUserProfilePicture(Long userId, String username){
-        return "profile_pic_" + (userId) +
-                username.substring(0,username.indexOf('@'));
     }
 
     private String generateFileNameForUserDefectRequest(String imageId, String username){

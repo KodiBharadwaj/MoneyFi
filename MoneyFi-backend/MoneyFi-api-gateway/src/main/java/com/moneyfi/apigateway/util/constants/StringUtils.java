@@ -17,6 +17,9 @@ public class StringUtils {
     private StringUtils() {}
 
     public static final String MESSAGE = "message";
+    public static final String USER_PROFILE_DETAILS_NOT_FOUND = "User profile details not found";
+    public static final String UPLOAD_PROFILE_PICTURE = "profile_pic_";
+    public static final String UPLOAD_USER_RAISED_REPORT_PICTURE = "user_defect_pic_";
 
     public static final String ERROR = "error";
     public static final String USERNAME_PASSWORD_REQUIRED = "Username and password are required";
@@ -62,8 +65,8 @@ public class StringUtils {
         return code.toString();
     }
 
-    public static String generateFileNameForUserProfilePicture(Long userId, String username){
-        return "profile_pic_" + (userId) + "_" +
+    public static String generateFileNameForPictureUpload(Long id, String username, String uploadPurpose) {
+        return uploadPurpose + (id) + "_" +
                 username.substring(0,username.indexOf('@'));
     }
 

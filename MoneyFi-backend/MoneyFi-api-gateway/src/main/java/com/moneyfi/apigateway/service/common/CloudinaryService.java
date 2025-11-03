@@ -6,7 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 public interface CloudinaryService {
-    Map uploadProfilePictureToCloudinary(MultipartFile file, Long userId, String username);
+    Map uploadPictureToCloudinary(MultipartFile file, Long id, String username, String uploadPurpose);
 
     byte[] getUserProfileFromCloudinary(Long userId, String username);
 

@@ -14,11 +14,11 @@ public interface ProfileService {
 
     ProfileDetailsDto getProfileDetailsOfUser(String username);
 
-    ProfileModel getUserDetailsByUserId(Long userId);
+    String getUserDetailsByUserId(Long userId);
 
-    ContactUs saveContactUsDetails(UserDefectRequestDto userDefectRequestDto);
+    void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username);
 
-    ContactUs saveFeedback(UserFeedbackRequestDto feedback);
+    void saveFeedback(UserFeedbackRequestDto feedback);
 
     ResponseEntity<String> parseUserProfileDataFromExcel(MultipartFile excel, Long userId);
 
