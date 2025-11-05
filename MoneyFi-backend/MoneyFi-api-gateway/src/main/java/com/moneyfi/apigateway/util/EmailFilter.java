@@ -1,5 +1,6 @@
 package com.moneyfi.apigateway.util;
 
+import com.moneyfi.apigateway.exceptions.CustomInternalServerErrorException;
 import jakarta.activation.DataHandler;
 import jakarta.activation.DataSource;
 import jakarta.mail.*;
@@ -57,7 +58,7 @@ public class EmailFilter {
         } catch (MessagingException e) {
             e.printStackTrace();
             log.info("Failed to send mail ", e);
-            return false;
+            throw new CustomInternalServerErrorException("Can't send email, server error occurred");
         }
     }
 

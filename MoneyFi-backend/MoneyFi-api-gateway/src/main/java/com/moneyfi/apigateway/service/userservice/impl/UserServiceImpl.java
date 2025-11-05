@@ -297,7 +297,7 @@ public class UserServiceImpl implements UserService {
                 UserAuthModel newOrExistingUser = userRepository.getUserDetailsByUsername(email).orElse(null);
                 if (newOrExistingUser == null) {
                     newOrExistingUser = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Google User", email, GOOGLE_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()), LoginMode.GOOGLE_OAUTH.name(), null);
-                    if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(email, StringUtils.convertImageUrlToMultipartFile(picture));
+                    if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(email, convertImageUrlToMultipartFile(picture));
                 }
                 if (newOrExistingUser.isBlocked()) {
                     userRoleToken.put(ERROR, ACCOUNT_BLOCKED);
@@ -376,7 +376,7 @@ public class UserServiceImpl implements UserService {
             if (user == null) {
                 user = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Github User", email, GITHUB_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()),
                         LoginMode.GITHUB_OAUTH.name(), (address != null && !address.trim().isEmpty()) ? address : null);
-                if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(email, StringUtils.convertImageUrlToMultipartFile(picture));
+                if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(email, convertImageUrlToMultipartFile(picture));
             }
             if (user.isBlocked()) {
                 throw new ScenarioNotPossibleException("User is blocked, Kindly contact admin");
@@ -594,12 +594,26 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean sendAccountStatementEmail(String username, byte[] pdfBytes) {
-        return emailTemplates.sendAccountStatementAsEmail(profileRepository.findByUserId(getUserIdByUsername(username)).get().getName(), username, pdfBytes);
+        String name = "";
+        Optional<ProfileModel> userProfile = profileRepository.findByUserId(getUserIdByUsername(username));
+        if (userProfile.isPresent()) name = userProfile.get().getName();
+        try {
+            return emailTemplates.sendAccountStatementAsEmail(!name.trim().isEmpty() ? name : "User", username, pdfBytes);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public boolean sendSpendingAnalysisEmail(String username, byte[] pdfBytes) {
-        return emailTemplates.sendSpendingAnalysisEmail(profileRepository.findByUserId(getUserIdByUsername(username)).get().getName(), username, pdfBytes);
+        String name = "";
+        Optional<ProfileModel> userProfile = profileRepository.findByUserId(getUserIdByUsername(username));
+        if (userProfile.isPresent()) name = userProfile.get().getName();
+        try {
+            return emailTemplates.sendSpendingAnalysisEmail(!name.trim().isEmpty() ? name : "User", username, pdfBytes);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -749,15 +763,12 @@ public class UserServiceImpl implements UserService {
                 .map(OtpTempModel::getOtp)
                 .findFirst()
                 .orElseGet(() -> {
-                    String newOtp = StringUtils.generateVerificationCode();
+                    String newOtp = generateVerificationCode();
                     otpTempRepository.save(new OtpTempModel(username, newOtp, LocalDateTime.now().plusMinutes(5), otpType));
                     return newOtp;
                 });
-        if (emailTemplates.sendOtpToUserForAccountBlock(username, profileRepository.findByUserId(userData.getId()).get().getName(), verificationCode, type)) {
-            return ResponseEntity.ok("Email sent successfully!");
-        } else {
-            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't send email!");
-        }
+        emailTemplates.sendOtpToUserForAccountBlock(username, profileRepository.findByUserId(userData.getId()).get().getName(), verificationCode, type);
+        return ResponseEntity.ok("Email sent successfully!");
     }
 
     private String functionCallToRetrieveUsername(ForgotUsernameDto userDetails){

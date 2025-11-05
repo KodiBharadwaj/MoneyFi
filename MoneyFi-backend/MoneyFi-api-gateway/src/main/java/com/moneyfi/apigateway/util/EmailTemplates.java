@@ -57,7 +57,7 @@ public class EmailTemplates {
         return emailFilter.sendEmail(email, subject, body);
     }
 
-    public boolean sendOtpToUserForAccountBlock(String username, String name, String verificationCode, String type){
+    public void sendOtpToUserForAccountBlock(String username, String name, String verificationCode, String type){
         String message = null;
         if (type.equalsIgnoreCase("BLOCK")) {
             message = "Block";
@@ -78,7 +78,7 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        return emailFilter.sendEmail(username, subject, body);
+        emailFilter.sendEmail(username, subject, body);
     }
 
     public boolean sendUserNameToUser(String username){
@@ -209,9 +209,7 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        int index = name.indexOf(' ');
-        String fileName = name.substring(0, index)+"_statement.pdf";
-        return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, fileName);
+        return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, name.substring(0, name.indexOf(' '))+"_statement.pdf");
     }
 
     public boolean sendSpendingAnalysisEmail(String name, String username, byte[] pdfBytes) {
@@ -230,9 +228,7 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        int index = name.indexOf(' ');
-        String fileName = name.substring(0, index)+"_spending_analysis.pdf";
-        return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, fileName);
+        return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, name.substring(0, name.indexOf(' '))+"_spending_analysis.pdf");
     }
 
     public boolean sendReferenceNumberEmailToUser(String name, String email, String description, String referenceNumber) {

@@ -430,18 +430,19 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Override
     @Transactional
     public void updateUserNotificationSeenStatus(String username, String notificationIds) {
-        List<Long> ids = Arrays.stream(notificationIds.split(","))
+        List<UserNotification> userNotificationListToUpdate = new ArrayList<>();
+        Arrays.stream(notificationIds.split(","))
                 .map(String::trim)
                 .map(Long::parseLong)
-                .toList();
-        ids.forEach(id -> {
-            UserNotification notification = userNotificationRepository.findByScheduleIdAndUsername(id, username);
-            if(notification == null){
-                throw new ResourceNotFoundException("Notification details are not found");
-            }
-            notification.setRead(true);
-            userNotificationRepository.save(notification);
-        });
+                .toList()
+                .forEach(notificationId -> {
+                    Optional<UserNotification> notification = userNotificationRepository.findByScheduleIdAndUsername(notificationId, username);
+                    if(notification.isPresent()){
+                        notification.get().setRead(true);
+                        userNotificationListToUpdate.add(notification.get());
+                    }
+                });
+        userNotificationRepository.saveAll(userNotificationListToUpdate);
     }
 
     @Override

@@ -103,9 +103,13 @@ export class UserConfigurationComponent implements AfterViewInit{
         this.toastr.success('Otp sent to your email')
       },
       error: err => {
-        alert('Failed to initiate block request.');
         this.loadingAccountDeactivationRequest = false;
-        console.error(err);
+        try {
+          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+          console.error('Failed to parse error:', err.error);
+        }
       }
     });
 

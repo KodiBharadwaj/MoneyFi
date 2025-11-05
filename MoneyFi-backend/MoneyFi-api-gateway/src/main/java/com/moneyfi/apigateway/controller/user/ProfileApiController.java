@@ -108,11 +108,12 @@ public class ProfileApiController {
         userService.changePassword(changePasswordDto);
     }
 
-    @Operation(summary = "API to send user's account statement as email")
+    @Operation(summary = "Api to send user's account statement as email")
     @PostMapping("/account-statement/email")
-    public ResponseEntity<Void> sendAccountStatementEmail(Authentication authentication,
-                                                          @RequestBody byte[] pdfBytes) {
-        if(!userService.sendAccountStatementEmail(((UserDetails) authentication.getPrincipal()).getUsername(), pdfBytes)){
+    public ResponseEntity<Void> sendAccountStatementEmailToUser(Authentication authentication,
+                                                                @RequestBody byte[] pdfBytes) {
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        if(!userService.sendAccountStatementEmail(username, pdfBytes)){
             throw new ResourceNotFoundException("Error in sending email, internal error");
         }
         return ResponseEntity.ok().build();
@@ -120,15 +121,16 @@ public class ProfileApiController {
 
     @Operation(summary = "Api to send user's account spending analysis as email")
     @PostMapping("/spending-analysis/email")
-    public ResponseEntity<Void> sendSpendingAnalysisEmail(Authentication authentication,
-                                                          @RequestBody byte[] pdfBytes) {
-        if(!userService.sendSpendingAnalysisEmail(((UserDetails) authentication.getPrincipal()).getUsername(), pdfBytes)){
+    public ResponseEntity<Void> sendSpendingAnalysisEmailToUser(Authentication authentication,
+                                                                @RequestBody byte[] pdfBytes) {
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        if(!userService.sendSpendingAnalysisEmail(username, pdfBytes)){
             throw new ResourceNotFoundException("Error in sending email, internal error");
         }
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Api to upload profile pic to aws s3")
+    @Operation(summary = "Api to upload profile pic to AWS S3")
     @PostMapping("/profile-picture/upload")
     public ResponseEntity<String> uploadUserProfilePictureToS3(Authentication authentication,
                                                                @RequestParam(value = "file") MultipartFile file) throws IOException {
@@ -151,31 +153,31 @@ public class ProfileApiController {
     }
 
     @Operation(summary = "Api to get the admin scheduled notifications")
-    @GetMapping("/get-notifications")
-    public List<UserNotificationResponseDto> getUserNotifications(Authentication authentication){
+    @GetMapping("/notifications/get")
+    public ResponseEntity<List<UserNotificationResponseDto>> getUserNotifications(Authentication authentication){
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        return userCommonService.getUserNotifications(username);
+        return ResponseEntity.ok(userCommonService.getUserNotifications(username));
     }
 
     @Operation(summary = "Api to get the admin scheduled notifications count")
-    @GetMapping("/get-notifications/count")
+    @GetMapping("/notifications/count")
     public ResponseEntity<Integer> getUserNotificationsCount(Authentication authentication){
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         return ResponseEntity.ok(userCommonService.getUserNotificationsCount(username));
     }
 
     @Operation(summary = "Api to update the seen status of the notification by user")
-    @PutMapping("/user-notification/update")
+    @PutMapping("/notification/update")
     public void updateUserNotificationSeenStatus(Authentication authentication,
                                                  @RequestParam("ids") String notificationIds){
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         userCommonService.updateUserNotificationSeenStatus(username,notificationIds);
     }
 
-    @Operation(summary = "Api to send otp to block the account")
+    @Operation(summary = "Api to send otp to block/delete the account")
     @GetMapping("/otp-request/account-deactivate-actions")
     public ResponseEntity<String> sendOtpForBlockAndDeleteAccountByUserRequest(Authentication authentication,
-                                                   @RequestParam String type){
+                                                                               @RequestParam String type){
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         return userService.sendOtpToBlockAccount(username, type);
     }
