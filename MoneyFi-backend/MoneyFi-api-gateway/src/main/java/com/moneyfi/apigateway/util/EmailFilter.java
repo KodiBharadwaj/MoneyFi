@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Properties;
 
+import static com.moneyfi.apigateway.util.constants.StringUtils.EMAIL_SENT_SUCCESS_MESSAGE;
+
 @Component
 @Slf4j
 @Profile("local")
@@ -21,6 +23,8 @@ public class EmailFilter {
     private String fromEmail;
     @Value("${email.filter.from.password}")
     private String password;
+
+    private static final String EMAIL_SENT_FAILURE_MESSAGE = "Can't send email, server error occurred";
 
     public boolean sendEmail(String toEmail, String subject, String body) {
         String host = "smtp.gmail.com";  // Gmail SMTP server
@@ -53,12 +57,12 @@ public class EmailFilter {
             message.setContent(body, "text/html; charset=UTF-8");  // Change to HTML content
             // Send the email
             Transport.send(message);
-            log.info("Email sent successfully!");
+            log.info(EMAIL_SENT_SUCCESS_MESSAGE);
             return true;
         } catch (MessagingException e) {
             e.printStackTrace();
             log.info("Failed to send mail ", e);
-            throw new CustomInternalServerErrorException("Can't send email, server error occurred");
+            throw new CustomInternalServerErrorException(EMAIL_SENT_FAILURE_MESSAGE);
         }
     }
 
@@ -99,7 +103,7 @@ public class EmailFilter {
             message.setContent(multipart);
             // Send email
             Transport.send(message);
-            log.info("Email with attachment sent successfully!");
+            log.info(EMAIL_SENT_SUCCESS_MESSAGE);
             return true;
         } catch (MessagingException e) {
             e.printStackTrace();

@@ -192,9 +192,14 @@ export class UserConfigurationComponent implements AfterViewInit{
         this.router.navigate(['/dashboard/profile']);
       },
       error: err => {
-        alert('Upload failed!');
         console.error(err);
         this.isUploading = false;
+        try {
+          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+          console.error('Failed to parse error:', err.error);
+        }
       }
     });
   }

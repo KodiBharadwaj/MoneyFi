@@ -30,6 +30,7 @@ import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCoun
 import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.constants.StringUtils;
 import com.moneyfi.apigateway.util.enums.*;
+import com.moneyfi.apigateway.util.validators.UserValidations;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,11 +41,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -75,8 +74,6 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private RestTemplate externalRestTemplateForOAuth;
-
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     private static final String GOOGLE_TOKEN_END_POINT_URL = "https://oauth2.googleapis.com/token";
     private static final String GOOGLE_USER_INFO_URL = "https://oauth2.googleapis.com/tokeninfo?id_token=";
@@ -208,7 +205,7 @@ public class UserServiceImpl implements UserService {
             }
             UserAuthModel existingUser = userRepository.getUserDetailsByUsername(userAuthModel.getUsername()).orElse(null);
             if (existingUser == null) {
-                userRoleToken.put(ERROR, USER_NOT_FOUND);
+                userRoleToken.put(ERROR, USER_NOT_FOUND_SIGNUP);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userRoleToken);
             } else if (existingUser.isBlocked()) {
                 userRoleToken.put(ERROR, ACCOUNT_BLOCKED);
@@ -422,15 +419,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void changePassword(ChangePasswordDto changePasswordDto) {
-        UserAuthModel user = userRepository.findById(changePasswordDto.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if (changePasswordDto.getDescription() == null || changePasswordDto.getDescription().trim().isEmpty()) {
-            throw new ScenarioNotPossibleException("Description is mandatory");
-        }
-        if (!encoder.matches(changePasswordDto.getCurrentPassword(), user.getPassword())) {
-            throw new BadCredentialsException("Incorrect old password");
-        } else if (user.getOtpCount() >= 3) {
-            throw new ScenarioNotPossibleException("Your Password change limit reached for today, Try tomorrow");
-        }
+        UserAuthModel user = userRepository.findById(changePasswordDto.getUserId()).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        UserValidations.changePasswordValidations(changePasswordDto, user);
         user.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
         user.setOtpCount(user.getOtpCount() + 1);
         user.setVerificationCodeExpiration(LocalDateTime.now());
@@ -537,36 +527,30 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Map<String, String> logout(String token) {
         Map<String, String> response = new HashMap<>();
-
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
-
-        UserAuthModel user = userRepository.getUserDetailsByUsername(jwtService.extractUserName(token)).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if(userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase("USER")){
-            String phoneNumber = profileRepository.findByUserId(user.getId()).get().getPhone();
-            if(phoneNumber == null || phoneNumber.isEmpty()){
-                response.put(MESSAGE, "Phone number is empty");
-                return response;
+        UserAuthModel user = userRepository.getUserDetailsByUsername(jwtService.extractUserName(token)).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        if (userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(USER_ROLE)) {
+            Optional<ProfileModel> userProfile = profileRepository.findByUserId(user.getId());
+            if (userProfile.isPresent()) {
+                String phoneNumber = userProfile.get().getPhone();
+                if (phoneNumber == null || phoneNumber.isEmpty()) {
+                    response.put(MESSAGE, PHONE_NUMBER_EMPTY_MESSAGE);
+                    return response;
+                }
             }
         }
-
-        BlackListedToken blackListedToken = makeUserTokenBlacklisted(token);
-        SessionTokenModel sessionTokenModel = makeUserSessionInActive(token);
-
-        if(blackListedToken != null && sessionTokenModel != null){
-            response.put(MESSAGE, "Logged out successfully");
+        if (makeUserTokenBlacklisted(token) != null && makeUserSessionInActive(token) != null) {
+            response.put(MESSAGE, LOGOUT_SUCCESS_MESSAGE);
+        } else {
+            response.put(MESSAGE, LOGOUT_FAILURE_MESSAGE);
         }
-        else {
-            response.put(MESSAGE, "Logout failed!");
-        }
-
         return response;
     }
 
     private BlackListedToken makeUserTokenBlacklisted(String token){
-
-        Date expiryDate = new Date(System.currentTimeMillis()); // current date and time
+        Date expiryDate = new Date(System.currentTimeMillis());
         BlackListedToken blackListedToken = new BlackListedToken();
         blackListedToken.setToken(token);
         blackListedToken.setExpiry(expiryDate);
@@ -574,7 +558,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private SessionTokenModel makeUserSessionInActive(String token){
-
         SessionTokenModel sessionTokens = userCommonService.getSessionDetailsByToken(token);
         sessionTokens.setIsActive(false);
         return userCommonService.save(sessionTokens);
@@ -618,7 +601,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String uploadUserProfilePictureToS3(String username, MultipartFile file) {
-        if ("local".equalsIgnoreCase(activeProfile)) {
+        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
             cloudinaryService.uploadPictureToCloudinary(file, getUserIdByUsername(username), username, UPLOAD_PROFILE_PICTURE);
             return "Upload Successful";
         } else {
@@ -628,7 +611,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username) {
-        if ("local".equalsIgnoreCase(activeProfile)) {
+        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
             byte[] imageBytes = cloudinaryService.getUserProfileFromCloudinary(getUserIdByUsername(username), username);
             ByteArrayResource resource = new ByteArrayResource(imageBytes);
             return ResponseEntity.ok()
@@ -642,7 +625,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<String> deleteProfilePictureFromS3(String username) {
-        if ("local".equalsIgnoreCase(activeProfile)) {
+        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
             return cloudinaryService.deleteProfilePictureFromCloudinary(getUserIdByUsername(username), username);
         } else {
             return awsServices.deleteProfilePictureFromS3(getUserIdByUsername(username), username);
@@ -652,19 +635,16 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public ResponseEntity<String> blockOrDeleteAccountByUserRequest(String username, AccountBlockOrDeleteRequestDto request) {
-        if(request.getOtp() == null || request.getOtp().isEmpty() || request.getDescription() == null || request.getDescription().isEmpty()){
-            throw new ScenarioNotPossibleException("Input fields should not be empty");
-        }
-        UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if(user.isBlocked() || user.isDeleted()){
-            throw new ScenarioNotPossibleException("User is not active to perform the operation");
-        }
+        UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        UserValidations.userAccountDeactivationInputValidation(request);
+        UserValidations.userAlreadyDeactivatedCheckValidation(user);
 
-        String deactivationType; String referencePrefix;
-        if(request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.BLOCK.name())){
+        String deactivationType;
+        String referencePrefix;
+        if (request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.BLOCK.name())) {
             deactivationType = OtpType.ACCOUNT_BLOCK.name();
             referencePrefix = "BL";
-        } else if(request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.DELETE.name())){
+        } else if (request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.DELETE.name())) {
             deactivationType = OtpType.ACCOUNT_DELETE.name();
             referencePrefix = "DL";
         } else {
@@ -674,23 +654,12 @@ public class UserServiceImpl implements UserService {
                 .stream()
                 .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(deactivationType) && tempOtp.getExpirationTime().isAfter(LocalDateTime.now()))
                 .findFirst();
-        if(tempModel.isPresent()){
+        if (tempModel.isPresent()) {
             OtpTempModel response = tempModel.get();
-            if(!response.getOtp().equals(request.getOtp())){
-                throw new ScenarioNotPossibleException("Please enter correct otp");
-            }
-            if(response.getExpirationTime().isBefore(LocalDateTime.now())){
-                throw new ScenarioNotPossibleException("Otp expired, Try new one");
-            }
-            if(request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.DELETE.name())){
-                String userPassword = request.getPassword();
-                if(userPassword == null || userPassword.isEmpty() || !encoder.matches(userPassword, user.getPassword())){
-                    throw new ScenarioNotPossibleException("Incorrect Password entered!");
-                }
-            }
-            ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("User profile not found"));
-            String referenceNumber = referencePrefix + userProfile.getName().substring(0,2) + username.substring(0,2)
-                    + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
+            UserValidations.otpCheckDuringAccountDeactivationValidations(request, response, user);
+
+            ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
+            String referenceNumber = StringUtils.generateReferenceNumberForUserToSendEmail(referencePrefix, userProfile, username);
 
             ContactUs accountDeactivationRequest = new ContactUs();
             UserAuthHist userAuthHist = new UserAuthHist();
@@ -744,9 +713,8 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<String> sendOtpToBlockAccount(String username, String type) {
         UserAuthModel userData = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found with username " + username));
-        if(userData.isBlocked() || userData.isDeleted()){
-            throw new ScenarioNotPossibleException("You are not allowed to perform this operation");
-        }
+        UserValidations.userAlreadyDeactivatedCheckValidation(userData);
+
         String verificationCode;
         String otpType;
         if (type.equalsIgnoreCase("BLOCK")) {
@@ -768,7 +736,7 @@ public class UserServiceImpl implements UserService {
                     return newOtp;
                 });
         emailTemplates.sendOtpToUserForAccountBlock(username, profileRepository.findByUserId(userData.getId()).get().getName(), verificationCode, type);
-        return ResponseEntity.ok("Email sent successfully!");
+        return ResponseEntity.ok(EMAIL_SENT_SUCCESS_MESSAGE);
     }
 
     private String functionCallToRetrieveUsername(ForgotUsernameDto userDetails){

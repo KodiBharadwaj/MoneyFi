@@ -20,7 +20,7 @@ public interface ProfileService {
 
     void saveFeedback(UserFeedbackRequestDto feedback);
 
-    ResponseEntity<String> parseUserProfileDataFromExcel(MultipartFile excel, Long userId);
+    void parseUserProfileDataFromExcel(MultipartFile excel, Long userId);
 
     ResponseEntity<byte[]> downloadTemplateForUserProfile();
 }

@@ -196,15 +196,15 @@ public class ProfileApiController {
         return profileService.downloadTemplateForUserProfile();
     }
 
-    @Operation(summary = "Api to parse the excel to extract the user's profile data and save into db")
+    @Operation(summary = "Api to parse the excel to extract user's profile data and save into db")
     @PostMapping("/user-profile/excel-upload")
-    public ResponseEntity<String> parseUserProfileDataFromExcel(Authentication authentication,
-                                                                @RequestParam("file") MultipartFile excel){
+    public void parseUserProfileDataFromExcel(Authentication authentication,
+                                              @RequestParam("file") MultipartFile excel){
         Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        return profileService.parseUserProfileDataFromExcel(excel, userId);
+        profileService.parseUserProfileDataFromExcel(excel, userId);
     }
 
-    @Operation(summary = "Api to get the reasons for the respected reason codes")
+    @Operation(summary = "Api to get reasons for respected reason codes")
     @GetMapping("/reasons-dialog/get")
     public ResponseEntity<List<String>> getReasonsForDialogForUser(@RequestParam("code") int reasonCode){
         List<String> responseList = userCommonService.getReasonsForDialogForUser(reasonCode);
@@ -212,7 +212,7 @@ public class ProfileApiController {
                                              ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
 
-    @Operation(summary = "Method to logout/making the token blacklist")
+    @Operation(summary = "Api to logout/making the token blacklist")
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader("Authorization") String token) {
         return ResponseEntity.ok(userService.logout(token));

@@ -11,7 +11,6 @@ import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
 import com.moneyfi.apigateway.repository.user.ContactUsRepository;
 import com.moneyfi.apigateway.repository.user.ExcelTemplateRepository;
 import com.moneyfi.apigateway.repository.user.ProfileRepository;
-import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.common.CloudinaryService;
 import com.moneyfi.apigateway.service.common.ProfileService;
 import com.moneyfi.apigateway.service.common.AwsServices;
@@ -22,6 +21,7 @@ import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.constants.StringUtils;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.RequestReason;
+import com.moneyfi.apigateway.util.validators.UserValidations;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import org.apache.poi.ss.usermodel.Row;
@@ -49,6 +49,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Value("${spring.profiles.active:}")
     private String activeProfile;
+
+    private static final String EMAIL_MISMATCH_MESSAGE = "Email mismatch detected";
+    private static final String TEMPLATE_NOT_FOUND_MESSAGE = "Template not found";
 
     private final ProfileRepository profileRepository;
     private final ContactUsRepository contactUsRepository;
@@ -82,12 +85,7 @@ public class ProfileServiceImpl implements ProfileService {
     public ProfileDetailsDto saveUserDetails(Long userId, ProfileModel profile) {
         ProfileModel fetchProfile = profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_DETAILS_NOT_FOUND));
         String phone = profile.getPhone().trim();
-        if (!phone.matches("\\d+")) {
-            throw new ScenarioNotPossibleException("Phone number must contain only digits");
-        }
-        if (phone.length() != 10) {
-            throw new ScenarioNotPossibleException("Phone number should be 10 digits");
-        }
+        UserValidations.checkPhoneNumberValidations(phone);
 
         if (!profile.getName().trim().equals(fetchProfile.getName())) {
             fetchProfile.setName(profile.getName().trim());
@@ -121,7 +119,7 @@ public class ProfileServiceImpl implements ProfileService {
     public ProfileDetailsDto getProfileDetailsOfUser(String username) {
         ProfileDetailsDto profileDetailsDto = commonServiceRepository.getProfileDetailsOfUser(username);
         if (profileDetailsDto == null) {
-            throw new ResourceNotFoundException("Details not found for " + username);
+            throw new ResourceNotFoundException(USER_PROFILE_NOT_FOUND);
         }
         return profileDetailsDto;
     }
@@ -135,7 +133,7 @@ public class ProfileServiceImpl implements ProfileService {
     @Transactional(rollbackOn = Exception.class)
     public void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) {
         if (!username.equals(userDefectRequestDto.getEmail().trim())) {
-            throw new BadRequestException("Email mismatch detected");
+            throw new BadRequestException(EMAIL_MISMATCH_MESSAGE);
         }
         String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
 
@@ -160,7 +158,7 @@ public class ProfileServiceImpl implements ProfileService {
         contactUsHistRepository.save(userDefectHist);
 
         if (userDefectRequestDto.getFile() != null && !userDefectRequestDto.getFile().isEmpty()) {
-            if ("local".equalsIgnoreCase(activeProfile)) {
+            if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
                 cloudinaryService.uploadPictureToCloudinary(userDefectRequestDto.getFile(), savedDefect.getId(), userDefectRequestDto.getEmail().trim(), UPLOAD_USER_RAISED_REPORT_PICTURE);
             } else {
                 awsServices.uploadPictureToS3(savedDefect.getId(), userDefectRequestDto.getEmail().trim(), userDefectRequestDto.getFile(), UPLOAD_USER_RAISED_REPORT_PICTURE);
@@ -201,7 +199,8 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public ResponseEntity<String> parseUserProfileDataFromExcel(MultipartFile excel, Long userId) {
+    @Transactional
+    public void parseUserProfileDataFromExcel(MultipartFile excel, Long userId) {
         try (InputStream is = excel.getInputStream()) {
             Workbook workbook = new XSSFWorkbook(is);
             Sheet sheet = workbook.getSheetAt(0);
@@ -211,31 +210,28 @@ public class ProfileServiceImpl implements ProfileService {
             BigDecimal phoneCellValue = BigDecimal.valueOf(row.getCell(0).getNumericCellValue());
             String phoneNumber = phoneCellValue.toBigInteger().toString();
             if (phoneNumber.length() != 10) {
-                throw new ScenarioNotPossibleException("Phone number should be 10 digits");
+                throw new ScenarioNotPossibleException(PHONE_NUMBER_MAX_LENGTH_MESSAGE);
             }
-            ProfileModel fetchProfile = profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("User profile not found for userId: " + userId));
-            if (fetchProfile != null) {
-                fetchProfile.setPhone(phoneNumber);
-                fetchProfile.setDateOfBirth(dobDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
-                fetchProfile.setGender(row.getCell(2).getStringCellValue());
-                fetchProfile.setMaritalStatus(row.getCell(3).getStringCellValue());
-                fetchProfile.setIncomeRange(incomeRange);
-                fetchProfile.setAddress(row.getCell(5).getStringCellValue());
-                profileRepository.save(fetchProfile);
-            } else {
-                throw new ResourceNotFoundException("User profile not found for userId: " + userId);
-            }
+            ProfileModel fetchProfile = profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
+            fetchProfile.setPhone(phoneNumber);
+            fetchProfile.setDateOfBirth(dobDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+            fetchProfile.setGender(row.getCell(2).getStringCellValue());
+            fetchProfile.setMaritalStatus(row.getCell(3).getStringCellValue());
+            fetchProfile.setIncomeRange(incomeRange);
+            fetchProfile.setAddress(row.getCell(5).getStringCellValue());
+            profileRepository.save(fetchProfile);
+        } catch (ScenarioNotPossibleException e) {
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new ResourceNotFoundException("Invalid Excel format");
+            throw new ResourceNotFoundException(INVALID_EXCEL_FORMAT);
         }
-        return null;
     }
 
     @Override
     public ResponseEntity<byte[]> downloadTemplateForUserProfile() {
-        ExcelTemplate template = excelTemplateRepository.findById(templateIdAssociation.get("profile-template"))
-                .orElseThrow(() -> new RuntimeException("Template not found"));
+        ExcelTemplate template = excelTemplateRepository.findById(templateIdAssociation.get(PROFILE_TEMPLATE_NAME))
+                .orElseThrow(() -> new RuntimeException(TEMPLATE_NOT_FOUND_MESSAGE));
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + template.getName())

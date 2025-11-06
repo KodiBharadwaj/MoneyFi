@@ -449,8 +449,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     public List<String> getReasonsForDialogForUser(int reasonCode) {
         return reasonDetailsRepository.findAll()
                 .stream()
-                .filter(reasonDetails -> reasonDetails.getReasonCode() == reasonCode)
-                .filter(reasonDetails -> !reasonDetails.getIsDeleted())
+                .filter(reasonDetails -> reasonDetails.getReasonCode() == reasonCode && !reasonDetails.getIsDeleted())
                 .map(ReasonDetails::getReason)
                 .toList();
     }
