@@ -22,10 +22,7 @@ import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
-import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockOrDeleteRequestDto;
-import com.moneyfi.apigateway.service.userservice.dto.request.ChangePasswordDto;
-import com.moneyfi.apigateway.service.userservice.dto.request.ForgotUsernameDto;
-import com.moneyfi.apigateway.service.userservice.dto.request.UserProfile;
+import com.moneyfi.apigateway.service.userservice.dto.request.*;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.constants.StringUtils;
@@ -126,10 +123,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserAuthModel registerUser(UserProfile userProfile, String loginMode, String address) {
-        UserAuthModel getUser = userRepository.getUserDetailsByUsername(userProfile.getUsername()).orElse(null);
-        if(getUser != null){
-            return null;
-        }
+        UserValidations.checkForUserAlreadyExistenceValidation(userRepository.getUserDetailsByUsername(userProfile.getUsername().trim()).orElse(null));
         UserAuthModel userAuthModel = new UserAuthModel();
         saveUserAuthDetails(userAuthModel, userProfile.getUsername(), encoder.encode(userProfile.getPassword()));
 
@@ -159,7 +153,7 @@ public class UserServiceImpl implements UserService {
         userAuthModel.setRoleId(roleId);
         UserAuthModel user = userRepository.save(userAuthModel);
 
-        if(!userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.ADMIN.name())) {
+        if (!userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.ADMIN.name())) {
             saveUserProfileDetails(user.getId(), userProfile, address);
             /** send successful email in a separate thread by aws ses **/
             new Thread(() -> {
@@ -194,7 +188,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ResponseEntity<Map<String,String>> login(UserAuthModel userAuthModel) {
+    public ResponseEntity<Map<String, String>> login(UserLoginDetailsRequestDto requestDto) {
+        UserAuthModel userAuthModel = new UserAuthModel();
+        userAuthModel.setUsername(requestDto.getUsername().trim());
+        userAuthModel.setPassword(requestDto.getPassword());
+        int roleId = 0;
+        for (Map.Entry<Integer, String> it : userRoleAssociation.entrySet()) {
+            if (it.getValue().equalsIgnoreCase(requestDto.getRole())) {
+                roleId = it.getKey();
+            }
+        }
+        userAuthModel.setRoleId(roleId);
         Map<String, String> userRoleToken = new HashMap<>();
         makeOldSessionInActiveOfUserForNewLogin(userAuthModel.getUsername());
         try {
@@ -471,39 +475,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String sendOtpForSignup(String email, String name) {
-
-        UserAuthModel userData = userRepository.getUserDetailsByUsername(email).orElse(null);
-        if(userData != null){
-            return "User already exists!";
-        }
-
+        UserValidations.checkForUserAlreadyExistenceValidation(userRepository.getUserDetailsByUsername(email).orElse(null));
         String verificationCode = generateVerificationCode();
-        boolean isMailsent = emailTemplates.sendOtpEmailToUserForSignup(email, name, verificationCode);
-
-        if(isMailsent){
-            List<OtpTempModel> userList = otpTempRepository.findByEmail(email);
-            Optional<OtpTempModel> tempModel = userList
-                    .stream()
-                    .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.USER_CREATION.name()))
-                    .findFirst();
-
-            if(tempModel.isPresent()){
-                tempModel.get().setOtp(verificationCode);
-                tempModel.get().setExpirationTime(LocalDateTime.now().plusMinutes(5));
-                otpTempRepository.save(tempModel.get());
-            } else {
-                OtpTempModel otpTempModel = new OtpTempModel();
-                otpTempModel.setEmail(email);
-                otpTempModel.setOtp(verificationCode);
-                otpTempModel.setExpirationTime(LocalDateTime.now().plusMinutes(5));
-                otpTempModel.setOtpType(OtpType.USER_CREATION.name());
-                otpTempRepository.save(otpTempModel);
-            }
-            return "Email sent successfully!";
-
+        emailTemplates.sendOtpEmailToUserForSignup(email, name, verificationCode);
+        Optional<OtpTempModel> tempModel = otpTempRepository.findByEmail(email)
+                .stream()
+                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.USER_CREATION.name()))
+                .findFirst();
+        if (tempModel.isPresent()) {
+            tempModel.get().setOtp(verificationCode);
+            tempModel.get().setExpirationTime(LocalDateTime.now().plusMinutes(5));
+            otpTempRepository.save(tempModel.get());
         } else {
-            return "Cant send email!";
+            otpTempRepository.save(new OtpTempModel(email, verificationCode, LocalDateTime.now().plusMinutes(5), OtpType.USER_CREATION.name()));
         }
+        return EMAIL_SENT_SUCCESS_MESSAGE;
     }
 
     @Override

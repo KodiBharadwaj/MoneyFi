@@ -16,7 +16,7 @@ public interface UserCommonService {
 
     String forgotPassword(String email);
 
-    boolean verifyCode(String email, String code);
+    String verifyCode(String email, String code);
 
     String updatePassword(String email, String password);
 

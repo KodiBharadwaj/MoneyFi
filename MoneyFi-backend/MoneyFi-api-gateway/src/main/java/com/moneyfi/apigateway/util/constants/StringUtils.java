@@ -30,8 +30,15 @@ public class StringUtils {
     public static final String USER_NOT_FOUND = "User not found";
     public static final String USER_PROFILE_NOT_FOUND = "User profile not found";
     public static final String EMAIL_SENT_SUCCESS_MESSAGE = "Email sent successfully!";
+    public static final String VERIFICATION_CODE_SENT_MESSAGE = "Verification code sent to your email!";
+    public static final String EMAIL_SENT_FAILURE_MESSAGE = "Cannot send email";
     public static final String INCORRECT_PASSWORD = "Incorrect password entered";
     public static final String INCORRECT_OLD_PASSWORD = "Incorrect old password";
+    public static final String USER_ALREADY_EXISTING_MESSAGE = "User already exists";
+    public static final String VERIFICATION_SUCCESSFUL_MESSAGE = "Verification successful!";
+    public static final String VERIFICATION_FAILURE_MESSAGE = "Invalid or expired verification code";
+    public static final String PASSWORD_UPDATED_SUCCESSFULLY = "Password updated successfully!";
+    public static final String PASSWORD_UPDATED_MODE_USING_FORGOT = "Password changed using forgot password";
 
     public static final String PROFILE_TEMPLATE_NAME = "profile-template";
     public static final String PHONE_NUMBER_EMPTY_MESSAGE = "Phone number is empty";

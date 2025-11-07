@@ -99,7 +99,7 @@ public class EmailTemplates {
         return emailFilter.sendEmail(username, subject, body);
     }
 
-    public boolean sendOtpForForgotPassword(String userName, String email, String verificationCode){
+    public void sendOtpForForgotPassword(String userName, String email, String verificationCode){
         String subject = "MoneyFi's Password Reset Verification Code";
         String body = "<html>"
                 + "<body>"
@@ -115,7 +115,7 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        return emailFilter.sendEmail(email, subject, body);
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendAnniversaryCongratulationsMailToUser(String email, String name, int numberOfYears){

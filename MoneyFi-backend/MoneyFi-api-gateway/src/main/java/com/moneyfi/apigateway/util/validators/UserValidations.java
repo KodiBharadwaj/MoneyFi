@@ -11,8 +11,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 
 import java.time.LocalDateTime;
 
-import static com.moneyfi.apigateway.util.constants.StringUtils.INCORRECT_OLD_PASSWORD;
-import static com.moneyfi.apigateway.util.constants.StringUtils.encoder;
+import static com.moneyfi.apigateway.util.constants.StringUtils.*;
 
 public class UserValidations {
 
@@ -70,6 +69,12 @@ public class UserValidations {
         }
         if (phone.length() != 10) {
             throw new ScenarioNotPossibleException(StringUtils.PHONE_NUMBER_MAX_LENGTH_MESSAGE);
+        }
+    }
+
+    public static void checkForUserAlreadyExistenceValidation(UserAuthModel user) {
+        if(user != null){
+            throw new ScenarioNotPossibleException(USER_ALREADY_EXISTING_MESSAGE);
         }
     }
 }

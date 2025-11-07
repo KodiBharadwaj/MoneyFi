@@ -1,10 +1,7 @@
 package com.moneyfi.apigateway.service.userservice;
 
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
-import com.moneyfi.apigateway.service.userservice.dto.request.AccountBlockOrDeleteRequestDto;
-import com.moneyfi.apigateway.service.userservice.dto.request.ChangePasswordDto;
-import com.moneyfi.apigateway.service.userservice.dto.request.ForgotUsernameDto;
-import com.moneyfi.apigateway.service.userservice.dto.request.UserProfile;
+import com.moneyfi.apigateway.service.userservice.dto.request.*;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +14,7 @@ public interface UserService {
 
     UserAuthModel registerUser(UserProfile userProfile, String loginMode, String address);
 
-    ResponseEntity<Map<String, String>> login(UserAuthModel userAuthModel);
+    ResponseEntity<Map<String, String>> login(UserLoginDetailsRequestDto requestDto);
 
     ResponseEntity<Map<String, String>> loginViaGoogleOAuth(Map<String, String> googleAuthToken);
 

@@ -105,7 +105,7 @@ onSubmit(signupCredentials: SignupCredentials) {
   this.tempSignupCredentials = signupCredentials;
   this.isOtpLoading = true; // optional: show loading spinner for OTP step
 
-  this.authClient.get(`${this.baseUrl}/api/auth/sendOtpForSignup/${this.tempSignupCredentials.username}/${this.tempSignupCredentials.name}`, {
+  this.authClient.get(`${this.baseUrl}/api/auth/send-otp/signup?email=${this.tempSignupCredentials.username}&name=${this.tempSignupCredentials.name}`, {
     responseType: 'text'
   }).subscribe({
     next: (response : string) => {
@@ -113,20 +113,21 @@ onSubmit(signupCredentials: SignupCredentials) {
       if (response === 'Email sent successfully!') {
         this.showOtp = true;
         this.toastr.success('Enter otp below')
-      } else if (response === 'User already exists!') {
-        alert('User already exists! Please Log in to your account');
-        this.router.navigate(['login']);
-      } else if (response === 'Cant send email!'){
+      } else if (response === 'Cannot send email'){
         this.toastr.error('Error in our internal email service! Please come later!');
-      }
-       else {
+      } else {
         // handle case where backend says OTP failed to send
         console.error('OTP not sent');
       }
     },
     error: (err) => {
       console.error('Error sending OTP:', err);
-      // optionally show error to user
+      try {
+          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+          console.error('Failed to parse error:', err.error);
+        }
     },
     complete: () => {
       this.isOtpLoading = false;
@@ -150,15 +151,8 @@ onOtpValidated(success: boolean) {
         console.error('Signup Failed', error);
         this.isLoading = false; // Stop loading
 
-        // Check if the error response indicates user already exists
-        if (error.status === 409) {
-          this.toastr.error('User already exists!', 'Signup Error');
-        }
-
-        if(error.status === 401){
-          this.toastr.error('Server down. Please try later!')
-          this.router.navigate(['/'])
-        }
+        const msg = error?.error?.message || 'Something went wrong. Please try again.';
+        this.toastr.error(msg);
       }
     );
   } else {

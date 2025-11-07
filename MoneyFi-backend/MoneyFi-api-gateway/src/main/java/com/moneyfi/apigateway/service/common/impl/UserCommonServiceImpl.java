@@ -23,10 +23,9 @@ import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
 import com.moneyfi.apigateway.util.enums.ReasonEnum;
 import com.moneyfi.apigateway.util.enums.RequestReason;
+import com.moneyfi.apigateway.util.validators.UserValidations;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -81,21 +80,15 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     private static final String REFERENCE_NUMBER_SENT = "Reference already sent, Please submit your details";
-    private static final String USER_NOT_FOUND = "User not found. Please check your details";
     private static final String DETAILS_ALREADY_SUBMITTED = "Details are already submitted. Please check the status";
 
     @Override
     @Transactional
     public String forgotPassword(String email) {
-        UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(()-> new ResourceNotFoundException("User not found"));
-        if(user.isBlocked()){
-            return "Account Blocked! Please contact admin";
-        }
-        else if(user.isDeleted()){
-            return "Account Deleted! Please contact admin";
-        }
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        UserValidations.userAlreadyDeactivatedCheckValidation(user);
         String verificationCode = null;
-        if(user.getVerificationCode() != null && LocalDateTime.now().isBefore(user.getVerificationCodeExpiration())){
+        if (user.getVerificationCode() != null && LocalDateTime.now().isBefore(user.getVerificationCodeExpiration())) {
             verificationCode = user.getVerificationCode();
         } else {
             verificationCode = generateVerificationCode();
@@ -104,26 +97,33 @@ public class UserCommonServiceImpl implements UserCommonService {
             user.setOtpCount(user.getOtpCount() + 1);
             userRepository.save(user);
         }
-        if(emailTemplates.sendOtpForForgotPassword(profileRepository.findByUserId(user.getId()).get().getName(), email, verificationCode)){
-            return "Verification code sent to your email!";
-        } else return "cant send mail!";
+        Optional<ProfileModel> userProfile = profileRepository.findByUserId(user.getId());
+        String name = "";
+        if (userProfile.isPresent()) {
+            name = userProfile.get().getName();
+        }
+        emailTemplates.sendOtpForForgotPassword(name, email, verificationCode);
+        return VERIFICATION_CODE_SENT_MESSAGE;
     }
 
     @Override
-    public boolean verifyCode(String email, String code) {
-        UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(()-> new ResourceNotFoundException("User not found"));
-        return user.getVerificationCode().equals(code) && LocalDateTime.now().isBefore(user.getVerificationCodeExpiration());
+    public String verifyCode(String email, String code) {
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        boolean response = user.getVerificationCode().equals(code) && LocalDateTime.now().isBefore(user.getVerificationCodeExpiration());
+        if (response) return VERIFICATION_SUCCESSFUL_MESSAGE;
+        else throw new ScenarioNotPossibleException(VERIFICATION_FAILURE_MESSAGE);
     }
 
     @Override
     @Transactional
     public String updatePassword(String email, String password){
-        UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(()-> new ResourceNotFoundException("User not found"));
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        user.setPassword(passwordEncoder.encode(password));
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(()-> new ResourceNotFoundException(USER_NOT_FOUND));
+        user.setPassword(encoder.encode(password));
+        user.setVerificationCode(null);
+        user.setVerificationCodeExpiration(null);
         userRepository.save(user);
-        userAuthHistRepository.save(new UserAuthHist(user.getId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.FORGOT_PASSWORD), "Password changed using forgot password", user.getId()));
-        return "Password updated successfully!...";
+        userAuthHistRepository.save(new UserAuthHist(user.getId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.FORGOT_PASSWORD), PASSWORD_UPDATED_MODE_USING_FORGOT, user.getId()));
+        return PASSWORD_UPDATED_SUCCESSFULLY;
     }
 
     @Override

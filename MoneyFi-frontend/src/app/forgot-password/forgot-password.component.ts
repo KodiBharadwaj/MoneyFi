@@ -107,7 +107,7 @@ export class ForgotPasswordComponent {
       next : (outputDto) => {
         if(outputDto.result){
 
-          this.http.post(`${this.baseUrl}/api/auth/forgot-password`, null, { 
+          this.http.get(`${this.baseUrl}/api/auth/forgot-password/get-otp`, { 
             params: { email: this.email },
             responseType: 'text'
           }).subscribe({
@@ -116,17 +116,22 @@ export class ForgotPasswordComponent {
                 this.successMessage = response;
                 this.stage = 'verification';
                 this.isLoading = false; // Stop loading
-              }
-              else if(response === 'cant send mail!'){
+              } else {
                 this.toastr.error('Error in our internal email service! Please come later!');
                 this.isLoading = false; // Stop loading
                 this.router.navigate(['login']);
               }
             },
-            error: (error: HttpErrorResponse) => {
-              alert('Cant send email now. Try later');
-              this.isLoading = false; // Stop loading on error
-            }
+            error: (err) => {
+              this.isLoading = false;
+              console.error('Error sending OTP:', err);
+              try {
+                  const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+                  this.toastr.error(errorObj.message);
+                } catch (e) {
+                  console.error('Failed to parse error:', err.error);
+                }
+            },
           });
 
         } else if(outputDto.result === false && outputDto.comment === 'User not exist') {
@@ -168,7 +173,7 @@ export class ForgotPasswordComponent {
     }
 
     // Make API call to verify code
-    this.http.post(`${this.baseUrl}/api/auth/verify-code`, null, { 
+    this.http.get(`${this.baseUrl}/api/auth/forgot-password/verify-otp`, { 
       params: { 
         email: this.email,
         code: this.verificationCode 
@@ -179,10 +184,14 @@ export class ForgotPasswordComponent {
         this.successMessage = response;
         this.stage = 'reset';
       },
-      error: (error: HttpErrorResponse) => {
-        this.errorMessage = 'Invalid verification code';
-        // this.stage='verification';
-      }
+      error: (err) => {
+        try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            this.errorMessage = errorObj.message;
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+          }
+      },
     });
   }
 
@@ -197,7 +206,7 @@ export class ForgotPasswordComponent {
     }
 
     // Make API call to reset password
-    this.http.put(`${this.baseUrl}/api/auth/update-password`, null, { 
+    this.http.put(`${this.baseUrl}/api/auth/forgot-password/update-password`, null, { 
       params: { 
         email: this.email,
         password: this.newPassword 

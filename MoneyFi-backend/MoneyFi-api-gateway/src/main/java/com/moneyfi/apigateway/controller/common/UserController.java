@@ -1,18 +1,18 @@
 package com.moneyfi.apigateway.controller.common;
 
-import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.service.common.dto.request.AccountRetrieveRequestDto;
 import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
-import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.userservice.dto.request.ForgotUsernameDto;
+import com.moneyfi.apigateway.service.userservice.dto.request.UserLoginDetailsRequestDto;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.UserProfile;
 import com.moneyfi.apigateway.util.enums.LoginMode;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,16 +34,13 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
-    private final JwtService jwtService;
     private final UserCommonService userCommonService;
 
 @Autowired
 private DataSource dataSource;
     public UserController(UserService userService,
-                          JwtService jwtService,
                           UserCommonService resetPassword){
         this.userService = userService;
-        this.jwtService = jwtService;
         this.userCommonService = resetPassword;
     }
 
@@ -53,54 +50,49 @@ private DataSource dataSource;
         return "method entered";
     }
 
-    @Operation(summary = "Method for the user registration/signup")
+    @Operation(summary = "Api end point for the user registration/signup using email password mode")
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody UserProfile userProfile) {
+    public void registerUser(@Valid @RequestBody UserProfile userProfile) {
+        userService.registerUser(userProfile, LoginMode.EMAIL_PASSWORD.name(), null);
+    }
 
-        UserAuthModel user = userService.registerUser(userProfile, LoginMode.EMAIL_PASSWORD.name(), null);
-        if(user == null){
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists"); //409
-        } else {
-            return ResponseEntity.ok(jwtService.generateToken(user)); // 200
+    @Operation(summary = "Api to send Otp for user verification during signup")
+    @GetMapping("/send-otp/signup")
+    public ResponseEntity<String> sendOtpForSignup(@RequestParam("email") String email,
+                                                   @RequestParam("name") String name){
+
+        return ResponseEntity.ok(userService.sendOtpForSignup(email, name));
+    }
+
+    @Operation(summary = "Api end point for user to login")
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, String>> loginUserViaEmailPasswordMode(@Valid @RequestBody UserLoginDetailsRequestDto requestDto) {
+        try {
+            return userService.login(requestDto);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
         }
     }
 
-    @Operation(summary = "Method for the user to login")
-    @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody UserAuthModel userAuthModel) {
-        return userService.login(userAuthModel);
-    }
-
     @Operation(summary = "Api end point to send otp for forgot password")
-    @PostMapping("/forgot-password")
+    @GetMapping("/forgot-password/get-otp")
     public ResponseEntity<String> forgotPassword(@RequestParam String email) {
         return ResponseEntity.ok(userCommonService.forgotPassword(email));
     }
 
     @Operation(summary = "Api end point for verification of code/otp during forgot password process")
-    @PostMapping("/verify-code")
-    public String verifyCode(@RequestParam String email,
-                             @RequestParam String code) {
-        if (userCommonService.verifyCode(email, code)) {
-            return "Verification successful!";
-        } else {
-            throw new IllegalArgumentException("Invalid verification code");
-        }
+    @GetMapping("/forgot-password/verify-otp")
+    public ResponseEntity<String> verifyCode(@RequestParam String email,
+                                             @RequestParam String code) {
+        return ResponseEntity.ok(userCommonService.verifyCode(email, code));
     }
 
     @Operation(summary = "Api end point to update the user's password for forgot password")
-    @PutMapping("/update-password")
-    public String updatePassword(@RequestParam String email,
-                                 @RequestParam String password){
-        return userCommonService.updatePassword(email,password);
-    }
-
-    @Operation(summary = "Method to send Otp for user verification during signup")
-    @GetMapping("/sendOtpForSignup/{email}/{name}")
-    public ResponseEntity<String> sendOtpForSignup(@PathVariable("email") String email,
-                                                   @PathVariable("name") String name){
-
-        return ResponseEntity.ok(userService.sendOtpForSignup(email, name));
+    @PutMapping("/forgot-password/update-password")
+    public ResponseEntity<String> updatePassword(@RequestParam String email,
+                                                 @RequestParam String password){
+        return ResponseEntity.ok(userCommonService.updatePassword(email, password));
     }
 
     @Operation(summary = "Method to check the eligibility for next otp")

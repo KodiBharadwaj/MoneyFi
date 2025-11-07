@@ -212,6 +212,7 @@ private fbClientId = '1488343345815971';
   goToForgotPassword() { console.log('Forgot password clicked'); }
 
   onSubmit(loginCredentials: LoginCredentials) {
+    loginCredentials.role = 'USER';
     this.isLoading = true;
     this.authApiService.loginApiFunction(loginCredentials)
       .subscribe({
