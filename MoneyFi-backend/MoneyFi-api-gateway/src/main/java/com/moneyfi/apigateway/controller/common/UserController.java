@@ -64,6 +64,13 @@ private DataSource dataSource;
         return ResponseEntity.ok(userService.sendOtpForSignup(email, name));
     }
 
+    @Operation(summary = "Api to check entered otp is correct or not during user creation")
+    @GetMapping("/{email}/{inputOtp}/check-otp/signup")
+    public ResponseEntity<Boolean> checkEnteredOtp(@PathVariable("email") String email,
+                                   @PathVariable("inputOtp") String inputOtp){
+        return ResponseEntity.ok(userService.checkEnteredOtpDuringSignup(email, inputOtp));
+    }
+
     @Operation(summary = "Api end point for user to login")
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> loginUserViaEmailPasswordMode(@Valid @RequestBody UserLoginDetailsRequestDto requestDto) {
@@ -92,29 +99,22 @@ private DataSource dataSource;
     @PutMapping("/forgot-password/update-password")
     public ResponseEntity<String> updatePassword(@RequestParam String email,
                                                  @RequestParam String password){
-        return ResponseEntity.ok(userCommonService.updatePassword(email, password));
+        return ResponseEntity.ok(userCommonService.updatePasswordOnUserForgotMode(email, password));
     }
 
-    @Operation(summary = "Method to check the eligibility for next otp")
-    @GetMapping("/checkOtpActive/{email}")
-    public RemainingTimeCountDto checkOtpActiveMethod(@PathVariable("email") String email){
-        return userService.checkOtpActiveMethod(email);
+    @Operation(summary = "Api to check the eligibility for next otp")
+    @GetMapping("/{email}/otp-send/check")
+    public ResponseEntity<RemainingTimeCountDto> checkOtpActiveMethod(@PathVariable("email") String email){
+        return ResponseEntity.ok(userService.checkOtpActiveMethod(email));
     }
 
-    @Operation(summary = "Method to check the otp entered correct or not during user creation")
-    @GetMapping("/checkOtp/{email}/{inputOtp}")
-    public boolean checkEnteredOtp(@PathVariable("email") String email,
-                                   @PathVariable("inputOtp") String inputOtp){
-        return userService.checkEnteredOtp(email, inputOtp);
+    @Operation(summary = "Api to return username when user forgets username")
+    @PostMapping("/username/forgot")
+    public ResponseEntity<Boolean> forgotUsername(@RequestBody ForgotUsernameDto userDetails){
+        return ResponseEntity.ok(userService.getUsernameByDetails(userDetails));
     }
 
-    @Operation(summary = "Method to return username when user forgets username")
-    @PostMapping("/forgotUsername")
-    public boolean forgotUsername(@RequestBody ForgotUsernameDto userDetails){
-        return userService.getUsernameByDetails(userDetails);
-    }
-
-    @Operation(summary = "Api to send reference number to the user for account retrieval/name change")
+    @Operation(summary = "Api to send reference number to user for account retrieval/name change")
     @GetMapping("/{requestStatus}/{email}/reference-number-request")
     public Map<Boolean, String> requestReferenceNumber(@PathVariable("requestStatus") String requestStatus,
                                                        @PathVariable("email") String email){
@@ -123,17 +123,17 @@ private DataSource dataSource;
 
     @Operation(summary = "Api request to get account unblock/retrieve")
     @PostMapping("/account-retrieve-request")
-    public void accountUnblockOrRetrieveRequestByUser(@RequestBody AccountRetrieveRequestDto requestDto){
+    public void accountUnblockOrRetrieveRequestByUser(@Valid @RequestBody AccountRetrieveRequestDto requestDto){
         userCommonService.accountReactivateRequestByUser(requestDto);
     }
 
-    @Operation(summary = "Api request to save the user details to change name of the user")
+    @Operation(summary = "Api request to save user details to change name of the user")
     @PostMapping("/name-change-request")
-    public void nameChangeRequestByUser(@RequestBody NameChangeRequestDto requestDto){
+    public void nameChangeRequestByUser(@Valid @RequestBody NameChangeRequestDto requestDto){
         userCommonService.nameChangeRequestByUser(requestDto);
     }
 
-    @Operation(summary = "Api to check the status of the user request using reference number")
+    @Operation(summary = "Api to check the status of user request using reference number")
     @GetMapping("/track-user-request")
     public ResponseEntity<UserRequestStatusDto> trackUserRequestUsingReferenceNumber(@RequestParam("ref") String referenceNumber){
         UserRequestStatusDto userRequestStatusDto = userCommonService.trackUserRequestUsingReferenceNumber(referenceNumber);
@@ -144,7 +144,7 @@ private DataSource dataSource;
         }
     }
 
-    @Operation(summary = "Api to get the reasons for the respected reason codes")
+    @Operation(summary = "Api to get reasons for respected reason codes")
     @GetMapping("/reasons-dialog/get")
     public ResponseEntity<List<String>> getReasonsForDialogForUser(@RequestParam("code") int reasonCode){
         List<String> responseList = userCommonService.getReasonsForDialogForUser(reasonCode);

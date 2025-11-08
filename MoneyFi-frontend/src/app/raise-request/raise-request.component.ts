@@ -164,13 +164,7 @@ export class RaiseRequestComponent implements OnInit {
       error: (errorResponse) => {
         const statusCode = errorResponse.status;
         const errorMessage = errorResponse.error?.message || 'Failed to send reference number';
-
-        if (statusCode === 400) {
-          this.toastr.error(`${errorMessage}`);
-        } else {
-          this.toastr.error('An error occurred while sending reference number');
-        }
-
+        this.toastr.error(`${errorMessage}`);
         this.loading = false;
       }
     });
@@ -238,13 +232,8 @@ export class RaiseRequestComponent implements OnInit {
           this.updateProgress(2);
           const statusCode = errorResponse.status;
           const errorMessage = errorResponse.error?.message || 'Failed to send request';
-
-          if (statusCode === 400) {
-            this.toastr.error(`${errorMessage}`);
-          } else {
-            this.toastr.error('An error occurred while sending request');
-          }
-
+          this.toastr.error(`${errorMessage}`);
+          console.error(errorResponse);
           this.loading = false;
         }
       });

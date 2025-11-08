@@ -77,4 +77,11 @@ public class UserValidations {
             throw new ScenarioNotPossibleException(USER_ALREADY_EXISTING_MESSAGE);
         }
     }
+
+    public static void otpSendToUserDuringSignupValidation(UserAuthModel user) {
+        userAlreadyDeactivatedCheckValidation(user);
+        if(user.getOtpCount() >= 3){
+            throw new ScenarioNotPossibleException(EMAIL_LIMIT_CROSSED);
+        }
+    }
 }

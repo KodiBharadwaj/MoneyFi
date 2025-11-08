@@ -1,6 +1,7 @@
 package com.moneyfi.apigateway.util.constants;
 
 import com.moneyfi.apigateway.model.common.ProfileModel;
+import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.util.enums.ReasonEnum;
 import com.moneyfi.apigateway.util.enums.UserRoles;
 import org.springframework.mock.web.MockMultipartFile;
@@ -10,6 +11,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.HttpURLConnection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 import static com.moneyfi.apigateway.util.enums.ReasonEnum.*;
@@ -39,6 +41,13 @@ public class StringUtils {
     public static final String VERIFICATION_FAILURE_MESSAGE = "Invalid or expired verification code";
     public static final String PASSWORD_UPDATED_SUCCESSFULLY = "Password updated successfully!";
     public static final String PASSWORD_UPDATED_MODE_USING_FORGOT = "Password changed using forgot password";
+    public static final String EMAIL_LIMIT_CROSSED = "Limit crossed for today!! Try tomorrow";
+    public static final String SAME_PASSWORD_NOT_ALLOWED_MESSAGE = "New password cannot be same as old password";
+    public static final String INVALID_OTP_MESSAGE = "Invalid or expired OTP";
+    public static final String REFERENCE_NUMBER_SENT_MESSAGE = "Reference Number sent to your email";
+    public static final String INVALID_REQUEST_MESSAGE = "Invalid request details";
+    public static final String ACCOUNT_DELETED_MESSAGE = "Account is deleted. Raise retrieval request";
+    public static final String INCORRECT_REFERENCE_NUMBER = "Incorrect Reference Number!";
 
     public static final String PROFILE_TEMPLATE_NAME = "profile-template";
     public static final String PHONE_NUMBER_EMPTY_MESSAGE = "Phone number is empty";
@@ -112,6 +121,15 @@ public class StringUtils {
             );
             return multipartFile;
         }
+    }
+
+    public static String functionToGetNameOfUserWithUserId(ProfileRepository profileRepository, Long userId) {
+        Optional<ProfileModel> userProfile = profileRepository.findByUserId(userId);
+        String name = "";
+        if(userProfile.isPresent()){
+            name = userProfile.get().getName();
+        }
+        return name;
     }
 
     public static String generateReferenceNumberForUserToSendEmail(String referencePrefix, ProfileModel userProfile, String username) {

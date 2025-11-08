@@ -103,7 +103,7 @@ export class ForgotPasswordComponent {
     this.isLoading = true; // Start loading
 
 
-    this.http.get<remainingTimeCount>(`${this.baseUrl}/api/auth/checkOtpActive/${this.email}`).subscribe({
+    this.http.get<remainingTimeCount>(`${this.baseUrl}/api/auth/${this.email}/otp-send/check`).subscribe({
       next : (outputDto) => {
         if(outputDto.result){
 
@@ -134,29 +134,26 @@ export class ForgotPasswordComponent {
             },
           });
 
-        } else if(outputDto.result === false && outputDto.comment === 'User not exist') {
-          alert("User doesn't exist! Please enter correct username");
-          this.isLoading = false;
-        } else if(outputDto.result === false && outputDto.comment === 'Limit crossed for today!! Try tomorrow') {
-          alert("Limit crossed for today!! Try tomorrow");
-          this.isLoading = false;
-        } else if(outputDto.result === false && outputDto.comment === 'Account Blocked! Please contact admin') {
-          this.toastr.error(outputDto.comment)
-          this.isLoading = false;
-        } else if(outputDto.result === false && outputDto.comment === 'Account Deleted! Please contact admin') {
-          this.toastr.error(outputDto.comment)
-          this.isLoading = false;
-        } 
+        }
         else {
           if(outputDto.remainingMinutes <= 1)
-          alert('Otp sent! For new otp, Please try again after ' + outputDto.remainingMinutes + ' minute');
+          alert('Otp already sent! For new otp, Please try again after ' + outputDto.remainingMinutes + ' minute');
           else 
-          alert('Otp sent! For new otp, Please try again after ' + outputDto.remainingMinutes + ' minutes');
+          alert('Otp already sent! For new otp, Please try again after ' + outputDto.remainingMinutes + ' minutes');
           // this.verifyCode();
           this.isLoading = false;
           this.stage = 'verification';
         }
-      }
+      },error: (err) => {
+        console.error(err);
+        this.isLoading = false;
+        try {
+          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+            console.error('Failed to parse error:', err.error);
+        }
+    },
     })
     
   }
@@ -222,9 +219,14 @@ export class ForgotPasswordComponent {
           this.router.navigate(['/login']);
         }, 2000);
       },
-      error: (error: HttpErrorResponse) => {
-        this.errorMessage = error.error || 'Failed to reset password';
-      }
+      error: (err) => {
+        try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            this.errorMessage = errorObj.message;
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+          }
+      },
     });
   }
 

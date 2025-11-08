@@ -43,7 +43,7 @@ export class ForgotUsernameComponent {
   submitForm(): void {
     this.isLoading = true;
 
-    this.http.post(`${this.baseUrl}/api/auth/forgotUsername`, this.formData).subscribe({
+    this.http.post(`${this.baseUrl}/api/auth/username/forgot`, this.formData).subscribe({
       next: (response: any) => {
         if(response === true){
           this.isLoading = false;
@@ -55,12 +55,16 @@ export class ForgotUsernameComponent {
           this.isLoading = false;
           this.toastr.error('Account not found! Try giving correct details');
         }
-      },
-      error: (error) => {
-        console.error(error);
-        this.toastr.error('Could not find username with provided details.');
-        this.isLoading = false;
-      }
+      },error: (err) => {
+      console.error(err);
+      this.isLoading = false;
+      try {
+          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+          console.error('Failed to parse error:', err.error);
+        }
+    },
     });
   }
 }

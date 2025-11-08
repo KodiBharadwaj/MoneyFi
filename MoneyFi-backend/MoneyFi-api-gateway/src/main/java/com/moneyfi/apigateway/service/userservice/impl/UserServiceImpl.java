@@ -430,47 +430,19 @@ public class UserServiceImpl implements UserService {
         user.setVerificationCodeExpiration(LocalDateTime.now());
         userRepository.save(user);
         userAuthHistRepository.save(new UserAuthHist(changePasswordDto.getUserId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE), changePasswordDto.getDescription(), changePasswordDto.getUserId()));
-        ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElse(null);
         new Thread(() ->
-                emailTemplates.sendPasswordChangeAlertMail(userProfile != null ? userProfile.getName() : "", user.getUsername())
+                emailTemplates.sendPasswordChangeAlertMail(StringUtils.functionToGetNameOfUserWithUserId(profileRepository, user.getId()), user.getUsername())
         ).start();
     }
 
     @Override
-    public RemainingTimeCountDto checkOtpActiveMethod(String email){
-        RemainingTimeCountDto remainingTimeCountDto = new RemainingTimeCountDto();
-        UserAuthModel userAuthModel = userRepository.getUserDetailsByUsername(email).orElse(null);
-        if(userAuthModel == null){
-            remainingTimeCountDto.setComment("User not exist");
-            remainingTimeCountDto.setResult(false);
-            return remainingTimeCountDto;
-        } else if(userAuthModel.isBlocked()){
-            remainingTimeCountDto.setComment("Account Blocked! Please contact admin");
-            remainingTimeCountDto.setResult(false);
-            return remainingTimeCountDto;
-        } else if(userAuthModel.isDeleted()){
-            remainingTimeCountDto.setComment("Account Deleted! Please contact admin");
-            remainingTimeCountDto.setResult(false);
-            return remainingTimeCountDto;
+    public RemainingTimeCountDto checkOtpActiveMethod(String email) {
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        UserValidations.otpSendToUserDuringSignupValidation(user);
+        if (user.getVerificationCodeExpiration() == null || user.getVerificationCodeExpiration().isBefore(LocalDateTime.now())) {
+            return new RemainingTimeCountDto(0, true);
         }
-
-        if(userAuthModel.getOtpCount() >= 3){
-            remainingTimeCountDto.setResult(false);
-            remainingTimeCountDto.setComment("Limit crossed for today!! Try tomorrow");
-            return remainingTimeCountDto;
-        }
-
-        if(userAuthModel.getVerificationCodeExpiration() == null || userAuthModel.getVerificationCodeExpiration().isBefore(LocalDateTime.now())){
-            remainingTimeCountDto.setResult(true);
-            return remainingTimeCountDto;
-        }
-
-        LocalDateTime time1 = LocalDateTime.now();
-        LocalDateTime time2 = userAuthModel.getVerificationCodeExpiration();
-        long minutesDifference = ChronoUnit.MINUTES.between(time1, time2);
-        remainingTimeCountDto.setRemainingMinutes((int) minutesDifference);
-        remainingTimeCountDto.setResult(false);
-        return remainingTimeCountDto;
+        return new RemainingTimeCountDto((int) ChronoUnit.MINUTES.between(LocalDateTime.now(), user.getVerificationCodeExpiration()), false);
     }
 
     @Override
@@ -493,20 +465,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean checkEnteredOtp(String email, String inputOtp) {
-        List<OtpTempModel> userList = otpTempRepository.findByEmail(email);
-        Optional<OtpTempModel> tempModel = userList
+    public Boolean checkEnteredOtpDuringSignup(String email, String inputOtp) {
+        Optional<OtpTempModel> tempModel = otpTempRepository.findByEmail(email)
                 .stream()
-                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.USER_CREATION.name()))
+                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.USER_CREATION.name())
+                        && tempOtp.getOtp().equals(inputOtp) && tempOtp.getExpirationTime().isAfter(LocalDateTime.now()))
                 .findFirst();
-
-        if(tempModel.isPresent()){
-            new Thread(()-> {
-                int rowsAffected = otpTempRepository.deleteByEmailAndRequestType(email, OtpType.USER_CREATION.name());
-                log.info("Number of OTP records deleted: {}", rowsAffected);
-            }).start(); return true;
-        } else return !(!tempModel.get().getOtp().equals(inputOtp) ||
-                tempModel.get().getExpirationTime().isBefore(LocalDateTime.now()));
+        if (tempModel.isPresent()) {
+            int rowsAffected = otpTempRepository.deleteByEmailAndRequestType(email, OtpType.USER_CREATION.name());
+            log.info("Number of OTP records deleted: {}", rowsAffected);
+            return true;
+        } else throw new ScenarioNotPossibleException(INVALID_OTP_MESSAGE);
     }
 
     @Override
@@ -550,22 +519,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean getUsernameByDetails(ForgotUsernameDto userDetails) {
+    public Boolean getUsernameByDetails(ForgotUsernameDto userDetails) {
         String username = functionCallToRetrieveUsername(userDetails);
-
-        if(username == null || username.trim().isEmpty()){
+        if (username == null || username.trim().isEmpty()) {
             return false;
         }
-
         log.info("Username fetched: {}", username);
-        return emailTemplates.sendUserNameToUser(username);
+        emailTemplates.sendUserNameToUser(username);
+        return true;
     }
 
     @Override
     public boolean sendAccountStatementEmail(String username, byte[] pdfBytes) {
-        String name = "";
-        Optional<ProfileModel> userProfile = profileRepository.findByUserId(getUserIdByUsername(username));
-        if (userProfile.isPresent()) name = userProfile.get().getName();
+        String name = functionToGetNameOfUserWithUserId(profileRepository, getUserIdByUsername(username));
         try {
             return emailTemplates.sendAccountStatementAsEmail(!name.trim().isEmpty() ? name : "User", username, pdfBytes);
         } catch (Exception e) {
@@ -575,9 +541,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean sendSpendingAnalysisEmail(String username, byte[] pdfBytes) {
-        String name = "";
-        Optional<ProfileModel> userProfile = profileRepository.findByUserId(getUserIdByUsername(username));
-        if (userProfile.isPresent()) name = userProfile.get().getName();
+        String name = functionToGetNameOfUserWithUserId(profileRepository, getUserIdByUsername(username));
         try {
             return emailTemplates.sendSpendingAnalysisEmail(!name.trim().isEmpty() ? name : "User", username, pdfBytes);
         } catch (Exception e) {
@@ -634,7 +598,7 @@ public class UserServiceImpl implements UserService {
             deactivationType = OtpType.ACCOUNT_DELETE.name();
             referencePrefix = "DL";
         } else {
-            throw new ScenarioNotPossibleException("Invalid deactivation type");
+            throw new ScenarioNotPossibleException(INVALID_REQUEST_MESSAGE);
         }
         Optional<OtpTempModel> tempModel = otpTempRepository.findByEmail(username)
                 .stream()
@@ -710,7 +674,6 @@ public class UserServiceImpl implements UserService {
         } else {
             otpType = null;
         }
-
         verificationCode = otpTempRepository.findByEmail(username)
                 .stream()
                 .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(otpType) && tempOtp.getExpirationTime().isAfter(LocalDateTime.now()))
@@ -725,32 +688,29 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity.ok(EMAIL_SENT_SUCCESS_MESSAGE);
     }
 
-    private String functionCallToRetrieveUsername(ForgotUsernameDto userDetails){
+    private String functionCallToRetrieveUsername(ForgotUsernameDto userDetails) {
         String username = "";
 
-        if(userDetails.getPhoneNumber() != null && !userDetails.getPhoneNumber().isEmpty()
-                && userDetails.getPhoneNumber().length() == 10){
-
-            List<ProfileModel> fetchedUsers = profileRepository.findByPhone(userDetails.getPhoneNumber());
-
-            if(fetchedUsers.size() == 1){
-                return userRepository.findById(fetchedUsers.get(0).getUserId()).get().getUsername();
+        if (userDetails.getPhoneNumber() != null && userDetails.getPhoneNumber().length() == 10) {
+            List<ProfileModel> fetchedUsers = profileRepository.findByPhone(userDetails.getPhoneNumber().trim());
+            if (fetchedUsers.size() == 1) {
+                return functionToGetUsernameUsingUserId(fetchedUsers.get(0).getUserId());
             }
 
             fetchedUsers = fetchedUsers
                     .stream()
                     .filter(user -> user.getDateOfBirth().equals(userDetails.getDateOfBirth()))
                     .toList();
-            if(fetchedUsers.size() == 1){
-                return userRepository.findById(fetchedUsers.get(0).getUserId()).get().getUsername();
+            if (fetchedUsers.size() == 1) {
+                return functionToGetUsernameUsingUserId(fetchedUsers.get(0).getUserId());
             }
 
             fetchedUsers = fetchedUsers
                     .stream()
                     .filter(user -> user.getName().equalsIgnoreCase(userDetails.getName()))
                     .toList();
-            if(fetchedUsers.size() == 1){
-                return userRepository.findById(fetchedUsers.get(0).getUserId()).get().getUsername();
+            if (fetchedUsers.size() == 1) {
+                return functionToGetUsernameUsingUserId(fetchedUsers.get(0).getUserId());
             }
 
             fetchedUsers = fetchedUsers
@@ -758,37 +718,31 @@ public class UserServiceImpl implements UserService {
                     .filter(user -> user.getGender().equalsIgnoreCase(userDetails.getGender())
                             && user.getMaritalStatus().equalsIgnoreCase(userDetails.getMaritalStatus()))
                     .toList();
-            if(fetchedUsers.size() == 1){
-                return userRepository.findById(fetchedUsers.get(0).getUserId()).get().getUsername();
+            if (fetchedUsers.size() == 1) {
+                return functionToGetUsernameUsingUserId(fetchedUsers.get(0).getUserId());
             }
 
             List<String> matchedUsernames = functionToFetchUserByPinCode(fetchedUsers, userDetails);
-            if(matchedUsernames.size() == 1){
+            if (matchedUsernames.size() == 1) {
                 return matchedUsernames.get(0);
             }
-
             username += "null";
         }
-
         return functionCallToFetchUsernameByUserDetailsWithoutPhoneNumber(username, userDetails);
     }
 
-    private List<String> functionToFetchUserByPinCode(List<ProfileModel> fetchedUsers, ForgotUsernameDto userDetails){
+    private List<String> functionToFetchUserByPinCode(List<ProfileModel> fetchedUsers, ForgotUsernameDto userDetails) {
         List<String> matchedUsernames = new ArrayList<>();
-
-        for(ProfileModel profile : fetchedUsers){
-
+        for (ProfileModel profile : fetchedUsers) {
             String address = profile.getAddress();
             if (address != null && !address.isEmpty()) {
                 Pattern pattern = Pattern.compile("\\b\\d{6}\\b");
                 Matcher matcher = pattern.matcher(address);
-
                 String pincode = null;
                 if (matcher.find()) {
                     pincode = matcher.group();
-
                     if (pincode.equals(userDetails.getPinCode())) {
-                        matchedUsernames.add(userRepository.findById(profile.getUserId()).get().getUsername());
+                        matchedUsernames.add(functionToGetUsernameUsingUserId(fetchedUsers.get(0).getUserId()));
                     }
                 }
             }
@@ -796,20 +750,24 @@ public class UserServiceImpl implements UserService {
         return matchedUsernames;
     }
 
-    private String functionCallToFetchUsernameByUserDetailsWithoutPhoneNumber(String username, ForgotUsernameDto userDetails){
+    private String functionToGetUsernameUsingUserId(Long userId) {
+        Optional<UserAuthModel> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            return user.get().getUsername();
+        } else {
+            throw new ResourceNotFoundException(USER_NOT_FOUND);
+        }
+    }
 
-        if(username.isEmpty() || username.equalsIgnoreCase("null")){
-
-            List<ProfileModel> fetchedUsersByAllDetails = profileRepository
-                    .findByUserProfileDetails(userDetails.getDateOfBirth(), userDetails.getName(), userDetails.getGender(),
-                            userDetails.getMaritalStatus());
-
-            if(fetchedUsersByAllDetails.size() == 1){
-                return userRepository.findById(fetchedUsersByAllDetails.get(0).getUserId()).get().getUsername();
+    private String functionCallToFetchUsernameByUserDetailsWithoutPhoneNumber(String username, ForgotUsernameDto userDetails) {
+        if (username.isEmpty() || username.equalsIgnoreCase("null")) {
+            List<ProfileModel> fetchedUsersByAllDetails =
+                    profileRepository.findByUserProfileDetails(userDetails.getDateOfBirth(), userDetails.getName(), userDetails.getGender(), userDetails.getMaritalStatus());
+            if (fetchedUsersByAllDetails.size() == 1) {
+                return functionToGetUsernameUsingUserId(fetchedUsersByAllDetails.get(0).getUserId());
             }
-
             List<String> matchedUsernames = functionToFetchUserByPinCode(fetchedUsersByAllDetails, userDetails);
-            if(matchedUsernames.size() == 1){
+            if (matchedUsernames.size() == 1) {
                 return matchedUsernames.get(0);
             }
         }

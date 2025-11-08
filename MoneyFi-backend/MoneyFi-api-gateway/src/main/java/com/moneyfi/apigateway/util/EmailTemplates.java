@@ -81,7 +81,7 @@ public class EmailTemplates {
         emailFilter.sendEmail(username, subject, body);
     }
 
-    public boolean sendUserNameToUser(String username){
+    public void sendUserNameToUser(String username){
         String subject = "MoneyFi - Username request";
         String body = "<html>"
                 + "<body>"
@@ -96,7 +96,7 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        return emailFilter.sendEmail(username, subject, body);
+        emailFilter.sendEmail(username, subject, body);
     }
 
     public void sendOtpForForgotPassword(String userName, String email, String verificationCode){
@@ -231,7 +231,7 @@ public class EmailTemplates {
         return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, name.substring(0, name.indexOf(' '))+"_spending_analysis.pdf");
     }
 
-    public boolean sendReferenceNumberEmailToUser(String name, String email, String description, String referenceNumber) {
+    public void sendReferenceNumberEmailToUser(String name, String email, String description, String referenceNumber) {
         String subject = "MoneyFi - user requests";
         String body = "<html>"
                 + "<body>"
@@ -248,7 +248,7 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        return emailFilter.sendEmail(email, subject, body);
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public SimpleMailMessage sendEmailForSuccessfulUserCreation(String name, String email){

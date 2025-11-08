@@ -28,11 +28,11 @@ public interface UserService {
 
     String sendOtpForSignup(String email, String name);
 
-    boolean checkEnteredOtp(String email, String inputOtp);
+    Boolean checkEnteredOtpDuringSignup(String email, String inputOtp);
 
     Map<String, String> logout(String token);
 
-    boolean getUsernameByDetails(ForgotUsernameDto userDetails);
+    Boolean getUsernameByDetails(ForgotUsernameDto userDetails);
 
     boolean sendAccountStatementEmail(String username, byte[] pdfBytes);
 

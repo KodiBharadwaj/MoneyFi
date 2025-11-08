@@ -18,7 +18,7 @@ public interface UserCommonService {
 
     String verifyCode(String email, String code);
 
-    String updatePassword(String email, String password);
+    String updatePasswordOnUserForgotMode(String email, String password);
 
     SessionTokenModel save(SessionTokenModel sessionTokenModel);
 
