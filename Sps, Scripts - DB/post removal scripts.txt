@@ -4,6 +4,9 @@ ADD CONSTRAINT uk_user_auth_table UNIQUE (username);
 ALTER TABLE user_profile_details_table
 ADD CONSTRAINT uk_user_profile_details_table UNIQUE (user_id);
 
+ALTER TABLE contact_us_table
+DROP COLUMN image_id
+
 DROP PROCEDURE [getProfileDetailsOfUser]
 
 CREATE PROCEDURE [dbo].[getProfileDetailsOfUser] (

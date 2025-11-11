@@ -145,7 +145,6 @@ public class ProfileServiceImpl implements ProfileService {
         userDefect.setRequestActive(true);
         userDefect.setVerified(false);
         userDefect.setReferenceNumber(referenceNumber);
-        userDefect.setImageId("Defect_" + userId + "_" + userDefectRequestDto.getEmail().substring(0, userDefect.getEmail().indexOf('@')));
         ContactUs savedDefect = contactUsRepository.save(userDefect);
 
         ContactUsHist userDefectHist = new ContactUsHist();

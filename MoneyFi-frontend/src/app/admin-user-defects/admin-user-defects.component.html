@@ -70,7 +70,7 @@
           <p><strong>Status:</strong> {{ defect.defectStatus }}</p>
 
           <!-- Image -->
-          <div class="image-preview" (click)="viewImage(defect.imageId)">
+          <div class="image-preview" (click)="viewImage(defect.username, defect.defectId)">
             <img src="assets/image-placeholder.png" alt="View" />
             <p class="click-text">Click to view image</p>
           </div>

@@ -54,25 +54,47 @@ export class AdminUserDefectsComponent implements OnInit{
           this.filterStatus('SUBMITTED');
         },
         error: (err) => {
-          console.error('Error loading user defects:', err);
+          try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            this.toastr.error(errorObj.message);
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+          }
         }
       });
   }
 
-  viewImage(imageId: string): void {
-    // this.httpClient.get(`http://your-backend-url/api/admin/defect-image/${imageId}`, { responseType: 'blob' })
-    //   .subscribe({
-    //     next: (blob) => {
-    //       const reader = new FileReader();
-    //       reader.onload = () => {
-    //         this.selectedImage = reader.result as string;
-    //       };
-    //       reader.readAsDataURL(blob);
-    //     },
-    //     error: (err) => {
-    //       console.error('Error fetching image:', err);
-    //     }
-    //   });
+  viewImage(username: string, defectId: string): void {
+    this.httpClient.get(`${this.baseUrl}/api/v1/admin/user-defects/image?username=${username}&defectId=${defectId}`, { responseType: 'blob' })
+      .subscribe({
+        next: (blob) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            this.selectedImage = reader.result as string;
+          };
+          reader.readAsDataURL(blob);
+        },
+        error: (err) => {
+          if (err.error instanceof Blob) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              try {
+                const text = reader.result as string;
+                const errorObj = JSON.parse(text);
+                this.toastr.error(errorObj.message);
+              } catch (e) {
+                console.error('Failed to parse Blob error:', e);
+                this.toastr.error('Something went wrong');
+              }
+            };
+            reader.readAsText(err.error);
+          } else {
+            // fallback if it's not a Blob
+            const message = err.error?.message || 'Something went wrong';
+            this.toastr.error(message);
+          }
+        }
+      });
   }
 
   filterStatus(status: string) {
@@ -99,6 +121,7 @@ export class AdminUserDefectsComponent implements OnInit{
           defect.defectStatus = status;
         }
         this.filterStatus(this.selectedStatus); // Reapply current filter
+        this.loadUserDefects();
       },
       error: err => {
         console.error('Failed to update defect status:', err);

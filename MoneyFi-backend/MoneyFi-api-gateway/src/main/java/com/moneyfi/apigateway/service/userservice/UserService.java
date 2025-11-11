@@ -42,6 +42,8 @@ public interface UserService {
 
     ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username);
 
+    ResponseEntity<ByteArrayResource> getUserRaisedDefectImage(String username, Long defectId);
+
     ResponseEntity<String> deleteProfilePictureFromS3(String username);
 
     ResponseEntity<String> blockOrDeleteAccountByUserRequest(String username, AccountBlockOrDeleteRequestDto request);

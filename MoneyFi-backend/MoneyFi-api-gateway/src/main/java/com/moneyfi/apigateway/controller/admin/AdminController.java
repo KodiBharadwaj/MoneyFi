@@ -8,6 +8,7 @@ import com.moneyfi.apigateway.service.common.dto.response.UserFeedbackResponseDt
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -51,6 +52,13 @@ public class AdminController {
     @GetMapping("/user-defects/grid")
     public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(@RequestParam("status") String status){
         return adminService.getUserRaisedDefectsForAdmin(status);
+    }
+
+    @Operation(summary = "Api to get defect/user raised report image")
+    @GetMapping("/user-defects/image")
+    public ResponseEntity<ByteArrayResource> fetchUserRaisedDefectImage(@RequestParam String username,
+                                                                        @RequestParam Long defectId) {
+        return userService.getUserRaisedDefectImage(username, defectId);
     }
 
     @Operation(summary = "Api to change the user defect status in contact us table")

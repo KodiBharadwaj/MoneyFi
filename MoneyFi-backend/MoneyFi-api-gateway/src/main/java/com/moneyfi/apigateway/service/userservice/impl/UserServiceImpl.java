@@ -562,7 +562,21 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username) {
         if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
-            byte[] imageBytes = cloudinaryService.getUserProfileFromCloudinary(getUserIdByUsername(username), username);
+            byte[] imageBytes = cloudinaryService.getImageFromCloudinary(getUserIdByUsername(username), username, UPLOAD_PROFILE_PICTURE);
+            ByteArrayResource resource = new ByteArrayResource(imageBytes);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .contentLength(imageBytes.length)
+                    .body(resource);
+        } else {
+            return awsServices.fetchUserProfilePictureFromS3(getUserIdByUsername(username), username);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ByteArrayResource> getUserRaisedDefectImage(String username, Long defectId) {
+        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
+            byte[] imageBytes = cloudinaryService.getImageFromCloudinary(defectId, username, UPLOAD_USER_RAISED_REPORT_PICTURE);
             ByteArrayResource resource = new ByteArrayResource(imageBytes);
             return ResponseEntity.ok()
                     .contentType(MediaType.IMAGE_JPEG)

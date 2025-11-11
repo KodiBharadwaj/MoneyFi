@@ -8,7 +8,7 @@ import java.util.Map;
 public interface CloudinaryService {
     Map uploadPictureToCloudinary(MultipartFile file, Long id, String username, String uploadPurpose);
 
-    byte[] getUserProfileFromCloudinary(Long userId, String username);
+    byte[] getImageFromCloudinary(Long id, String username, String imageType);
 
     ResponseEntity<String> deleteProfilePictureFromCloudinary(Long userIdByUsername, String username);
 }

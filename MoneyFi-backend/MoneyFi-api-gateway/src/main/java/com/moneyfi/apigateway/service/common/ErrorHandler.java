@@ -1,8 +1,6 @@
 package com.moneyfi.apigateway.service.common;
 
-import com.moneyfi.apigateway.exceptions.CustomInternalServerErrorException;
-import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
-import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
+import com.moneyfi.apigateway.exceptions.*;
 import com.moneyfi.apigateway.service.common.dto.response.ErrorResponse;
 import jakarta.ws.rs.BadRequestException;
 import org.springframework.http.HttpStatus;
@@ -29,7 +27,7 @@ public class ErrorHandler {
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage()), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler({CustomInternalServerErrorException.class})
+    @ExceptionHandler({CustomInternalServerErrorException.class, CloudinaryImageException.class})
     public ResponseEntity<ErrorResponse> handleHttpServerErrorExceptionFunction(CustomInternalServerErrorException ex) {
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }

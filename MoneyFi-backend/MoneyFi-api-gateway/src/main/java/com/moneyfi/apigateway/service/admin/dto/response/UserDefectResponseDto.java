@@ -13,6 +13,5 @@ public class UserDefectResponseDto {
     private String username;
     private String referenceNumber;
     private String description;
-    private String imageId;
     private String defectStatus;
 }

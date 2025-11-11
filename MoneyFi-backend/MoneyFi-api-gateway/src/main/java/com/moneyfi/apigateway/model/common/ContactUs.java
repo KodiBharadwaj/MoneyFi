@@ -13,12 +13,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Table(name = "contact_us_table")
 public class ContactUs {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String email;
-    private String imageId;
     private String referenceNumber;
     private boolean isRequestActive;
     private String requestReason;
