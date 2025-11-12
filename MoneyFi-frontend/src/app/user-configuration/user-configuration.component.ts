@@ -218,7 +218,7 @@ export class UserConfigurationComponent implements AfterViewInit{
     }).subscribe({
       next: response => {
         alert('Account block confirmed.');
-        this.http.post(`${this.baseUrl}/api/v1/user/logout`, {}, { responseType: 'text' }).subscribe({
+        this.http.post(`${this.baseUrl}/api/v1/user-admin/logout`, {}, { responseType: 'text' }).subscribe({
           next: (response) => {
             const jsonResponse = JSON.parse(response);
             if(jsonResponse.message === 'Logged out successfully'){
@@ -264,7 +264,7 @@ export class UserConfigurationComponent implements AfterViewInit{
     }).subscribe({
       next: response => {
         alert('Account has been deleted. Please raise retrieve request before 30 days to use again.');
-        this.http.post(`${this.baseUrl}/api/v1/user/logout`, {}, { responseType: 'text' }).subscribe({
+        this.http.post(`${this.baseUrl}/api/v1/user-admin/logout`, {}, { responseType: 'text' }).subscribe({
           next: (response) => {
             const jsonResponse = JSON.parse(response);
             if(jsonResponse.message === 'Logged out successfully'){

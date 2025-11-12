@@ -42,7 +42,8 @@ export class AdminReasonsComponent implements OnInit {
     { code: 4, title: 'Unblock Account Reasons' },
     { code: 5, title: 'Delete Account Reasons' },
     { code: 6, title: 'Account Retrieval Reasons' },
-    { code: 7, title: 'Phone Number Change Reasons' }
+    { code: 7, title: 'Phone Number Change Reasons' },
+    { code: 8, title: 'Decline User Request Reasons' }
   ];
 
   constructor(private http: HttpClient, private dialog: MatDialog, private toastr: ToastrService, private route: ActivatedRoute, private router:Router) {}
@@ -106,7 +107,7 @@ export class AdminReasonsComponent implements OnInit {
       dialogRef.afterClosed().subscribe((result) => {
         if (result) {
   
-          this.http.post(`${this.baseUrl}/api/v1/admin/logout`, {}, { responseType: 'text' }).subscribe({
+          this.http.post(`${this.baseUrl}/api/v1/user-admin/logout`, {}, { responseType: 'text' }).subscribe({
             next: (response) => {
               const jsonResponse = JSON.parse(response);
               if(jsonResponse.message === 'Logged out successfully'){

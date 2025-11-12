@@ -39,6 +39,26 @@ public class EmailTemplates {
         emailFilter.sendEmail(email, subject, body);
     }
 
+    public void sendUserReportStatusMailToUser(String name, String referenceNumber, String description, String email){
+        String subject = "Report Raised Status";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name +",</p>"
+                + "<p style='font-size: 16px;'>Please find the status of your request: " + description + "</p>"
+                + "<br>"
+                + "<p style='font-size: 16px;'>For more details, track your request in moneyfi with reference number: " + referenceNumber + "</p>"
+                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
+                + "<p style='font-size: 16px;'>Kindly Ignore if it by you. If not, reply to this mail immediately to secure account.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(email, subject, body);
+    }
+
     public boolean sendOtpEmailToUserForSignup(String email, String name, String verificationCode){
         String subject = "OTP for MoneyFi's account creation";
         String body = "<html>"

@@ -64,8 +64,9 @@ public class AdminController {
     @Operation(summary = "Api to change the user defect status in contact us table")
     @PutMapping("/{defectId}/update-defect-status")
     public void updateDefectStatus(@PathVariable("defectId") Long defectId,
-                                                     @RequestBody Map<String, String> body) {
-        adminService.updateDefectStatus(defectId, body.get("status"));
+                                   @RequestBody Map<String, String> body,
+                                   @RequestParam String reason) {
+        adminService.updateDefectStatus(defectId, body.get("status"), reason);
     }
 
 
@@ -211,11 +212,5 @@ public class AdminController {
     @DeleteMapping("/reasons/delete")
     public void deleteReasonByReasonIdByAdmin(@RequestParam("id") int reasonId){
         adminService.deleteReasonByReasonId(reasonId);
-    }
-
-    @Operation(summary = "Api to logout/making the token blacklist for admin")
-    @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader("Authorization") String token) {
-        return ResponseEntity.ok(userService.logout(token));
     }
 }

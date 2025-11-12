@@ -125,7 +125,7 @@ public class UserServiceImpl implements UserService {
     public UserAuthModel registerUser(UserProfile userProfile, String loginMode, String address) {
         UserValidations.checkForUserAlreadyExistenceValidation(userRepository.getUserDetailsByUsername(userProfile.getUsername().trim()).orElse(null));
         UserAuthModel userAuthModel = new UserAuthModel();
-        saveUserAuthDetails(userAuthModel, userProfile.getUsername(), encoder.encode(userProfile.getPassword()));
+        saveUserAuthDetails(userAuthModel, userProfile.getUsername());
 
         int roleId = 0;
         if (loginMode.equalsIgnoreCase(LoginMode.EMAIL_PASSWORD.name())) {
@@ -134,6 +134,7 @@ public class UserServiceImpl implements UserService {
                     roleId = it.getKey();
                 }
             }
+            userAuthModel.setPassword(encoder.encode(userProfile.getPassword()));
             userAuthModel.setLoginCodeValue(LoginMode.EMAIL_PASSWORD.getLoginProcessCode());
         } else if (loginMode.equalsIgnoreCase(LoginMode.GOOGLE_OAUTH.name())) {
             for (Map.Entry<Integer, String> it : userRoleAssociation.entrySet()) {
@@ -141,6 +142,7 @@ public class UserServiceImpl implements UserService {
                     roleId = it.getKey();
                 }
             }
+            userAuthModel.setPassword(null);
             userAuthModel.setLoginCodeValue(LoginMode.GOOGLE_OAUTH.getLoginProcessCode());
         } else if (loginMode.equalsIgnoreCase(LoginMode.GITHUB_OAUTH.name())) {
             for (Map.Entry<Integer, String> it : userRoleAssociation.entrySet()) {
@@ -148,6 +150,7 @@ public class UserServiceImpl implements UserService {
                     roleId = it.getKey();
                 }
             }
+            userAuthModel.setPassword(null);
             userAuthModel.setLoginCodeValue(LoginMode.GITHUB_OAUTH.getLoginProcessCode());
         }
         userAuthModel.setRoleId(roleId);
@@ -169,9 +172,8 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
-    private void saveUserAuthDetails(UserAuthModel userAuthModel, String username, String password){
+    private void saveUserAuthDetails(UserAuthModel userAuthModel, String username){
         userAuthModel.setUsername(username);
-        userAuthModel.setPassword(password);
         userAuthModel.setOtpCount(0);
         userAuthModel.setDeleted(false);
         userAuthModel.setBlocked(false);

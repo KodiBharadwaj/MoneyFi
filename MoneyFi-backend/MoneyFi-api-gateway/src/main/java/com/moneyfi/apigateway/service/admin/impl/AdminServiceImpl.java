@@ -325,11 +325,11 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public void updateDefectStatus(Long defectId, String status) {
+    public void updateDefectStatus(Long defectId, String status, String reason) {
         ContactUs userDefect = contactUsRepository.findById(defectId).orElseThrow(() -> new ResourceNotFoundException("User defect details not found"));
+        Optional<ProfileModel> userProfile = profileRepository.findByUserId(userRepository.getUserDetailsByUsername(userDefect.getEmail().trim()).get().getId());
         if(userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) ||
                 userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.IGNORED.name()) ||
-                userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.PENDED.name()) ||
                 userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())){
             throw new ScenarioNotPossibleException("Action already done");
         }
@@ -346,6 +346,7 @@ public class AdminServiceImpl implements AdminService {
             userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
             userDefectHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
             userDefectHist.setUpdatedTime(userDefect.getCompletedTime());
+            new Thread(() -> emailTemplates.sendUserReportStatusMailToUser(userProfile.get().getName(), userDefect.getReferenceNumber().substring(4), userDefectHist.getMessage(), userDefect.getEmail().trim())).start();
         } else if(status.equalsIgnoreCase("Pend")){
             userDefect.setRequestStatus(RaiseRequestStatus.PENDED.name());
 
@@ -361,11 +362,12 @@ public class AdminServiceImpl implements AdminService {
             userDefect.setCompletedTime(LocalDateTime.now());
             userDefect.setVerified(true);
 
-            userDefectHist.setMessage("Admin ignored. Issue was already solved");
+            userDefectHist.setMessage("Admin ignored. Reason: " + reason);
             userDefectHist.setContactUsId(userDefect.getId());
             userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
             userDefectHist.setRequestStatus(RaiseRequestStatus.IGNORED.name());
             userDefectHist.setUpdatedTime(userDefect.getCompletedTime());
+            new Thread(() -> emailTemplates.sendUserReportStatusMailToUser(userProfile.get().getName(), userDefect.getReferenceNumber().substring(4), userDefectHist.getMessage(), userDefect.getEmail().trim())).start();
         }
         contactUsRepository.save(userDefect);
         contactUsHistRepository.save(userDefectHist);

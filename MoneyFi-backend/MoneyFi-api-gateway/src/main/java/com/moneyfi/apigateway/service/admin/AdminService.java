@@ -19,7 +19,7 @@ public interface AdminService {
 
     List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status);
 
-    void updateDefectStatus(Long defectId, String status);
+    void updateDefectStatus(Long defectId, String status, String reason);
 
     List<UserGridDto> getUserDetailsGridForAdmin(String status);
 

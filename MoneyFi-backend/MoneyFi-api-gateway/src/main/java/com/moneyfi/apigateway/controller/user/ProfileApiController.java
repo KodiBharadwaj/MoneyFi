@@ -211,10 +211,4 @@ public class ProfileApiController {
         return !responseList.isEmpty() ? ResponseEntity.status(HttpStatus.OK).body(responseList) :
                                              ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
-
-    @Operation(summary = "Api to logout/making the token blacklist")
-    @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader("Authorization") String token) {
-        return ResponseEntity.ok(userService.logout(token));
-    }
 }

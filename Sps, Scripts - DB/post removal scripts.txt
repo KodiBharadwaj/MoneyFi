@@ -7,6 +7,9 @@ ADD CONSTRAINT uk_user_profile_details_table UNIQUE (user_id);
 ALTER TABLE contact_us_table
 DROP COLUMN image_id
 
+INSERT INTO reason_code_table (id, name)
+VALUES (8, 'Ignore User Request');
+
 DROP PROCEDURE [getProfileDetailsOfUser]
 
 CREATE PROCEDURE [dbo].[getProfileDetailsOfUser] (

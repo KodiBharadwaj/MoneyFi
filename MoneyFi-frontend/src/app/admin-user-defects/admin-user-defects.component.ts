@@ -12,6 +12,7 @@ import { ExpensesComponent } from '../expenses/expenses.component';
 import { BudgetsComponent } from '../budgets/budgets.component';
 import { GoalsComponent } from '../goals/goals.component';
 import { OverviewComponent } from '../overview/overview.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-admin-user-defects',
@@ -25,6 +26,7 @@ import { OverviewComponent } from '../overview/overview.component';
         OverviewComponent,
         ConfirmLogoutDialogComponent,
         RouterModule,
+        FormsModule
       ],
   templateUrl: './admin-user-defects.component.html',
   styleUrl: './admin-user-defects.component.css'
@@ -35,6 +37,12 @@ export class AdminUserDefectsComponent implements OnInit{
   filteredDefects: any[] = [];
   selectedImage: string | null = null;
   selectedStatus: string = 'New';
+
+  selectedReason: string | null = null;
+  reasons: string[] = [];
+  showReasonDialog = false;
+  defectIdForReason: number | null = null;
+  customReason: string = '';
 
   ngOnInit(): void {
     this.loadUserDefects();
@@ -113,21 +121,66 @@ export class AdminUserDefectsComponent implements OnInit{
 
 
   updateDefectStatus(defectId: number, status: string) {
-    this.httpClient.put(`${this.baseUrl}/api/v1/admin/${defectId}/update-defect-status`, { status }).subscribe({
-      next: () => {
-        // Update local defect
-        const defect = this.userDefects.find(d => d.id === defectId);
-        if (defect) {
-          defect.defectStatus = status;
+    if (status === 'Ignore') {
+      this.defectIdForReason = defectId;
+      this.showReasonDialog = true; // open popup
+      this.fetchIgnoreReasons();
+    } else {
+        this.httpClient.put(`${this.baseUrl}/api/v1/admin/${defectId}/update-defect-status?reason=null`, { status }).subscribe({
+        next: () => {
+          // Update local defect
+          const defect = this.userDefects.find(d => d.id === defectId);
+          if (defect) {
+            defect.defectStatus = status;
+          }
+          this.filterStatus(this.selectedStatus); // Reapply current filter
+          this.loadUserDefects();
+        },
+        error: err => {
+          console.error('Failed to update defect status:', err);
+          try {
+          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+          console.error('Failed to parse error:', err.error);
         }
-        this.filterStatus(this.selectedStatus); // Reapply current filter
-        this.loadUserDefects();
+        }
+      });
+    }
+  }
+
+  fetchIgnoreReasons(): void {
+    this.httpClient.get<string[]>(`${this.baseUrl}/api/v1/user-admin/reasons-dialog/get?code=8`)
+      .subscribe({
+        next: (data) => {
+          this.reasons = [...data, 'Other'];
+        },
+        error: (err) => console.error('Failed to load reasons', err)
+      });
+  }
+
+  submitIgnoreReason(): void {
+    if (!this.selectedReason) return;
+
+    let finalReason = this.selectedReason;
+    if (this.selectedReason === 'Other' && this.customReason.trim()) {
+      finalReason = this.customReason.trim();
+    }
+
+    this.httpClient.put(
+      `${this.baseUrl}/api/v1/admin/${this.defectIdForReason}/update-defect-status?reason=${encodeURIComponent(finalReason)}`,
+      { status: 'Ignore' }
+    ).subscribe({
+      next: () => {
+        this.showReasonDialog = false;
+        this.selectedReason = null;
+        this.customReason = '';
+        this.loadUserDefects(); // refresh UI
       },
-      error: err => {
-        console.error('Failed to update defect status:', err);
-      }
+      error: (err) => console.error('Failed to update with reason', err)
     });
   }
+
 
   logoutUser(): void {
         const dialogRef = this.dialog.open(ConfirmLogoutDialogComponent, {
@@ -138,7 +191,7 @@ export class AdminUserDefectsComponent implements OnInit{
         dialogRef.afterClosed().subscribe((result) => {
           if (result) {
     
-            this.httpClient.post(`${this.baseUrl}/api/v1/admin/logout`, {}, { responseType: 'text' }).subscribe({
+            this.httpClient.post(`${this.baseUrl}/api/v1/user-admin/logout`, {}, { responseType: 'text' }).subscribe({
               next: (response) => {
                 const jsonResponse = JSON.parse(response);
                 if(jsonResponse.message === 'Logged out successfully'){
