@@ -19,6 +19,7 @@ import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
+import com.moneyfi.apigateway.service.userservice.dto.request.HelpCenterContactUsRequestDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.constants.StringUtils;
 import com.moneyfi.apigateway.util.enums.RaiseRequestStatus;
@@ -436,5 +437,25 @@ public class UserCommonServiceImpl implements UserCommonService {
                 .filter(reasonDetails -> reasonDetails.getReasonCode() == reasonCode && !reasonDetails.getIsDeleted())
                 .map(ReasonDetails::getReason)
                 .toList();
+    }
+
+    @Override
+    public void sendContactUsDetailsToAdmin(HelpCenterContactUsRequestDto requestDto) {
+        if(requestDto.getEmail() == null || requestDto.getPhoneNumber() == null || requestDto.getName() == null || requestDto.getDescription() == null){
+            throw new ScenarioNotPossibleException("Input fields cannot be null");
+        }
+
+        String email = requestDto.getEmail().trim();
+        String phoneNumber = requestDto.getPhoneNumber().trim();
+        if(email.isEmpty() || phoneNumber.isEmpty() || requestDto.getName().trim().isEmpty() || requestDto.getDescription().trim().isEmpty()) {
+            throw new ScenarioNotPossibleException("Please fill all the fields");
+        }
+        if (!phoneNumber.matches("^[0-9]{10}$")) {
+            throw new ScenarioNotPossibleException("Please enter a valid 10-digit phone number");
+        }
+        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            throw new ScenarioNotPossibleException("Please enter a valid email address");
+        }
+        emailTemplates.sendContactUsDetailsEmailToAdmin(email, requestDto.getPhoneNumber(), requestDto.getName(), requestDto.getDescription());
     }
 }

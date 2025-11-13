@@ -8,6 +8,7 @@ import com.moneyfi.apigateway.service.common.dto.request.NameChangeRequestDto;
 import com.moneyfi.apigateway.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
+import com.moneyfi.apigateway.service.userservice.dto.request.HelpCenterContactUsRequestDto;
 
 import java.util.List;
 import java.util.Map;
@@ -47,4 +48,6 @@ public interface UserCommonService {
     void updateUserNotificationSeenStatus(String username, String notificationIds);
 
     List<String> getReasonsForDialogForUser(int reasonCode);
+
+    void sendContactUsDetailsToAdmin(HelpCenterContactUsRequestDto requestDto);
 }

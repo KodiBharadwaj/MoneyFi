@@ -6,6 +6,7 @@ import com.moneyfi.apigateway.service.common.dto.response.UserRequestStatusDto;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.userservice.dto.request.ForgotUsernameDto;
+import com.moneyfi.apigateway.service.userservice.dto.request.HelpCenterContactUsRequestDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.UserLoginDetailsRequestDto;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.UserProfile;
@@ -150,6 +151,12 @@ private DataSource dataSource;
         List<String> responseList = userCommonService.getReasonsForDialogForUser(reasonCode);
         return !responseList.isEmpty() ? ResponseEntity.status(HttpStatus.OK).body(responseList) :
                 ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
+
+    @Operation(summary = "Api to send the contact us/help center details to admin via mail")
+    @PostMapping("/contact-us")
+    public void sendContactUsDetailsToAdmin(@RequestBody HelpCenterContactUsRequestDto requestDto) {
+        userCommonService.sendContactUsDetailsToAdmin(requestDto);
     }
 
     @GetMapping("/stream-large-data")

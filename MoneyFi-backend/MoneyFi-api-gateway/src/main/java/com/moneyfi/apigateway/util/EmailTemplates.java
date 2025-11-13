@@ -309,4 +309,23 @@ public class EmailTemplates {
                 + "</html>";
         emailFilter.sendEmailWithAttachment(email, subject, body, file, "reason-attachment.pdf");
     }
+
+    public void sendContactUsDetailsEmailToAdmin(String email, String phoneNumber, String name, String description) {
+        String subject = "MoneyFi - Help center/Contact";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello admin, </p>"
+                + "<p style='font-size: 16px;'>You got a mail through MoneyFi with contact details: </p>"
+                + "<br>"
+                + "<p style='font-size: 16px;'>" + name + "</p>"
+                + "<p style='font-size: 16px;'>" + email + "</p>"
+                + "<p style='font-size: 16px;'>" + phoneNumber + "</p>"
+                + "<p style='font-size: 16px;'> Description: " + description + "</p>"
+                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
+                + "<hr>"
+                + "<br>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
+    }
 }

@@ -1,0 +1,56 @@
+<nav class="navbar">
+  <span class="brand-name" (click)="navigateTo('')" role="button" tabindex="0">
+    <i class="fas fa-chart-pie"></i> MoneyFi
+  </span>
+
+  <nav class="right-buttons">
+    <ul class="nav-links">
+      <li><a routerLink="/">Home</a></li>
+      <li><a routerLink="/login">Login</a></li>
+      <li><a routerLink="/signup">Signup</a></li>
+    </ul>
+  </nav>
+</nav>
+
+<!-- Loading Spinner -->
+<div class="loading-spinner" *ngIf="isLoading">
+  <div class="spinner"></div>
+  <span>Sending Details. Please wait...</span>
+</div>
+
+<div class="contact-container">
+  <div class="contact-card">
+    <div class="header-icon">
+      <i class="fas fa-user-circle"></i>
+    </div>
+
+    <h2>Contact Connect Collaborate</h2>
+    <p class="subtitle">We're here to assist you anytime</p>
+
+    <form (ngSubmit)="submitForm(forgotUsernameForm)" #forgotUsernameForm="ngForm">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" [(ngModel)]="formData.email" required />
+      </div>
+
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" name="phone" [(ngModel)]="formData.phoneNumber" required />
+      </div>
+
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" name="name" [(ngModel)]="formData.name" required />
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea name="description" [(ngModel)]="formData.description" rows="3" required></textarea>
+      </div>
+
+      <button type="submit" [disabled]="!forgotUsernameForm.form.valid">
+        Submit
+      </button>
+    </form>
+  </div>
+</div>
