@@ -25,4 +25,6 @@ public interface BudgetService {
     byte[] getUserSpendingAnalysisByBudgetCategoriesPdf(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader);
 
     ResponseEntity<String> getUserSpendingAnalysisByBudgetCategoriesPdfEmail(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader);
+
+    void deleteBudget(Long userId);
 }

@@ -29,30 +29,25 @@ public class BudgetApiController {
         this.jwtService = jwtService;
     }
 
-    @Operation(summary = "Method to add the budget")
-    @PostMapping("/saveBudget")
+    @Operation(summary = "Api to add the budget")
+    @PostMapping("/save")
     public void saveBudget(@RequestBody List<AddBudgetDto> budgetList,
                            @RequestHeader("Authorization") String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         budgetService.saveBudget(budgetList, userId);
     }
 
-    @Operation(summary = "Method to get budget of a user")
-    @GetMapping("/getBudgetDetails/{category}/{month}/{year}")
+    @Operation(summary = "Api to get budget of a user")
+    @GetMapping("/{category}/{month}/{year}/get")
     public ResponseEntity<List<BudgetDetailsDto>> getAllBudgetsByUserIdAndCategory(@RequestHeader("Authorization") String authHeader,
                                                                                    @PathVariable("category") String category,
                                                                                    @PathVariable("month") int month,
                                                                                    @PathVariable("year") int year) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        List<BudgetDetailsDto> list = budgetService.getAllBudgetsByUserIdAndCategory(userId, month, year, category);
-        if (!list.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK).body(list); // 200
-        } else {
-            return ResponseEntity.noContent().build(); // 204
-        }
+        return ResponseEntity.ok(budgetService.getAllBudgetsByUserIdAndCategory(userId, month, year, category));
     }
 
-    @Operation(summary = "Method to get the budget status/progress")
+    @Operation(summary = "Api to get the budget status/progress")
     @GetMapping("/budgetProgress/{month}/{year}")
     public BigDecimal budgetProgress(@RequestHeader("Authorization") String authHeader,
                                      @PathVariable("month") int month,
@@ -61,12 +56,19 @@ public class BudgetApiController {
         return budgetService.budgetProgress(userId, month, year);
     }
 
-    @Operation(summary = "Method to update the budget")
-    @PutMapping("/updateBudget")
+    @Operation(summary = "Api to update the budget")
+    @PutMapping("/update")
     public void updateBudget(@RequestBody List<BudgetModel> budgetList,
-                                                    @RequestHeader("Authorization") String authHeader) {
+                             @RequestHeader("Authorization") String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         budgetService.updateBudget(userId, budgetList);
+    }
+
+    @Operation(summary = "Api to delete the budget")
+    @DeleteMapping("/delete")
+    public void deleteBudget(@RequestHeader("Authorization") String authHeader) {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        budgetService.deleteBudget(userId);
     }
 
     @Operation(summary = "Api to get the user spending analysis in a particular time period")
