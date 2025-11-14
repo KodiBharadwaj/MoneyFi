@@ -64,15 +64,12 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     public BigDecimal budgetProgress(Long userId, int month, int year) {
-
         List<BudgetDetailsDto> budgetsList = getAllBudgetsByUserIdAndCategory(userId, month, year, "all");
         BigDecimal moneyLimit = budgetsList
                             .stream()
-                            .map(i->i.getMoneyLimit())
+                            .map(BudgetDetailsDto::getMoneyLimit)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
-
         BigDecimal currentSpending = getTotalExpenseInMonthAndYear(userId, month, year);
-
         return currentSpending.divide(moneyLimit, 5, RoundingMode.HALF_UP);
     }
 
@@ -81,33 +78,21 @@ public class BudgetServiceImpl implements BudgetService {
         if(totalExpense == null){
             return BigDecimal.ZERO;
         }
-
         return totalExpense;
     }
 
     @Override
     @Transactional
     public void updateBudget(Long userId, List<BudgetModel> budgetList) {
-
-        for(BudgetModel budget : budgetList){
-            BudgetModel budgetModel = budgetRepository.findById(budget.getId()).orElse(null);
-
-            if(budgetModel == null || !budgetModel.getUserId().equals(userId)){
-                throw new ResourceNotFoundException("UnAuthorized try");
-            }
-
-            if(budget.getCategory() != null){
-                budgetModel.setCategory(budget.getCategory());
-            }
-            if(budget.getCurrentSpending().compareTo(BigDecimal.ZERO) > 0){
-                budgetModel.setCurrentSpending(budget.getCurrentSpending());
-            }
-            if(budget.getMoneyLimit().compareTo(BigDecimal.ZERO) > 0){
+        List<BudgetModel> budgetListToUpdate = new ArrayList<>();
+        for (BudgetModel budget : budgetList) {
+            BudgetModel budgetModel = budgetRepository.findById(budget.getId()).orElseThrow(() -> new ResourceNotFoundException(BUDGET_NOT_FOUND));
+            if (budget.getMoneyLimit().compareTo(BigDecimal.ZERO) >= 0) {
                 budgetModel.setMoneyLimit(budget.getMoneyLimit());
             }
-
-            budgetRepository.save(budgetModel);
+            budgetListToUpdate.add(budgetModel);
         }
+        budgetRepository.saveAll(budgetListToUpdate);
     }
 
     @Override

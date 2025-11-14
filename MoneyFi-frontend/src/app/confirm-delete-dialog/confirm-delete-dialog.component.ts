@@ -22,6 +22,8 @@ export class ConfirmDeleteDialogComponent {
     }
     else if(data.isGoal){
       this.name = data.goalName + " (" + data.category + ")";
+    } else if(data.isBudget){
+      this.name = "Budget";
     }
     else {
       this.name = "";
