@@ -84,7 +84,7 @@ export class BudgetsComponent {
     this.loading = true;
     if(this.selectedCategory === '') this.selectedCategory = 'all';
 
-    this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/budget/getBudgetDetails/${this.selectedCategory}/${this.selectedMonth}/${this.selectedYear}`).subscribe({
+    this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/budget/${this.selectedCategory}/${this.selectedMonth}/${this.selectedYear}/get`).subscribe({
       next: (budgets) => {
         if(budgets === null){
           this.toastr.warning('You dont have budget', 'Please add Budget plan');
@@ -141,7 +141,7 @@ export class BudgetsComponent {
       if (result) {
         console.log(result);
 
-        this.httpClient.post(`${this.baseUrl}/api/v1/budget/saveBudget`, result).subscribe({
+        this.httpClient.post(`${this.baseUrl}/api/v1/budget/save`, result).subscribe({
           next : () => {
             this.loadBudgetData();
             this.toastr.success('Budget added successfully')
@@ -199,7 +199,7 @@ export class BudgetsComponent {
   
   private saveUpdatedBudgets(updatedBudgets: any[]) {
 
-    this.httpClient.put(`${this.baseUrl}/api/v1/budget/updateBudget`, updatedBudgets).subscribe({
+    this.httpClient.put(`${this.baseUrl}/api/v1/budget/update`, updatedBudgets).subscribe({
       next: () => {
         this.toastr.success('Budget updated successfully');
         this.loadBudgetData();
