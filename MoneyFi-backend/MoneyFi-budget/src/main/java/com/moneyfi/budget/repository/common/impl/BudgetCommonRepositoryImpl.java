@@ -60,7 +60,7 @@ public class BudgetCommonRepositoryImpl implements BudgetCommonRepository {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new QueryValidationException("Error occurred while fetching budget data");
+            throw new QueryValidationException(e.getMessage());
         }
     }
 

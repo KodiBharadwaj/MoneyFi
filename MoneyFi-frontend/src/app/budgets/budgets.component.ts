@@ -14,6 +14,8 @@ import { NgChartsModule } from 'ng2-charts';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { UpdateBudgetDialogComponent } from '../update-budget-dialog/update-budget-dialog.component';
 import { environment } from '../../environments/environment';
+import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
+import { MatIconModule } from '@angular/material/icon';
 
 
 interface Budget {
@@ -33,6 +35,7 @@ interface Budget {
   imports: [CommonModule,
     MatDialogModule,
     MatButtonModule,
+    MatIconModule,
     FormsModule,
     MatInputModule,
     AddExpenseDialogComponent,
@@ -95,24 +98,14 @@ export class BudgetsComponent {
           this.calculateTotals();
         }
       },
-      error: (error) => {
-        console.error('Failed to load budget data:', error);
-        if(error.status === 401){
-            if (error.error === 'TokenExpired') {
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            } else if(error.error === 'Token is blacklisted'){
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            }
-            else if(error.error === 'AuthorizationFailed'){
-              alert('Service Unavailable!! Please try later');
-            }
-          } else if (error.status === 503){
-            alert('Service Unavailable!! Please try later');
-          }
+      error: (err) => {
+        console.error('Failed to load budget data:', err);
+        try {
+          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+          console.error('Failed to parse error:', err.error);
+        }
       },
       complete: () => {
         this.loading = false;
@@ -146,25 +139,15 @@ export class BudgetsComponent {
             this.loadBudgetData();
             this.toastr.success('Budget added successfully')
           },
-          error: (error) => {
-            console.error('Failed to load total income:', error);
+          error: (err) => {
+            console.error('Failed to load total income:', err);
             this.toastr.error('Failed to add Budget! Please try later')
-            if(error.status === 401){
-                if (error.error === 'TokenExpired') {
-                  alert('Your session has expired. Please login again.');
-                  sessionStorage.removeItem('moneyfi.auth');
-                  this.router.navigate(['/']);
-                } else if(error.error === 'Token is blacklisted'){
-                  alert('Your session has expired. Please login again.');
-                  sessionStorage.removeItem('moneyfi.auth');
-                  this.router.navigate(['/']);
-                }
-                else if(error.error === 'AuthorizationFailed'){
-                  alert('Service Unavailable!! Please try later');
-                }
-              } else if (error.status === 503){
-                alert('Service Unavailable!! Please try later');
-              }
+            try {
+              const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+              this.toastr.error(errorObj.message);
+            } catch (e) {
+              console.error('Failed to parse error:', err.error);
+            }
           }
         })
       }
@@ -204,28 +187,51 @@ export class BudgetsComponent {
         this.toastr.success('Budget updated successfully');
         this.loadBudgetData();
       },
-      error: (error) => {
-        console.error('Failed to update budget:', error);
+      error: (err) => {
+        console.error('Failed to update budget:', err);
         this.toastr.error('Failed to update budget');
-        if(error.status === 401){
-          if (error.error === 'TokenExpired') {
-            alert('Your session has expired. Please login again.');
-            sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']);
-          } else if(error.error === 'Token is blacklisted'){
-            alert('Your session has expired. Please login again.');
-            sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']);
-          }
-          else if(error.error === 'AuthorizationFailed'){
-            alert('Service Unavailable!! Please try later');
-          }
-        } else if (error.status === 503){
-          alert('Service Unavailable!! Please try later');
+        try {
+          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+          console.error('Failed to parse error:', err.error);
         }
       },
     });
   }
+
+  deleteBudget(): void {
+    if(this.budgets.length === 0) {
+      this.toastr.error('There is not budget to delete');
+      return;
+    }
+      const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
+        width: '400px',
+        panelClass: 'custom-dialog-container',
+        data: {isBudget:true},
+      });
+  
+      dialogRef.afterClosed().subscribe((result) => {
+        if (result) {
+          this.httpClient.delete(`${this.baseUrl}/api/v1/budget/delete`).subscribe({
+            next: (response) => {
+              this.toastr.success('Budget deleted successfully');
+              this.loadBudgetData();
+            }, error: (err) => {
+              console.error('Failed to update budget:', err);
+              this.toastr.error('Failed to delete budget');
+              try {
+                const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+                this.toastr.error(errorObj.message);
+              } catch (e) {
+                console.error('Failed to parse error:', err.error);
+              }
+            },
+          })
+        }
+      });
+    }
+  
   
   
 
@@ -235,9 +241,9 @@ export class BudgetsComponent {
 
   resetFilters() {
     const today = new Date();
-    this.selectedYear = today.getFullYear(); // Reset to the current year
-    this.selectedMonth = today.getMonth() + 1; // Reset to the current month (1-based index)
-    this.selectedCategory = ''; // Reset to all categories
+    this.selectedYear = today.getFullYear();
+    this.selectedMonth = today.getMonth() + 1;
+    this.selectedCategory = '';
     this.filterExpenses();
   }
 

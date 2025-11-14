@@ -5,9 +5,20 @@
       <h1>Budget Management</h1>
       <p>Track and manage your monthly budgets</p>
     </div>
-    <button class="add-budget-btn" mat-raised-button color="primary" (click)="updateBudget()" aria-label="Add Budget">
-      <i class="fas fa-plus"></i> update Budget
-    </button>
+    <!-- Action Buttons -->
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="addBudget()" aria-label="Add Budget">
+        <mat-icon>add</mat-icon> Add Budget
+      </button>
+
+      <button mat-raised-button color="accent" (click)="updateBudget()" aria-label="Update Budget">
+        <mat-icon>edit</mat-icon> Update Budget
+      </button>
+
+      <button mat-raised-button color="warn" (click)="deleteBudget()" aria-label="Delete Budget">
+        <mat-icon>delete</mat-icon> Delete Budget
+      </button>
+    </div>
   </div>
 
   <!-- Summary Cards -->
