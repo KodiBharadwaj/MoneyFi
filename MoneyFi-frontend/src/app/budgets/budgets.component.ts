@@ -100,6 +100,7 @@ export class BudgetsComponent {
       },
       error: (err) => {
         console.error('Failed to load budget data:', err);
+        this.loading = false;
         try {
           const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
           this.toastr.error(errorObj.message);
