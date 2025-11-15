@@ -100,6 +100,7 @@ export class BudgetsComponent {
       },
       error: (err) => {
         console.error('Failed to load budget data:', err);
+        this.loading = false;
         try {
           const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
           this.toastr.error(errorObj.message);
@@ -210,7 +211,7 @@ export class BudgetsComponent {
         panelClass: 'custom-dialog-container',
         data: {isBudget:true},
       });
-  
+
       dialogRef.afterClosed().subscribe((result) => {
         if (result) {
           this.httpClient.delete(`${this.baseUrl}/api/v1/budget/delete`).subscribe({
@@ -231,7 +232,7 @@ export class BudgetsComponent {
         }
       });
     }
-  
+
   
   
 
