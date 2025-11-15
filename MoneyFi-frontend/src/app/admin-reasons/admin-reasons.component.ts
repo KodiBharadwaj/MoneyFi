@@ -63,7 +63,7 @@ export class AdminReasonsComponent implements OnInit {
 
     // Now fetch reasons for each category and update in place
     this.categories.forEach((category, index) => {
-      this.http.get<Reason[]>(`${this.baseUrl}/api/v1/admin/reasons/get?code=${category.code}`).subscribe({
+      this.http.get<Reason[]>(`${this.baseUrl}/api/v1/user-service/admin/reasons/get?code=${category.code}`).subscribe({
         next: (data) => {
           this.categories[index].reasons = data;
         },
@@ -78,7 +78,7 @@ export class AdminReasonsComponent implements OnInit {
   addReason(category: ReasonCategory) {
     if (!category.newReason.trim()) return;
     const payload = { reasonCode: category.code, reason: category.newReason }; // matches ReasonDetailsRequestDto
-    this.http.post(`${this.baseUrl}/api/v1/admin/reasons/add`, payload).subscribe(() => {
+    this.http.post(`${this.baseUrl}/api/v1/user-service/admin/reasons/add`, payload).subscribe(() => {
       this.loadCategories();
       category.newReason = '';
     });
@@ -86,13 +86,13 @@ export class AdminReasonsComponent implements OnInit {
 
   updateReason(reason: Reason) {
     const payload = { reasonId: reason.reasonId, reason: reason.reason }; // matches ReasonUpdateRequestDto
-    this.http.put(`${this.baseUrl}/api/v1/admin/reasons/update`, payload).subscribe(() => {
+    this.http.put(`${this.baseUrl}/api/v1/user-service/admin/reasons/update`, payload).subscribe(() => {
       this.loadCategories();
     });
   }
 
   deleteReason(reasonId: number) {
-    this.http.delete(`${this.baseUrl}/api/v1/admin/reasons/delete?id=${reasonId}`).subscribe(() => {
+    this.http.delete(`${this.baseUrl}/api/v1/user-service/admin/reasons/delete?id=${reasonId}`).subscribe(() => {
       this.loadCategories();
     });
   }

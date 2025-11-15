@@ -1,13 +1,8 @@
 package com.moneyfi.apigateway.util;
 
-import com.moneyfi.apigateway.service.common.dto.request.UserDefectRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
 
 @Component
 public class EmailTemplates {
@@ -27,26 +22,6 @@ public class EmailTemplates {
                 + "<body>"
                 + "<p style='font-size: 16px;'>Hello " + userName +",</p>"
                 + "<p style='font-size: 16px;'>You have changed the password for your account with username: " + email + "</p>"
-                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
-                + "<p style='font-size: 16px;'>Kindly Ignore if it by you. If not, reply to this mail immediately to secure account.</p>"
-                + "<hr>"
-                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
-                + "<br>"
-                + "<p style='font-size: 14px;'>Best regards,</p>"
-                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
-                + "</body>"
-                + "</html>";
-        emailFilter.sendEmail(email, subject, body);
-    }
-
-    public void sendUserReportStatusMailToUser(String name, String referenceNumber, String description, String email){
-        String subject = "Report Raised Status";
-        String body = "<html>"
-                + "<body>"
-                + "<p style='font-size: 16px;'>Hello " + name +",</p>"
-                + "<p style='font-size: 16px;'>Please find the status of your request: " + description + "</p>"
-                + "<br>"
-                + "<p style='font-size: 16px;'>For more details, track your request in moneyfi with reference number: " + referenceNumber + "</p>"
                 + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
                 + "<p style='font-size: 16px;'>Kindly Ignore if it by you. If not, reply to this mail immediately to secure account.</p>"
                 + "<hr>"
@@ -169,163 +144,5 @@ public class EmailTemplates {
                 + "</body>"
                 + "</html>";
         emailFilter.sendEmail(email, subject, body);
-    }
-
-    public void sendUserRaiseDefectEmailToAdmin(UserDefectRequestDto userDefectRequestDto, MultipartFile image){
-        String subject = "MoneyFi's User Report Alert!!";
-
-        String body = "<html>"
-                + "<body>"
-                + "<p style='font-size: 16px;'>Hello Admin,</p>"
-                + "<p style='font-size: 16px;'>You received the Report/defect by a user: </p>"
-                + "<br>"
-                + "<p style='font-size: 16px;'>" + userDefectRequestDto.getMessage() + "</p>"
-                + "<br> <hr>"
-                + "<p style='font-size: 14px;'>" + userDefectRequestDto.getName() + "</p>"
-                + "<p style='font-size: 14px;'>" + userDefectRequestDto.getEmail() + "</p>"
-                + "<br>"
-                + "<p style='font-size: 16px;'>Please login for more details</p>"
-                + "</body>"
-                + "</html>";
-        if (image != null && !image.isEmpty()) {
-            try {
-                byte[] imageBytes = image.getBytes();
-                emailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, image.getOriginalFilename() != null ? image.getOriginalFilename() : "attachment.jpg");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
-        }
-    }
-
-    public void sendUserFeedbackEmailToAdmin(String rating, String message){
-        String subject = "MoneyFi's User Feedback";
-
-        String body = "<html>"
-                + "<body>"
-                + "<p style='font-size: 16px;'>Hello Admin,</p>"
-                + "<br>"
-                + "<p style='font-size: 16px;'> You received feedback: " + rating + "/5 </p>"
-                + "<br>"
-                + "<p style='font-size: 16px;'>Comment: </p>"
-                + "<p style='font-size: 16px;'>" + message + "</p>";
-        emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
-    }
-
-    public boolean sendAccountStatementAsEmail(String name, String username, byte[] pdfBytes) {
-        String subject = "MoneyFi - Account Statement";
-        String body = "<html>"
-                + "<body>"
-                + "<p style='font-size: 16px;'>Hello " + name + ", </p>"
-                + "<p style='font-size: 16px;'>You have requested for account statement. Kindly find the attached PDF.</p>"
-                + "<p style='font-size: 16px;'>The format for the password is: </p>"
-                + "<p style='font-size: 16px;'>First four characters in your name in capital + First four characters in username in small letters </p> <br>"
-                + "<p style='font-size: 16px;'>Lets say the name and username are: abcxyz, sample123@gmail.com. Then the password will be <strong> ABCXsamp </strong> </p>"
-                + "<hr>"
-                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL + "</p>"
-                + "<br>"
-                + "<p style='font-size: 14px;'>Best regards,</p>"
-                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
-                + "</body>"
-                + "</html>";
-        return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, name.substring(0, name.indexOf(' '))+"_statement.pdf");
-    }
-
-    public boolean sendSpendingAnalysisEmail(String name, String username, byte[] pdfBytes) {
-        String subject = "MoneyFi - Spending Analysis Report";
-        String body = "<html>"
-                + "<body>"
-                + "<p style='font-size: 16px;'>Hello " + name + ", </p>"
-                + "<p style='font-size: 16px;'>You have requested for spending analysis report. Kindly find the attached PDF.</p>"
-                + "<p style='font-size: 16px;'>The format for the password is: </p>"
-                + "<p style='font-size: 16px;'>First four characters in your name in capital + First four characters in username in small letters </p> <br>"
-                + "<p style='font-size: 16px;'>Lets say the name and username are: abcxyz, sample123@gmail.com. Then the password will be <strong> ABCXsamp </strong> </p>"
-                + "<hr>"
-                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL + "</p>"
-                + "<br>"
-                + "<p style='font-size: 14px;'>Best regards,</p>"
-                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
-                + "</body>"
-                + "</html>";
-        return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, name.substring(0, name.indexOf(' '))+"_spending_analysis.pdf");
-    }
-
-    public void sendReferenceNumberEmailToUser(String name, String email, String description, String referenceNumber) {
-        String subject = "MoneyFi - user requests";
-        String body = "<html>"
-                + "<body>"
-                + "<p style='font-size: 16px;'>Hello " + name + "</p>"
-                + "<p style='font-size: 16px;'>You have requested for reference number to " + description + ". Here is you reference number: " + referenceNumber + "</p>"
-                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
-                + "<p style='font-size: 16px;'>Please save your reference number to track the status of your request.</p>"
-                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
-                + "<p style='font-size: 16px;'>Kindly Ignore if it by you. If not, reply to this mail immediately to secure account.</p>"
-                + "<hr>"
-                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
-                + "<br>"
-                + "<p style='font-size: 14px;'>Best regards,</p>"
-                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
-                + "</body>"
-                + "</html>";
-        emailFilter.sendEmail(email, subject, body);
-    }
-
-    public SimpleMailMessage sendEmailForSuccessfulUserCreation(String name, String email){
-        String subject = "Welcome to MoneyFi";
-        String body = "<html>"
-                + "<body>"
-                + "<p style='font-size: 16px;'>Hello " + name +",</p>"
-                + "<p style='font-size: 16px;'>You have successfully created account in MoneyFi. Kindly Login to use our services. </p>"
-                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
-                + "<hr>"
-                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
-                + "<br>"
-                + "<p style='font-size: 14px;'>Best regards,</p>"
-                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
-                + "</body>"
-                + "</html>";
-        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-        simpleMailMessage.setFrom(ADMIN_EMAIL);
-        simpleMailMessage.setTo(email);
-        simpleMailMessage.setSubject(subject);
-        simpleMailMessage.setText(body);
-        return simpleMailMessage;
-    }
-
-    public void sendBlockAlertMailToUser(String email, String reason, String name, byte[] file) {
-        String subject = "Account Block Alert!!";
-        String body = "<html>"
-                + "<body>"
-                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
-                + "<p style='font-size: 16px;'>Your account has been blocked by admin due to the reason: " + reason + "</p>"
-                + "<p style='font-size: 16px;'>Please contact admin for more details or raise unblock request</p>"
-                + "<hr>"
-                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
-                + "<br>"
-                + "<p style='font-size: 14px;'>Best regards,</p>"
-                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
-                + "</body>"
-                + "</html>";
-        emailFilter.sendEmailWithAttachment(email, subject, body, file, "reason-attachment.pdf");
-    }
-
-    public void sendContactUsDetailsEmailToAdmin(String email, String phoneNumber, String name, String description) {
-        String subject = "MoneyFi - Help center/Contact";
-        String body = "<html>"
-                + "<body>"
-                + "<p style='font-size: 16px;'>Hello admin, </p>"
-                + "<p style='font-size: 16px;'>You got a mail through MoneyFi with contact details: </p>"
-                + "<br>"
-                + "<p style='font-size: 16px;'>" + name + "</p>"
-                + "<p style='font-size: 16px;'>" + email + "</p>"
-                + "<p style='font-size: 16px;'>" + phoneNumber + "</p>"
-                + "<p style='font-size: 16px;'> Description: " + description + "</p>"
-                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
-                + "<hr>"
-                + "<br>"
-                + "</body>"
-                + "</html>";
-        emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
     }
 }

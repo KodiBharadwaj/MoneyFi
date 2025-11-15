@@ -76,7 +76,7 @@ export class AdminUsersComponent implements OnInit {
 
   generateReport() {
     this.isLoading = true;
-    this.httpClient.get(`${this.baseUrl}/api/v1/admin/user-details/excel?status=${this.status}`, { responseType: 'blob' }).subscribe({
+    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/user-details/excel?status=${this.status}`, { responseType: 'blob' }).subscribe({
       next: (response) => {
         // Trigger File Download
         const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

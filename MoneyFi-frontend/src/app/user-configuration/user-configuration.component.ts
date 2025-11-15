@@ -114,7 +114,7 @@ export class UserConfigurationComponent implements AfterViewInit{
     });
 
     this.blockReasons = [];
-    this.http.get<string[]>(`${this.baseUrl}/api/v1/user/reasons-dialog/get?code=1`).subscribe({
+    this.http.get<string[]>(`${this.baseUrl}/api/v1/user-service/reasons-dialog/get?code=1`).subscribe({
       next: (data) => {
         this.blockReasons = [...data, 'Other'];
       },
@@ -143,7 +143,7 @@ export class UserConfigurationComponent implements AfterViewInit{
     });
 
     this.deleteReasons = [];
-    this.http.get<string[]>(`${this.baseUrl}/api/v1/user/reasons-dialog/get?code=5`).subscribe({
+    this.http.get<string[]>(`${this.baseUrl}/api/v1/user-service/reasons-dialog/get?code=5`).subscribe({
       next: (data) => {
         this.deleteReasons = [...data, 'Other'];
       },
@@ -155,7 +155,7 @@ export class UserConfigurationComponent implements AfterViewInit{
 
   downloadProfileTemplate() {
     this.isDownloading = true;
-    this.http.get(`${this.baseUrl}/api/v1/user/profile-details-template/download`, {
+    this.http.get(`${this.baseUrl}/api/v1/user-service/profile-details-template/download`, {
       responseType: 'blob'
     }).subscribe(blob => {
       const a = document.createElement('a');
@@ -183,7 +183,7 @@ export class UserConfigurationComponent implements AfterViewInit{
     const formData = new FormData();
     formData.append('file', this.selectedFile);
 
-    this.http.post(`${this.baseUrl}/api/v1/user/user-profile/excel-upload`, formData, {
+    this.http.post(`${this.baseUrl}/api/v1/user-service/user-profile/excel-upload`, formData, {
       responseType: 'text' // Because backend returns ResponseEntity<String>
     }).subscribe({
       next: response => {

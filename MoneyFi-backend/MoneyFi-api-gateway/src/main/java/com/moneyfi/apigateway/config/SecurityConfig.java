@@ -71,18 +71,21 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(customizer -> customizer.disable())
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("api/v1/admin/**").hasRole(UserRoles.ADMIN.name())
-                        .requestMatchers("api/v1/user-admin/**").hasAnyRole(UserRoles.ADMIN.name(), UserRoles.USER.name())
-                        .requestMatchers("api/auth/**").permitAll()
+                        .requestMatchers("/api/v1/admin/**").hasRole(UserRoles.ADMIN.name())
+                        .requestMatchers("/api/v1/user-admin/**").hasAnyRole(UserRoles.ADMIN.name(), UserRoles.USER.name())
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/v1/Oauth/**").permitAll()
                         .requestMatchers("/api/v1/external-api/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
-                        .anyRequest().hasRole(UserRoles.USER.name()))
+                        .requestMatchers("/api/v1/user-service/common/**").permitAll()
+                        .requestMatchers("/api/v1/user-service/admin/**").hasRole(UserRoles.ADMIN.name())
+                        .requestMatchers("/api/v1/user-service/user-admin/**").hasAnyRole(UserRoles.ADMIN.name(), UserRoles.USER.name())
+                        .requestMatchers("/api/v1/user-service/**").hasRole(UserRoles.USER.name())
+                        .anyRequest().hasAnyRole(UserRoles.USER.name()))
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .cors(Customizer.withDefaults()); // Ensure cors is enabled in SecurityFilterChain
-
         return http.build();
     }
 
@@ -118,21 +121,5 @@ public class SecurityConfig {
     @Bean
     public RestTemplate externalRestTemplateForOAuth(RestTemplateBuilder builder) {
         return builder.build(); // No @LoadBalanced
-    }
-
-    /** Aws s3 security connection **/
-    @Bean
-    public AmazonS3 s3Client(){
-        AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
-        return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(region).build();
-    }
-
-    /** Aws Simple Email Service (SES) Connection security details **/
-    @Bean
-    public SesClient sesClient() {
-        return SesClient.builder()
-                .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
-                .build();
     }
 }

@@ -27,7 +27,7 @@ public class ErrorHandler {
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage()), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler({CustomInternalServerErrorException.class, CloudinaryImageException.class})
+    @ExceptionHandler({CustomInternalServerErrorException.class})
     public ResponseEntity<ErrorResponse> handleHttpServerErrorExceptionFunction(CustomInternalServerErrorException ex) {
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }

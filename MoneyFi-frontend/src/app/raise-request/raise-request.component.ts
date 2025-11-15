@@ -58,7 +58,7 @@ export class RaiseRequestComponent implements OnInit {
     });
 
     this.unblockReasons = [];
-    this.http.get<string[]>(`${this.baseUrl}/api/auth/reasons-dialog/get?code=4`).subscribe({
+    this.http.get<string[]>(`${this.baseUrl}/api/v1/user-service/common/reasons-dialog/get?code=4`).subscribe({
       next: (data) => {
         this.unblockReasons = [...data];
       },
@@ -68,7 +68,7 @@ export class RaiseRequestComponent implements OnInit {
     });
 
     this.nameChangeReasons = [];
-    this.http.get<string[]>(`${this.baseUrl}/api/auth/reasons-dialog/get?code=3`).subscribe({
+    this.http.get<string[]>(`${this.baseUrl}/api/v1/user-service/common/reasons-dialog/get?code=3`).subscribe({
       next: (data) => {
         this.nameChangeReasons = [...data];
       },
@@ -78,7 +78,7 @@ export class RaiseRequestComponent implements OnInit {
     });
 
     this.retrievalReasons = [];
-    this.http.get<string[]>(`${this.baseUrl}/api/auth/reasons-dialog/get?code=6`).subscribe({
+    this.http.get<string[]>(`${this.baseUrl}/api/v1/user-service/common/reasons-dialog/get?code=6`).subscribe({
       next: (data) => {
         this.retrievalReasons = [...data];
       },
@@ -143,7 +143,7 @@ export class RaiseRequestComponent implements OnInit {
     const backendRequestType = requestTypeMap[this.selectedTab];
 
     this.http.get<{ [key: string]: string }>(
-      `${this.baseUrl}/api/auth/${backendRequestType}/${this.email}/reference-number-request`
+      `${this.baseUrl}/api/v1/user-service/common/${backendRequestType}/${this.email}/reference-number-request`
     ).subscribe({
       next: (response) => {
         console.log('Response from backend:', response);
@@ -193,7 +193,7 @@ export class RaiseRequestComponent implements OnInit {
       const { oldName, newName, referenceNumber, description } = this.requestData;
       const body = { email, oldName, newName, referenceNumber, description };
       
-      this.http.post(`${this.baseUrl}/api/auth/name-change-request`, body).subscribe({
+      this.http.post(`${this.baseUrl}/api/v1/user-service/common/name-change-request`, body).subscribe({
         next: (response) => {
           this.toastr.success('Request submitted successfully!');
           setTimeout(() => {
@@ -223,7 +223,7 @@ export class RaiseRequestComponent implements OnInit {
       const { name, description, referenceNumber } = this.requestData;
       const body = { username: email, name, description, referenceNumber, requestReason };
       
-      this.http.post(`${this.baseUrl}/api/auth/account-retrieve-request`, body).subscribe({
+      this.http.post(`${this.baseUrl}/api/v1/user-service/common/account-retrieve-request`, body).subscribe({
         next: (response) => {
           this.toastr.success('Request submitted successfully!');
           this.resetForm();

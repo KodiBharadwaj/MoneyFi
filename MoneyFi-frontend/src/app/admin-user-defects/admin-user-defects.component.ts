@@ -54,7 +54,7 @@ export class AdminUserDefectsComponent implements OnInit{
   baseUrl = environment.BASE_URL;
 
   loadUserDefects(): void {
-    this.httpClient.get<any[]>(`${this.baseUrl}/api/v1/admin/user-defects/grid?status=Active`)
+    this.httpClient.get<any[]>(`${this.baseUrl}/api/v1/user-service/admin/user-defects/grid?status=Active`)
       .subscribe({
         next: (data) => {
           this.userDefects = data;
@@ -73,7 +73,7 @@ export class AdminUserDefectsComponent implements OnInit{
   }
 
   viewImage(username: string, defectId: string): void {
-    this.httpClient.get(`${this.baseUrl}/api/v1/admin/user-defects/image?username=${username}&defectId=${defectId}`, { responseType: 'blob' })
+    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/user-defects/image?username=${username}&defectId=${defectId}`, { responseType: 'blob' })
       .subscribe({
         next: (blob) => {
           const reader = new FileReader();
@@ -126,7 +126,7 @@ export class AdminUserDefectsComponent implements OnInit{
       this.showReasonDialog = true; // open popup
       this.fetchIgnoreReasons();
     } else {
-        this.httpClient.put(`${this.baseUrl}/api/v1/admin/${defectId}/update-defect-status?reason=null`, { status }).subscribe({
+        this.httpClient.put(`${this.baseUrl}/api/v1/user-service/admin/${defectId}/update-defect-status?reason=null`, { status }).subscribe({
         next: () => {
           // Update local defect
           const defect = this.userDefects.find(d => d.id === defectId);
@@ -150,7 +150,7 @@ export class AdminUserDefectsComponent implements OnInit{
   }
 
   fetchIgnoreReasons(): void {
-    this.httpClient.get<string[]>(`${this.baseUrl}/api/v1/user-admin/reasons-dialog/get?code=8`)
+    this.httpClient.get<string[]>(`${this.baseUrl}/api/v1/user-service/user-admin/reasons-dialog/get?code=8`)
       .subscribe({
         next: (data) => {
           this.reasons = [...data, 'Other'];
@@ -168,7 +168,7 @@ export class AdminUserDefectsComponent implements OnInit{
     }
 
     this.httpClient.put(
-      `${this.baseUrl}/api/v1/admin/${this.defectIdForReason}/update-defect-status?reason=${encodeURIComponent(finalReason)}`,
+      `${this.baseUrl}/api/v1/user-service/admin/${this.defectIdForReason}/update-defect-status?reason=${encodeURIComponent(finalReason)}`,
       { status: 'Ignore' }
     ).subscribe({
       next: () => {

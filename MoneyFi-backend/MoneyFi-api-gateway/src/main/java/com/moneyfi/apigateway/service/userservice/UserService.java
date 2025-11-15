@@ -3,11 +3,8 @@ package com.moneyfi.apigateway.service.userservice;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.service.userservice.dto.request.*;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.Map;
 
 public interface UserService {
@@ -31,22 +28,6 @@ public interface UserService {
     Boolean checkEnteredOtpDuringSignup(String email, String inputOtp);
 
     Map<String, String> logout(String token);
-
-    Boolean getUsernameByDetails(ForgotUsernameDto userDetails);
-
-    boolean sendAccountStatementEmail(String username, byte[] pdfBytes);
-
-    boolean sendSpendingAnalysisEmail(String username, byte[] pdfBytes);
-
-    String uploadUserProfilePictureToS3(String username, MultipartFile file) throws IOException;
-
-    ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username);
-
-    ResponseEntity<ByteArrayResource> getUserRaisedDefectImage(String username, Long defectId);
-
-    ResponseEntity<String> deleteProfilePictureFromS3(String username);
-
-    ResponseEntity<String> blockOrDeleteAccountByUserRequest(String username, AccountBlockOrDeleteRequestDto request);
 
     ResponseEntity<String> sendOtpToBlockAccount(String username, String type);
 }

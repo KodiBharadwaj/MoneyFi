@@ -87,7 +87,7 @@ userMonthlyChartData: ChartConfiguration<'bar'>['data'] = {
 
   loadUserMonthlyData(): void {
     const status = 'All'; // or any status you want to filter
-    this.http.get<{ [key: number]: number }>(`${this.baseUrl}/api/v1/admin/${this.selectedYear}/user-monthly-count/chart?status=${status}`)
+    this.http.get<{ [key: number]: number }>(`${this.baseUrl}/api/v1/user-service/admin/${this.selectedYear}/user-monthly-count/chart?status=${status}`)
       .subscribe(data => {
         const monthlyCounts = Array(12).fill(0);
         for (let month = 1; month <= 12; month++) {
@@ -193,7 +193,7 @@ dummyChartOptions: ChartConfiguration<'bar'>['options'] = {
 
 
   loadUserCountChart(): void {
-    this.http.get<any>(`${this.baseUrl}/api/v1/admin/overview-user-details`)
+    this.http.get<any>(`${this.baseUrl}/api/v1/user-service/admin/overview-user-details`)
     .subscribe(data => {
       const { activeUsers, blockedUsers, deletedUsers } = data;
 

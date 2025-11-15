@@ -5,19 +5,11 @@ import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.auth.BlackListedToken;
 import com.moneyfi.apigateway.model.auth.OtpTempModel;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
-import com.moneyfi.apigateway.model.common.ContactUs;
-import com.moneyfi.apigateway.model.common.ContactUsHist;
-import com.moneyfi.apigateway.model.common.ProfileModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.model.common.UserAuthHist;
-import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
-import com.moneyfi.apigateway.repository.user.ContactUsRepository;
 import com.moneyfi.apigateway.repository.user.UserAuthHistRepository;
 import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
-import com.moneyfi.apigateway.repository.user.ProfileRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
-import com.moneyfi.apigateway.service.common.AwsServices;
-import com.moneyfi.apigateway.service.common.CloudinaryService;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
@@ -25,14 +17,12 @@ import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
 import com.moneyfi.apigateway.service.userservice.dto.request.*;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
-import com.moneyfi.apigateway.util.constants.StringUtils;
 import com.moneyfi.apigateway.util.enums.*;
 import com.moneyfi.apigateway.util.validators.UserValidations;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -42,13 +32,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.moneyfi.apigateway.util.constants.StringUtils.*;
 
@@ -84,39 +71,24 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final OtpTempRepository otpTempRepository;
     private final JwtService jwtService;
-    private final ProfileRepository profileRepository;
     private final UserCommonService userCommonService;
-    private final ContactUsRepository contactUsRepository;
-    private final ContactUsHistRepository contactUsHistRepository;
     private final EmailTemplates emailTemplates;
-    private final AwsServices awsServices;
-    private final CloudinaryService cloudinaryService;
     private final UserAuthHistRepository userAuthHistRepository;
     private final AuthenticationManager authenticationManager;
 
     public UserServiceImpl(UserRepository userRepository,
                            OtpTempRepository otpTempRepository,
                            JwtService jwtService,
-                           ProfileRepository profileRepository,
                            UserCommonService userCommonService,
-                           ContactUsRepository contactUsRepository,
-                           ContactUsHistRepository contactUsHistRepository,
                            AuthenticationManager authenticationManager,
                            EmailTemplates emailTemplates,
-                           AwsServices awsServices,
-                           @Autowired(required = false) CloudinaryService cloudinaryService,
                            UserAuthHistRepository userAuthHistRepository){
         this.userRepository = userRepository;
         this.otpTempRepository = otpTempRepository;
         this.jwtService = jwtService;
-        this.profileRepository = profileRepository;
         this.userCommonService = userCommonService;
-        this.contactUsRepository = contactUsRepository;
-        this.contactUsHistRepository = contactUsHistRepository;
         this.authenticationManager = authenticationManager;
         this.emailTemplates = emailTemplates;
-        this.awsServices = awsServices;
-        this.cloudinaryService = cloudinaryService;
         this.userAuthHistRepository = userAuthHistRepository;
     }
 
@@ -161,7 +133,7 @@ public class UserServiceImpl implements UserService {
             /** send successful email in a separate thread by aws ses **/
             new Thread(() -> {
                 try {
-                    awsServices.sendEmailToUserUsingAwsSes(emailTemplates.sendEmailForSuccessfulUserCreation(userProfile.getName(), userProfile.getUsername()));
+//                    awsServices.sendEmailToUserUsingAwsSes(emailTemplates.sendEmailForSuccessfulUserCreation(userProfile.getName(), userProfile.getUsername()));
                 } catch (Exception e) {
                     e.printStackTrace();
                     throw new RuntimeException("Exception occurred while sending email: " + e);
@@ -173,19 +145,14 @@ public class UserServiceImpl implements UserService {
     }
 
     private void saveUserAuthDetails(UserAuthModel userAuthModel, String username){
-        userAuthModel.setUsername(username);
+        userAuthModel.setUsername(username.trim());
         userAuthModel.setOtpCount(0);
         userAuthModel.setDeleted(false);
         userAuthModel.setBlocked(false);
     }
 
     private void saveUserProfileDetails(Long userId, UserProfile userProfile, String address){
-        ProfileModel profile = new ProfileModel();
-        profile.setUserId(userId);
-        profile.setName(userProfile.getName());
-        profile.setCreatedDate(LocalDateTime.now());
-        if(address != null && !address.isEmpty()) profile.setAddress(address);
-        profileRepository.save(profile);
+        userRepository.insertProfileDetailsDuringSignup(userId, userProfile.getName(), LocalDateTime.now(), (address != null && !address.isEmpty()) ? address : null);
     }
 
     @Override
@@ -256,7 +223,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private void functionToPreventMultipleLogins(UserAuthModel userAuthModel, JwtToken token){
-        // Conditions to store the jwt token to prevent multiple logins of same account in different browsers
         if(userCommonService.getUserByUsername(userAuthModel.getUsername()) != null){
             SessionTokenModel sessionTokens = userCommonService.getUserByUsername(userAuthModel.getUsername());
             sessionTokens.setUsername(userAuthModel.getUsername());
@@ -300,7 +266,7 @@ public class UserServiceImpl implements UserService {
                 UserAuthModel newOrExistingUser = userRepository.getUserDetailsByUsername(email).orElse(null);
                 if (newOrExistingUser == null) {
                     newOrExistingUser = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Google User", email, GOOGLE_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()), LoginMode.GOOGLE_OAUTH.name(), null);
-                    if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(email, convertImageUrlToMultipartFile(picture));
+//                    if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(email, convertImageUrlToMultipartFile(picture));
                 }
                 if (newOrExistingUser.isBlocked()) {
                     userRoleToken.put(ERROR, ACCOUNT_BLOCKED);
@@ -379,7 +345,7 @@ public class UserServiceImpl implements UserService {
             if (user == null) {
                 user = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Github User", email, GITHUB_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()),
                         LoginMode.GITHUB_OAUTH.name(), (address != null && !address.trim().isEmpty()) ? address : null);
-                if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(email, convertImageUrlToMultipartFile(picture));
+//                if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(email, convertImageUrlToMultipartFile(picture));
             }
             if (user.isBlocked()) {
                 throw new ScenarioNotPossibleException("User is blocked, Kindly contact admin");
@@ -433,7 +399,7 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         userAuthHistRepository.save(new UserAuthHist(changePasswordDto.getUserId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE), changePasswordDto.getDescription(), changePasswordDto.getUserId()));
         new Thread(() ->
-                emailTemplates.sendPasswordChangeAlertMail(StringUtils.functionToGetNameOfUserWithUserId(profileRepository, user.getId()), user.getUsername())
+                emailTemplates.sendPasswordChangeAlertMail(userRepository.getUserNameByUsername(user.getUsername()), user.getUsername())
         ).start();
     }
 
@@ -487,17 +453,7 @@ public class UserServiceImpl implements UserService {
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
-        UserAuthModel user = userRepository.getUserDetailsByUsername(jwtService.extractUserName(token)).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
-        if (userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(USER_ROLE)) {
-            Optional<ProfileModel> userProfile = profileRepository.findByUserId(user.getId());
-            if (userProfile.isPresent()) {
-                String phoneNumber = userProfile.get().getPhone();
-                if (phoneNumber == null || phoneNumber.isEmpty()) {
-                    response.put(MESSAGE, PHONE_NUMBER_EMPTY_MESSAGE);
-                    return response;
-                }
-            }
-        }
+        userRepository.getUserDetailsByUsername(jwtService.extractUserName(token)).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         if (makeUserTokenBlacklisted(token) != null && makeUserSessionInActive(token) != null) {
             response.put(MESSAGE, LOGOUT_SUCCESS_MESSAGE);
         } else {
@@ -521,164 +477,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Boolean getUsernameByDetails(ForgotUsernameDto userDetails) {
-        String username = functionCallToRetrieveUsername(userDetails);
-        if (username == null || username.trim().isEmpty()) {
-            return false;
-        }
-        log.info("Username fetched: {}", username);
-        emailTemplates.sendUserNameToUser(username);
-        return true;
-    }
-
-    @Override
-    public boolean sendAccountStatementEmail(String username, byte[] pdfBytes) {
-        String name = functionToGetNameOfUserWithUserId(profileRepository, getUserIdByUsername(username));
-        try {
-            return emailTemplates.sendAccountStatementAsEmail(!name.trim().isEmpty() ? name : "User", username, pdfBytes);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public boolean sendSpendingAnalysisEmail(String username, byte[] pdfBytes) {
-        String name = functionToGetNameOfUserWithUserId(profileRepository, getUserIdByUsername(username));
-        try {
-            return emailTemplates.sendSpendingAnalysisEmail(!name.trim().isEmpty() ? name : "User", username, pdfBytes);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public String uploadUserProfilePictureToS3(String username, MultipartFile file) {
-        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
-            cloudinaryService.uploadPictureToCloudinary(file, getUserIdByUsername(username), username, UPLOAD_PROFILE_PICTURE);
-            return "Upload Successful";
-        } else {
-            return awsServices.uploadPictureToS3(getUserIdByUsername(username), username, file, UPLOAD_PROFILE_PICTURE);
-        }
-    }
-
-    @Override
-    public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username) {
-        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
-            byte[] imageBytes = cloudinaryService.getImageFromCloudinary(getUserIdByUsername(username), username, UPLOAD_PROFILE_PICTURE);
-            ByteArrayResource resource = new ByteArrayResource(imageBytes);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.IMAGE_JPEG)
-                    .contentLength(imageBytes.length)
-                    .body(resource);
-        } else {
-            return awsServices.fetchUserProfilePictureFromS3(getUserIdByUsername(username), username);
-        }
-    }
-
-    @Override
-    public ResponseEntity<ByteArrayResource> getUserRaisedDefectImage(String username, Long defectId) {
-        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
-            byte[] imageBytes = cloudinaryService.getImageFromCloudinary(defectId, username, UPLOAD_USER_RAISED_REPORT_PICTURE);
-            ByteArrayResource resource = new ByteArrayResource(imageBytes);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.IMAGE_JPEG)
-                    .contentLength(imageBytes.length)
-                    .body(resource);
-        } else {
-            return awsServices.fetchUserProfilePictureFromS3(getUserIdByUsername(username), username);
-        }
-    }
-
-    @Override
-    public ResponseEntity<String> deleteProfilePictureFromS3(String username) {
-        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
-            return cloudinaryService.deleteProfilePictureFromCloudinary(getUserIdByUsername(username), username);
-        } else {
-            return awsServices.deleteProfilePictureFromS3(getUserIdByUsername(username), username);
-        }
-    }
-
-    @Override
-    @Transactional
-    public ResponseEntity<String> blockOrDeleteAccountByUserRequest(String username, AccountBlockOrDeleteRequestDto request) {
-        UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
-        UserValidations.userAccountDeactivationInputValidation(request);
-        UserValidations.userAlreadyDeactivatedCheckValidation(user);
-
-        String deactivationType;
-        String referencePrefix;
-        if (request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.BLOCK.name())) {
-            deactivationType = OtpType.ACCOUNT_BLOCK.name();
-            referencePrefix = "BL";
-        } else if (request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.DELETE.name())) {
-            deactivationType = OtpType.ACCOUNT_DELETE.name();
-            referencePrefix = "DL";
-        } else {
-            throw new ScenarioNotPossibleException(INVALID_REQUEST_MESSAGE);
-        }
-        Optional<OtpTempModel> tempModel = otpTempRepository.findByEmail(username)
-                .stream()
-                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(deactivationType) && tempOtp.getExpirationTime().isAfter(LocalDateTime.now()))
-                .findFirst();
-        if (tempModel.isPresent()) {
-            OtpTempModel response = tempModel.get();
-            UserValidations.otpCheckDuringAccountDeactivationValidations(request, response, user);
-
-            ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
-            String referenceNumber = StringUtils.generateReferenceNumberForUserToSendEmail(referencePrefix, userProfile, username);
-
-            ContactUs accountDeactivationRequest = new ContactUs();
-            UserAuthHist userAuthHist = new UserAuthHist();
-            ContactUsHist blockAccountOrDeleteRequestHistory = new ContactUsHist();
-            if (deactivationType.equalsIgnoreCase(OtpType.ACCOUNT_BLOCK.name())) {
-                user.setBlocked(true);
-                accountDeactivationRequest.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
-                userAuthHist.setReasonTypeId(reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT));
-                blockAccountOrDeleteRequestHistory.setMessage(BLOCKED_BY_USER + ", " + request.getDescription());
-            } else {
-                user.setDeleted(true);
-                accountDeactivationRequest.setRequestReason(RequestReason.ACCOUNT_DELETE_REQUEST.name());
-                userAuthHist.setReasonTypeId(reasonCodeIdAssociation.get(ReasonEnum.DELETE_ACCOUNT));
-                blockAccountOrDeleteRequestHistory.setMessage("Deleted by User," + request.getDescription());
-            }
-            userRepository.save(user);
-            accountDeactivationRequest.setEmail(username);
-            accountDeactivationRequest.setReferenceNumber(referenceNumber);
-            accountDeactivationRequest.setRequestActive(true);
-            accountDeactivationRequest.setVerified(false);
-            accountDeactivationRequest.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-            accountDeactivationRequest.setStartTime(LocalDateTime.now());
-            ContactUs savedRequest = contactUsRepository.save(accountDeactivationRequest);
-
-            blockAccountOrDeleteRequestHistory.setName(userProfile.getName());
-            blockAccountOrDeleteRequestHistory.setContactUsId(savedRequest.getId());
-            blockAccountOrDeleteRequestHistory.setUpdatedTime(savedRequest.getStartTime());
-            blockAccountOrDeleteRequestHistory.setRequestReason(savedRequest.getRequestReason());
-            blockAccountOrDeleteRequestHistory.setRequestStatus(savedRequest.getRequestStatus());
-            contactUsHistRepository.save(blockAccountOrDeleteRequestHistory);
-
-            userAuthHist.setUserId(user.getId());
-            userAuthHist.setComment(request.getDescription());
-            userAuthHist.setUpdatedBy(user.getId());
-            userAuthHist.setUpdatedTime(savedRequest.getStartTime());
-            userAuthHistRepository.save(userAuthHist);
-            new Thread(
-                    () -> {
-                        int rowsAffected = otpTempRepository.deleteByEmailAndRequestType(username, deactivationType);
-                        log.info("Number of OTP entries deleted: {}", rowsAffected);
-                        /** emailTemplates.sendReferenceNumberEmail(userProfile.getName(), username, "account block", referenceNumber); **/
-                    }
-            ).start();
-            return ResponseEntity.ok("Account " + (request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.BLOCK.name()) ? "Blocked" : "Deleted") + " successfully");
-        } else {
-            throw new ResourceNotFoundException("Otp request not found");
-        }
-    }
-
-    @Override
     @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<String> sendOtpToBlockAccount(String username, String type) {
-        UserAuthModel userData = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found with username " + username));
+        UserAuthModel userData = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         UserValidations.userAlreadyDeactivatedCheckValidation(userData);
 
         String verificationCode;
@@ -700,93 +501,7 @@ public class UserServiceImpl implements UserService {
                     otpTempRepository.save(new OtpTempModel(username, newOtp, LocalDateTime.now().plusMinutes(5), otpType));
                     return newOtp;
                 });
-        emailTemplates.sendOtpToUserForAccountBlock(username, profileRepository.findByUserId(userData.getId()).get().getName(), verificationCode, type);
+        emailTemplates.sendOtpToUserForAccountBlock(username, userRepository.getUserNameByUsername(username.trim()), verificationCode, type);
         return ResponseEntity.ok(EMAIL_SENT_SUCCESS_MESSAGE);
-    }
-
-    private String functionCallToRetrieveUsername(ForgotUsernameDto userDetails) {
-        String username = "";
-
-        if (userDetails.getPhoneNumber() != null && userDetails.getPhoneNumber().length() == 10) {
-            List<ProfileModel> fetchedUsers = profileRepository.findByPhone(userDetails.getPhoneNumber().trim());
-            if (fetchedUsers.size() == 1) {
-                return functionToGetUsernameUsingUserId(fetchedUsers.get(0).getUserId());
-            }
-
-            fetchedUsers = fetchedUsers
-                    .stream()
-                    .filter(user -> user.getDateOfBirth().equals(userDetails.getDateOfBirth()))
-                    .toList();
-            if (fetchedUsers.size() == 1) {
-                return functionToGetUsernameUsingUserId(fetchedUsers.get(0).getUserId());
-            }
-
-            fetchedUsers = fetchedUsers
-                    .stream()
-                    .filter(user -> user.getName().equalsIgnoreCase(userDetails.getName()))
-                    .toList();
-            if (fetchedUsers.size() == 1) {
-                return functionToGetUsernameUsingUserId(fetchedUsers.get(0).getUserId());
-            }
-
-            fetchedUsers = fetchedUsers
-                    .stream()
-                    .filter(user -> user.getGender().equalsIgnoreCase(userDetails.getGender())
-                            && user.getMaritalStatus().equalsIgnoreCase(userDetails.getMaritalStatus()))
-                    .toList();
-            if (fetchedUsers.size() == 1) {
-                return functionToGetUsernameUsingUserId(fetchedUsers.get(0).getUserId());
-            }
-
-            List<String> matchedUsernames = functionToFetchUserByPinCode(fetchedUsers, userDetails);
-            if (matchedUsernames.size() == 1) {
-                return matchedUsernames.get(0);
-            }
-            username += "null";
-        }
-        return functionCallToFetchUsernameByUserDetailsWithoutPhoneNumber(username, userDetails);
-    }
-
-    private List<String> functionToFetchUserByPinCode(List<ProfileModel> fetchedUsers, ForgotUsernameDto userDetails) {
-        List<String> matchedUsernames = new ArrayList<>();
-        for (ProfileModel profile : fetchedUsers) {
-            String address = profile.getAddress();
-            if (address != null && !address.isEmpty()) {
-                Pattern pattern = Pattern.compile("\\b\\d{6}\\b");
-                Matcher matcher = pattern.matcher(address);
-                String pincode = null;
-                if (matcher.find()) {
-                    pincode = matcher.group();
-                    if (pincode.equals(userDetails.getPinCode())) {
-                        matchedUsernames.add(functionToGetUsernameUsingUserId(fetchedUsers.get(0).getUserId()));
-                    }
-                }
-            }
-        }
-        return matchedUsernames;
-    }
-
-    private String functionToGetUsernameUsingUserId(Long userId) {
-        Optional<UserAuthModel> user = userRepository.findById(userId);
-        if (user.isPresent()) {
-            return user.get().getUsername();
-        } else {
-            throw new ResourceNotFoundException(USER_NOT_FOUND);
-        }
-    }
-
-    private String functionCallToFetchUsernameByUserDetailsWithoutPhoneNumber(String username, ForgotUsernameDto userDetails) {
-        if (username.isEmpty() || username.equalsIgnoreCase("null")) {
-            List<ProfileModel> fetchedUsersByAllDetails =
-                    profileRepository.findByUserProfileDetails(userDetails.getDateOfBirth(), userDetails.getName(), userDetails.getGender(), userDetails.getMaritalStatus());
-            if (fetchedUsersByAllDetails.size() == 1) {
-                return functionToGetUsernameUsingUserId(fetchedUsersByAllDetails.get(0).getUserId());
-            }
-            List<String> matchedUsernames = functionToFetchUserByPinCode(fetchedUsersByAllDetails, userDetails);
-            if (matchedUsernames.size() == 1) {
-                return matchedUsernames.get(0);
-            }
-        }
-        return null;
     }
 }

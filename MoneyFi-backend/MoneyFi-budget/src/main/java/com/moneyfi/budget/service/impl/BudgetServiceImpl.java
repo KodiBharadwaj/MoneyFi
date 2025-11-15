@@ -199,7 +199,7 @@ public class BudgetServiceImpl implements BudgetService {
 
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(pdfBytes, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
-                StringConstants.API_GATEWAY_URL_PROFILE_CONTROLLER + "spending-analysis/email",
+                StringConstants.USER_SERVICE_URL_CONTROLLER + "/spending-analysis/email",
                 HttpMethod.POST,
                 requestEntity,
                 Void.class
