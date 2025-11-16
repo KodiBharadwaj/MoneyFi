@@ -89,8 +89,8 @@ public interface ProfileRepository extends JpaRepository<ProfileModel, Long> {
 
     @Transactional
     @Modifying
-    @Query("DELETE FROM OtpTempModel o WHERE o.email = :email AND o.otpType = :requestType")
-    int deleteByEmailAndRequestType(String email, String requestType);
+    @Query(nativeQuery = true, value = "DELETE FROM otp_temp_table WHERE email = :email AND otp_type = :requestType")
+    int deleteByEmailAndRequestType(@Param("email") String email, @Param("requestType") String requestType);
 
     @Query(nativeQuery = true, value = """
             SELECT uat.* 

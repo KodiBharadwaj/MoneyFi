@@ -228,7 +228,14 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, name.substring(0, name.indexOf(' '))+"_statement.pdf");
+        String fileNamePart;
+        int spaceIndex = name.indexOf(' ');
+        if (spaceIndex > 0) {
+            fileNamePart = name.substring(0, spaceIndex);
+        } else {
+            fileNamePart = name;
+        }
+        return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, fileNamePart+"_statement.pdf");
     }
 
     public boolean sendSpendingAnalysisEmail(String name, String username, byte[] pdfBytes) {
@@ -247,7 +254,14 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, name.substring(0, name.indexOf(' '))+"_spending_analysis.pdf");
+        String fileNamePart;
+        int spaceIndex = name.indexOf(' ');
+        if (spaceIndex > 0) {
+            fileNamePart = name.substring(0, spaceIndex);
+        } else {
+            fileNamePart = name;
+        }
+        return emailFilter.sendEmailWithAttachment(username, subject, body, pdfBytes, fileNamePart + "_spending_analysis.pdf");
     }
 
     public void sendReferenceNumberEmailToUser(String name, String email, String description, String referenceNumber) {

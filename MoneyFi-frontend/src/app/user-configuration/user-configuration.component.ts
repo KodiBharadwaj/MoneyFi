@@ -213,7 +213,7 @@ export class UserConfigurationComponent implements AfterViewInit{
       password : null
     };
 
-    this.http.post(`${this.baseUrl}/api/v1/user/deactivate-account`, payload, {
+    this.http.post(`${this.baseUrl}/api/v1/user-service/deactivate-account`, payload, {
       responseType: 'text'
     }).subscribe({
       next: response => {
@@ -259,7 +259,7 @@ export class UserConfigurationComponent implements AfterViewInit{
       password : this.password
     };
 
-    this.http.post(`${this.baseUrl}/api/v1/user/deactivate-account`, payload, {
+    this.http.post(`${this.baseUrl}/api/v1/user-service/deactivate-account`, payload, {
       responseType: 'text'
     }).subscribe({
       next: response => {

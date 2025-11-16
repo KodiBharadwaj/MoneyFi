@@ -1,10 +1,5 @@
 package com.moneyfi.apigateway.config;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.moneyfi.apigateway.util.enums.UserRoles;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -28,10 +23,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.ses.SesClient;
 
 @Configuration
 @EnableWebSecurity
@@ -77,6 +68,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/Oauth/**").permitAll()
                         .requestMatchers("/api/v1/external-api/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
+
                         .requestMatchers("/api/v1/user-service/common/**").permitAll()
                         .requestMatchers("/api/v1/user-service/admin/**").hasRole(UserRoles.ADMIN.name())
                         .requestMatchers("/api/v1/user-service/user-admin/**").hasAnyRole(UserRoles.ADMIN.name(), UserRoles.USER.name())
