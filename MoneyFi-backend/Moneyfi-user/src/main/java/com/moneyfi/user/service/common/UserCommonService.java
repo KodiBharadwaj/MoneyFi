@@ -1,0 +1,50 @@
+package com.moneyfi.user.service.common;
+
+import com.moneyfi.user.model.dto.UserAuthModel;
+import com.moneyfi.user.service.common.dto.request.*;
+import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
+import com.moneyfi.user.service.common.dto.response.UserRequestStatusDto;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+public interface UserCommonService {
+
+    String uploadUserProfilePictureToS3(String username, Long userId, MultipartFile file) throws IOException;
+
+    ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username, Long userId);
+
+    ResponseEntity<ByteArrayResource> getUserRaisedDefectImage(String username, Long defectId);
+
+    ResponseEntity<String> deleteProfilePictureFromS3(String username, Long userId);
+
+    List<UserNotificationResponseDto> getUserNotifications(String username);
+
+    Integer getUserNotificationsCount(String username);
+
+    void updateUserNotificationSeenStatus(String username, String notificationIds);
+
+    List<String> getReasonsForDialogForUser(int reasonCode);
+
+    Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email);
+
+    void accountReactivateRequestByUser(AccountRetrieveRequestDto requestDto);
+
+    void nameChangeRequestByUser(NameChangeRequestDto requestDto);
+
+    UserRequestStatusDto trackUserRequestUsingReferenceNumber(String referenceNumber);
+
+    void sendContactUsDetailsToAdmin(HelpCenterContactUsRequestDto requestDto);
+
+    void saveUserNotificationsForParticularUsers(String recipients, Long scheduleId);
+
+    void saveUserNotificationsForAllUsers(List<UserAuthModel> recipients, Long id);
+
+    ResponseEntity<String> blockOrDeleteAccountByUserRequest(String username, AccountBlockOrDeleteRequestDto request);
+
+    Boolean getUsernameByDetails(ForgotUsernameDto userDetails);
+}

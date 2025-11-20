@@ -54,7 +54,7 @@ export class AnalysisComponent {
     const currentYear = currentDate.getFullYear();
 
     const expensesUrl = `${this.baseUrl}/api/v1/expense/getExpenses/${currentMonth}/${currentYear}/all/false`;
-    const budgetsUrl = `${this.baseUrl}/api/v1/budget/all/${currentMonth}/${currentYear}/get`;
+    const budgetsUrl = `${this.baseUrl}/api/v1/budget-service/user/all/${currentMonth}/${currentYear}/get`;
 
         // Use forkJoin to make parallel requests
     forkJoin({

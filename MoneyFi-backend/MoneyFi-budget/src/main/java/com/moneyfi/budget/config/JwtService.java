@@ -1,5 +1,6 @@
 package com.moneyfi.budget.config;
 
+import com.moneyfi.budget.exceptions.ResourceNotFoundException;
 import com.moneyfi.budget.repository.BudgetRepository;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,8 +30,9 @@ public class JwtService {
         try {
             return budgetRepository.getUserIdFromUsernameAndToken(username, token);
         } catch (DataAccessException ex) {
-            // Sql error when the token is blacklisted
             throw new IllegalArgumentException("Token is blacklisted");
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("Failed to validate the user");
         }
     }
 }

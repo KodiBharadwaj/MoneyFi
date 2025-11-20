@@ -36,7 +36,7 @@ export class ContactFormComponent {
   }
 
   getNameAndEmailOfUser(){
-    this.httpClient.get<ProfileDetails>(`${this.baseUrl}/api/v1/userProfile/getProfile`).subscribe({
+    this.httpClient.get<ProfileDetails>(`${this.baseUrl}/api/v1/user-service/profile-details/get`).subscribe({
       next: (userProfile) => {
         this.contactData.name = userProfile.name;
         this.contactData.email = userProfile.email;
@@ -47,7 +47,6 @@ export class ContactFormComponent {
     });
   }
 
-
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     const maxSize = 5 * 1024 * 1024; // 5MB
@@ -55,9 +54,11 @@ export class ContactFormComponent {
 
     if (file && allowedTypes.includes(file.type)) {
       if (file.size <= maxSize) {
+        this.selectedFile = file;
+
         const reader = new FileReader();
         reader.onload = (e: any) => {
-          this.contactData.images = e.target.result;
+          this.contactData.images = e.target.result; // Base64 preview only
         };
         reader.readAsDataURL(file);
       } else {
@@ -82,15 +83,14 @@ export class ContactFormComponent {
     formData.append('name', this.contactData.name);
     formData.append('email', this.contactData.email);
     formData.append('message', this.contactData.message);
-
     if (this.selectedFile) {
-      formData.append('file', this.selectedFile); // This matches the `MultipartFile file` field
+      formData.append('file', this.selectedFile);
     }
 
-    this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/report-issue`, formData).subscribe(
+    this.httpClient.post(`${this.baseUrl}/api/v1/user-service/report-issue`, formData).subscribe(
       (response) => {
         this.resetForm();
-        this.toastr.success('Feedback submitted successfully!', '', {
+        this.toastr.success('Report has been sent to admin', '', {
           timeOut: 1500  // toast visible for 3 seconds
         });
         
@@ -101,8 +101,11 @@ export class ContactFormComponent {
       },
       error => {
         console.error('Error submitting form:', error);
-        alert('Failed to submit form. Please try again.');
         this.isSubmitting = false;
+        if(error.status === 401){
+          this.toastr.error('Failed to submit, try later');
+        }
+        else this.toastr.error(error.error.message);
       }
     );
   }

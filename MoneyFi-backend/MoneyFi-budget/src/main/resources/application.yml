@@ -31,5 +31,8 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
 
+  jackson:
+    time-zone: Asia/Kolkata
+
 jwt:
   secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf

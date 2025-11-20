@@ -75,13 +75,13 @@
           <mat-form-field appearance="outline" class="form-field compact">
             <mat-label>Phone Number</mat-label>
             <input matInput type="number" [(ngModel)]="userProfileDetails.phone"
-              [readonly]="!isEditing" pattern="[0-9]*" inputmode="numeric" />
+              [readonly]="!isEditing" [disabled]="!isEditing" pattern="[0-9]*" inputmode="numeric" />
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="form-field full-width">
             <mat-label>Date of Birth</mat-label>
             <input matInput [matDatepicker]="dobPicker" [(ngModel)]="userProfileDetails.dateOfBirth"
-              [readonly]="!isEditing" [max]="today" name="dateOfBirth">
+              [readonly]="!isEditing" [max]="today" name="dateOfBirth" [disabled]="!isEditing">
             <mat-datepicker-toggle matIconSuffix [for]="dobPicker"></mat-datepicker-toggle>
             <mat-datepicker #dobPicker></mat-datepicker>
           </mat-form-field>

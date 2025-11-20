@@ -42,7 +42,8 @@ export class AdminReasonsComponent implements OnInit {
     { code: 4, title: 'Unblock Account Reasons' },
     { code: 5, title: 'Delete Account Reasons' },
     { code: 6, title: 'Account Retrieval Reasons' },
-    { code: 7, title: 'Phone Number Change Reasons' }
+    { code: 7, title: 'Phone Number Change Reasons' },
+    { code: 8, title: 'Decline User Request Reasons' }
   ];
 
   constructor(private http: HttpClient, private dialog: MatDialog, private toastr: ToastrService, private route: ActivatedRoute, private router:Router) {}
@@ -62,7 +63,7 @@ export class AdminReasonsComponent implements OnInit {
 
     // Now fetch reasons for each category and update in place
     this.categories.forEach((category, index) => {
-      this.http.get<Reason[]>(`${this.baseUrl}/api/v1/admin/reasons/get?code=${category.code}`).subscribe({
+      this.http.get<Reason[]>(`${this.baseUrl}/api/v1/user-service/admin/reasons/get?code=${category.code}`).subscribe({
         next: (data) => {
           this.categories[index].reasons = data;
         },
@@ -77,7 +78,7 @@ export class AdminReasonsComponent implements OnInit {
   addReason(category: ReasonCategory) {
     if (!category.newReason.trim()) return;
     const payload = { reasonCode: category.code, reason: category.newReason }; // matches ReasonDetailsRequestDto
-    this.http.post(`${this.baseUrl}/api/v1/admin/reasons/add`, payload).subscribe(() => {
+    this.http.post(`${this.baseUrl}/api/v1/user-service/admin/reasons/add`, payload).subscribe(() => {
       this.loadCategories();
       category.newReason = '';
     });
@@ -85,13 +86,13 @@ export class AdminReasonsComponent implements OnInit {
 
   updateReason(reason: Reason) {
     const payload = { reasonId: reason.reasonId, reason: reason.reason }; // matches ReasonUpdateRequestDto
-    this.http.put(`${this.baseUrl}/api/v1/admin/reasons/update`, payload).subscribe(() => {
+    this.http.put(`${this.baseUrl}/api/v1/user-service/admin/reasons/update`, payload).subscribe(() => {
       this.loadCategories();
     });
   }
 
   deleteReason(reasonId: number) {
-    this.http.delete(`${this.baseUrl}/api/v1/admin/reasons/delete?id=${reasonId}`).subscribe(() => {
+    this.http.delete(`${this.baseUrl}/api/v1/user-service/admin/reasons/delete?id=${reasonId}`).subscribe(() => {
       this.loadCategories();
     });
   }
@@ -106,7 +107,7 @@ export class AdminReasonsComponent implements OnInit {
       dialogRef.afterClosed().subscribe((result) => {
         if (result) {
   
-          this.http.post(`${this.baseUrl}/api/v1/admin/logout`, {}, { responseType: 'text' }).subscribe({
+          this.http.post(`${this.baseUrl}/api/v1/user-admin/logout`, {}, { responseType: 'text' }).subscribe({
             next: (response) => {
               const jsonResponse = JSON.parse(response);
               if(jsonResponse.message === 'Logged out successfully'){

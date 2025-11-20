@@ -54,7 +54,7 @@ export class AdminRequestDialogComponent {
         declineReason : '',
         approveStatus : 'Approve'
       }
-      this.http.post(`${this.baseUrl}/api/v1/admin/user-requests/action`, dto).subscribe({
+      this.http.post(`${this.baseUrl}/api/v1/user-service/admin/user-requests/action`, dto).subscribe({
         next : () => {
           this.dialogRef.close('approved');
         },

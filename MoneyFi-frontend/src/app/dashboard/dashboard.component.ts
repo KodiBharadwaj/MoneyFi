@@ -60,7 +60,7 @@ export class DashboardComponent implements OnInit{
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.isLogoutLoading = true;
-        this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/logout`, {}, { responseType: 'text' }).subscribe({
+        this.httpClient.post(`${this.baseUrl}/api/v1/user-admin/logout`, {}, { responseType: 'text' }).subscribe({
           next: (response) => {
             this.isLogoutLoading = false;
             const jsonResponse = JSON.parse(response);

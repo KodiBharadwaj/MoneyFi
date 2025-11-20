@@ -52,7 +52,7 @@ export class AdminUserFeedbackComponent implements OnInit{
 
 
   fetchFeedbacks() {
-    this.httpClient.get<UserFeedbackResponseDto[]>(`${this.baseUrl}/api/v1/admin/user-feedback/get`).subscribe({
+    this.httpClient.get<UserFeedbackResponseDto[]>(`${this.baseUrl}/api/v1/user-service/admin/user-feedback/get`).subscribe({
       next: (data) => {
         this.feedbacks = data;
         this.loading = false;
@@ -70,7 +70,7 @@ export class AdminUserFeedbackComponent implements OnInit{
 
   markAsSeen(feedbackId: number) {
     this.buttonLoadingId = feedbackId; // start loading for this button
-    this.httpClient.put(`${this.baseUrl}/api/v1/admin/user-feedback/update?id=${feedbackId}`, {}).subscribe({
+    this.httpClient.put(`${this.baseUrl}/api/v1/user-service/admin/user-feedback/update?id=${feedbackId}`, {}).subscribe({
       next: () => {
          this.buttonLoadingId = null; // stop loading
         // Option 1: Refresh the whole list
@@ -95,7 +95,7 @@ export class AdminUserFeedbackComponent implements OnInit{
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
 
-        this.httpClient.post(`${this.baseUrl}/api/v1/admin/logout`, {}, { responseType: 'text' }).subscribe({
+        this.httpClient.post(`${this.baseUrl}/api/v1/user-admin/logout`, {}, { responseType: 'text' }).subscribe({
           next: (response) => {
             const jsonResponse = JSON.parse(response);
             if(jsonResponse.message === 'Logged out successfully'){

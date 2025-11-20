@@ -76,7 +76,7 @@ export class AdminUsersComponent implements OnInit {
 
   generateReport() {
     this.isLoading = true;
-    this.httpClient.get(`${this.baseUrl}/api/v1/admin/user-details/excel?status=${this.status}`, { responseType: 'blob' }).subscribe({
+    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/user-details/excel?status=${this.status}`, { responseType: 'blob' }).subscribe({
       next: (response) => {
         // Trigger File Download
         const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -129,7 +129,7 @@ export class AdminUsersComponent implements OnInit {
         dialogRef.afterClosed().subscribe((result) => {
           if (result) {
     
-            this.httpClient.post(`${this.baseUrl}/api/v1/admin/logout`, {}, { responseType: 'text' }).subscribe({
+            this.httpClient.post(`${this.baseUrl}/api/v1/user-admin/logout`, {}, { responseType: 'text' }).subscribe({
               next: (response) => {
                 const jsonResponse = JSON.parse(response);
                 if(jsonResponse.message === 'Logged out successfully'){

@@ -36,7 +36,7 @@ export class UserNotificationsComponent implements OnInit {
 
   loadNotifications() {
     this.isLoading = true;
-    this.http.get<UserNotification[]>(`${this.baseUrl}/api/v1/userProfile/get-notifications`)
+    this.http.get<UserNotification[]>(`${this.baseUrl}/api/v1/user-service/notifications/get`)
       .subscribe({
         next: (data) => {
           this.notifications = data;
@@ -64,7 +64,7 @@ export class UserNotificationsComponent implements OnInit {
 
   markSelectedAsRead() {
     const idsString = this.selectedIds.join(',');
-    this.http.put(`${this.baseUrl}/api/v1/userProfile/user-notification/update?ids=${idsString}`, {})
+    this.http.put(`${this.baseUrl}/api/v1/user-service/notification/update?ids=${idsString}`, {})
       .subscribe({
         next: () => {
           this.notifications = this.notifications.map(n =>

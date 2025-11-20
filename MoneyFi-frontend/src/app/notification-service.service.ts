@@ -17,7 +17,7 @@ export class NotificationService {
 
   // Fetch latest count from backend
   loadNotificationCount(): void {
-    this.http.get<number>(`${this.baseUrl}/api/v1/userProfile/get-notifications/count`)
+    this.http.get<number>(`${this.baseUrl}/api/v1/user-service/notifications/count`)
       .subscribe(count => this.notificationCountSubject.next(count));
   }
 

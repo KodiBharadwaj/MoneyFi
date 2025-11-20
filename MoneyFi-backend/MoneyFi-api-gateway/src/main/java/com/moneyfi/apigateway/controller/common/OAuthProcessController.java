@@ -42,7 +42,6 @@ public class OAuthProcessController {
     }
 
 
-
     @GetMapping("/facebook/callback")
     public ResponseEntity<?> facebookCallback(@RequestParam("code") String code) {
         try {

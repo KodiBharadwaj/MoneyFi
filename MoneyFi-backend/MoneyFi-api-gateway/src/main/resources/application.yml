@@ -46,11 +46,16 @@ spring:
           - id: MoneyFi-budget
             uri: lb://MoneyFi-budget
             predicates:
-              - Path=/api/v1/budget/**
+              - Path=/api/v1/budget-service/user/**
           - id: MoneyFi-goal
             uri: lb://MoneyFi-goal
             predicates:
               - Path=/api/v1/goal/**
+          - id: MoneyFi-user
+            uri: lb://MoneyFi-user
+            predicates:
+              - Path=/api/v1/user-service/**, /api/v1/user-service/admin/**, /api/v1/user-service/common/**, /api/v1/user-service/user-admin/**
+
 jwt:
   secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
 

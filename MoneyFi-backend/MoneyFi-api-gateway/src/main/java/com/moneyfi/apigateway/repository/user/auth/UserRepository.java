@@ -1,5 +1,8 @@
 package com.moneyfi.apigateway.repository.user.auth;
 
+import com.moneyfi.apigateway.dto.interfaces.ContactUsHistProjection;
+import com.moneyfi.apigateway.dto.interfaces.ContactUsProjection;
+import com.moneyfi.apigateway.dto.interfaces.ProfileDetailsProjection;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -53,4 +56,41 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
             DELETE FROM goal_table WHERE user_id IN (:list);
             """, nativeQuery = true)
     void deleteIncomeExpenseBudgetGoalsOfDeletedUsers(List<Long> list);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value = """
+            INSERT INTO user_profile_details_table (user_id, name, created_time, address, income_range)
+            VALUES (:userId, :name, :createdTime, :address, 0)
+            """)
+    void insertProfileDetailsDuringSignup(@Param("userId") Long userId, @Param("name") String name, @Param("createdTime") LocalDateTime createdTime, @Param("address") String address);
+
+    @Query(nativeQuery = true, value = """
+            SELECT updt.name FROM
+            user_profile_details_table updt WITH (NOLOCK)
+            INNER JOIN user_auth_table uat WITH (NOLOCK) ON uat.id = updt.user_id
+            WHERE uat.username = :username
+            """)
+    String getUserNameByUsername(@Param("username") String username);
+
+    @Query(nativeQuery = true, value = """
+            SELECT cut.* 
+            FROM contact_us_table cut WITH (NOLOCK)
+            WHERE cut.email = :username
+            """)
+    List<ContactUsProjection> getContactUsRecordsByUsername(@Param("username") String username);
+
+    @Query(nativeQuery = true, value = """
+            SELECT updt.* 
+            FROM user_profile_details_table updt WITH (NOLOCK)
+            WHERE updt.user_id = :userId
+            """)
+    List<ProfileDetailsProjection> getUserProfileDetailsByUserId(@Param("userId") Long userId);
+
+    @Query(nativeQuery = true, value = """
+            SELECT cuth.* 
+            FROM contact_us_table_hist cuth WITH (NOLOCK)
+            WHERE cuth.contact_ud_id = :contactUsId
+            """)
+    List<ContactUsHistProjection> getContactUsHistoryDetailsByContactUsId(@Param("contactUsId") Long contactUsId);
 }

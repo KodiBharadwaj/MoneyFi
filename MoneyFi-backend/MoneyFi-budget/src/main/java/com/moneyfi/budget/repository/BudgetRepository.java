@@ -14,6 +14,10 @@ public interface BudgetRepository extends JpaRepository<BudgetModel, Long> {
             "@month = :month, @year = :year")
     BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year);
 
+    @Query(nativeQuery = true, value = "exec getTotalIncomeInMonthAndYear @userId = :userId, " +
+            "@month = :month, @year = :year")
+    BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year);
+
     @Query(nativeQuery = true, value =  "exec getUserIdFromUsernameAndToken @username = :username, @token = :token")
     Long getUserIdFromUsernameAndToken(String username, String token);
 

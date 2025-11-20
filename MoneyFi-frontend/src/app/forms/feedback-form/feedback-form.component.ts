@@ -35,7 +35,7 @@ export class FeedbackFormComponent {
   }
 
   getNameAndEmailOfUser(){
-    this.httpClient.get<ProfileDetails>(`${this.baseUrl}/api/v1/userProfile/getProfile`).subscribe({
+    this.httpClient.get<ProfileDetails>(`${this.baseUrl}/api/v1/user-service/profile-details/get`).subscribe({
       next: (userProfile) => {
         this.feedback.name = userProfile.name;
         this.feedback.email = userProfile.email;
@@ -59,9 +59,9 @@ export class FeedbackFormComponent {
         message: this.feedback.rating + '/' + this.feedback.comments,
       };
 
-      this.httpClient.post(`${this.baseUrl}/api/v1/userProfile/feedback`, contactData).subscribe(
+      this.httpClient.post(`${this.baseUrl}/api/v1/user-service/submit-feedback`, contactData).subscribe(
         (response) => {
-          this.toastr.success('Feedback submitted successfully!', '', {
+          this.toastr.success('Feedback submitted successfully', '', {
             timeOut: 1500  // toast visible for 3 seconds
           });
           

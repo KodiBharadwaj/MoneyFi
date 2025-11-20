@@ -356,7 +356,7 @@ public class IncomeServiceImpl implements IncomeService {
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(pdfBytes, headers);
 
         ResponseEntity<Void> response = restTemplate.exchange(
-                StringConstants.ACCOUNT_STATEMENT_API_GATEWAY_URL,
+                StringConstants.ACCOUNT_STATEMENT_USER_SERVICE_URL,
                 HttpMethod.POST,
                 requestEntity,
                 Void.class

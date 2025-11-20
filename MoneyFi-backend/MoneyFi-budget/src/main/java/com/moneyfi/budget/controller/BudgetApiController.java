@@ -17,7 +17,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/budget")
+@RequestMapping("/api/v1/budget-service/user")
 public class BudgetApiController {
 
     private final BudgetService budgetService;

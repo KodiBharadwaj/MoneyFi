@@ -60,6 +60,29 @@
       </div>
 
 
+      <!-- Reason Dialog -->
+<div *ngIf="showReasonDialog" class="reason-modal">
+  <div class="modal-content">
+    <h3>Select Reason for Ignoring</h3>
+    
+    <select [(ngModel)]="selectedReason">
+      <option *ngFor="let reason of reasons" [value]="reason">{{ reason }}</option>
+    </select>
+
+    <!-- Show text input for "Other" -->
+    <input 
+      *ngIf="selectedReason === 'Other'" 
+      type="text" 
+      [(ngModel)]="customReason"
+      placeholder="Enter custom reason" />
+
+    <div class="modal-actions">
+      <button (click)="submitIgnoreReason()">Submit</button>
+      <button (click)="showReasonDialog = false">Cancel</button>
+    </div>
+  </div>
+</div>
+
       <!-- Defects List -->
       <div class="defects-container" *ngIf="filteredDefects.length > 0">
         <div class="defect-card" *ngFor="let defect of filteredDefects">
@@ -70,7 +93,7 @@
           <p><strong>Status:</strong> {{ defect.defectStatus }}</p>
 
           <!-- Image -->
-          <div class="image-preview" (click)="viewImage(defect.imageId)">
+          <div class="image-preview" (click)="viewImage(defect.username, defect.defectId)">
             <img src="assets/image-placeholder.png" alt="View" />
             <p class="click-text">Click to view image</p>
           </div>

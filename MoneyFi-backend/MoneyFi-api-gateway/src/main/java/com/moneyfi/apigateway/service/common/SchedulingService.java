@@ -1,17 +1,14 @@
 package com.moneyfi.apigateway.service.common;
 
+import com.moneyfi.apigateway.dto.ContactUs;
+import com.moneyfi.apigateway.dto.ContactUsHist;
+import com.moneyfi.apigateway.dto.ProfileModel;
 import com.moneyfi.apigateway.model.auth.OtpTempModel;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
-import com.moneyfi.apigateway.model.common.ContactUs;
-import com.moneyfi.apigateway.model.common.ContactUsHist;
-import com.moneyfi.apigateway.model.common.ProfileModel;
-import com.moneyfi.apigateway.model.common.UserAuthHist;
+import com.moneyfi.apigateway.model.common.*;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
-import com.moneyfi.apigateway.repository.user.ContactUsHistRepository;
-import com.moneyfi.apigateway.repository.user.ContactUsRepository;
-import com.moneyfi.apigateway.repository.user.ProfileRepository;
-import com.moneyfi.apigateway.repository.user.UserAuthHistRepository;
+import com.moneyfi.apigateway.repository.user.*;
 import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.auth.SessionTokenRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
@@ -43,9 +40,6 @@ public class SchedulingService {
     private final CommonServiceRepository commonServiceRepository;
     private final EmailTemplates emailTemplates;
     private final UserAuthHistRepository userAuthHistRepository;
-    private final ContactUsRepository contactUsRepository;
-    private final ContactUsHistRepository contactUsHistRepository;
-    private final ProfileRepository profileRepository;
     private final SessionTokenRepository sessionTokenRepository;
     private final OtpTempRepository otpTempRepository;
 
@@ -54,9 +48,6 @@ public class SchedulingService {
                              CommonServiceRepository commonServiceRepository,
                              EmailTemplates emailTemplates,
                              UserAuthHistRepository userAuthHistRepository,
-                             ContactUsRepository contactUsRepository,
-                             ContactUsHistRepository contactUsHistRepository,
-                             ProfileRepository profileRepository,
                              SessionTokenRepository sessionTokenRepository,
                              OtpTempRepository otpTempRepository){
         this.tokenBlacklistRepository = tokenBlacklistRepository;
@@ -64,9 +55,6 @@ public class SchedulingService {
         this.commonServiceRepository = commonServiceRepository;
         this.emailTemplates = emailTemplates;
         this.userAuthHistRepository = userAuthHistRepository;
-        this.contactUsRepository = contactUsRepository;
-        this.contactUsHistRepository = contactUsHistRepository;
-        this.profileRepository = profileRepository;
         this.sessionTokenRepository = sessionTokenRepository;
         this.otpTempRepository = otpTempRepository;
     }
@@ -86,13 +74,15 @@ public class SchedulingService {
 
     @Scheduled(cron = "0 0 0 * * *") // Runs at every 12 am of the day (starting of the day)
     public void dailyJobRunInBeginningOfTheDay(){
-        /** Scheduling algorithm to remove the previous day otp count **/
+        /** Scheduling algorithm to remove the previous day otp count which are greater than three **/
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
         List<UserAuthModel> userAuthModelList = userRepository.getUserListWhoseOtpCountGreaterThanThree(startOfToday);
+        List<UserAuthModel> listToUpdate = new ArrayList<>();
         for (UserAuthModel userAuthModel : userAuthModelList) {
             userAuthModel.setOtpCount(0);
-            userRepository.save(userAuthModel);
+            listToUpdate.add(userAuthModel);
         }
+        userRepository.saveAll(listToUpdate);
 
         /** Scheduling algorithm to find the users who completed more than 1 year in MoneyFi **/
         List<String> anniversaryUsersList = commonServiceRepository.getBirthdayAndAnniversaryUsersList(LocalDate.now().getMonthValue(), LocalDate.now().getDayOfMonth(), "Birthday");
@@ -114,7 +104,7 @@ public class SchedulingService {
             }
         })).start();
 
-        /** Scheduling algorithm to delete the users who are deleted their account 30 days before **/
+        /** Scheduling algorithm to delete the users who deleted their account 30 days before **/
         int roleId = 0;
         for (Map.Entry<Integer, String> it : userRoleAssociation.entrySet()) {
             if (it.getValue().equalsIgnoreCase(UserRoles.USER.name())) {
@@ -131,19 +121,18 @@ public class SchedulingService {
 
         accountDeletedUsersList.forEach(user -> {
             userAuthHistList.addAll(userAuthHistRepository.findByUserId(user.getId()));
-            contactUsList.addAll(contactUsRepository.findByEmail(user.getUsername()));
-            userProfileDetailsList.add(profileRepository.findByUserId(user.getId()));
+            contactUsList.addAll(userRepository.getContactUsRecordsByUsername(user.getUsername()).stream().map(StringUtils::convertContactUsInterfaceToDto).toList());
+            userProfileDetailsList.add(userRepository.getUserProfileDetailsByUserId(user.getId()).stream().map(StringUtils::convertProfileDetailsInterfaceToDto).findFirst().get());
             sessionTokenModelList.add(sessionTokenRepository.findByUsername(user.getUsername()));
             otpTempModelList.addAll(otpTempRepository.findByEmail(user.getUsername()));
         });
-        contactUsList.forEach(contactUs -> {
-            contactUsHistList.addAll(contactUsHistRepository.findByContactUsId(contactUs.getId()));
-        });
+        contactUsList.forEach(contactUs ->
+            contactUsHistList.addAll(userRepository.getContactUsHistoryDetailsByContactUsId(contactUs.getId()).stream().map(StringUtils::convertContactUsHistInterfaceToDto).toList()));
         userRepository.deleteAll(accountDeletedUsersList);
         userAuthHistRepository.deleteAll(userAuthHistList);
-        contactUsRepository.deleteAll(contactUsList);
-        contactUsHistRepository.deleteAll(contactUsHistList);
-        profileRepository.deleteAll(userProfileDetailsList);
+//        contactUsRepository.deleteAll(contactUsList);
+//        contactUsHistRepository.deleteAll(contactUsHistList);
+//        profileRepository.deleteAll(userProfileDetailsList);
         sessionTokenRepository.deleteAll(sessionTokenModelList);
         otpTempRepository.deleteAll(otpTempModelList);
         userRepository.deleteIncomeExpenseBudgetGoalsOfDeletedUsers(accountDeletedUsersList.stream().map(UserAuthModel::getId).toList());

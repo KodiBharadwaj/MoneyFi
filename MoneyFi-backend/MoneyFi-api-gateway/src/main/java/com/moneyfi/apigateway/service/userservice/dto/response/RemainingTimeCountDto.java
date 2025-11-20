@@ -9,7 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RemainingTimeCountDto {
     private int remainingMinutes;
-    private int otpCount;
     private boolean result;
-    private String comment;
 }

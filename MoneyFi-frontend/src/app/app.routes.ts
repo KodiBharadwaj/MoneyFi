@@ -29,6 +29,7 @@ import { AdminUserFeedbackComponent } from './admin-user-feedback/admin-user-fee
 import { AdminConfigurationComponent } from './admin-configuration/admin-configuration.component';
 import { UserNotificationsComponent } from './user-notifications/user-notifications.component';
 import { AdminReasonsComponent } from './admin-reasons/admin-reasons.component';
+import { HelpCenterComponent } from './help-center/help-center.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -40,6 +41,7 @@ export const routes: Routes = [
   { path: 'raise-request', component:RaiseRequestComponent },
   { path: 'otp-confirm', component: SignupOtpConfirmDialogComponent },
   { path: 'track-request', component: RequestTrackerComponent },
+  { path: 'help-center', component: HelpCenterComponent },
   { path: 'admin/home', component: AdminHomeComponent },
   { path: 'admin/users/:status', component: AdminUsersComponent },
   { path: 'admin/requests/:status', component: AdminRequestsComponent },

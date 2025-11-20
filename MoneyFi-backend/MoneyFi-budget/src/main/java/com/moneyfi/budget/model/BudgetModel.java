@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -23,5 +24,12 @@ public class BudgetModel {
     private BigDecimal currentSpending;
     @Column(precision = 38, scale = 2)
     private BigDecimal moneyLimit;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
+    @PrePersist
+    public void function() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
 }

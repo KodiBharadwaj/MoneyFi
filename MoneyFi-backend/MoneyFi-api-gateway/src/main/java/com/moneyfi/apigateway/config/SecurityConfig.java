@@ -1,10 +1,5 @@
 package com.moneyfi.apigateway.config;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.moneyfi.apigateway.util.enums.UserRoles;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -28,10 +23,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.ses.SesClient;
 
 @Configuration
 @EnableWebSecurity
@@ -71,17 +62,24 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(customizer -> customizer.disable())
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("api/v1/admin/**").hasRole(UserRoles.ADMIN.name())
-                        .requestMatchers("api/auth/**").permitAll()
+                        .requestMatchers("/api/v1/admin/**").hasRole(UserRoles.ADMIN.name())
+                        .requestMatchers("/api/v1/user-admin/**").hasAnyRole(UserRoles.ADMIN.name(), UserRoles.USER.name())
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/v1/Oauth/**").permitAll()
                         .requestMatchers("/api/v1/external-api/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
-                        .anyRequest().hasRole(UserRoles.USER.name()))
+
+                        .requestMatchers("/api/v1/user-service/common/**").permitAll()
+                        .requestMatchers("/api/v1/user-service/admin/**").hasRole(UserRoles.ADMIN.name())
+                        .requestMatchers("/api/v1/user-service/user-admin/**").hasAnyRole(UserRoles.ADMIN.name(), UserRoles.USER.name())
+                        .requestMatchers("/api/v1/user-service/**").hasRole(UserRoles.USER.name())
+
+                        .requestMatchers("/api/v1/budget-service/user/**").hasRole(UserRoles.USER.name())
+                        .anyRequest().hasAnyRole(UserRoles.USER.name()))
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .cors(Customizer.withDefaults()); // Ensure cors is enabled in SecurityFilterChain
-
         return http.build();
     }
 
@@ -117,21 +115,5 @@ public class SecurityConfig {
     @Bean
     public RestTemplate externalRestTemplateForOAuth(RestTemplateBuilder builder) {
         return builder.build(); // No @LoadBalanced
-    }
-
-    /** Aws s3 security connection **/
-    @Bean
-    public AmazonS3 s3Client(){
-        AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
-        return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(region).build();
-    }
-
-    /** Aws Simple Email Service (SES) Connection security details **/
-    @Bean
-    public SesClient sesClient() {
-        return SesClient.builder()
-                .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
-                .build();
     }
 }
