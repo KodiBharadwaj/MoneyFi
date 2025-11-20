@@ -46,7 +46,7 @@ spring:
           - id: MoneyFi-budget
             uri: lb://MoneyFi-budget
             predicates:
-              - Path=/api/v1/budget/**
+              - Path=/api/v1/budget-service/user/**
           - id: MoneyFi-goal
             uri: lb://MoneyFi-goal
             predicates:

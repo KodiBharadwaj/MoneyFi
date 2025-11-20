@@ -7,6 +7,12 @@ ADD CONSTRAINT uk_user_profile_details_table UNIQUE (user_id);
 ALTER TABLE contact_us_table
 DROP COLUMN image_id
 
+ALTER TABLE budget_table 
+ADD created_at DATETIME2(2)
+
+ALTER TABLE budget_table 
+ADD updated_at DATETIME2(2)
+
 INSERT INTO reason_code_table (id, name)
 VALUES (8, 'Ignore User Request');
 

@@ -1,6 +1,7 @@
 package com.moneyfi.budget.service.impl;
 
 import com.moneyfi.budget.exceptions.ResourceNotFoundException;
+import com.moneyfi.budget.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.budget.model.BudgetModel;
 import com.moneyfi.budget.repository.BudgetRepository;
 import com.moneyfi.budget.repository.common.BudgetCommonRepository;
@@ -22,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static com.moneyfi.budget.utils.StringConstants.*;
@@ -47,7 +49,11 @@ public class BudgetServiceImpl implements BudgetService {
     @Override
     @Transactional(rollbackOn = Exception.class)
     public void saveBudget(List<AddBudgetDto> budgetList, Long userId) {
-        BudgetValidator.validateInputBudgetRequestDto(budgetList);
+        Optional<List<BudgetModel>> existingBudget = budgetRepository.findByUserId(userId);
+        if(existingBudget.isPresent() && !existingBudget.get().isEmpty()) {
+            throw new ScenarioNotPossibleException("Budget already exists! Please update if required");
+        }
+        BudgetValidator.validateBudgetSaveRequestDto(budgetList, getTotalIncomeInMonthAndYear(userId, LocalDateTime.now().getMonthValue(), LocalDateTime.now().getYear()));
         List<BudgetModel> newBudget = new ArrayList<>();
         for (AddBudgetDto budget : budgetList) {
             BudgetModel budgetModel = new BudgetModel();
@@ -71,28 +77,18 @@ public class BudgetServiceImpl implements BudgetService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add), 5, RoundingMode.HALF_UP);
     }
 
-    private BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
-        BigDecimal totalExpense = budgetRepository.getTotalExpenseInMonthAndYear(userId, month, year);
-        if(totalExpense == null){
-            return BigDecimal.ZERO;
-        }
-        return totalExpense;
-    }
-
     @Override
     @Transactional(rollbackOn = Exception.class)
     public void updateBudget(Long userId, List<BudgetModel> budgetList) {
-        BudgetValidator.validateInputBudgetRequestDto(budgetList.stream().map(inputBudget -> {
-            AddBudgetDto budget = new AddBudgetDto();
-            BeanUtils.copyProperties(inputBudget, budget);
-            return budget;
-        }).toList());
+        BudgetValidator.validateBudgetUpdateRequestDto(budgetList);
         List<BudgetModel> budgetListToUpdate = new ArrayList<>();
+        LocalDateTime currentTime = LocalDateTime.now();
         for (BudgetModel budget : budgetList) {
             BudgetModel budgetModel = budgetRepository.findById(budget.getId()).orElseThrow(() -> new ResourceNotFoundException(BUDGET_NOT_FOUND));
             if (budget.getMoneyLimit().compareTo(BigDecimal.ZERO) >= 0) {
                 budgetModel.setMoneyLimit(budget.getMoneyLimit());
             }
+            budgetModel.setUpdatedAt(currentTime);
             budgetListToUpdate.add(budgetModel);
         }
         budgetRepository.saveAll(budgetListToUpdate);
@@ -191,6 +187,22 @@ public class BudgetServiceImpl implements BudgetService {
         } else {
             throw new ResourceNotFoundException(BUDGET_NOT_FOUND);
         }
+    }
+
+    private BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
+        BigDecimal totalIncome = budgetRepository.getTotalIncomeInMonthAndYear(userId, month, year);
+        if(totalIncome == null){
+            return BigDecimal.ZERO;
+        }
+        return totalIncome;
+    }
+
+    private BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
+        BigDecimal totalExpense = budgetRepository.getTotalExpenseInMonthAndYear(userId, month, year);
+        if(totalExpense == null){
+            return BigDecimal.ZERO;
+        }
+        return totalExpense;
     }
 
     private void apiCallToGatewayServiceToSendEmail(byte[] pdfBytes, String authHeader){

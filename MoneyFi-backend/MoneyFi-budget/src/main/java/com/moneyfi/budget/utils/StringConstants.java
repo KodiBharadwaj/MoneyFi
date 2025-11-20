@@ -9,6 +9,7 @@ public class StringConstants {
     public static final String BUDGET_NOT_FOUND = "Budget details not found";
     public static final String EMAIL_SENT_SUCCESS_MESSAGE = "Email sent successfully";
     public static final String EMAIL_SENT_FAILURE_MESSAGE = "Failed to send email";
+    public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
 
     public static final String EUREKA_INCOME_SERVICE_URL = "http://MONEYFI-INCOME/api/v1/income";
     public static final String EUREKA_EXPENSE_SERVICE_URL = "http://MONEYFI-EXPENSE/api/v1/expense";
