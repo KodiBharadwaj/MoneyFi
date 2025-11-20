@@ -9,6 +9,7 @@ import com.moneyfi.budget.service.dto.request.AddBudgetDto;
 import com.moneyfi.budget.service.dto.response.BudgetDetailsDto;
 import com.moneyfi.budget.service.dto.response.SpendingAnalysisResponseDto;
 import com.moneyfi.budget.service.dto.response.UserDetailsForSpendingAnalysisDto;
+import com.moneyfi.budget.utils.BudgetValidator;
 import com.moneyfi.budget.utils.GeneratePdfTemplate;
 import com.moneyfi.budget.utils.StringConstants;
 import jakarta.transaction.Transactional;
@@ -23,8 +24,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
 
-import static com.moneyfi.budget.utils.StringConstants.BUDGET_NOT_FOUND;
-
+import static com.moneyfi.budget.utils.StringConstants.*;
 
 @Service
 public class BudgetServiceImpl implements BudgetService {
@@ -45,8 +45,9 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public void saveBudget(List<AddBudgetDto> budgetList, Long userId) {
+        BudgetValidator.validateInputBudgetRequestDto(budgetList);
         List<BudgetModel> newBudget = new ArrayList<>();
         for (AddBudgetDto budget : budgetList) {
             BudgetModel budgetModel = new BudgetModel();
@@ -64,13 +65,10 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     public BigDecimal budgetProgress(Long userId, int month, int year) {
-        List<BudgetDetailsDto> budgetsList = getAllBudgetsByUserIdAndCategory(userId, month, year, "all");
-        BigDecimal moneyLimit = budgetsList
-                            .stream()
-                            .map(BudgetDetailsDto::getMoneyLimit)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal currentSpending = getTotalExpenseInMonthAndYear(userId, month, year);
-        return currentSpending.divide(moneyLimit, 5, RoundingMode.HALF_UP);
+        return getTotalExpenseInMonthAndYear(userId, month, year).divide(getAllBudgetsByUserIdAndCategory(userId, month, year, "all")
+                .stream()
+                .map(BudgetDetailsDto::getMoneyLimit)
+                .reduce(BigDecimal.ZERO, BigDecimal::add), 5, RoundingMode.HALF_UP);
     }
 
     private BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
@@ -82,8 +80,13 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public void updateBudget(Long userId, List<BudgetModel> budgetList) {
+        BudgetValidator.validateInputBudgetRequestDto(budgetList.stream().map(inputBudget -> {
+            AddBudgetDto budget = new AddBudgetDto();
+            BeanUtils.copyProperties(inputBudget, budget);
+            return budget;
+        }).toList());
         List<BudgetModel> budgetListToUpdate = new ArrayList<>();
         for (BudgetModel budget : budgetList) {
             BudgetModel budgetModel = budgetRepository.findById(budget.getId()).orElseThrow(() -> new ResourceNotFoundException(BUDGET_NOT_FOUND));
@@ -172,19 +175,18 @@ public class BudgetServiceImpl implements BudgetService {
         try {
             byte[] pdfBytes = getUserSpendingAnalysisByBudgetCategoriesPdf(userId, fromDate, toDate, authHeader);
             apiCallToGatewayServiceToSendEmail(pdfBytes, authHeader);
-            return ResponseEntity.ok("Email sent successfully");
+            return ResponseEntity.ok(EMAIL_SENT_SUCCESS_MESSAGE);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to send email: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(EMAIL_SENT_FAILURE_MESSAGE + ": " + e.getMessage());
         }
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public void deleteBudget(Long userId) {
         Optional<List<BudgetModel>> budgetList = budgetRepository.findByUserId(userId);
-        if (budgetList.isPresent()) {
+        if (budgetList.isPresent() && !budgetList.get().isEmpty()) {
             budgetRepository.deleteAll(budgetList.get());
         } else {
             throw new ResourceNotFoundException(BUDGET_NOT_FOUND);
@@ -205,18 +207,7 @@ public class BudgetServiceImpl implements BudgetService {
                 Void.class
         );
         if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new ResourceNotFoundException("Failed to send email: " + response.getStatusCode());
+            throw new ResourceNotFoundException(EMAIL_SENT_FAILURE_MESSAGE + ": " + response.getStatusCode());
         }
-    }
-
-    private String makeUsernamePrivate(String username){
-        int index = username.indexOf('@');
-        return username.substring(0, index/3) +
-                "x".repeat(index - index/3) + username.substring(index);
-    }
-
-    private String generateDocumentPasswordForUser(UserDetailsForSpendingAnalysisDto userDetails){
-        return userDetails.getName().substring(0,4).toUpperCase() +
-                userDetails.getUsername().substring(0,4).toLowerCase();
     }
 }
