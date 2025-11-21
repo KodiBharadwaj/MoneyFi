@@ -1,43 +1,8 @@
-ALTER TABLE user_auth_table
-ADD CONSTRAINT uk_user_auth_table UNIQUE (username);
+alter table income_table
+add created_at datetime2(2)
 
-ALTER TABLE user_profile_details_table
-ADD CONSTRAINT uk_user_profile_details_table UNIQUE (user_id);
+alter table income_table
+add updated_at datetime2(2)
 
-ALTER TABLE contact_us_table
-DROP COLUMN image_id
-
-ALTER TABLE budget_table 
-ADD created_at DATETIME2(2)
-
-ALTER TABLE budget_table 
-ADD updated_at DATETIME2(2)
-
-INSERT INTO reason_code_table (id, name)
-VALUES (8, 'Ignore User Request');
-
-DROP PROCEDURE [getProfileDetailsOfUser]
-
-CREATE PROCEDURE [dbo].[getProfileDetailsOfUser] (
-	@username VARCHAR(100)
-	)
-AS
-BEGIN
-	
-	SET NOCOUNT ON;
-
-    SELECT updt.name AS name
-		,uat.username AS email
-		,updt.phone AS phone
-		,updt.gender AS gender
-		,updt.marital_status AS maritalStatus
-		,updt.date_of_birth AS dateOfBirth
-		,updt.address AS address
-		,updt.income_range AS incomeRange
-		,CAST(updt.created_date AS DATE) AS createdDate
-	FROM user_profile_details_table updt WITH (NOLOCK)
-	INNER JOIN user_auth_table uat WITH (NOLOCK) ON uat.id = updt.user_id
-	WHERE uat.username = @username
-		AND uat.is_blocked = 0
-		AND uat.is_blocked = 0
-END
+alter table income_table_deleted
+add deleted_at datetime2(2)
