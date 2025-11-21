@@ -44,11 +44,11 @@ export class AiAssistantComponent implements OnInit {
         // Create parallel requests for all financial data
         forkJoin({
           // Monthly data
-          monthlyIncome: this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/${userId}/totalIncome/${this.currentMonth}/${this.currentYear}`),
+          monthlyIncome: this.httpClient.get<number>(`${this.baseUrl}/api/v1/income-service/user/${userId}/totalIncome/${this.currentMonth}/${this.currentYear}`),
           monthlyExpenses: this.httpClient.get<number>(`${this.baseUrl}/api/user/expenses/${userId}/totalExpenses/${this.currentMonth}/${this.currentYear}`),
           
           // Yearly data
-          yearlyIncomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/income/${userId}/monthlyTotalIncomesList/${this.currentYear}`),
+          yearlyIncomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/income-service/user/${userId}/monthlyTotalIncomesList/${this.currentYear}`),
           yearlyExpenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/expense/${userId}/monthlyTotalExpensesList/${this.currentYear}`),
           yearlySavings: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlySavingsInYear/${this.currentYear}`),
           cumulativeSavings: this.httpClient.get<number[]>(`${this.baseUrl}/api/user/${userId}/monthlyCumulativeSavingsInYear/${this.currentYear}`),
@@ -60,7 +60,7 @@ export class AiAssistantComponent implements OnInit {
           // Goals and Net Worth
           totalCurrentGoalIncome: this.httpClient.get<number>(`${this.baseUrl}/api/v1/goal/${userId}/totalCurrentGoalIncome`),
           totalTargetGoalIncome: this.httpClient.get<number>(`${this.baseUrl}/api/v1/goal/${userId}/totalTargetGoalIncome`),
-          remainingIncome: this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/${userId}/totalRemainingIncomeUpToPreviousMonth/${this.currentMonth}/${this.currentYear}`)
+          remainingIncome: this.httpClient.get<number>(`${this.baseUrl}/api/v1/income-service/user/${userId}/totalRemainingIncomeUpToPreviousMonth/${this.currentMonth}/${this.currentYear}`)
         }).subscribe({
           next: (data) => {
             // Calculate additional metrics

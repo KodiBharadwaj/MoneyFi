@@ -20,4 +20,5 @@ public class IncomeDeleted {
     private Long incomeId;
     private LocalDateTime startDateTime;
     private LocalDateTime expiryDateTime;
+    private LocalDateTime deletedAt;
 }

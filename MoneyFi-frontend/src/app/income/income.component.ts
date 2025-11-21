@@ -126,10 +126,10 @@ export class IncomeComponent {
     if(this.selectedCategory === '') this.selectedCategory = "all";
     if (this.selectedMonth === 0) {
       // Fetch all expenses for the selected year
-      url = `${this.baseUrl}/api/v1/income/getIncomeDetails/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
+      url = `${this.baseUrl}/api/v1/income-service/user/getIncomeDetails/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
     } else {
       // Fetch expenses for the specific month and year
-      url = `${this.baseUrl}/api/v1/income/getIncomeDetails/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
+      url = `${this.baseUrl}/api/v1/income-service/user/getIncomeDetails/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
     }
 
     this.httpClient.get<any[]>(url).subscribe({
@@ -174,7 +174,7 @@ export class IncomeComponent {
   loadDeletedIncomeData() {
     this.loading = true;
 
-    const url = `${this.baseUrl}/api/v1/income/getDeletedIncomeDetails/${this.selectedMonth}/${this.selectedYear}`;
+    const url = `${this.baseUrl}/api/v1/income-service/user/getDeletedIncomeDetails/${this.selectedMonth}/${this.selectedYear}`;
     this.httpClient.get<incomeDeleted[]>(url).subscribe({
       next: (data) => {
         if (data && data.length > 0) {
@@ -243,41 +243,34 @@ export class IncomeComponent {
         date:formattedDate,
       };
 
-      this.httpClient.post<IncomeSource>(`${this.baseUrl}/api/v1/income/saveIncome`, incomeData).subscribe({
-        next: (newIncome) => {
-          if(newIncome != null){
-            this.loadIncomeData();
-            this.calculateTotalIncome();
-            this.updateChartData();
-            this.resetFilters();
-            this.toastr.success("Income " + newIncome.source + " added succesfully");
-          }
-          else{
-            this.toastr.warning("Same Income category and source can't be added");
-          }
+      this.httpClient.post(`${this.baseUrl}/api/v1/income-service/user/save`, incomeData).subscribe({
+        next: (response) => {
+          this.loadIncomeData();
+          this.calculateTotalIncome();
+          this.updateChartData();
+          this.resetFilters();
+          this.toastr.success("Income " + incomeData.source + " added succesfully");
         },
         error: (error) => {
+          this.isLoading = false;
           console.error('Failed to add income:', error);
           if(error.status === 401){
-          if (error.error === 'TokenExpired') {
-            alert('Your session has expired. Please login again.');
-            sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']);
-          } else if(error.error === 'Token is blacklisted'){
-            alert('Your session has expired. Please login again.');
-            sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']);
-          }
-          else if(error.error === 'AuthorizationFailed'){
+            if (error.error === 'TokenExpired' || error.error === 'Token is blacklisted') {
+              alert('Your session has expired. Please login again.');
+              sessionStorage.removeItem('moneyfi.auth');
+              this.router.navigate(['/']);
+            }
+          } else if (error.status === 503) {
             alert('Service Unavailable!! Please try later');
           }
-        } else if (error.status === 503){
-          alert('Service Unavailable!! Please try later');
-        }
-        },
-        complete: () => {
-          this.loading = false;
-        }
+
+          try {
+            const errorObj = typeof error.error === 'string' ? JSON.parse(error.error) : error.error;
+            this.toastr.error(errorObj.message);
+          } catch (e) {
+            console.error('Failed to parse error:', error.error);
+          }
+      }
       });
     });
   }
@@ -302,35 +295,28 @@ export class IncomeComponent {
         date: formattedDate,
       };
 
-      this.httpClient.put<any>(`${this.baseUrl}/api/v1/income/${income.id}`, updatedIncomeData).subscribe({
-        next: (updatedIncome) => {
-          if(updatedIncome){
-            this.toastr.success("Income of " + updatedIncome.source + " updated successfully");
-            this.loadIncomeData();
-          } else {
-            this.toastr.warning("No changes to update");
-          }
+      this.httpClient.put(`${this.baseUrl}/api/v1/income-service/user/update/${income.id}`, updatedIncomeData).subscribe({
+        next: (response) => {
+          this.toastr.success("Income of " + updatedIncomeData.source + " updated successfully");
+          this.loadIncomeData();
         },
         error: (error) => {
-          if(error.Status === 204){
-            this.toastr.warning("No changes to update");
-          }
           console.error('Failed to update income:', error);
           if(error.status === 401){
-            if (error.error === 'TokenExpired') {
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            } else if(error.error === 'Token is blacklisted'){
+            if (error.error === 'TokenExpired' || error.error === 'Token is blacklisted') {
               alert('Your session has expired. Please login again.');
               sessionStorage.removeItem('moneyfi.auth');
               this.router.navigate(['/']);
             }
-            else if(error.error === 'AuthorizationFailed'){
-              alert('Service Unavailable!! Please try later');
-            }
-          } else if (error.status === 503){
+          } else if (error.status === 503) {
             alert('Service Unavailable!! Please try later');
+          }
+
+          try {
+            const errorObj = typeof error.error === 'string' ? JSON.parse(error.error) : error.error;
+            this.toastr.error(errorObj.message);
+          } catch (e) {
+            console.error('Failed to parse error:', error.error);
           }
         },
       });
@@ -367,7 +353,7 @@ export class IncomeComponent {
         const incomeSource = this.incomeSources.find(i => i.id === incomeId);
         incomeSource.date = this.formatDate(incomeSource.date);
 
-        this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/v1/income/incomeDeleteCheck`, incomeSource).subscribe({
+        this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/v1/income-service/user/incomeDeleteCheck`, incomeSource).subscribe({
           next: (result) => {
             if (result) {
             
@@ -377,7 +363,7 @@ export class IncomeComponent {
               }
               this.calculateTotalIncome();
               this.updateChartData();
-              this.httpClient.delete<void>(`${this.baseUrl}/api/v1/income/${incomeId}`)
+              this.httpClient.delete<void>(`${this.baseUrl}/api/v1/income-service/user/${incomeId}`)
                 .subscribe({
                   next: () => {
                     this.toastr.warning("Income " +incomeSource?.source+ " has been deleted");
@@ -472,9 +458,9 @@ export class IncomeComponent {
 
     let url: string;
     if (this.selectedMonth === 0) {
-      url = `${this.baseUrl}/api/v1/income/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
+      url = `${this.baseUrl}/api/v1/income-service/user/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
     } else {
-      url = `${this.baseUrl}/api/v1/income/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
+      url = `${this.baseUrl}/api/v1/income-service/user/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
     }
 
     this.httpClient.get(url, { responseType: 'blob' }).subscribe({

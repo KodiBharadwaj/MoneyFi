@@ -122,7 +122,7 @@ export class AddIncomeDialogComponent {
           date: this.formatDate(this.incomeData.date),
         };
 
-        this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/v1/income/incomeUpdateCheck`, incomeDataUpdated).subscribe({
+        this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/v1/income-service/user/incomeUpdateCheck`, incomeDataUpdated).subscribe({
           next: (result) => {
             if (result) {
               this.dialogRef.close(this.incomeSource);

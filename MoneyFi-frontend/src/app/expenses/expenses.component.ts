@@ -174,7 +174,7 @@ export class ExpensesComponent {
       }
     });
 
-    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalIncome/${this.selectedMonth}/${this.selectedYear}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income-service/user/totalIncome/${this.selectedMonth}/${this.selectedYear}`).subscribe({
       next: (totalIncome) => {
         this.totalIncome = totalIncome;
       },
@@ -428,7 +428,7 @@ export class ExpensesComponent {
       this.thisMonthincomeLeft = 0;
     }
 
-    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/availableBalance`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income-service/user/availableBalance`).subscribe({
       next : (availableBalance) => {
         this.overallincomeLeft = availableBalance;
       },

@@ -69,12 +69,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/external-api/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
 
+                        .requestMatchers("/api/v1/income-service/user/**").hasRole(UserRoles.USER.name())
+                        .requestMatchers("/api/v1/budget-service/user/**").hasRole(UserRoles.USER.name())
                         .requestMatchers("/api/v1/user-service/common/**").permitAll()
                         .requestMatchers("/api/v1/user-service/admin/**").hasRole(UserRoles.ADMIN.name())
                         .requestMatchers("/api/v1/user-service/user-admin/**").hasAnyRole(UserRoles.ADMIN.name(), UserRoles.USER.name())
                         .requestMatchers("/api/v1/user-service/**").hasRole(UserRoles.USER.name())
-
-                        .requestMatchers("/api/v1/budget-service/user/**").hasRole(UserRoles.USER.name())
                         .anyRequest().hasAnyRole(UserRoles.USER.name()))
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

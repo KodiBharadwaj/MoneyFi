@@ -92,7 +92,7 @@ export class ReportsInsightsComponent implements OnInit   {
       threshold: this.threshold
     };
 
-    this.httpClient.post<AccountStatement[]>(`${this.baseUrl}/api/v1/income/account-statement`, obj)
+    this.httpClient.post<AccountStatement[]>(`${this.baseUrl}/api/v1/income-service/user/account-statement`, obj)
       .subscribe({
         next: (statement) => {
           if(statement.length === 0)
@@ -140,7 +140,7 @@ export class ReportsInsightsComponent implements OnInit   {
       threshold : this.threshold
     };
 
-    this.httpClient.post(`${this.baseUrl}/api/v1/income/account-statement/report`, obj, {
+    this.httpClient.post(`${this.baseUrl}/api/v1/income-service/user/account-statement/report`, obj, {
       responseType: 'blob'
     }).subscribe({
       next: (blob) => {
@@ -170,7 +170,7 @@ export class ReportsInsightsComponent implements OnInit   {
       threshold : this.threshold
     };
 
-    this.httpClient.post(`${this.baseUrl}/api/v1/income/account-statement-report/email`, obj, { responseType: 'text' })
+    this.httpClient.post(`${this.baseUrl}/api/v1/income-service/user/account-statement-report/email`, obj, { responseType: 'text' })
     .subscribe({
       next: (response: string) => {
         if (response === 'Email sent successfully') {

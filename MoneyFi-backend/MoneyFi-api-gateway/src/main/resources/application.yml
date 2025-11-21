@@ -38,7 +38,7 @@ spring:
           - id: MoneyFi-income
             uri: lb://MoneyFi-income
             predicates:
-              - Path=/api/v1/income/**
+              - Path=/api/v1/income-service/user/**
           - id: MoneyFi-expense
             uri: lb://MoneyFi-expense
             predicates:

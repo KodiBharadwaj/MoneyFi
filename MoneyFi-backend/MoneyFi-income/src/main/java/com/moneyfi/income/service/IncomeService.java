@@ -1,6 +1,8 @@
 package com.moneyfi.income.service;
 
 import com.moneyfi.income.service.dto.request.AccountStatementRequestDto;
+import com.moneyfi.income.service.dto.request.IncomeSaveRequest;
+import com.moneyfi.income.service.dto.request.IncomeUpdateRequest;
 import com.moneyfi.income.service.dto.response.AccountStatementResponseDto;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeModel;
@@ -10,13 +12,12 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface IncomeService {
 
-    IncomeModel save(IncomeModel income);
+    void saveIncome(IncomeSaveRequest incomeSaveRequest, Long userId);
 
     List<IncomeModel> getAllIncomes(Long userId);
 
@@ -40,7 +41,7 @@ public interface IncomeService {
 
     boolean incomeRevertFunction(Long incomeId, Long userId);
 
-    ResponseEntity<IncomeDetailsDto> updateBySource(Long id, Long userId, IncomeModel income);
+    void updateBySource(Long id, Long userId, IncomeUpdateRequest incomeUpdateRequest);
 
     boolean deleteIncomeById(Long id, Long userId);
 

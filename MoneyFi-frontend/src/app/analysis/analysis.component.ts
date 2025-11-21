@@ -154,7 +154,7 @@ export class AnalysisComponent {
   loadMixedChartData() {
     const currentYear = new Date().getFullYear();
     forkJoin({
-      incomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/income/monthlyTotalIncomesList/${currentYear}`),
+      incomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/income-service/user/monthlyTotalIncomesList/${currentYear}`),
       expenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/expense/monthlyTotalExpensesList/${currentYear}`),
       savings: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/expense/monthlySavingsInYear/${currentYear}`)
     }).subscribe({

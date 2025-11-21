@@ -2,6 +2,8 @@ package com.moneyfi.income.controller;
 
 import com.moneyfi.income.config.JwtService;
 import com.moneyfi.income.service.dto.request.AccountStatementRequestDto;
+import com.moneyfi.income.service.dto.request.IncomeSaveRequest;
+import com.moneyfi.income.service.dto.request.IncomeUpdateRequest;
 import com.moneyfi.income.service.dto.response.AccountStatementResponseDto;
 import com.moneyfi.income.service.dto.response.IncomeDeletedDto;
 import com.moneyfi.income.model.IncomeModel;
@@ -22,7 +24,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/income")
+@RequestMapping("/api/v1/income-service/user")
 public class IncomeApiController {
 
     private final IncomeService incomeService;
@@ -35,18 +37,12 @@ public class IncomeApiController {
     }
 
 
-    @Operation(summary = "Method to save the income details")
-    @PostMapping("/saveIncome")
-    public ResponseEntity<IncomeModel> saveIncome(@RequestBody IncomeModel income,
-                                                  @RequestHeader("Authorization") String authHeader) {
+    @Operation(summary = "Api to save income details of user")
+    @PostMapping("/save")
+    public void saveIncome(@RequestHeader("Authorization") String authHeader,
+                           @RequestBody IncomeSaveRequest incomeSaveRequest) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        income.setUserId(userId);
-        IncomeModel income1 = incomeService.save(income);
-        if (income1 != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(income1); // 201
-        } else {
-            return ResponseEntity.status(HttpStatus.OK).body(null); // 200
-        }
+        incomeService.saveIncome(incomeSaveRequest, userId);
     }
 
     @Operation(summary = "Method to get all the income details of a user")
@@ -213,14 +209,14 @@ public class IncomeApiController {
         return incomeService.getTotalIncomeInSpecifiedRange(userId, fromDate.atStartOfDay(), toDate.atTime(LocalTime.MAX));
     }
 
-    @Operation(summary = "Method to update the income details")
-    @PutMapping("/{id}")
-    public ResponseEntity<IncomeDetailsDto> updateIncome(@RequestHeader("Authorization") String authHeader,
-                                                    @PathVariable("id") Long id,
-                                                    @RequestBody IncomeModel income) {
+    @Operation(summary = "Api to update the income details")
+    @PutMapping("/update/{id}")
+    public void updateIncome(@RequestHeader("Authorization") String authHeader,
+                             @PathVariable("id") Long id,
+                             @RequestBody IncomeUpdateRequest IncomeUpdateRequest) {
 
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return incomeService.updateBySource(id, userId, income);
+        incomeService.updateBySource(id, userId, IncomeUpdateRequest);
     }
 
     @Operation(summary = "Method to delete the particular income. Here which is typically soft delete only")
