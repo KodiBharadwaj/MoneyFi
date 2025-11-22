@@ -17,6 +17,12 @@ public class StringConstants {
     public static final String OFFSET = "offset";
     public static final String LIMIT = "limit";
 
+    public static final String INCOME_NOT_FOUND = "Income Details not found";
+    public static final String NO_CHANGES_TO_UPDATE = "No changes to update";
+    public static final String ERROR_GENERATION_EXCEL = "Error in generating excel report";
+    public static final String YES = "Yes";
+    public static final String NO = "No";
+
     public static final String JWT_SERVICE_API_GATEWAY_URL = "http://localhost:8765/api/v1/userProfile/getUserId/";
     public static final String ACCOUNT_STATEMENT_USER_SERVICE_URL = "http://MONEYFI-USER/api/v1/user-service/account-statement/email";
 

@@ -11,6 +11,7 @@ import com.moneyfi.apigateway.repository.user.UserAuthHistRepository;
 import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.common.UserCommonService;
+import com.moneyfi.apigateway.service.userservice.MultipartInputStreamFileResource;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
@@ -22,6 +23,7 @@ import com.moneyfi.apigateway.util.validators.UserValidations;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,7 +34,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -75,6 +79,7 @@ public class UserServiceImpl implements UserService {
     private final EmailTemplates emailTemplates;
     private final UserAuthHistRepository userAuthHistRepository;
     private final AuthenticationManager authenticationManager;
+    private final RestTemplate restTemplate;
 
     public UserServiceImpl(UserRepository userRepository,
                            OtpTempRepository otpTempRepository,
@@ -82,7 +87,8 @@ public class UserServiceImpl implements UserService {
                            UserCommonService userCommonService,
                            AuthenticationManager authenticationManager,
                            EmailTemplates emailTemplates,
-                           UserAuthHistRepository userAuthHistRepository){
+                           UserAuthHistRepository userAuthHistRepository,
+                           @Qualifier("getRestTemplate") RestTemplate restTemplate){
         this.userRepository = userRepository;
         this.otpTempRepository = otpTempRepository;
         this.jwtService = jwtService;
@@ -90,6 +96,7 @@ public class UserServiceImpl implements UserService {
         this.authenticationManager = authenticationManager;
         this.emailTemplates = emailTemplates;
         this.userAuthHistRepository = userAuthHistRepository;
+        this.restTemplate = restTemplate;
     }
 
     @Override
@@ -241,7 +248,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<Map<String, String>> loginViaGoogleOAuth(Map<String, String> googleAuthToken) {
         Map<String, String> userRoleToken = new HashMap<>();
         if (googleAuthToken == null || googleAuthToken.isEmpty()) {
@@ -266,7 +273,7 @@ public class UserServiceImpl implements UserService {
                 UserAuthModel newOrExistingUser = userRepository.getUserDetailsByUsername(email).orElse(null);
                 if (newOrExistingUser == null) {
                     newOrExistingUser = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Google User", email, GOOGLE_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()), LoginMode.GOOGLE_OAUTH.name(), null);
-//                    if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(email, convertImageUrlToMultipartFile(picture));
+                    if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(newOrExistingUser.getUsername(), newOrExistingUser.getId(), convertImageUrlToMultipartFile(picture));
                 }
                 if (newOrExistingUser.isBlocked()) {
                     userRoleToken.put(ERROR, ACCOUNT_BLOCKED);
@@ -287,6 +294,18 @@ public class UserServiceImpl implements UserService {
         }
         userRoleToken.put(ERROR, LOGIN_ERROR);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(userRoleToken);
+    }
+
+    private void uploadUserProfilePictureToS3(String email, Long userId, MultipartFile multipartFile) throws IOException {
+        String url = "http://MONEYFI-USER/api/v1/user-service/common/" + email + "/" + userId + "/profile-picture/upload";
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("file", new MultipartInputStreamFileResource(multipartFile.getInputStream(), multipartFile.getOriginalFilename()));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+        restTemplate.postForEntity(url, requestEntity, String.class);
     }
 
     @Override
@@ -345,7 +364,7 @@ public class UserServiceImpl implements UserService {
             if (user == null) {
                 user = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Github User", email, GITHUB_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()),
                         LoginMode.GITHUB_OAUTH.name(), (address != null && !address.trim().isEmpty()) ? address : null);
-//                if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(email, convertImageUrlToMultipartFile(picture));
+                if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(user.getUsername(), user.getId(), convertImageUrlToMultipartFile(picture));
             }
             if (user.isBlocked()) {
                 throw new ScenarioNotPossibleException("User is blocked, Kindly contact admin");

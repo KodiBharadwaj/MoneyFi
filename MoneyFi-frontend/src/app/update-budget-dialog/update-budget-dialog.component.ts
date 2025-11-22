@@ -57,7 +57,7 @@ export class UpdateBudgetDialogComponent {
     // console.log(month);
     // console.log(year);
   
-    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalIncome/${month}/${year}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income-service/user/totalIncome/${month}/${year}`).subscribe({
       next: (totalIncome) => {
         this.totalIncome = totalIncome;
       },

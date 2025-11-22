@@ -60,7 +60,7 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value = """
-            INSERT INTO user_profile_details_table (user_id, name, created_time, address, income_range)
+            INSERT INTO user_profile_details_table (user_id, name, created_date, address, income_range)
             VALUES (:userId, :name, :createdTime, :address, 0)
             """)
     void insertProfileDetailsDuringSignup(@Param("userId") Long userId, @Param("name") String name, @Param("createdTime") LocalDateTime createdTime, @Param("address") String address);

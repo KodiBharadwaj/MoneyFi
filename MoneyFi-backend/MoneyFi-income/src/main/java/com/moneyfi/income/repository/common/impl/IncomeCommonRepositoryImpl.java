@@ -23,12 +23,15 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
+    private static final String NO_MONTHLY_INCOME_DATE = "Error occurred while fetching monthly income data";
+    private static final String NO_YEARLY_INCOME_DATE = "Error occurred while fetching yearly income data";
+    private static final String NO_DELETED_INCOME_DATE = "Error occurred while fetching deleted income data";
+
     @Override
     public List<IncomeDetailsDto> getAllIncomesByDate(Long userId, int month, int year, String category, boolean deleteStatus) {
         try {
             List<IncomeDetailsDto> incomesList = new ArrayList<>();
-
-            if(category.equalsIgnoreCase("all")){
+            if (category.equalsIgnoreCase("all")) {
                 Query query = entityManager.createNativeQuery(
                                 "exec [getAllIncomesByMonthAndYear] " +
                                         "@userId = :userId, " +
@@ -41,11 +44,9 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                         .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
-
                 incomesList.addAll(query.getResultList());
                 return incomesList;
-            }
-            else {
+            } else {
                 Query query = entityManager.createNativeQuery(
                                 "exec [getAllIncomesByMonthAndYearAndByCategory] " +
                                         "@userId = :userId, " +
@@ -60,39 +61,34 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                         .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
-
                 incomesList.addAll(query.getResultList());
                 return incomesList;
             }
-
         } catch (Exception e) {
             e.printStackTrace();
-            throw new QueryValidationException("Error occurred while fetching monthly income data");
+            throw new QueryValidationException(NO_MONTHLY_INCOME_DATE);
         }
     }
 
     @Override
     public List<IncomeDeletedDto> getDeletedIncomesInAMonth(Long userId, int month, int year) {
-
         try {
             List<IncomeDeletedDto> incomeListDeleted = new ArrayList<>();
-
             Query query = entityManager.createNativeQuery(
-                    "exec [getDeletedIncomesInAMonth] " +
-                            "@userId = :userId, " +
-                            "@month = :month, " +
-                            "@year = :year")
+                            "exec [getDeletedIncomesInAMonth] " +
+                                    "@userId = :userId, " +
+                                    "@month = :month, " +
+                                    "@year = :year")
                     .setParameter(USER_ID, userId)
                     .setParameter(MONTH, month)
                     .setParameter(YEAR, year)
                     .unwrap(NativeQuery.class)
                     .setResultListTransformer(Transformers.aliasToBean(IncomeDeletedDto.class));
-
             incomeListDeleted.addAll(query.getResultList());
             return incomeListDeleted;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new QueryValidationException("Error occurred while fetching deleted income data");
+            throw new QueryValidationException(NO_DELETED_INCOME_DATE);
         }
     }
 
@@ -100,8 +96,7 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
     public List<IncomeDetailsDto> getAllIncomesByYear(Long userId, int year, String category, boolean deleteStatus) {
         try {
             List<IncomeDetailsDto> incomesList = new ArrayList<>();
-
-            if(category.equalsIgnoreCase("all")){
+            if (category.equalsIgnoreCase("all")) {
                 Query query = entityManager.createNativeQuery(
                                 "exec [getAllIncomesByYear] " +
                                         "@userId = :userId, " +
@@ -112,11 +107,9 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                         .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
-
                 incomesList.addAll(query.getResultList());
                 return incomesList;
-            }
-            else {
+            } else {
                 Query query = entityManager.createNativeQuery(
                                 "exec [getAllIncomesByYearAndByCategory] " +
                                         "@userId = :userId, " +
@@ -129,14 +122,12 @@ public class IncomeCommonRepositoryImpl implements IncomeCommonRepository {
                         .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
-
                 incomesList.addAll(query.getResultList());
                 return incomesList;
             }
-
         } catch (Exception e) {
             e.printStackTrace();
-            throw new QueryValidationException("Error occurred while fetching yearly income data");
+            throw new QueryValidationException(NO_YEARLY_INCOME_DATE);
         }
     }
 

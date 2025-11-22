@@ -68,7 +68,7 @@ export class AddBudgetDialogComponent {
     const month = currentDate.getMonth() + 1; 
     const year = currentDate.getFullYear();
   
-    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income/totalIncome/${month}/${year}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income-service/user/totalIncome/${month}/${year}`).subscribe({
       next: (totalIncome) => {
         this.totalIncome = totalIncome;
         this.initializeCategories();
