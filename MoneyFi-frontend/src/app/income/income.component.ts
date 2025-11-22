@@ -126,10 +126,10 @@ export class IncomeComponent {
     if(this.selectedCategory === '') this.selectedCategory = "all";
     if (this.selectedMonth === 0) {
       // Fetch all expenses for the selected year
-      url = `${this.baseUrl}/api/v1/income-service/user/getIncomeDetails/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
+      url = `${this.baseUrl}/api/v1/income-service/user/${this.selectedYear}/${this.selectedCategory}/${this.deleted}/incomes-list/get`;
     } else {
       // Fetch expenses for the specific month and year
-      url = `${this.baseUrl}/api/v1/income-service/user/getIncomeDetails/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}`;
+      url = `${this.baseUrl}/api/v1/income-service/user/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}/incomes-list/get`;
     }
 
     this.httpClient.get<any[]>(url).subscribe({
@@ -174,7 +174,7 @@ export class IncomeComponent {
   loadDeletedIncomeData() {
     this.loading = true;
 
-    const url = `${this.baseUrl}/api/v1/income-service/user/getDeletedIncomeDetails/${this.selectedMonth}/${this.selectedYear}`;
+    const url = `${this.baseUrl}/api/v1/income-service/user/${this.selectedMonth}/${this.selectedYear}/deleted-incomes-list/get`;
     this.httpClient.get<incomeDeleted[]>(url).subscribe({
       next: (data) => {
         if (data && data.length > 0) {
@@ -458,9 +458,9 @@ export class IncomeComponent {
 
     let url: string;
     if (this.selectedMonth === 0) {
-      url = `${this.baseUrl}/api/v1/income-service/user/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
+      url = `${this.baseUrl}/api/v1/income-service/user/${this.selectedYear}/${this.selectedCategory}/incomes-list/report`;
     } else {
-      url = `${this.baseUrl}/api/v1/income-service/user/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
+      url = `${this.baseUrl}/api/v1/income-service/user/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/incomes-list/report`;
     }
 
     this.httpClient.get(url, { responseType: 'blob' }).subscribe({

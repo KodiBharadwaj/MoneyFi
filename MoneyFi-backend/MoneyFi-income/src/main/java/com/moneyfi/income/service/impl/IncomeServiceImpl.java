@@ -34,8 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.moneyfi.income.utils.StringConstants.INCOME_NOT_FOUND;
-import static com.moneyfi.income.utils.StringConstants.NO_CHANGES_TO_UPDATE;
+import static com.moneyfi.income.utils.StringConstants.*;
 
 @Slf4j
 @Service
@@ -81,7 +80,7 @@ public class IncomeServiceImpl implements IncomeService {
         return incomeRepository.findIncomesOfUser(userId)
                 .stream()
                 .filter(i -> !i.isDeleted())
-                .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
+                .sorted((a,b) -> a.getDate().compareTo(b.getDate()))
                 .toList();
     }
 
@@ -92,10 +91,9 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     public byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category) {
-
-        List<IncomeDetailsDto> monthlyIncomeList = getAllIncomesByMonthYearAndCategory(userId, month, year, category,false);
-        if(monthlyIncomeList.isEmpty()){
-            throw new ResourceNotFoundException("No income data found to generate excel");
+        List<IncomeDetailsDto> monthlyIncomeList = getAllIncomesByMonthYearAndCategory(userId, month, year, category, false);
+        if (monthlyIncomeList.isEmpty()) {
+            throw new ResourceNotFoundException(INCOME_NOT_FOUND);
         }
         return generateExcelReport(monthlyIncomeList);
     }
@@ -133,7 +131,7 @@ public class IncomeServiceImpl implements IncomeService {
                 dateCell.setCellValue(data.getDate()); // Assuming data.getDate() is `java.util.Date`
                 dateCell.setCellStyle(dateStyle); // Apply formatting
 
-                row.createCell(4).setCellValue(data.isRecurring()?"Yes":"No");
+                row.createCell(4).setCellValue(data.isRecurring() ? YES : NO);
             }
 
             // Auto-size columns
@@ -145,10 +143,9 @@ public class IncomeServiceImpl implements IncomeService {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             workbook.write(outputStream);
             return outputStream.toByteArray();
-
         } catch (IOException e) {
             e.printStackTrace();
-            throw new ResourceNotFoundException("Error in generating excel report");
+            throw new ResourceNotFoundException(ERROR_GENERATION_EXCEL);
         }
     }
 
@@ -186,10 +183,9 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     public byte[] generateYearlyExcelReport(Long userId, int year, String category) {
-
         List<IncomeDetailsDto> yearlyIncomeList = getAllIncomesByYear(userId, year, category, false);
         if(yearlyIncomeList.isEmpty()){
-            throw new ResourceNotFoundException("No income data found to generate excel");
+            throw new ResourceNotFoundException(INCOME_NOT_FOUND);
         }
         return generateExcelReport(yearlyIncomeList);
     }
@@ -205,7 +201,6 @@ public class IncomeServiceImpl implements IncomeService {
             BigDecimal total = (BigDecimal) raw[1];
             monthlyTotals[month] = total;
         }
-
         return Arrays.asList(monthlyTotals);
     }
 
@@ -215,7 +210,6 @@ public class IncomeServiceImpl implements IncomeService {
         if(totalIncome == null){
             return BigDecimal.ZERO;
         }
-
         return totalIncome;
     }
 
@@ -249,13 +243,11 @@ public class IncomeServiceImpl implements IncomeService {
         if(totalExpense == null){
             return BigDecimal.ZERO;
         }
-
         return totalExpense;
     }
 
     @Override
     public boolean incomeDeleteCheckFunction(IncomeModel incomeModel) {
-
         BigDecimal totalIncome = getTotalIncomeInMonthAndYear(incomeModel.getUserId(), incomeModel.getDate().getMonthValue(), incomeModel.getDate().getYear());
         BigDecimal previousUpdatedIncome = incomeRepository.getIncomeByIncomeId(incomeModel.getId());
         if(previousUpdatedIncome == null){
@@ -272,7 +264,7 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public boolean incomeRevertFunction(Long incomeId, Long userId) {
         IncomeDeleted incomeDeleted = incomeDeletedRepository.findByIncomeId(incomeId);
         LocalDateTime expiryTime = incomeDeleted.getExpiryDateTime();
@@ -318,19 +310,16 @@ public class IncomeServiceImpl implements IncomeService {
         inputDto.setThreshold(-1); /** to get all the transactions without pagination **/
         UserDetailsForStatementDto userDetails = incomeCommonRepository.getUserDetailsForAccountStatement(userId);
         userDetails.setUsername(makeUsernamePrivate(userDetails.getUsername()));
-        return generatePdfTemplate.generatePdf(getAccountStatementOfUser(userId, inputDto), userDetails, inputDto.getFromDate(), inputDto.getToDate(),
-                generateDocumentPasswordForUser(userDetails));
+        return generatePdfTemplate.generatePdf(getAccountStatementOfUser(userId, inputDto), userDetails, inputDto.getFromDate(), inputDto.getToDate(), generateDocumentPasswordForUser(userDetails));
     }
 
     private String makeUsernamePrivate(String username){
         int index = username.indexOf('@');
-        return username.substring(0, index/3) +
-                "x".repeat(index - index/3) + username.substring(index);
+        return username.substring(0, index/3) + "x".repeat(index - index/3) + username.substring(index);
     }
 
     private String generateDocumentPasswordForUser(UserDetailsForStatementDto userDetails){
-        return userDetails.getName().substring(0,4).toUpperCase() +
-                userDetails.getUsername().substring(0,4).toLowerCase();
+        return userDetails.getName().substring(0,4).toUpperCase() + userDetails.getUsername().substring(0,4).toLowerCase();
     }
 
     @Override
@@ -341,8 +330,7 @@ public class IncomeServiceImpl implements IncomeService {
             return ResponseEntity.ok("Email sent successfully");
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to send email: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send email: " + e.getMessage());
         }
     }
 
@@ -361,7 +349,6 @@ public class IncomeServiceImpl implements IncomeService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         headers.setBearerAuth(token);
-
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(pdfBytes, headers);
 
         ResponseEntity<Void> response = restTemplate.exchange(
@@ -370,7 +357,6 @@ public class IncomeServiceImpl implements IncomeService {
                 requestEntity,
                 Void.class
         );
-
         if (!response.getStatusCode().is2xxSuccessful()) {
             throw new ResourceNotFoundException("Failed to send email: " + response.getStatusCode());
         }
