@@ -1,8 +1,0 @@
-alter table income_table
-add created_at datetime2(2)
-
-alter table income_table
-add updated_at datetime2(2)
-
-alter table income_table_deleted
-add deleted_at datetime2(2)
