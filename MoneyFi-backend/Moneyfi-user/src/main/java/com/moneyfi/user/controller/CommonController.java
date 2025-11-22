@@ -11,7 +11,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -79,5 +81,13 @@ public class CommonController {
     @PostMapping("/username/forgot")
     public ResponseEntity<Boolean> forgotUsername(@RequestBody ForgotUsernameDto userDetails){
         return ResponseEntity.ok(userCommonService.getUsernameByDetails(userDetails));
+    }
+
+    @Operation(summary = "Api to upload profile pic to AWS S3")
+    @PostMapping("/{username}/{userId}/profile-picture/upload")
+    public ResponseEntity<String> uploadUserProfilePictureToS3(@PathVariable("username") String username,
+                                                               @PathVariable("userId") Long userId,
+                                                               @RequestParam(value = "file") MultipartFile file) throws IOException {
+        return ResponseEntity.ok(userCommonService.uploadUserProfilePictureToS3(username, userId, file));
     }
 }
