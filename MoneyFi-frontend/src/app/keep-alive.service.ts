@@ -16,8 +16,7 @@ export class KeepAliveService implements OnDestroy {
       console.log("schedule working")
       this.http.get('https://moneyfi-eureka.onrender.com').subscribe();
       this.http.get('https://moneyfi-api-gateway.onrender.com').subscribe();
-      this.http.get('https://moneyfi-income.onrender.com').subscribe();
-      this.http.get('https://moneyfi-expense.onrender.com').subscribe();
+      this.http.get('https://moneyfi-transaction.onrender.com').subscribe();
       this.http.get('https://moneyfi-budget.onrender.com').subscribe();
       this.http.get('https://moneyfi-goal.onrender.com').subscribe();
     });
