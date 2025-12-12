@@ -102,25 +102,25 @@ public class BudgetServiceImpl implements BudgetService {
         headers.set("Authorization", authHeader);
         HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
         ResponseEntity<List<Object[]>> incomeResponse = restTemplate.exchange(
-                StringConstants.EUREKA_INCOME_SERVICE_URL + "/total-income/specified-range?fromDate=" + fromDate + "&toDate=" + toDate,
+                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/income/user/total-income/specified-range?fromDate=" + fromDate + "&toDate=" + toDate,
                 HttpMethod.GET,
                 requestEntity,
                 new ParameterizedTypeReference<List<Object[]>>() {}
         );
         ResponseEntity<List<Object[]>> expenseResponse = restTemplate.exchange(
-                StringConstants.EUREKA_EXPENSE_SERVICE_URL + "/total-expenses/specified-range?fromDate=" + fromDate + "&toDate=" + toDate,
+                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/expense/user/total-expenses/specified-range?fromDate=" + fromDate + "&toDate=" + toDate,
                 HttpMethod.GET,
                 requestEntity,
                 new ParameterizedTypeReference<List<Object[]>>() {}
         );
         ResponseEntity<List<Object[]>> incomeResponseTillToDate = restTemplate.exchange(
-                StringConstants.EUREKA_INCOME_SERVICE_URL + "/total-income/specified-range?fromDate=" + LocalDate.of(1, 1, 1) + "&toDate=" + toDate,
+                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/income/user/total-income/specified-range?fromDate=" + LocalDate.of(1, 1, 1) + "&toDate=" + toDate,
                 HttpMethod.GET,
                 requestEntity,
                 new ParameterizedTypeReference<List<Object[]>>() {}
         );
         ResponseEntity<List<Object[]>> expenseResponseTillToDate = restTemplate.exchange(
-                StringConstants.EUREKA_EXPENSE_SERVICE_URL + "/total-expenses/specified-range?fromDate=" + LocalDate.of(1, 1, 1) + "&toDate=" + toDate,
+                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/expense/user/total-expenses/specified-range?fromDate=" + LocalDate.of(1, 1, 1) + "&toDate=" + toDate,
                 HttpMethod.GET,
                 requestEntity,
                 new ParameterizedTypeReference<List<Object[]>>() {}
