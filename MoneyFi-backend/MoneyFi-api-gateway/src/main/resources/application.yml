@@ -35,10 +35,10 @@ spring:
     gateway:
       mvc:
         routes:
-          - id: MoneyFi-income
-            uri: lb://MoneyFi-income
+          - id: MoneyFi-Transaction
+            uri: lb://MoneyFi-Transaction
             predicates:
-              - Path=/api/v1/income-service/user/**
+              - Path=/api/v1/transaction/income/user/**, /api/v1/transaction/expense/user/**, /api/v1/transaction/user/**
           - id: MoneyFi-expense
             uri: lb://MoneyFi-expense
             predicates:

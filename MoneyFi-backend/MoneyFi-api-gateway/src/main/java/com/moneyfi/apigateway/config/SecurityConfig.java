@@ -69,7 +69,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/external-api/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
 
-                        .requestMatchers("/api/v1/income-service/user/**").hasRole(UserRoles.USER.name())
+                        .requestMatchers("/api/v1/transaction/income/user/**").hasRole(UserRoles.USER.name())
+                        .requestMatchers("/api/v1/transaction/expense/user/**").hasRole(UserRoles.USER.name())
+                        .requestMatchers("/api/v1/transaction/user/**").hasRole(UserRoles.USER.name())
                         .requestMatchers("/api/v1/budget-service/user/**").hasRole(UserRoles.USER.name())
                         .requestMatchers("/api/v1/user-service/common/**").permitAll()
                         .requestMatchers("/api/v1/user-service/admin/**").hasRole(UserRoles.ADMIN.name())

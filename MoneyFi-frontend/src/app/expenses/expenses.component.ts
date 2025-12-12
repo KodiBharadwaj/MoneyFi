@@ -132,10 +132,10 @@ export class ExpensesComponent {
     if(this.selectedCategory === '') this.selectedCategory = 'all';
     if (this.selectedMonth === 0) {
       // Fetch all expenses for the selected year
-      url = `${this.baseUrl}/api/v1/expense/getExpenses/${this.selectedYear}/${this.selectedCategory}/false`;
+      url = `${this.baseUrl}/api/v1/transaction/expense/user/getExpenses/${this.selectedYear}/${this.selectedCategory}/false`;
     } else {
       // Fetch expenses for the specific month and year
-      url = `${this.baseUrl}/api/v1/expense/getExpenses/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/false`;
+      url = `${this.baseUrl}/api/v1/transaction/expense/user/getExpenses/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/false`;
     }
 
     this.httpClient.get<Expense[]>(url).subscribe({
@@ -174,7 +174,7 @@ export class ExpensesComponent {
       }
     });
 
-    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income-service/user/totalIncome/${this.selectedMonth}/${this.selectedYear}`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/transaction/income/user/totalIncome/${this.selectedMonth}/${this.selectedYear}`).subscribe({
       next: (totalIncome) => {
         this.totalIncome = totalIncome;
       },
@@ -223,7 +223,7 @@ export class ExpensesComponent {
           date: formattedDate,
         };
 
-        this.httpClient.post<Expense>(`${this.baseUrl}/api/v1/expense/saveExpense`, expenseData).subscribe({
+        this.httpClient.post<Expense>(`${this.baseUrl}/api/v1/transaction/expense/user/saveExpense`, expenseData).subscribe({
           next: (newExpense) => {
             this.expenses.push(newExpense);
             this.calculateTotalExpenses();
@@ -282,7 +282,7 @@ export class ExpensesComponent {
           date: formattedDate,
         };
 
-        this.httpClient.put<Expense>(`${this.baseUrl}/api/v1/expense/${expense.id}`,updatedExpenseData).subscribe({
+        this.httpClient.put<Expense>(`${this.baseUrl}/api/v1/transaction/expense/user/${expense.id}`,updatedExpenseData).subscribe({
           next: (updatedExpense) => {
             // console.log('Expense updated successfully:', updatedExpense);
             if(updatedExpense){
@@ -350,7 +350,7 @@ export class ExpensesComponent {
         this.calculateTotalExpenses();
         this.updateChartData();
         const idsToDelete = [expenseId]; 
-        this.httpClient.delete<void>(`${this.baseUrl}/api/v1/expense`, { body : idsToDelete })
+        this.httpClient.delete<void>(`${this.baseUrl}/api/v1/transaction/expense/user`, { body : idsToDelete })
           .subscribe({
             next: () => {
               this.toastr.warning("Expense " + expenseDataFetch?.description + " has been deleted");
@@ -428,7 +428,7 @@ export class ExpensesComponent {
       this.thisMonthincomeLeft = 0;
     }
 
-    this.httpClient.get<number>(`${this.baseUrl}/api/v1/income-service/user/availableBalance`).subscribe({
+    this.httpClient.get<number>(`${this.baseUrl}/api/v1/transaction/income/user/availableBalance`).subscribe({
       next : (availableBalance) => {
         this.overallincomeLeft = availableBalance;
       },
@@ -456,9 +456,9 @@ export class ExpensesComponent {
 
     let url: string;
     if (this.selectedMonth === 0) {
-      url = `${this.baseUrl}/api/v1/expense/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
+      url = `${this.baseUrl}/api/v1/transaction/expense/user/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
     } else {
-      url = `${this.baseUrl}/api/v1/expense/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
+      url = `${this.baseUrl}/api/v1/transaction/expense/user/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
     }
 
     this.httpClient.get(url, { responseType: 'blob' })

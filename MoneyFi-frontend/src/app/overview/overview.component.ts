@@ -105,7 +105,7 @@ export class OverviewComponent implements OnInit {
       })
     }
     
-    this.httpClient.get<any>(`${this.baseUrl}/api/v1/income-service/user/overview-details/${this.thisMonth}/${this.thisYear}`).subscribe({
+    this.httpClient.get<any>(`${this.baseUrl}/api/v1/transaction/user/overview-details/${this.thisMonth}/${this.thisYear}`).subscribe({
       next : (response) => {
         this.loading = false;
         this.summary.availableBalance = response.availableBalance;
