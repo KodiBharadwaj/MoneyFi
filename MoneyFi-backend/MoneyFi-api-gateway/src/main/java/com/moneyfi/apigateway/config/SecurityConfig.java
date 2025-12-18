@@ -72,7 +72,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/transaction/income/user/**").hasRole(UserRoles.USER.name())
                         .requestMatchers("/api/v1/transaction/expense/user/**").hasRole(UserRoles.USER.name())
                         .requestMatchers("/api/v1/transaction/user/**").hasRole(UserRoles.USER.name())
-                        .requestMatchers("/api/v1/budget-service/user/**").hasRole(UserRoles.USER.name())
+
+                        .requestMatchers("/api/v1/wealth-core/budget/user/**").hasRole(UserRoles.USER.name())
+                        .requestMatchers("/api/v1/wealth-core/goal/user/**").hasRole(UserRoles.USER.name())
+                        .requestMatchers("/api/v1/wealth-core/user/**").hasRole(UserRoles.USER.name())
+
                         .requestMatchers("/api/v1/user-service/common/**").permitAll()
                         .requestMatchers("/api/v1/user-service/admin/**").hasRole(UserRoles.ADMIN.name())
                         .requestMatchers("/api/v1/user-service/user-admin/**").hasAnyRole(UserRoles.ADMIN.name(), UserRoles.USER.name())
