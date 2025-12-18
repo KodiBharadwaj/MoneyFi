@@ -8,7 +8,7 @@ import com.moneyfi.wealthcore.repository.common.WealthCoreRepository;
 import com.moneyfi.wealthcore.service.budget.BudgetService;
 import com.moneyfi.wealthcore.service.budget.dto.request.AddBudgetDto;
 import com.moneyfi.wealthcore.service.budget.dto.response.BudgetDetailsDto;
-import com.moneyfi.wealthcore.utils.BudgetValidator;
+import com.moneyfi.wealthcore.validator.BudgetValidator;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;

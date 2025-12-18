@@ -1,4 +1,4 @@
-package com.moneyfi.wealthcore.utils;
+package com.moneyfi.wealthcore.validator;
 
 import com.moneyfi.wealthcore.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.wealthcore.model.BudgetModel;

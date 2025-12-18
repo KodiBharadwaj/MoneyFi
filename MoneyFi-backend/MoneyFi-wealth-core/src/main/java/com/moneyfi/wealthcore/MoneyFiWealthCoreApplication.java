@@ -10,7 +10,7 @@ public class MoneyFiWealthCoreApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(MoneyFiWealthCoreApplication.class, args);
-		System.out.println("Budget MS Running");
+		System.out.println("Wealth Care MS Running");
 	}
 
 }

@@ -1,7 +1,6 @@
 package com.moneyfi.wealthcore.controller;
 
 import com.moneyfi.wealthcore.config.JwtService;
-import com.moneyfi.wealthcore.service.budget.BudgetService;
 import com.moneyfi.wealthcore.service.budget.dto.response.SpendingAnalysisResponseDto;
 import com.moneyfi.wealthcore.service.wealthcore.WealthCoreService;
 import io.swagger.v3.oas.annotations.Operation;

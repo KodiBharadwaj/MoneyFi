@@ -89,7 +89,7 @@ export class BudgetsComponent {
     this.loading = true;
     if(this.selectedCategory === '') this.selectedCategory = 'all';
 
-    this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/budget-service/user/${this.selectedCategory}/${this.selectedMonth}/${this.selectedYear}/get`).subscribe({
+    this.httpClient.get<Budget[]>(`${this.baseUrl}/api/v1/wealth-core/budget/user/${this.selectedCategory}/${this.selectedMonth}/${this.selectedYear}/get`).subscribe({
       next: (budgets) => {
         if(budgets === null){
           this.toastr.warning('You dont have budget', 'Please add Budget plan');
@@ -137,7 +137,7 @@ export class BudgetsComponent {
       if (result) {
         console.log(result);
 
-        this.httpClient.post(`${this.baseUrl}/api/v1/budget-service/user/save`, result).subscribe({
+        this.httpClient.post(`${this.baseUrl}/api/v1/wealth-core/budget/user/save`, result).subscribe({
           next : () => {
             this.loadBudgetData();
             this.toastr.success('Budget added successfully')
@@ -184,7 +184,7 @@ export class BudgetsComponent {
   
   private saveUpdatedBudgets(updatedBudgets: any[]) {
 
-    this.httpClient.put(`${this.baseUrl}/api/v1/budget-service/user/update`, updatedBudgets).subscribe({
+    this.httpClient.put(`${this.baseUrl}/api/v1/wealth-core/budget/user/update`, updatedBudgets).subscribe({
       next: () => {
         this.toastr.success('Budget updated successfully');
         this.loadBudgetData();
@@ -214,7 +214,7 @@ export class BudgetsComponent {
 
       dialogRef.afterClosed().subscribe((result) => {
         if (result) {
-          this.httpClient.delete(`${this.baseUrl}/api/v1/budget-service/user/delete`).subscribe({
+          this.httpClient.delete(`${this.baseUrl}/api/v1/wealth-core/budget/user/delete`).subscribe({
             next: (response) => {
               this.toastr.success('Budget deleted successfully');
               this.loadBudgetData();
