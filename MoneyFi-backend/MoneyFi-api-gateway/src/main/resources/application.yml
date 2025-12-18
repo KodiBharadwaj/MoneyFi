@@ -43,10 +43,10 @@ spring:
             uri: lb://MoneyFi-expense
             predicates:
               - Path=/api/v1/expense/**
-          - id: MoneyFi-budget
-            uri: lb://MoneyFi-budget
+          - id: MoneyFi-wealth-core
+            uri: lb://MoneyFi-wealth-core
             predicates:
-              - Path=/api/v1/budget-service/user/**
+              - Path=/api/v1/wealth-core/budget/user/**, /api/v1/wealth-core/goal/user/**, /api/v1/wealth-core/user/**
           - id: MoneyFi-goal
             uri: lb://MoneyFi-goal
             predicates:

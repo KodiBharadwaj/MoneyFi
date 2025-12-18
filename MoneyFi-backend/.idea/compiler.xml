@@ -12,7 +12,6 @@
         <module name="MoneyFi-income" />
         <module name="eureka-server" />
         <module name="MoneyFi-goal" />
-        <module name="MoneyFi-budget" />
       </profile>
       <profile name="Annotation profile for Moneyfi-monitor" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -20,11 +19,13 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
         <module name="Moneyfi-monitor" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="MoneyFi-budget" target="17" />
       <module name="MoneyFi-user-details" target="17" />
       <module name="MoneyFi-userAuthModel-details" target="17" />
     </bytecodeTargetLevel>

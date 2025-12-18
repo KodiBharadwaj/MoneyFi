@@ -76,7 +76,7 @@ export class GoalsComponent {
   loadGoals() {
     this.loading = true;
 
-    this.httpClient.get<inputGoal[]>(`${this.baseUrl}/api/v1/goal/getGoalDetails`).subscribe({
+    this.httpClient.get<inputGoal[]>(`${this.baseUrl}/api/v1/wealth-core/goal/user/getGoalDetails`).subscribe({
       next: (data) => {
         // console.log(data);
         let amount = 0;
@@ -118,7 +118,7 @@ export class GoalsComponent {
   }
 
   private loadGoalTileData(){
-    this.httpClient.get<any>(`${this.baseUrl}/api/v1/goal/goal-tile-details`).subscribe({
+    this.httpClient.get<any>(`${this.baseUrl}/api/v1/wealth-core/goal/user/goal-tile-details`).subscribe({
       next: (response) => {
         this.availableBalance = response.goalTileDetails.availableIncome;
         this.totalGoalSavings = response.goalTileDetails.totalGoalAmount;
@@ -150,7 +150,7 @@ export class GoalsComponent {
 
           if(goalData.currentAmount < this.availableBalance){
             this.addGoalLoading = true;
-            this.httpClient.post<inputGoal>(`${this.baseUrl}/api/v1/goal/saveGoal`, goalData).subscribe({
+            this.httpClient.post<inputGoal>(`${this.baseUrl}/api/v1/wealth-core/goal/user/saveGoal`, goalData).subscribe({
               next: (newGoal) => {
                 // const newGoalConverted = this.modelConverterFunction(newGoal); 
                 // this.goals.push(newGoalConverted); 
@@ -206,7 +206,7 @@ export class GoalsComponent {
     dialogRef.afterClosed().subscribe((amount) => {
       if (amount !== undefined && amount > 0 && amount < this.availableBalance) {
         this.addAmountGoalLoading = true;
-        this.httpClient.post<inputGoal>(`${this.baseUrl}/api/v1/goal/${id}/addAmount/${amount}`, null).subscribe({
+        this.httpClient.post<inputGoal>(`${this.baseUrl}/api/v1/wealth-core/goal/user/${id}/addAmount/${amount}`, null).subscribe({
             next: (response) => {
               this.addAmountGoalLoading = false;
               this.toastr.success('Amount added successully');
@@ -257,7 +257,7 @@ export class GoalsComponent {
           deadLine:formattedDate,
         };
         
-        this.httpClient.put<any>(`${this.baseUrl}/api/v1/goal/${goal.id}`, goalData).subscribe({
+        this.httpClient.put<any>(`${this.baseUrl}/api/v1/wealth-core/goal/user/${goal.id}`, goalData).subscribe({
           next: (updatedGoal) => {
             // const newGoalConverted = this.modelConverterFunction(updatedGoal); 
             // this.goals.push(newGoalConverted); 
@@ -369,7 +369,7 @@ export class GoalsComponent {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.httpClient.delete<void>(`${this.baseUrl}/api/v1/goal/${goalId}`)
+        this.httpClient.delete<void>(`${this.baseUrl}/api/v1/wealth-core/goal/user/${goalId}`)
         .subscribe({
           next: () => {
             // console.log(`Expense with ID ${goalId} deleted successfully.`);
