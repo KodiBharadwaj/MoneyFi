@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/wealth-core/goal/user")
+@RequestMapping("/api/v1/wealth-core/goal")
 public class GoalApiController {
 
     private final GoalService goalService;

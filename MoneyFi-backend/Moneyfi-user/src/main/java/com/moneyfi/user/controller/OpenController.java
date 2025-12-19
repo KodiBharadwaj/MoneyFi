@@ -18,12 +18,12 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/user-service/common")
-public class CommonController {
+@RequestMapping("/api/v1/user-service/open")
+public class OpenController {
 
     private final UserCommonService userCommonService;
 
-    public CommonController(UserCommonService userCommonService){
+    public OpenController(UserCommonService userCommonService){
         this.userCommonService = userCommonService;
     }
 

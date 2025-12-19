@@ -151,17 +151,6 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
-    private void saveUserAuthDetails(UserAuthModel userAuthModel, String username){
-        userAuthModel.setUsername(username.trim());
-        userAuthModel.setOtpCount(0);
-        userAuthModel.setDeleted(false);
-        userAuthModel.setBlocked(false);
-    }
-
-    private void saveUserProfileDetails(Long userId, UserProfile userProfile, String address){
-        userRepository.insertProfileDetailsDuringSignup(userId, userProfile.getName(), LocalDateTime.now(), (address != null && !address.isEmpty()) ? address : null);
-    }
-
     @Override
     @Transactional
     public ResponseEntity<Map<String, String>> login(UserLoginDetailsRequestDto requestDto) {
@@ -217,36 +206,6 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void makeOldSessionInActiveOfUserForNewLogin(String username){
-        SessionTokenModel sessionTokenUser = userCommonService.getUserByUsername(username);
-        if(sessionTokenUser != null && sessionTokenUser.getIsActive()){
-            String oldToken = sessionTokenUser.getToken();
-            BlackListedToken blackListedToken = new BlackListedToken();
-            blackListedToken.setToken(oldToken);
-            Date expiryDate = new Date(System.currentTimeMillis() + 3600000);
-            blackListedToken.setExpiry(expiryDate);
-            userCommonService.blacklistToken(blackListedToken);
-        }
-    }
-
-    private void functionToPreventMultipleLogins(UserAuthModel userAuthModel, JwtToken token){
-        if(userCommonService.getUserByUsername(userAuthModel.getUsername()) != null){
-            SessionTokenModel sessionTokens = userCommonService.getUserByUsername(userAuthModel.getUsername());
-            sessionTokens.setUsername(userAuthModel.getUsername());
-            sessionTokens.setCreatedTime(LocalDateTime.now());
-            sessionTokens.setToken(token.getJwtToken());
-            sessionTokens.setIsActive(true);
-            userCommonService.save(sessionTokens);
-        } else {
-            SessionTokenModel sessionTokens = new SessionTokenModel();
-            sessionTokens.setUsername(userAuthModel.getUsername());
-            sessionTokens.setCreatedTime(LocalDateTime.now());
-            sessionTokens.setToken(token.getJwtToken());
-            sessionTokens.setIsActive(true);
-            userCommonService.save(sessionTokens);
-        }
-    }
-
     @Override
     @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<Map<String, String>> loginViaGoogleOAuth(Map<String, String> googleAuthToken) {
@@ -294,18 +253,6 @@ public class UserServiceImpl implements UserService {
         }
         userRoleToken.put(ERROR, LOGIN_ERROR);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(userRoleToken);
-    }
-
-    private void uploadUserProfilePictureToS3(String email, Long userId, MultipartFile multipartFile) throws IOException {
-        String url = "http://MONEYFI-USER/api/v1/user-service/common/" + email + "/" + userId + "/profile-picture/upload";
-
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", new MultipartInputStreamFileResource(multipartFile.getInputStream(), multipartFile.getOriginalFilename()));
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-        restTemplate.postForEntity(url, requestEntity, String.class);
     }
 
     @Override
@@ -386,16 +333,6 @@ public class UserServiceImpl implements UserService {
             e.printStackTrace();
             return "<script>alert('GitHub login failed');window.close();</script>";
         }
-    }
-
-    private MultiValueMap<String, String> mapFunctionToStoreGoogleSecureDetails(String code){
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("code", code); // Authentication code from Google comes here via frontend
-        params.add("client_id", googleClientId);
-        params.add("client_secret", googleClientSecret);
-        params.add("redirect_uri", allowedOrigins.trim()); // your Angular app URL
-        params.add("grant_type", "authorization_code");
-        return params;
     }
 
     @Override
@@ -481,20 +418,6 @@ public class UserServiceImpl implements UserService {
         return response;
     }
 
-    private BlackListedToken makeUserTokenBlacklisted(String token){
-        Date expiryDate = new Date(System.currentTimeMillis());
-        BlackListedToken blackListedToken = new BlackListedToken();
-        blackListedToken.setToken(token);
-        blackListedToken.setExpiry(expiryDate);
-        return userCommonService.blacklistToken(blackListedToken);
-    }
-
-    private SessionTokenModel makeUserSessionInActive(String token){
-        SessionTokenModel sessionTokens = userCommonService.getSessionDetailsByToken(token);
-        sessionTokens.setIsActive(false);
-        return userCommonService.save(sessionTokens);
-    }
-
     @Override
     @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<String> sendOtpToBlockAccount(String username, String type) {
@@ -522,5 +445,80 @@ public class UserServiceImpl implements UserService {
                 });
         emailTemplates.sendOtpToUserForAccountBlock(username, userRepository.getUserNameByUsername(username.trim()), verificationCode, type);
         return ResponseEntity.ok(EMAIL_SENT_SUCCESS_MESSAGE);
+    }
+
+    private void saveUserAuthDetails(UserAuthModel userAuthModel, String username){
+        userAuthModel.setUsername(username.trim());
+        userAuthModel.setOtpCount(0);
+        userAuthModel.setDeleted(false);
+        userAuthModel.setBlocked(false);
+    }
+
+    private void saveUserProfileDetails(Long userId, UserProfile userProfile, String address){
+        userRepository.insertProfileDetailsDuringSignup(userId, userProfile.getName(), LocalDateTime.now(), (address != null && !address.isEmpty()) ? address : null);
+    }
+
+    private void makeOldSessionInActiveOfUserForNewLogin(String username){
+        SessionTokenModel sessionTokenUser = userCommonService.getUserByUsername(username);
+        if(sessionTokenUser != null && sessionTokenUser.getIsActive()){
+            BlackListedToken blackListedToken = new BlackListedToken();
+            blackListedToken.setToken(sessionTokenUser.getToken());
+            blackListedToken.setExpiry(new Date(System.currentTimeMillis() + 3600000));
+            userCommonService.blacklistToken(blackListedToken);
+        }
+    }
+
+    private void functionToPreventMultipleLogins(UserAuthModel userAuthModel, JwtToken token){
+        if(userCommonService.getUserByUsername(userAuthModel.getUsername()) != null){
+            SessionTokenModel sessionTokens = userCommonService.getUserByUsername(userAuthModel.getUsername());
+            sessionTokens.setUsername(userAuthModel.getUsername());
+            sessionTokens.setCreatedTime(LocalDateTime.now());
+            sessionTokens.setToken(token.getJwtToken());
+            sessionTokens.setIsActive(true);
+            userCommonService.save(sessionTokens);
+        } else {
+            SessionTokenModel sessionTokens = new SessionTokenModel();
+            sessionTokens.setUsername(userAuthModel.getUsername());
+            sessionTokens.setCreatedTime(LocalDateTime.now());
+            sessionTokens.setToken(token.getJwtToken());
+            sessionTokens.setIsActive(true);
+            userCommonService.save(sessionTokens);
+        }
+    }
+
+    private void uploadUserProfilePictureToS3(String email, Long userId, MultipartFile multipartFile) throws IOException {
+        String url = USER_SERVICE_OPEN_URL + "/" + email + "/" + userId + "/profile-picture/upload";
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("file", new MultipartInputStreamFileResource(multipartFile.getInputStream(), multipartFile.getOriginalFilename()));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+        restTemplate.postForEntity(url, requestEntity, String.class);
+    }
+
+    private MultiValueMap<String, String> mapFunctionToStoreGoogleSecureDetails(String code){
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("code", code); // Authentication code from Google comes here via frontend
+        params.add("client_id", googleClientId);
+        params.add("client_secret", googleClientSecret);
+        params.add("redirect_uri", allowedOrigins.trim()); // your Angular app URL
+        params.add("grant_type", "authorization_code");
+        return params;
+    }
+
+    private BlackListedToken makeUserTokenBlacklisted(String token){
+        Date expiryDate = new Date(System.currentTimeMillis());
+        BlackListedToken blackListedToken = new BlackListedToken();
+        blackListedToken.setToken(token);
+        blackListedToken.setExpiry(expiryDate);
+        return userCommonService.blacklistToken(blackListedToken);
+    }
+
+    private SessionTokenModel makeUserSessionInActive(String token){
+        SessionTokenModel sessionTokens = userCommonService.getSessionDetailsByToken(token);
+        sessionTokens.setIsActive(false);
+        return userCommonService.save(sessionTokens);
     }
 }

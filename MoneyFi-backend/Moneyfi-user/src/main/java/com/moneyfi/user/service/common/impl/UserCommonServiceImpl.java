@@ -22,7 +22,7 @@ import com.moneyfi.user.service.common.dto.response.UserRequestStatusDto;
 import com.moneyfi.user.util.EmailTemplates;
 import com.moneyfi.user.util.constants.StringUtils;
 import com.moneyfi.user.util.enums.*;
-import com.moneyfi.user.util.validators.UserValidations;
+import com.moneyfi.user.validator.UserValidations;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

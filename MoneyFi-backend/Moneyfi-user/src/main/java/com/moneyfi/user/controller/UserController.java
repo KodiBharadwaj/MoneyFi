@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/user-service")
+@RequestMapping("/api/v1/user-service/user")
 public class UserController {
 
     private final JwtService jwtService;
@@ -161,14 +161,6 @@ public class UserController {
                                               @RequestParam("file") MultipartFile excel){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         profileService.parseUserProfileDataFromExcel(excel, userId);
-    }
-
-    @Operation(summary = "Api to get reasons for respected reason codes")
-    @GetMapping("/reasons-dialog/get")
-    public ResponseEntity<List<String>> getReasonsForDialogForUser(@RequestParam("code") int reasonCode){
-        List<String> responseList = userCommonService.getReasonsForDialogForUser(reasonCode);
-        return !responseList.isEmpty() ? ResponseEntity.status(HttpStatus.OK).body(responseList) :
-                ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
 
     @Operation(summary = "Api to block/delete account based on user request")

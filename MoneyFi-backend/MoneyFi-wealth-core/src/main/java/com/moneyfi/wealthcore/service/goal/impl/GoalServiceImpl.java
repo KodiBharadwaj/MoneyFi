@@ -85,7 +85,7 @@ public class GoalServiceImpl implements GoalService {
         HttpEntity<ExpenseModelDto> requestEntity = new HttpEntity<>(expenseModelDto, headers);
 
         ResponseEntity<ExpenseModelDto> response = restTemplate.exchange(
-                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/expense/user/saveExpense",
+                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/expense/saveExpense",
                 HttpMethod.POST,
                 requestEntity,
                 ExpenseModelDto.class
@@ -209,7 +209,7 @@ public class GoalServiceImpl implements GoalService {
         HttpEntity<List<Long>> requestEntity = new HttpEntity<>(expenseIdsList, headers);
 
         ResponseEntity<Void> response = restTemplate.exchange(
-                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/expense/user",
+                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/expense",
                 HttpMethod.DELETE,
                 requestEntity,
                 Void.class

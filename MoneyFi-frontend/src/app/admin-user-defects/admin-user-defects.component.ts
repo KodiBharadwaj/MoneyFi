@@ -150,7 +150,7 @@ export class AdminUserDefectsComponent implements OnInit{
   }
 
   fetchIgnoreReasons(): void {
-    this.httpClient.get<string[]>(`${this.baseUrl}/api/v1/user-service/user-admin/reasons-dialog/get?code=8`)
+    this.httpClient.get<string[]>(`${this.baseUrl}/api/v1/user-service/open/reasons-dialog/get?code=8`)
       .subscribe({
         next: (data) => {
           this.reasons = [...data, 'Other'];

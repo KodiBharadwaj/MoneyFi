@@ -39,7 +39,7 @@ export class HelpCenterComponent {
   
     submitForm(form: any): void {
       this.isLoading = true;
-      this.http.post(`${this.baseUrl}/api/v1/user-service/common/contact-us`, this.formData).subscribe({
+      this.http.post(`${this.baseUrl}/api/v1/user-service/open/contact-us`, this.formData).subscribe({
         next: (response: any) => {
           this.isLoading = false;
           this.toastr.success('Details sumbitted to admin');

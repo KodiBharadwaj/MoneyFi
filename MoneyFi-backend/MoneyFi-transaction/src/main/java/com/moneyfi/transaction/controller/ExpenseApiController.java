@@ -17,7 +17,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/transaction/expense/user")
+@RequestMapping("/api/v1/transaction/expense")
 public class ExpenseApiController {
 
     private final ExpenseService expenseService;

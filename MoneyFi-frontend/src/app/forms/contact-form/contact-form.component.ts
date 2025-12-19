@@ -36,7 +36,7 @@ export class ContactFormComponent {
   }
 
   getNameAndEmailOfUser(){
-    this.httpClient.get<ProfileDetails>(`${this.baseUrl}/api/v1/user-service/profile-details/get`).subscribe({
+    this.httpClient.get<ProfileDetails>(`${this.baseUrl}/api/v1/user-service/user/profile-details/get`).subscribe({
       next: (userProfile) => {
         this.contactData.name = userProfile.name;
         this.contactData.email = userProfile.email;
@@ -87,7 +87,7 @@ export class ContactFormComponent {
       formData.append('file', this.selectedFile);
     }
 
-    this.httpClient.post(`${this.baseUrl}/api/v1/user-service/report-issue`, formData).subscribe(
+    this.httpClient.post(`${this.baseUrl}/api/v1/user-service/user/report-issue`, formData).subscribe(
       (response) => {
         this.resetForm();
         this.toastr.success('Report has been sent to admin', '', {

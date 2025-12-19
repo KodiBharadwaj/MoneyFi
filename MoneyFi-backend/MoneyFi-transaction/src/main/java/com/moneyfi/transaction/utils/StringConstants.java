@@ -23,8 +23,7 @@ public class StringConstants {
     public static final String YES = "Yes";
     public static final String NO = "No";
 
-    public static final String JWT_SERVICE_API_GATEWAY_URL = "http://localhost:8765/api/v1/userProfile/getUserId/";
-    public static final String ACCOUNT_STATEMENT_USER_SERVICE_URL = "http://MONEYFI-USER/api/v1/user-service/account-statement/email";
+    public static final String ACCOUNT_STATEMENT_USER_SERVICE_URL = "http://MONEYFI-USER/api/v1/user-service/user/account-statement/email";
 
     public static String changeTransactionTimeToTwelveHourFormat(String transactionTime) {
         if (transactionTime == null) return null;

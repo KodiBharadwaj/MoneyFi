@@ -126,10 +126,10 @@ export class IncomeComponent {
     if(this.selectedCategory === '') this.selectedCategory = "all";
     if (this.selectedMonth === 0) {
       // Fetch all expenses for the selected year
-      url = `${this.baseUrl}/api/v1/transaction/income/user/${this.selectedYear}/${this.selectedCategory}/${this.deleted}/incomes-list/get`;
+      url = `${this.baseUrl}/api/v1/transaction/income/${this.selectedYear}/${this.selectedCategory}/${this.deleted}/incomes-list/get`;
     } else {
       // Fetch expenses for the specific month and year
-      url = `${this.baseUrl}/api/v1/transaction/income/user/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}/incomes-list/get`;
+      url = `${this.baseUrl}/api/v1/transaction/income/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}/incomes-list/get`;
     }
 
     this.httpClient.get<any[]>(url).subscribe({
@@ -174,7 +174,7 @@ export class IncomeComponent {
   loadDeletedIncomeData() {
     this.loading = true;
 
-    const url = `${this.baseUrl}/api/v1/transaction/income/user/${this.selectedMonth}/${this.selectedYear}/deleted-incomes-list/get`;
+    const url = `${this.baseUrl}/api/v1/transaction/income/${this.selectedMonth}/${this.selectedYear}/deleted-incomes-list/get`;
     this.httpClient.get<incomeDeleted[]>(url).subscribe({
       next: (data) => {
         if (data && data.length > 0) {
@@ -243,7 +243,7 @@ export class IncomeComponent {
         date:formattedDate,
       };
 
-      this.httpClient.post(`${this.baseUrl}/api/v1/transaction/income/user/save`, incomeData).subscribe({
+      this.httpClient.post(`${this.baseUrl}/api/v1/transaction/income/save`, incomeData).subscribe({
         next: (response) => {
           this.loadIncomeData();
           this.calculateTotalIncome();
@@ -295,7 +295,7 @@ export class IncomeComponent {
         date: formattedDate,
       };
 
-      this.httpClient.put(`${this.baseUrl}/api/v1/transaction/income/user/update/${income.id}`, updatedIncomeData).subscribe({
+      this.httpClient.put(`${this.baseUrl}/api/v1/transaction/income/update/${income.id}`, updatedIncomeData).subscribe({
         next: (response) => {
           this.toastr.success("Income of " + updatedIncomeData.source + " updated successfully");
           this.loadIncomeData();
@@ -353,7 +353,7 @@ export class IncomeComponent {
         const incomeSource = this.incomeSources.find(i => i.id === incomeId);
         incomeSource.date = this.formatDate(incomeSource.date);
 
-        this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/v1/transaction/income/user/incomeDeleteCheck`, incomeSource).subscribe({
+        this.httpClient.post<IncomeSource[]>(`${this.baseUrl}/api/v1/transaction/income/incomeDeleteCheck`, incomeSource).subscribe({
           next: (result) => {
             if (result) {
             
@@ -363,7 +363,7 @@ export class IncomeComponent {
               }
               this.calculateTotalIncome();
               this.updateChartData();
-              this.httpClient.delete<void>(`${this.baseUrl}/api/v1/transaction/income/user/${incomeId}`)
+              this.httpClient.delete<void>(`${this.baseUrl}/api/v1/transaction/income/${incomeId}`)
                 .subscribe({
                   next: () => {
                     this.toastr.warning("Income " +incomeSource?.source+ " has been deleted");
@@ -458,9 +458,9 @@ export class IncomeComponent {
 
     let url: string;
     if (this.selectedMonth === 0) {
-      url = `${this.baseUrl}/api/v1/transaction/income/user/${this.selectedYear}/${this.selectedCategory}/incomes-list/report`;
+      url = `${this.baseUrl}/api/v1/transaction/income/${this.selectedYear}/${this.selectedCategory}/incomes-list/report`;
     } else {
-      url = `${this.baseUrl}/api/v1/transaction/income/user/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/incomes-list/report`;
+      url = `${this.baseUrl}/api/v1/transaction/income/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/incomes-list/report`;
     }
 
     this.httpClient.get(url, { responseType: 'blob' }).subscribe({

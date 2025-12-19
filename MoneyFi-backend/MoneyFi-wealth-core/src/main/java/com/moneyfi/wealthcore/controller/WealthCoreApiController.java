@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/v1/wealth-core/user")
+@RequestMapping("/api/v1/wealth-core")
 public class WealthCoreApiController {
 
     private final WealthCoreService wealthCoreService;

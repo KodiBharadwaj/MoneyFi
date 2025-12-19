@@ -92,7 +92,7 @@ export class ReportsInsightsComponent implements OnInit   {
       threshold: this.threshold
     };
 
-    this.httpClient.post<AccountStatement[]>(`${this.baseUrl}/api/v1/transaction/user/account-statement`, obj)
+    this.httpClient.post<AccountStatement[]>(`${this.baseUrl}/api/v1/transaction/account-statement`, obj)
       .subscribe({
         next: (statement) => {
           if(statement.length === 0)
@@ -140,7 +140,7 @@ export class ReportsInsightsComponent implements OnInit   {
       threshold : this.threshold
     };
 
-    this.httpClient.post(`${this.baseUrl}/api/v1/transaction/user/account-statement/report`, obj, {
+    this.httpClient.post(`${this.baseUrl}/api/v1/transaction/account-statement/report`, obj, {
       responseType: 'blob'
     }).subscribe({
       next: (blob) => {
@@ -170,7 +170,7 @@ export class ReportsInsightsComponent implements OnInit   {
       threshold : this.threshold
     };
 
-    this.httpClient.post(`${this.baseUrl}/api/v1/transaction/user/account-statement-report/email`, obj, { responseType: 'text' })
+    this.httpClient.post(`${this.baseUrl}/api/v1/transaction/account-statement-report/email`, obj, { responseType: 'text' })
     .subscribe({
       next: (response: string) => {
         if (response === 'Email sent successfully') {
@@ -216,7 +216,7 @@ export class ReportsInsightsComponent implements OnInit   {
     const formattedToDate = toDate.toISOString().split('T')[0];     // yyyy-MM-dd
 
     this.httpClient.get<any>(
-      `${this.baseUrl}/api/v1/wealth-core/user/spending-analysis?fromDate=${formattedFromDate}&toDate=${formattedToDate}`
+      `${this.baseUrl}/api/v1/wealth-core/spending-analysis?fromDate=${formattedFromDate}&toDate=${formattedToDate}`
     ).subscribe({
       next: (analysis) => {
         console.log(analysis);
@@ -241,7 +241,7 @@ export class ReportsInsightsComponent implements OnInit   {
     const to = new Date(this.analysisToDate);
     const formattedFromDate = from.toISOString().split('T')[0]; // yyyy-MM-dd
     const formattedToDate = to.toISOString().split('T')[0];     // yyyy-MM-dd
-    this.httpClient.get(`${this.baseUrl}/api/v1/wealth-core/user/spending-analysis/report?fromDate=${formattedFromDate}&toDate=${formattedToDate}`, {
+    this.httpClient.get(`${this.baseUrl}/api/v1/wealth-core/spending-analysis/report?fromDate=${formattedFromDate}&toDate=${formattedToDate}`, {
       responseType: 'blob'
     }).subscribe({
       next: (blob) => {
@@ -267,7 +267,7 @@ export class ReportsInsightsComponent implements OnInit   {
     const to = new Date(this.analysisToDate);
     const formattedFromDate = from.toISOString().split('T')[0]; // yyyy-MM-dd
     const formattedToDate = to.toISOString().split('T')[0];     // yyyy-MM-dd
-    this.httpClient.get(`${this.baseUrl}/api/v1/wealth-core/user/spending-analysis/report-email?fromDate=${formattedFromDate}&toDate=${formattedToDate}`, { responseType: 'text' })
+    this.httpClient.get(`${this.baseUrl}/api/v1/wealth-core/spending-analysis/report-email?fromDate=${formattedFromDate}&toDate=${formattedToDate}`, { responseType: 'text' })
     .subscribe({
       next: (response: string) => {
         if (response === 'Email sent successfully') {

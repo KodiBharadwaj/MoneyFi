@@ -1,6 +1,7 @@
 package com.moneyfi.apigateway.util;
 
 import com.moneyfi.apigateway.exceptions.CustomInternalServerErrorException;
+import com.moneyfi.apigateway.util.constants.StringUtils;
 import jakarta.activation.DataHandler;
 import jakarta.activation.DataSource;
 import jakarta.mail.*;
@@ -12,8 +13,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Properties;
-
-import static com.moneyfi.apigateway.util.constants.StringUtils.EMAIL_SENT_SUCCESS_MESSAGE;
 
 @Component
 @Slf4j
@@ -27,20 +26,15 @@ public class EmailFilter {
     private static final String EMAIL_SENT_FAILURE_MESSAGE = "Can't send email, server error occurred";
 
     public boolean sendEmail(String toEmail, String subject, String body) {
-        String host = "smtp.gmail.com";  // Gmail SMTP server
-        String port = "587";  // SMTP port for Gmail
-        // Set up properties for the SMTP server
+        String host = "smtp.gmail.com";
+        String port = "587";
+
         Properties properties = new Properties();
         properties.put("mail.smtp.host", host);
         properties.put("mail.smtp.port", port);
         properties.put("mail.smtp.auth", "true");
-        // Enable STARTTLS (Port 587), fallback to SSL (Port 465)
         properties.put("mail.smtp.starttls.enable", "true");
         properties.put("mail.smtp.ssl.enable", "false");
-        // Fallback to SSL if STARTTLS fails (for port 465)
-        properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-        properties.put("mail.smtp.socketFactory.fallback", "true");
-        // Get the Session object for authentication
         Session session = Session.getInstance(properties, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -57,7 +51,7 @@ public class EmailFilter {
             message.setContent(body, "text/html; charset=UTF-8");  // Change to HTML content
             // Send the email
             Transport.send(message);
-            log.info(EMAIL_SENT_SUCCESS_MESSAGE);
+            log.info(StringUtils.EMAIL_SENT_SUCCESS_MESSAGE);
             return true;
         } catch (MessagingException e) {
             e.printStackTrace();
@@ -103,7 +97,7 @@ public class EmailFilter {
             message.setContent(multipart);
             // Send email
             Transport.send(message);
-            log.info(EMAIL_SENT_SUCCESS_MESSAGE);
+            log.info(StringUtils.EMAIL_SENT_SUCCESS_MESSAGE);
             return true;
         } catch (MessagingException e) {
             e.printStackTrace();
@@ -111,5 +105,4 @@ public class EmailFilter {
             return false;
         }
     }
-
 }

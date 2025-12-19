@@ -22,25 +22,25 @@ management:
 email:
   filter:
     from:
-      email : xxxxxxxxxxxxx
-      password : xxxxxxxxxxx
+      email : ${ADMIN_EMAIL}
+      password : ${ADMIN_PASSWORD}
 
 cloud:
   aws:
     credentials:
-      access-key: xxxxxxxxxxxxx
-      secret-key: xxxxxxxxxxxx
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
     region:
-      static: xxxxxxxxxxxx
+      static: ${AWS_REGION}
     stack:
       auto: false
 
 application:
   bucket:
-    name: xxxxxxxxxxxxx
+    name: ${AWS_S3_BUCKET_NAME}
 
 cloudinary:
   credentials:
-    cloud-name: xxxxxxxxxxxxx
-    api-key: xxxxxxxxxxxxxxx
-    api-secret: xxxxxxxxxxx
+    cloud-name: ${CLOUDINARY_CLOUD_NAME}
+    api-key: ${CLOUDINARY_API_KEY}
+    api-secret: ${CLOUDINARY_API_SECRET}

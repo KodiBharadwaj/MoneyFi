@@ -76,7 +76,7 @@ export class ProfileComponent implements OnInit {
   }
 
   getProfile(): void {
-    this.http.get<UserProfileDetails>(`${this.baseUrl}/api/v1/user-service/profile-details/get`).subscribe({
+    this.http.get<UserProfileDetails>(`${this.baseUrl}/api/v1/user-service/user/profile-details/get`).subscribe({
       next: (data) => {
         this.userProfileDetails = data;
         this.loadProfilePicture();
@@ -103,7 +103,7 @@ export class ProfileComponent implements OnInit {
       this.isImageLoading = false;
       return; // ✅ Do not call API again
     }
-    this.http.get(`${this.baseUrl}/api/v1/user-service/profile-picture/get`, { responseType: 'blob' })
+    this.http.get(`${this.baseUrl}/api/v1/user-service/user/profile-picture/get`, { responseType: 'blob' })
       .subscribe({
         next: (blob) => {
           if (blob.size > 0) {
@@ -127,7 +127,7 @@ export class ProfileComponent implements OnInit {
 
   onDeleteImage(): void {
     if (confirm('Are you sure you want to delete your profile picture?')) {
-      this.http.delete(`${this.baseUrl}/api/v1/user-service/profile-picture/delete`, { responseType: 'text' })
+      this.http.delete(`${this.baseUrl}/api/v1/user-service/user/profile-picture/delete`, { responseType: 'text' })
         .subscribe({
           next: (response) => {
             alert('Profile picture deleted successfully.');
@@ -147,7 +147,7 @@ export class ProfileComponent implements OnInit {
     this.userProfileDetails.createdDate = this.formatDate(this.userProfileDetails.createdDate);
     this.userProfileDetails.dateOfBirth = this.formatDateOnly(this.userProfileDetails.dateOfBirth);
 
-    this.http.post<UserProfileDetails>(`${this.baseUrl}/api/v1/user-service/profile-details/save`, this.userProfileDetails).subscribe(
+    this.http.post<UserProfileDetails>(`${this.baseUrl}/api/v1/user-service/user/profile-details/save`, this.userProfileDetails).subscribe(
       (data) => {
         this.userProfileDetails = data;
         this.isEditing = false;
@@ -211,7 +211,7 @@ export class ProfileComponent implements OnInit {
         const formData = new FormData();
         formData.append('file', file);
 
-        this.http.post(`${this.baseUrl}/api/v1/user-service/profile-picture/upload`, formData, { responseType: 'text' })
+        this.http.post(`${this.baseUrl}/api/v1/user-service/user/profile-picture/upload`, formData, { responseType: 'text' })
           .subscribe({
             next: (response) => {
               alert('Upload successful: ' + response);

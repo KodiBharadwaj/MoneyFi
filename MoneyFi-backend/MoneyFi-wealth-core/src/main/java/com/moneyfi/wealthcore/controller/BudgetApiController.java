@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/wealth-core/budget/user")
+@RequestMapping("/api/v1/wealth-core/budget")
 public class BudgetApiController {
 
     private final BudgetService budgetService;

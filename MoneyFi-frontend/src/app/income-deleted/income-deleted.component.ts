@@ -26,7 +26,7 @@ export class IncomeDeletedComponent {
   }
 
   revertIncomeFunction(incomeId : number){
-    this.httpClient.get<Boolean>(`${this.baseUrl}/api/v1/transaction/income/user/incomeRevert/${incomeId}`).subscribe({
+    this.httpClient.get<Boolean>(`${this.baseUrl}/api/v1/transaction/income/incomeRevert/${incomeId}`).subscribe({
       next : (data) => {
         if(data){
           this.dialogRef.close(true);  

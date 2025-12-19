@@ -60,6 +60,7 @@ public class StringUtils {
 
     public static final String DAILY_QUOTE_EXTERNAL_API_URL = "https://zenquotes.io/api/random";
     public static final String USER_SERVICE_URL_FOR_ADMIN = "http://MONEYFI-USER/api/v1/user-service/admin";
+    public static final String USER_SERVICE_OPEN_URL = "http://MONEYFI-USER/api/v1/user-service/open";
 
     public static String generateVerificationCode() {
         Random random = new Random();

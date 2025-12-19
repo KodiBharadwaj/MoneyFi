@@ -94,7 +94,7 @@ export class OverviewComponent implements OnInit {
     }
 
     else {
-      this.httpClient.get(`${this.baseUrl}/api/v1/user-service/name/get`, {responseType : 'text'}).subscribe({
+      this.httpClient.get(`${this.baseUrl}/api/v1/user-service/user/name/get`, {responseType : 'text'}).subscribe({
         next : (userName : string) => {
           localStorage.setItem('moneyfi.user.name', userName);
           this.summary.username = userName;
@@ -105,7 +105,7 @@ export class OverviewComponent implements OnInit {
       })
     }
     
-    this.httpClient.get<any>(`${this.baseUrl}/api/v1/transaction/user/overview-details/${this.thisMonth}/${this.thisYear}`).subscribe({
+    this.httpClient.get<any>(`${this.baseUrl}/api/v1/transaction/overview-details/${this.thisMonth}/${this.thisYear}`).subscribe({
       next : (response) => {
         this.loading = false;
         this.summary.availableBalance = response.availableBalance;

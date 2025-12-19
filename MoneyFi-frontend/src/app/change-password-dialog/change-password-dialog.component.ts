@@ -42,7 +42,7 @@ export class ChangePasswordDialogComponent implements OnInit{
 
   ngOnInit(): void {
     this.reasons = [];
-    this.http.get<string[]>(`${this.baseUrl}/api/v1/user-service/user-admin/reasons-dialog/get?code=2`).subscribe({
+    this.http.get<string[]>(`${this.baseUrl}/api/v1/user-service/open/reasons-dialog/get?code=2`).subscribe({
       next: (data) => {
         this.reasons = [...data, 'Other'];
       },

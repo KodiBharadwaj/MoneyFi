@@ -53,8 +53,8 @@ export class AnalysisComponent {
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
 
-    const expensesUrl = `${this.baseUrl}/api/v1/transaction/expense/user/getExpenses/${currentMonth}/${currentYear}/all/false`;
-    const budgetsUrl = `${this.baseUrl}/api/v1/wealth-core/budget/user/all/${currentMonth}/${currentYear}/get`;
+    const expensesUrl = `${this.baseUrl}/api/v1/transaction/expense/getExpenses/${currentMonth}/${currentYear}/all/false`;
+    const budgetsUrl = `${this.baseUrl}/api/v1/wealth-core/budget/all/${currentMonth}/${currentYear}/get`;
 
         // Use forkJoin to make parallel requests
     forkJoin({
@@ -154,9 +154,9 @@ export class AnalysisComponent {
   loadMixedChartData() {
     const currentYear = new Date().getFullYear();
     forkJoin({
-      incomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/income/user/monthlyTotalIncomesList/${currentYear}`),
-      expenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/expense/user/monthlyTotalExpensesList/${currentYear}`),
-      savings: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/expense/user/monthlySavingsInYear/${currentYear}`)
+      incomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/income/monthlyTotalIncomesList/${currentYear}`),
+      expenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/expense/monthlyTotalExpensesList/${currentYear}`),
+      savings: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/expense/monthlySavingsInYear/${currentYear}`)
     }).subscribe({
       next: ({ incomes, expenses, savings }) => {
         // Update mixed chart data with real values including savings
@@ -388,7 +388,7 @@ export class AnalysisComponent {
   loadCumulativeData() {
     const currentYear = new Date().getFullYear();
 
-    this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/expense/user/monthlyCumulativeSavingsInYear/${currentYear}`).subscribe({
+    this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/expense/monthlyCumulativeSavingsInYear/${currentYear}`).subscribe({
       next: (cumulativeData) => {
         this.lineChartData.datasets[0].data = cumulativeData;
         

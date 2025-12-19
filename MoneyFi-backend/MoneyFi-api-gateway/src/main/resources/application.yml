@@ -38,23 +38,17 @@ spring:
           - id: MoneyFi-Transaction
             uri: lb://MoneyFi-Transaction
             predicates:
-              - Path=/api/v1/transaction/income/user/**, /api/v1/transaction/expense/user/**, /api/v1/transaction/user/**
-          - id: MoneyFi-expense
-            uri: lb://MoneyFi-expense
-            predicates:
-              - Path=/api/v1/expense/**
+              - Path=/api/v1/transaction/income/**, /api/v1/transaction/expense/**, /api/v1/transaction/**
+
           - id: MoneyFi-wealth-core
             uri: lb://MoneyFi-wealth-core
             predicates:
-              - Path=/api/v1/wealth-core/budget/user/**, /api/v1/wealth-core/goal/user/**, /api/v1/wealth-core/user/**
-          - id: MoneyFi-goal
-            uri: lb://MoneyFi-goal
-            predicates:
-              - Path=/api/v1/goal/**
+              - Path=/api/v1/wealth-core/budget/**, /api/v1/wealth-core/goal/**, /api/v1/wealth-core/**
+
           - id: MoneyFi-user
             uri: lb://MoneyFi-user
             predicates:
-              - Path=/api/v1/user-service/**, /api/v1/user-service/admin/**, /api/v1/user-service/common/**, /api/v1/user-service/user-admin/**
+              - Path=/api/v1/user-service/open/**, /api/v1/user-service/admin/**, /api/v1/user-service/user/**
 
 jwt:
   secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf

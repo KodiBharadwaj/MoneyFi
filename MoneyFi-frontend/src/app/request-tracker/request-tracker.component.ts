@@ -95,7 +95,7 @@ export class RequestTrackerComponent implements OnInit {
   }
 
   private fetchRequestStatus(referenceNumber: string): Observable<RequestStatus> {
-    return this.http.get<RequestStatus>(`${this.API_BASE_URL}/api/v1/user-service/common/track-user-request?ref=${referenceNumber}`);
+    return this.http.get<RequestStatus>(`${this.API_BASE_URL}/api/v1/user-service/open/track-user-request?ref=${referenceNumber}`);
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {

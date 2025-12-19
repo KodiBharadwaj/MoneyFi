@@ -561,11 +561,11 @@ public class AdminServiceImpl implements AdminService {
         AtomicInteger i = new AtomicInteger(1);
         return adminRepository.getUserFeedbackListForAdmin()
                 .stream()
-                .map(feedback -> {
+                .peek(feedback -> {
                     feedback.setRating(Integer.parseInt(feedback.getDescription().substring(0,1)));
                     feedback.setMessage(feedback.getDescription().substring(2));
                     feedback.setId(i.getAndIncrement());
-                    return feedback;
+                    feedback.setTimeOfFeedback(Timestamp.valueOf(feedback.getTimeOfFeedback().toLocalDateTime()));
                 }).toList();
     }
 

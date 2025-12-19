@@ -21,7 +21,7 @@ import com.moneyfi.user.util.EmailTemplates;
 import com.moneyfi.user.util.constants.StringUtils;
 import com.moneyfi.user.util.enums.RaiseRequestStatus;
 import com.moneyfi.user.util.enums.RequestReason;
-import com.moneyfi.user.util.validators.UserValidations;
+import com.moneyfi.user.validator.UserValidations;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import org.apache.poi.ss.usermodel.Row;
@@ -84,22 +84,22 @@ public class ProfileServiceImpl implements ProfileService {
     @Transactional
     public ProfileDetailsDto saveUserDetails(Long userId, ProfileModel profile) {
         ProfileModel fetchProfile = profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_DETAILS_NOT_FOUND));
-        String phone = profile.getPhone().trim();
-        UserValidations.checkPhoneNumberValidations(phone);
 
         if (!profile.getName().trim().equals(fetchProfile.getName())) {
             fetchProfile.setName(profile.getName().trim());
         }
-        if (!phone.equals(fetchProfile.getPhone())) {
+        String phone = profile.getPhone() != null ? profile.getPhone().trim() : null;
+        if (phone != null && !phone.equals(fetchProfile.getPhone())) {
+            UserValidations.checkPhoneNumberValidations(phone);
             fetchProfile.setPhone(phone);
         }
-        if (!profile.getGender().trim().equals(fetchProfile.getGender())) {
+        if (profile.getGender() != null && !profile.getGender().trim().equals(fetchProfile.getGender())) {
             fetchProfile.setGender(profile.getGender().trim());
         }
-        if (!profile.getMaritalStatus().trim().equals(fetchProfile.getMaritalStatus())) {
+        if (profile.getMaritalStatus() != null && !profile.getMaritalStatus().trim().equals(fetchProfile.getMaritalStatus())) {
             fetchProfile.setMaritalStatus(profile.getMaritalStatus().trim());
         }
-        if (!profile.getDateOfBirth().equals(fetchProfile.getDateOfBirth())) {
+        if (profile.getDateOfBirth() != null && !profile.getDateOfBirth().equals(fetchProfile.getDateOfBirth())) {
             fetchProfile.setDateOfBirth(profile.getDateOfBirth());
         }
         fetchProfile.setAddress(profile.getAddress());

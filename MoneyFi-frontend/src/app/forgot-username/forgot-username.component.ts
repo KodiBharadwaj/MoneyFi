@@ -43,7 +43,7 @@ export class ForgotUsernameComponent {
   submitForm(): void {
     this.isLoading = true;
 
-    this.http.post(`${this.baseUrl}/api/v1/user-service/common/username/forgot`, this.formData).subscribe({
+    this.http.post(`${this.baseUrl}/api/v1/user-service/open/username/forgot`, this.formData).subscribe({
       next: (response: any) => {
         if(response === true){
           this.isLoading = false;

@@ -11,7 +11,7 @@ import com.moneyfi.transaction.model.income.IncomeModel;
 import com.moneyfi.transaction.repository.income.IncomeDeletedRepository;
 import com.moneyfi.transaction.repository.income.IncomeRepository;
 import com.moneyfi.transaction.service.income.dto.response.*;
-import com.moneyfi.transaction.utils.IncomeValidator;
+import com.moneyfi.transaction.validator.IncomeValidator;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -51,7 +51,7 @@ public class IncomeServiceImpl implements IncomeService {
     @Override
     @Transactional(rollbackOn = Exception.class)
     public void saveIncome(IncomeSaveRequest incomeSaveRequest, Long userId) {
-        IncomeValidator.validateIncomeSaveRequest(incomeSaveRequest);
+        IncomeValidator.validateIncomeSaveRequest(incomeSaveRequest, userId);
         IncomeModel incomeModel = incomeRepository.getIncomeBySourceAndCategory(userId, incomeSaveRequest.getSource().trim(), incomeSaveRequest.getCategory().trim(), LocalDateTime.parse(incomeSaveRequest.getDate()));
         if(incomeModel != null){
             throw new ScenarioNotPossibleException(INCOME_ALREADY_PRESENT_MESSAGE);

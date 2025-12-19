@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/transaction/user")
+@RequestMapping("/api/v1/transaction")
 public class TransactionApiController {
 
     private final JwtService jwtService;
