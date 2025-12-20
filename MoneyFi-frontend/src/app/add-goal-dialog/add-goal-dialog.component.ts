@@ -37,6 +37,7 @@ export class AddGoalDialogComponent {
     targetAmount: '',
     deadLine: new Date(),
     category: '',
+    description: '',
   };
 
   dialogTitle: string;
@@ -59,6 +60,7 @@ export class AddGoalDialogComponent {
         targetAmount: '',
         deadLine: new Date(),
         category: '',
+        description: '',
       };
     }
   }

@@ -17,4 +17,5 @@ public class IncomeDetailsDto {
     private Date date;
     private String category;
     private boolean recurring;
+    private String description;
 }

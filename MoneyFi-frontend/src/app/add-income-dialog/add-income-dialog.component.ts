@@ -23,6 +23,7 @@ interface IncomeSource {
   category: string;
   recurring: boolean;
   is_deleted: boolean;
+  description: string;
 }
 @Component({
   selector: 'app-add-income-dialog',
@@ -50,6 +51,7 @@ export class AddIncomeDialogComponent {
     date: new Date(),
     category: '',
     recurring: false,
+    description: '',
   };
 
   dialogTitle: string;
@@ -76,7 +78,8 @@ export class AddIncomeDialogComponent {
         date:dialogData.date,
         recurring:dialogData.recurring,
         category:dialogData.category,
-        is_deleted:dialogData.is_deleted
+        is_deleted:dialogData.is_deleted,
+        description:dialogData.description,
       };
     } else {
       this.dialogTitle = 'Add New Income';
@@ -86,6 +89,7 @@ export class AddIncomeDialogComponent {
         date: new Date(),
         category: '',
         recurring: false,
+        description: '',
       };
     }
   }

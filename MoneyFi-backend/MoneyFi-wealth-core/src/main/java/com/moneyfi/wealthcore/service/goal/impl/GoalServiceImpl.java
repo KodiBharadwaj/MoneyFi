@@ -147,10 +147,7 @@ public class GoalServiceImpl implements GoalService {
         Long userId = jwtService.extractUserIdFromToken(token);
 
         goal.setUserId(userId);
-        GoalModel goalModel = goalRepository.findById(id).orElse(null);
-        if(goalModel == null || !goalModel.getUserId().equals(userId)){
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        }
+        GoalModel goalModel = goalRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Goal not found"));
 
         if(goal.getGoalName() != null){
             goalModel.setGoalName(goal.getGoalName());
@@ -161,6 +158,10 @@ public class GoalServiceImpl implements GoalService {
         if(goal.getDeadLine() != null){
             goalModel.setDeadLine(goal.getDeadLine());
         }
+        if(goal.getDescription() != null){
+            goalModel.setDescription(goal.getDescription());
+        }
+        goalModel.setUpdatedAt(LocalDateTime.now());
         /**
          * IMPORTANT:
          * Meanwhile, the ssms trigger activates here to update expense row with respective goal data.
