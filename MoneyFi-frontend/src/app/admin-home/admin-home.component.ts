@@ -58,7 +58,7 @@ export class AdminHomeComponent implements OnInit {
   }
 
   getAdminScheduledNotifications() {
-    this.httpClient.get<any[]>(`${this.baseUrl}/api/v1/admin/schedule-notifications/get`).subscribe({
+    this.httpClient.get<any[]>(`${this.baseUrl}/api/v1/user-service/admin/schedule-notifications/get`).subscribe({
       next: (data) => {
         this.schedules = data;
       },
@@ -67,7 +67,7 @@ export class AdminHomeComponent implements OnInit {
   }
 
   cancelSchedule(scheduleId: number) {
-    this.httpClient.put(`${this.baseUrl}/api/v1/admin/schedule-notification/cancel?id=${scheduleId}`, {})
+    this.httpClient.put(`${this.baseUrl}/api/v1/user-service/admin/schedule-notification/cancel?id=${scheduleId}`, {})
       .subscribe({
         next: () => {
           this.toastr.success('Schedule cancelled');

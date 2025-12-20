@@ -100,7 +100,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public UserAuthModel registerUser(UserProfile userProfile, String loginMode, String address) {
         UserValidations.checkForUserAlreadyExistenceValidation(userRepository.getUserDetailsByUsername(userProfile.getUsername().trim()).orElse(null));
         UserAuthModel userAuthModel = new UserAuthModel();
@@ -140,7 +140,7 @@ public class UserServiceImpl implements UserService {
             /** send successful email in a separate thread by aws ses **/
             new Thread(() -> {
                 try {
-//                    awsServices.sendEmailToUserUsingAwsSes(emailTemplates.sendEmailForSuccessfulUserCreation(userProfile.getName(), userProfile.getUsername()));
+                    /** awsServices.sendEmailToUserUsingAwsSes(emailTemplates.sendEmailForSuccessfulUserCreation(userProfile.getName(), userProfile.getUsername())); **/
                 } catch (Exception e) {
                     e.printStackTrace();
                     throw new RuntimeException("Exception occurred while sending email: " + e);
@@ -152,7 +152,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<Map<String, String>> login(UserLoginDetailsRequestDto requestDto) {
         UserAuthModel userAuthModel = new UserAuthModel();
         userAuthModel.setUsername(requestDto.getUsername().trim());
@@ -256,7 +256,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public String loginViaGithubOAuth(String code) {
         if (code == null || code.isEmpty()) {
             throw new RuntimeException("Authorization code is invalid");
@@ -345,7 +345,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public void changePassword(ChangePasswordDto changePasswordDto) {
         UserAuthModel user = userRepository.findById(changePasswordDto.getUserId()).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         UserValidations.changePasswordValidations(changePasswordDto, user);
@@ -403,7 +403,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public Map<String, String> logout(String token) {
         Map<String, String> response = new HashMap<>();
         if (token.startsWith("Bearer ")) {

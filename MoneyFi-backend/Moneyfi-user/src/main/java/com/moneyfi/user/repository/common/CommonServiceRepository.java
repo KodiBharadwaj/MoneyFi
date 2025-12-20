@@ -14,4 +14,6 @@ public interface CommonServiceRepository {
     List<UserNotificationResponseDto> getUserNotifications(String username);
 
     List<String> getBirthdayAndAnniversaryUsersList(int month, int day, String occasion);
+
+    List<String> findAllUsernamesOfUsers();
 }

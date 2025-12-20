@@ -58,7 +58,7 @@ export class AdminScheduleDialogComponent implements OnInit {
       recipients: ['All', Validators.required]  // All or Specific
     });
 
-    this.http.get<string[]>(`${this.baseUrl}/api/v1/admin/get-usernames`)
+    this.http.get<string[]>(`${this.baseUrl}/api/v1/user-service/admin/get-usernames`)
       .subscribe(data => this.allUsers = data);
   }
 
@@ -159,7 +159,7 @@ export class AdminScheduleDialogComponent implements OnInit {
       scheduleTo
     };
 
-    this.http.post<string>(`${this.baseUrl}/api/v1/admin/schedule-notification`, payload, { responseType: 'text' as 'json' })
+    this.http.post<string>(`${this.baseUrl}/api/v1/user-service/admin/schedule-notification`, payload, { responseType: 'text' as 'json' })
       .subscribe({
         next: (response: string) => {
           this.isSubmitting = false;

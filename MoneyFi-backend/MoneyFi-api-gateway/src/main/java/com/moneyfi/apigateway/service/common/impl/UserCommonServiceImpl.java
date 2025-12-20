@@ -56,7 +56,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public String forgotPassword(String email) {
         UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         UserValidations.userAlreadyDeactivatedCheckValidation(user);
@@ -83,7 +83,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public String updatePasswordOnUserForgotMode(String email, String password){
         UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(()-> new ResourceNotFoundException(USER_NOT_FOUND));
         if(encoder.matches(password, user.getPassword())) {

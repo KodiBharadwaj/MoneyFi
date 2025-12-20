@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.model.common;
+package com.moneyfi.user.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -22,6 +22,15 @@ public class ScheduleNotification {
     private LocalDateTime scheduleTo;
     private String recipients;
     private LocalDateTime createdDate;
+    private LocalDateTime updatedAt;
     private boolean isCancelled;
     private boolean isActive;
+
+    @PrePersist
+    public void init() {
+        this.createdDate = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        this.setActive(true);
+        this.setCancelled(false);
+    }
 }

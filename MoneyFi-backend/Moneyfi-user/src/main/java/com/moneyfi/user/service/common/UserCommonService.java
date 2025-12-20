@@ -42,7 +42,7 @@ public interface UserCommonService {
 
     void saveUserNotificationsForParticularUsers(String recipients, Long scheduleId);
 
-    void saveUserNotificationsForAllUsers(List<UserAuthModel> recipients, Long id);
+    void saveUserNotificationsForAllUsers(List<String> recipients, Long id);
 
     ResponseEntity<String> blockOrDeleteAccountByUserRequest(String username, AccountBlockOrDeleteRequestDto request);
 

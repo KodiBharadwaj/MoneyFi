@@ -56,7 +56,6 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final CommonServiceRepository commonServiceRepository;
     private final UserNotificationRepository userNotificationRepository;
     private final EmailTemplates emailTemplates;
-    private final RestTemplate externalRestTemplate;
     private final ReasonDetailsRepository reasonDetailsRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -69,7 +68,6 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  CommonServiceRepository commonServiceRepository,
                                  UserNotificationRepository userNotificationRepository,
                                  EmailTemplates emailTemplates,
-                                 RestTemplate externalRestTemplate,
                                  ReasonDetailsRepository reasonDetailsRepository){
         this.cloudinaryService = cloudinaryService;
         this.awsServices = awsServices;
@@ -79,7 +77,6 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.commonServiceRepository = commonServiceRepository;
         this.userNotificationRepository = userNotificationRepository;
         this.emailTemplates = emailTemplates;
-        this.externalRestTemplate = externalRestTemplate;
         this.reasonDetailsRepository = reasonDetailsRepository;
     }
 
@@ -88,7 +85,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private static final String USER_IS_NOT_BLOCKED_TODO_THIS = "User is not blocked to perform this operation";
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email) {
         UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
         Map<Boolean, String> response = new HashMap<>();
@@ -222,7 +219,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public void accountReactivateRequestByUser(AccountRetrieveRequestDto requestDto) {
         String requestReason;
         ContactUsHist userRequestHist = new ContactUsHist();
@@ -259,7 +256,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public void nameChangeRequestByUser(NameChangeRequestDto requestDto) {
         if (requestDto.getDescription() == null || requestDto.getDescription().trim().isEmpty()) {
             throw new ScenarioNotPossibleException("Description can't be empty");
@@ -314,26 +311,6 @@ public class UserCommonServiceImpl implements UserCommonService {
         return userRequestResponse;
     }
 
-//    @Override
-    public QuoteResponseDto getTodayQuoteByExternalCall(String externalApiUrl) {
-        QuoteResponseDto quoteResponseDto = new QuoteResponseDto();
-        try {
-            String jsonStringResponse = externalRestTemplate.getForObject(DAILY_QUOTE_EXTERNAL_API_URL, String.class);
-
-            List<QuoteResponseDto> quoteList = objectMapper.readValue(jsonStringResponse, new TypeReference<List<QuoteResponseDto>>() {});
-            if(!quoteList.isEmpty()){
-                quoteResponseDto.setQuote(quoteList.get(0).getQuote());
-                quoteResponseDto.setAuthor(quoteList.get(0).getAuthor());
-                quoteResponseDto.setDescription(quoteList.get(0).getDescription());
-                return quoteResponseDto;
-            }
-        } catch (Exception e){
-            e.printStackTrace();
-            throw new ScenarioNotPossibleException("Failed to parse the json response -> " + e);
-        }
-        throw new ResourceNotFoundException("No quote response found from external api");
-    }
-
     @Override
     public void sendContactUsDetailsToAdmin(HelpCenterContactUsRequestDto requestDto) {
         if(requestDto.getEmail() == null || requestDto.getPhoneNumber() == null || requestDto.getName() == null || requestDto.getDescription() == null){
@@ -365,10 +342,10 @@ public class UserCommonServiceImpl implements UserCommonService {
 
     @Override
     @Async
-    public void saveUserNotificationsForAllUsers(List<UserAuthModel> users, Long notificationId) {
+    public void saveUserNotificationsForAllUsers(List<String> users, Long notificationId) {
         List<UserNotification> batch = new ArrayList<>();
-        for (UserAuthModel user : users) {
-            batch.add(new UserNotification(user.getUsername(), notificationId, false));
+        for (String username : users) {
+            batch.add(new UserNotification(username, notificationId, false));
             if (batch.size() == 1000) {
                 userNotificationRepository.saveAll(batch);
                 batch.clear();
@@ -440,7 +417,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public void updateUserNotificationSeenStatus(String username, String notificationIds) {
         List<UserNotification> userNotificationListToUpdate = new ArrayList<>();
         Arrays.stream(notificationIds.split(","))
@@ -467,7 +444,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<String> blockOrDeleteAccountByUserRequest(String username, AccountBlockOrDeleteRequestDto request) {
         UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(username.trim()).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
         UserValidations.userAccountDeactivationInputValidation(request);

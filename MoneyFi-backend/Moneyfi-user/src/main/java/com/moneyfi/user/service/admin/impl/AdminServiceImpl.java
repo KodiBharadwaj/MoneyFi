@@ -8,17 +8,23 @@ import com.moneyfi.user.model.dto.UserAuthModel;
 import com.moneyfi.user.model.dto.interfaces.UserAuthHistProjection;
 import com.moneyfi.user.repository.*;
 import com.moneyfi.user.repository.admin.AdminRepository;
+import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.service.admin.AdminService;
+import com.moneyfi.user.service.admin.dto.request.AdminScheduleRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonDetailsRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonUpdateRequestDto;
+import com.moneyfi.user.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.user.service.admin.dto.response.*;
+import com.moneyfi.user.service.common.UserCommonService;
 import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.user.util.EmailTemplates;
 import com.moneyfi.user.util.enums.*;
+import com.moneyfi.user.validator.AdminValidations;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,19 +52,31 @@ public class AdminServiceImpl implements AdminService {
     private final ContactUsHistRepository contactUsHistRepository;
     private final ReasonDetailsRepository reasonDetailsRepository;
     private final EmailTemplates emailTemplates;
+    private final CommonServiceRepository commonServiceRepository;
+    private final ScheduleNotificationRepository scheduleNotificationRepository;
+    private final UserCommonService userCommonService;
+    private final UserNotificationRepository userNotificationRepository;
 
     public AdminServiceImpl(AdminRepository adminRepository,
                             ContactUsRepository contactUsRepository,
                             ProfileRepository profileRepository,
                             ContactUsHistRepository contactUsHistRepository,
                             ReasonDetailsRepository reasonDetailsRepository,
-                            EmailTemplates emailTemplates){
+                            EmailTemplates emailTemplates,
+                            CommonServiceRepository commonServiceRepository,
+                            ScheduleNotificationRepository scheduleNotificationRepository,
+                            UserCommonService userCommonService,
+                            UserNotificationRepository userNotificationRepository){
         this.adminRepository = adminRepository;
         this.contactUsRepository = contactUsRepository;
         this.profileRepository = profileRepository;
         this.contactUsHistRepository = contactUsHistRepository;
         this.reasonDetailsRepository = reasonDetailsRepository;
         this.emailTemplates = emailTemplates;
+        this.commonServiceRepository = commonServiceRepository;
+        this.scheduleNotificationRepository = scheduleNotificationRepository;
+        this.userCommonService = userCommonService;
+        this.userNotificationRepository = userNotificationRepository;
     }
 
     @Override
@@ -85,75 +103,8 @@ public class AdminServiceImpl implements AdminService {
         return generateExcelReport(userGridDtoList);
     }
 
-    private byte[] generateExcelReport(List<UserGridDto> userGridDtoList){
-        try(Workbook workbook = new XSSFWorkbook()){
-            Sheet sheet = workbook.createSheet("User Details Report");
-            // Create Header Row
-            Row headerRow = sheet.createRow(0);
-            String[] headers = {"S No", "Name", "Username", "Phone", "Created Time", "Date of Birth"};
-            for(int i=0; i< headers.length; i++){
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                cell.setCellStyle(createHeaderStyle(workbook));
-            }
-            // Create a Date Style
-            CellStyle dateStyle = createDateStyle(workbook);
-            // Populate Data Rows
-            int rowIndex = 1;
-            for (UserGridDto data : userGridDtoList) {
-                Row row = sheet.createRow(rowIndex++);
-                row.createCell(0).setCellValue(data.getSlNo());
-                row.createCell(1).setCellValue(data.getName());
-                row.createCell(2).setCellValue(data.getUsername());
-                row.createCell(3).setCellValue(data.getPhone()!=null?data.getPhone():"-");
-                // Format Date Properly
-                Cell dateCell = row.createCell(4);
-                dateCell.setCellValue(data.getCreatedDateTime()); // Assuming data.getDate() is `java.util.Date`
-                dateCell.setCellStyle(dateStyle); // Apply formatting
-
-                Cell dateCell2 = row.createCell(5);
-                dateCell2.setCellValue(data.getDateOfBirth()); // Assuming data.getDate() is `java.util.Date`
-                dateCell2.setCellStyle(dateStyle); // Apply formatting
-            }
-            // Auto-size columns
-            for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-            // Convert to byte array
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            workbook.write(outputStream);
-            return outputStream.toByteArray();
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new ResourceNotFoundException("Error in generating excel report");
-        }
-    }
-
-    private CellStyle createDateStyle(Workbook workbook) {
-        CellStyle dateStyle = workbook.createCellStyle();
-        CreationHelper createHelper = workbook.getCreationHelper();
-        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy"));
-        return dateStyle;
-    }
-
-    private CellStyle createHeaderStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        Font font = workbook.createFont();
-        font.setBold(true);
-        style.setFont(font);
-        // Set Background Color
-        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex()); // Yellow background
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND); // Apply solid fill
-        // Set Border (Optional)
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        return style;
-    }
-
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId, String approveStatus, String declineReason) {
         return contactUsRepository.findByEmail(email)
                 .stream()
@@ -168,89 +119,6 @@ public class AdminServiceImpl implements AdminService {
                     return true;
                 })
                 .orElse(false);
-    }
-
-    private void functionCallToChangeDetails(String email, ContactUs contactUs, String requestStatus, Long adminUserId){
-        UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
-        ContactUsHist requestUserHist = new ContactUsHist();
-
-        if(requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
-            profileRepository.updateUserAuthTableWithBlockOrUnblockStatus(user.getId(), false);
-            ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
-                    .stream()
-                    .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
-                    .findFirst()
-                    .get();
-            LocalDateTime completedTime = LocalDateTime.now();
-            methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.UNBLOCK_ACCOUNT), requestDetailsHist.getMessage(), adminUserId, completedTime);
-            requestUserHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
-        } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
-            profileRepository.updateUserAuthTableWithDeleteOrUndeleteStatus(user.getId(), false);
-            ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
-                    .stream()
-                    .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
-                    .findFirst()
-                    .get();
-            LocalDateTime completedTime = LocalDateTime.now();
-            methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.ACCOUNT_RETRIEVAL), requestDetailsHist.getMessage(), adminUserId, completedTime);
-            requestUserHist.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
-            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
-        } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
-            ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("User profile not found"));
-            ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
-                    .stream()
-                    .findFirst()
-                    .get();
-            if(!userProfile.getName().toLowerCase().contains(requestDetailsHist.getMessage().toLowerCase().split(",")[0])){
-                throw new ScenarioNotPossibleException("Old name didn't match");
-            }
-            LocalDateTime completedTime = LocalDateTime.now();
-            userProfile.setName(requestDetailsHist.getName());
-            profileRepository.save(userProfile);
-            methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.NAME_CHANGE), requestDetailsHist.getMessage().split(",")[1], adminUserId, completedTime);
-            requestUserHist.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
-            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
-        }
-    }
-
-    private void methodToUpdateContactUsTable(ContactUs contactUs, ContactUsHist requestUserHist, LocalDateTime completedTime){
-        contactUs.setRequestActive(false);
-        contactUs.setVerified(true);
-        contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
-        contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
-        contactUs.setCompletedTime(completedTime);
-        ContactUs savedRequest = contactUsRepository.save(contactUs);
-
-        requestUserHist.setContactUsId(savedRequest.getId());
-        requestUserHist.setMessage("Admin has been approved");
-        requestUserHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
-        requestUserHist.setUpdatedTime(completedTime);
-        contactUsHistRepository.save(requestUserHist);
-    }
-
-    private void methodToUpdateUserAuthHistTable(Long userId, int reasonTypeId, String comment, Long updatedUserId, LocalDateTime completedTime){
-        profileRepository.insertUserAuthHistory(userId, completedTime, reasonTypeId, comment, updatedUserId);
-    }
-
-    private void functionCallToDeclineTheUserRequest(ContactUs contactUs, String declineReason){
-        if(declineReason == null || declineReason.trim().isEmpty()){
-            throw new ScenarioNotPossibleException("Decline reason should not be empty");
-        }
-        contactUs.setCompletedTime(LocalDateTime.now());
-        contactUs.setRequestActive(false);
-        contactUs.setVerified(true);
-        contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
-        contactUs.setRequestStatus(RaiseRequestStatus.CANCELLED.name());
-        ContactUs response = contactUsRepository.save(contactUs);
-
-        ContactUsHist contactUsHist = new ContactUsHist();
-        contactUsHist.setContactUsId(response.getId());
-        contactUsHist.setMessage(declineReason);
-        contactUsHist.setRequestReason(response.getRequestReason());
-        contactUsHist.setRequestStatus(response.getRequestStatus());
-        contactUsHist.setUpdatedTime(response.getCompletedTime());
-        contactUsHistRepository.save(contactUsHist);
     }
 
     @Override
@@ -290,7 +158,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public void updateDefectStatus(Long defectId, String status, String reason) {
         ContactUs userDefect = contactUsRepository.findById(defectId).orElseThrow(() -> new ResourceNotFoundException("User defect details not found"));
         Optional<ProfileModel> userProfile = profileRepository.findByUserEmail(userDefect.getEmail());
@@ -387,6 +255,384 @@ public class AdminServiceImpl implements AdminService {
         userDetails.setUserRequestCount(saveCountDto);
         userDetails.setAccountCreationSource(Objects.requireNonNull(LoginMode.fromCode(userDetails.getLoginCodeValue())).name());
         return userDetails;
+    }
+
+    @Override
+    public List<UserFeedbackResponseDto> getUserFeedbackListForAdmin() {
+        AtomicInteger i = new AtomicInteger(1);
+        return adminRepository.getUserFeedbackListForAdmin()
+                .stream()
+                .peek(feedback -> {
+                    feedback.setRating(Integer.parseInt(feedback.getDescription().substring(0,1)));
+                    feedback.setMessage(feedback.getDescription().substring(2));
+                    feedback.setId(i.getAndIncrement());
+                    feedback.setTimeOfFeedback(Timestamp.valueOf(feedback.getTimeOfFeedback().toLocalDateTime()));
+                }).toList();
+    }
+
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void updateUserFeedback(Long feedbackId) {
+        Optional<ContactUs> userFeedback = contactUsRepository.findById(feedbackId);
+        if(userFeedback.isEmpty()){
+            throw new ResourceNotFoundException("Feedback with id " + feedbackId + " is not found");
+        }
+        userFeedback.get().setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+        userFeedback.get().setCompletedTime(LocalDateTime.now());
+        userFeedback.get().setVerified(true);
+        userFeedback.get().setRequestActive(false);
+        ContactUs savedUserFeedback = contactUsRepository.save(userFeedback.get());
+
+        ContactUsHist userFeedbackHist = new ContactUsHist();
+        userFeedbackHist.setContactUsId(savedUserFeedback.getId());
+        userFeedbackHist.setUpdatedTime(savedUserFeedback.getCompletedTime());
+        userFeedbackHist.setMessage("Admin has been viewed & Closed");
+        userFeedbackHist.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
+        userFeedbackHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+        contactUsHistRepository.save(userFeedbackHist);
+    }
+
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void addReasonsForUserReasonDialog(ReasonDetailsRequestDto requestDto) {
+        if(requestDto.getReasonCode() == null || requestDto.getReason() == null || requestDto.getReason().isEmpty()){
+            throw new ScenarioNotPossibleException("Please add details correctly");
+        }
+        reasonDetailsRepository.findByReasonCode(requestDto.getReasonCode()).forEach(reasons -> {
+            if(reasons.getReason().trim().equalsIgnoreCase(requestDto.getReason().trim()) && !reasons.getIsDeleted()){
+                throw new ScenarioNotPossibleException("Reason already exists");
+            }
+        });
+        ReasonDetails reasonDetails = new ReasonDetails();
+        reasonDetails.setReason(requestDto.getReason().trim());
+        reasonDetails.setReasonCode(requestDto.getReasonCode());
+        reasonDetails.setCreatedTime(LocalDateTime.now());
+        reasonDetailsRepository.save(reasonDetails);
+    }
+
+    @Override
+    public List<ReasonListResponseDto> getAllReasonsBasedOnReasonCode(int reasonCode) {
+        AtomicInteger i = new AtomicInteger(1);
+        return reasonDetailsRepository.findAll()
+                .stream()
+                .filter(reasonDetails -> reasonDetails.getReasonCode() == reasonCode)
+                .filter(reasonDetails ->  !reasonDetails.getIsDeleted())
+                .map(reasonDetails -> new ReasonListResponseDto(
+                        i.getAndIncrement(),
+                        reasonDetails.getId(),
+                        reasonDetails.getReason(),
+                        reasonDetails.getUpdatedTime() == null ? reasonDetails.getCreatedTime() : reasonDetails.getUpdatedTime()
+                ))
+                .toList();
+    }
+
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void updateReasonsForUserReasonDialogByReasonCode(ReasonUpdateRequestDto requestDto) {
+        if(requestDto.getReason() == null || requestDto.getReason().isEmpty()){
+            throw new ScenarioNotPossibleException("Please add details correctly");
+        }
+        ReasonDetails reasonDetails = reasonDetailsRepository.findById(requestDto.getReasonId())
+                .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + requestDto.getReasonId() + " is not found"));
+        reasonDetails.setReason(requestDto.getReason());
+        reasonDetails.setUpdatedTime(LocalDateTime.now());
+        reasonDetailsRepository.save(reasonDetails);
+    }
+
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void deleteReasonByReasonId(int reasonId) {
+        ReasonDetails reasonDetails = reasonDetailsRepository.findById(reasonId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + reasonId + " is not found"));
+        reasonDetails.setIsDeleted(true);
+        reasonDetailsRepository.save(reasonDetails);
+    }
+
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public String blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) {
+        if(email == null || email.trim().isEmpty() || reason == null || reason.trim().isEmpty()){
+            throw new ScenarioNotPossibleException("Please provide all the details correctly");
+        }
+        UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
+        if (user.isBlocked()) {
+            throw new ScenarioNotPossibleException("User account is already blocked");
+        }
+        if(user.isDeleted()){
+            throw new ScenarioNotPossibleException("User account is deleted, can't block the user");
+        }
+        profileRepository.updateUserAuthTableWithBlockOrUnblockStatus(user.getId(), false);
+
+        ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
+        ContactUs contactUs = new ContactUs();
+        contactUs.setEmail(email);
+        contactUs.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
+        contactUs.setRequestActive(true);
+        contactUs.setVerified(false);
+        contactUs.setRequestStatus(RaiseRequestStatus.INITIATED.name());
+        contactUs.setStartTime(LocalDateTime.now());
+        String referenceNumber = "BL" + userProfile.getName().substring(0,2) + email.substring(0,2)
+                + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
+        contactUs.setReferenceNumber(referenceNumber);
+        ContactUs savedContactUs = contactUsRepository.save(contactUs);
+
+        ContactUsHist contactUsHist = new ContactUsHist();
+        contactUsHist.setContactUsId(savedContactUs.getId());
+        contactUsHist.setName(userProfile.getName());
+        contactUsHist.setMessage(BLOCKED_BY_ADMIN + ", " + reason);
+        contactUsHist.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
+        contactUsHist.setRequestStatus(RaiseRequestStatus.INITIATED.name());
+        contactUsHist.setUpdatedTime(savedContactUs.getStartTime());
+        contactUsHistRepository.save(contactUsHist);
+        methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT), reason, adminUserId, LocalDateTime.now());
+        new Thread(
+                () -> emailTemplates.sendBlockAlertMailToUser(email, reason, profileRepository.findByUserId(user.getId()).get().getName(), convertMultipartFileToPdfBytes(file))
+        ).start();
+        return "User is successfully blocked";
+    }
+
+    @Override
+    public Map<String, List<UserDefectHistDetailsResponseDto>> getUserDefectHistDetails(List<Long> defectIds) {
+        if(defectIds.isEmpty()){
+            throw new ScenarioNotPossibleException("Defect Ids list can't be empty");
+        }
+        Map<String, List<UserDefectHistDetailsResponseDto>> responseMap = new HashMap<>();
+        defectIds.forEach(defectId -> {
+            ContactUs defect = contactUsRepository.findById(defectId).orElseThrow(() -> new ResourceNotFoundException("Defect with id " + defectId + " is not found"));
+            List<ContactUsHist> defectHistList = contactUsHistRepository.findByContactUsId(defectId);
+            if(defectHistList.isEmpty()){
+                throw new ResourceNotFoundException("Defect history with defect id " + defectId + " is not found");
+            }
+            List<UserDefectHistDetailsResponseDto> responseList = new ArrayList<>();
+            defectHistList.forEach(defectHistData -> {
+                responseList.add(new UserDefectHistDetailsResponseDto(defectHistData.getRequestStatus(), defectHistData.getMessage(), defectHistData.getUpdatedTime()));
+            });
+            responseMap.put(defectId + "+" + (defect.getReferenceNumber().startsWith("COM_") ? defect.getReferenceNumber().substring(4) : defect.getReferenceNumber()), responseList);
+        });
+        return responseMap;
+    }
+
+    @Override
+    public List<String> getUsernamesOfAllUsers() {
+        return commonServiceRepository.findAllUsernamesOfUsers();
+    }
+
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public String scheduleNotification(ScheduleNotificationRequestDto requestDto) {
+        AdminValidations.validateScheduleNotificationRequestDetails(requestDto);
+        ScheduleNotification scheduleNotification = new ScheduleNotification();
+        BeanUtils.copyProperties(requestDto, scheduleNotification);
+        ScheduleNotification response = scheduleNotificationRepository.save(scheduleNotification);
+
+        if (!requestDto.getRecipients().equalsIgnoreCase("All")) {
+            userCommonService.saveUserNotificationsForParticularUsers(requestDto.getRecipients(), response.getId());
+        } else {
+            /** Currently using @Async batch process for saving notifications for all the users.
+             * For more traffic of users, It is advisable to use direct insert queries.
+             * Else For more efficient approach, we can use Kafka or any messaging queue to handle such huge number of people scenarios.
+             */
+            userCommonService.saveUserNotificationsForAllUsers(getUsernamesOfAllUsers(), response.getId());
+        }
+        return "Notification set successfully";
+    }
+
+    @Override
+    public List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin() {
+        return adminRepository.getAllActiveSchedulesOfAdmin();
+    }
+
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void cancelTheUserScheduling(Long scheduleId) {
+        ScheduleNotification notification = scheduleNotificationRepository.findById(scheduleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + scheduleId));
+        if (Boolean.TRUE.equals(notification.isCancelled())) {
+            throw new IllegalStateException("Schedule with id " + scheduleId + " is already cancelled.");
+        }
+        notification.setCancelled(true);
+        notification.setUpdatedAt(LocalDateTime.now());
+        scheduleNotificationRepository.save(notification);
+    }
+
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void updateAdminPlacedSchedules(AdminScheduleRequestDto requestDto) {
+        ScheduleNotification notification = scheduleNotificationRepository.findById(requestDto.getScheduleId())
+                .orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + requestDto.getScheduleId()));
+        ScheduleNotificationRequestDto dtoToBeValidated = new ScheduleNotificationRequestDto();
+        dtoToBeValidated.setSubject(requestDto.getSubject());
+        dtoToBeValidated.setDescription(requestDto.getDescription());
+        dtoToBeValidated.setScheduleFrom(requestDto.getScheduleFrom().toLocalDateTime());
+        dtoToBeValidated.setScheduleTo(requestDto.getScheduleTo().toLocalDateTime());
+        dtoToBeValidated.setRecipients(requestDto.getRecipients());
+        AdminValidations.validateScheduleNotificationRequestDetails(dtoToBeValidated);
+
+        notification.setSubject(requestDto.getSubject());
+        notification.setDescription(requestDto.getDescription());
+        notification.setScheduleFrom(requestDto.getScheduleFrom().toLocalDateTime());
+        notification.setScheduleTo(requestDto.getScheduleTo().toLocalDateTime());
+        notification.setRecipients(requestDto.getRecipients());
+        notification.setDescription("New Update: " + notification.getDescription());
+        notification.setUpdatedAt(LocalDateTime.now());
+        scheduleNotificationRepository.save(notification);
+
+        List<UserNotification> notificationList = new ArrayList<>();
+        userNotificationRepository.findByScheduleId(requestDto.getScheduleId()).forEach(userNotification -> {
+            userNotification.setRead(false);
+            notificationList.add(userNotification);
+        });
+        userNotificationRepository.saveAll(notificationList);
+    }
+
+    private byte[] generateExcelReport(List<UserGridDto> userGridDtoList){
+        try(Workbook workbook = new XSSFWorkbook()){
+            Sheet sheet = workbook.createSheet("User Details Report");
+            // Create Header Row
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"S No", "Name", "Username", "Phone", "Created Time", "Date of Birth"};
+            for(int i=0; i< headers.length; i++){
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(createHeaderStyle(workbook));
+            }
+            // Create a Date Style
+            CellStyle dateStyle = createDateStyle(workbook);
+            // Populate Data Rows
+            int rowIndex = 1;
+            for (UserGridDto data : userGridDtoList) {
+                Row row = sheet.createRow(rowIndex++);
+                row.createCell(0).setCellValue(data.getSlNo());
+                row.createCell(1).setCellValue(data.getName());
+                row.createCell(2).setCellValue(data.getUsername());
+                row.createCell(3).setCellValue(data.getPhone()!=null?data.getPhone():"-");
+                // Format Date Properly
+                Cell dateCell = row.createCell(4);
+                dateCell.setCellValue(data.getCreatedDateTime()); // Assuming data.getDate() is `java.util.Date`
+                dateCell.setCellStyle(dateStyle); // Apply formatting
+
+                Cell dateCell2 = row.createCell(5);
+                dateCell2.setCellValue(data.getDateOfBirth()); // Assuming data.getDate() is `java.util.Date`
+                dateCell2.setCellStyle(dateStyle); // Apply formatting
+            }
+            // Auto-size columns
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+            // Convert to byte array
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            return outputStream.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new ResourceNotFoundException("Error in generating excel report");
+        }
+    }
+
+    private CellStyle createDateStyle(Workbook workbook) {
+        CellStyle dateStyle = workbook.createCellStyle();
+        CreationHelper createHelper = workbook.getCreationHelper();
+        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy"));
+        return dateStyle;
+    }
+
+    private CellStyle createHeaderStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        style.setFont(font);
+        // Set Background Color
+        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex()); // Yellow background
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND); // Apply solid fill
+        // Set Border (Optional)
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        return style;
+    }
+
+    private void functionCallToChangeDetails(String email, ContactUs contactUs, String requestStatus, Long adminUserId){
+        UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
+        ContactUsHist requestUserHist = new ContactUsHist();
+
+        if(requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
+            profileRepository.updateUserAuthTableWithBlockOrUnblockStatus(user.getId(), false);
+            ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
+                    .stream()
+                    .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
+                    .findFirst()
+                    .get();
+            LocalDateTime completedTime = LocalDateTime.now();
+            methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.UNBLOCK_ACCOUNT), requestDetailsHist.getMessage(), adminUserId, completedTime);
+            requestUserHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
+            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
+        } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
+            profileRepository.updateUserAuthTableWithDeleteOrUndeleteStatus(user.getId(), false);
+            ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
+                    .stream()
+                    .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
+                    .findFirst()
+                    .get();
+            LocalDateTime completedTime = LocalDateTime.now();
+            methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.ACCOUNT_RETRIEVAL), requestDetailsHist.getMessage(), adminUserId, completedTime);
+            requestUserHist.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
+            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
+        } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
+            ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("User profile not found"));
+            ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
+                    .stream()
+                    .findFirst()
+                    .get();
+            if(!userProfile.getName().toLowerCase().contains(requestDetailsHist.getMessage().toLowerCase().split(",")[0])){
+                throw new ScenarioNotPossibleException("Old name didn't match");
+            }
+            LocalDateTime completedTime = LocalDateTime.now();
+            userProfile.setName(requestDetailsHist.getName());
+            profileRepository.save(userProfile);
+            methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.NAME_CHANGE), requestDetailsHist.getMessage().split(",")[1], adminUserId, completedTime);
+            requestUserHist.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
+            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
+        }
+    }
+
+    private void methodToUpdateContactUsTable(ContactUs contactUs, ContactUsHist requestUserHist, LocalDateTime completedTime){
+        contactUs.setRequestActive(false);
+        contactUs.setVerified(true);
+        contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
+        contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+        contactUs.setCompletedTime(completedTime);
+        ContactUs savedRequest = contactUsRepository.save(contactUs);
+
+        requestUserHist.setContactUsId(savedRequest.getId());
+        requestUserHist.setMessage("Admin has been approved");
+        requestUserHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+        requestUserHist.setUpdatedTime(completedTime);
+        contactUsHistRepository.save(requestUserHist);
+    }
+
+    private void methodToUpdateUserAuthHistTable(Long userId, int reasonTypeId, String comment, Long updatedUserId, LocalDateTime completedTime){
+        profileRepository.insertUserAuthHistory(userId, completedTime, reasonTypeId, comment, updatedUserId);
+    }
+
+    private void functionCallToDeclineTheUserRequest(ContactUs contactUs, String declineReason){
+        if(declineReason == null || declineReason.trim().isEmpty()){
+            throw new ScenarioNotPossibleException("Decline reason should not be empty");
+        }
+        contactUs.setCompletedTime(LocalDateTime.now());
+        contactUs.setRequestActive(false);
+        contactUs.setVerified(true);
+        contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
+        contactUs.setRequestStatus(RaiseRequestStatus.CANCELLED.name());
+        ContactUs response = contactUsRepository.save(contactUs);
+
+        ContactUsHist contactUsHist = new ContactUsHist();
+        contactUsHist.setContactUsId(response.getId());
+        contactUsHist.setMessage(declineReason);
+        contactUsHist.setRequestReason(response.getRequestReason());
+        contactUsHist.setRequestStatus(response.getRequestStatus());
+        contactUsHist.setUpdatedTime(response.getCompletedTime());
+        contactUsHistRepository.save(contactUsHist);
     }
 
     private void addNameRequestDetailsToUserDetails(UserProfileAndRequestDetailsDto userDetails, List<ContactUs> allUserRequests, AdminUserRequestsCountDto saveCountDto){
@@ -556,166 +802,11 @@ public class AdminServiceImpl implements AdminService {
         saveCountDto.setAccRetrieveChangeDeclinedRequests(accRetrievalDeclinedRequestsCount);
     }
 
-    @Override
-    public List<UserFeedbackResponseDto> getUserFeedbackListForAdmin() {
-        AtomicInteger i = new AtomicInteger(1);
-        return adminRepository.getUserFeedbackListForAdmin()
-                .stream()
-                .peek(feedback -> {
-                    feedback.setRating(Integer.parseInt(feedback.getDescription().substring(0,1)));
-                    feedback.setMessage(feedback.getDescription().substring(2));
-                    feedback.setId(i.getAndIncrement());
-                    feedback.setTimeOfFeedback(Timestamp.valueOf(feedback.getTimeOfFeedback().toLocalDateTime()));
-                }).toList();
-    }
-
-    @Override
-    @Transactional
-    public void updateUserFeedback(Long feedbackId) {
-        Optional<ContactUs> userFeedback = contactUsRepository.findById(feedbackId);
-        if(userFeedback.isEmpty()){
-            throw new ResourceNotFoundException("Feedback with id " + feedbackId + " is not found");
-        }
-        userFeedback.get().setRequestStatus(RaiseRequestStatus.COMPLETED.name());
-        userFeedback.get().setCompletedTime(LocalDateTime.now());
-        userFeedback.get().setVerified(true);
-        userFeedback.get().setRequestActive(false);
-        ContactUs savedUserFeedback = contactUsRepository.save(userFeedback.get());
-
-        ContactUsHist userFeedbackHist = new ContactUsHist();
-        userFeedbackHist.setContactUsId(savedUserFeedback.getId());
-        userFeedbackHist.setUpdatedTime(savedUserFeedback.getCompletedTime());
-        userFeedbackHist.setMessage("Admin has been viewed & Closed");
-        userFeedbackHist.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
-        userFeedbackHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
-        contactUsHistRepository.save(userFeedbackHist);
-    }
-
-    @Override
-    @Transactional
-    public void addReasonsForUserReasonDialog(ReasonDetailsRequestDto requestDto) {
-        if(requestDto.getReasonCode() == null || requestDto.getReason() == null || requestDto.getReason().isEmpty()){
-            throw new ScenarioNotPossibleException("Please add details correctly");
-        }
-        reasonDetailsRepository.findByReasonCode(requestDto.getReasonCode()).forEach(reasons -> {
-            if(reasons.getReason().trim().equalsIgnoreCase(requestDto.getReason().trim()) && !reasons.getIsDeleted()){
-                throw new ScenarioNotPossibleException("Reason already exists");
-            }
-        });
-        ReasonDetails reasonDetails = new ReasonDetails();
-        reasonDetails.setReason(requestDto.getReason().trim());
-        reasonDetails.setReasonCode(requestDto.getReasonCode());
-        reasonDetails.setCreatedTime(LocalDateTime.now());
-        reasonDetailsRepository.save(reasonDetails);
-    }
-
-    @Override
-    public List<ReasonListResponseDto> getAllReasonsBasedOnReasonCode(int reasonCode) {
-        AtomicInteger i = new AtomicInteger(1);
-        return reasonDetailsRepository.findAll()
-                .stream()
-                .filter(reasonDetails -> reasonDetails.getReasonCode() == reasonCode)
-                .filter(reasonDetails ->  !reasonDetails.getIsDeleted())
-                .map(reasonDetails -> new ReasonListResponseDto(
-                        i.getAndIncrement(),
-                        reasonDetails.getId(),
-                        reasonDetails.getReason(),
-                        reasonDetails.getUpdatedTime() == null ? reasonDetails.getCreatedTime() : reasonDetails.getUpdatedTime()
-                ))
-                .toList();
-    }
-
-    @Override
-    @Transactional
-    public void updateReasonsForUserReasonDialogByReasonCode(ReasonUpdateRequestDto requestDto) {
-        if(requestDto.getReason() == null || requestDto.getReason().isEmpty()){
-            throw new ScenarioNotPossibleException("Please add details correctly");
-        }
-        ReasonDetails reasonDetails = reasonDetailsRepository.findById(requestDto.getReasonId())
-                .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + requestDto.getReasonId() + " is not found"));
-        reasonDetails.setReason(requestDto.getReason());
-        reasonDetails.setUpdatedTime(LocalDateTime.now());
-        reasonDetailsRepository.save(reasonDetails);
-    }
-
-    @Override
-    @Transactional
-    public void deleteReasonByReasonId(int reasonId) {
-        ReasonDetails reasonDetails = reasonDetailsRepository.findById(reasonId)
-                .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + reasonId + " is not found"));
-        reasonDetails.setIsDeleted(true);
-        reasonDetailsRepository.save(reasonDetails);
-    }
-
-    @Override
-    @Transactional
-    public String blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) {
-        if(email == null || email.trim().isEmpty() || reason == null || reason.trim().isEmpty()){
-            throw new ScenarioNotPossibleException("Please provide all the details correctly");
-        }
-        UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
-        if (user.isBlocked()) {
-            throw new ScenarioNotPossibleException("User account is already blocked");
-        }
-        if(user.isDeleted()){
-            throw new ScenarioNotPossibleException("User account is deleted, can't block the user");
-        }
-        profileRepository.updateUserAuthTableWithBlockOrUnblockStatus(user.getId(), false);
-
-        ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
-        ContactUs contactUs = new ContactUs();
-        contactUs.setEmail(email);
-        contactUs.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
-        contactUs.setRequestActive(true);
-        contactUs.setVerified(false);
-        contactUs.setRequestStatus(RaiseRequestStatus.INITIATED.name());
-        contactUs.setStartTime(LocalDateTime.now());
-        String referenceNumber = "BL" + userProfile.getName().substring(0,2) + email.substring(0,2)
-                + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
-        contactUs.setReferenceNumber(referenceNumber);
-        ContactUs savedContactUs = contactUsRepository.save(contactUs);
-
-        ContactUsHist contactUsHist = new ContactUsHist();
-        contactUsHist.setContactUsId(savedContactUs.getId());
-        contactUsHist.setName(userProfile.getName());
-        contactUsHist.setMessage(BLOCKED_BY_ADMIN + ", " + reason);
-        contactUsHist.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
-        contactUsHist.setRequestStatus(RaiseRequestStatus.INITIATED.name());
-        contactUsHist.setUpdatedTime(savedContactUs.getStartTime());
-        contactUsHistRepository.save(contactUsHist);
-        methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT), reason, adminUserId, LocalDateTime.now());
-        new Thread(
-                () -> emailTemplates.sendBlockAlertMailToUser(email, reason, profileRepository.findByUserId(user.getId()).get().getName(), convertMultipartFileToPdfBytes(file))
-        ).start();
-        return "User is successfully blocked";
-    }
-
-    @Override
-    public Map<String, List<UserDefectHistDetailsResponseDto>> getUserDefectHistDetails(List<Long> defectIds) {
-        if(defectIds.isEmpty()){
-            throw new ScenarioNotPossibleException("Defect Ids list can't be empty");
-        }
-        Map<String, List<UserDefectHistDetailsResponseDto>> responseMap = new HashMap<>();
-        defectIds.forEach(defectId -> {
-            ContactUs defect = contactUsRepository.findById(defectId).orElseThrow(() -> new ResourceNotFoundException("Defect with id " + defectId + " is not found"));
-            List<ContactUsHist> defectHistList = contactUsHistRepository.findByContactUsId(defectId);
-            if(defectHistList.isEmpty()){
-                throw new ResourceNotFoundException("Defect history with defect id " + defectId + " is not found");
-            }
-            List<UserDefectHistDetailsResponseDto> responseList = new ArrayList<>();
-            defectHistList.forEach(defectHistData -> {
-                responseList.add(new UserDefectHistDetailsResponseDto(defectHistData.getRequestStatus(), defectHistData.getMessage(), defectHistData.getUpdatedTime()));
-            });
-            responseMap.put(defectId + "+" + (defect.getReferenceNumber().startsWith("COM_") ? defect.getReferenceNumber().substring(4) : defect.getReferenceNumber()), responseList);
-        });
-        return responseMap;
-    }
-
     private byte[] convertMultipartFileToPdfBytes(MultipartFile file){
         try {
             return file.getBytes();
         } catch (IOException e) {
-            e.printStackTrace();;
+            e.printStackTrace();
         }
         return null;
     }

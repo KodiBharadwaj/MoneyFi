@@ -1,9 +1,12 @@
 package com.moneyfi.user.service.admin;
 
+import com.moneyfi.user.service.admin.dto.request.AdminScheduleRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonDetailsRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonUpdateRequestDto;
+import com.moneyfi.user.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.user.service.admin.dto.response.*;
 import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
+import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -44,4 +47,14 @@ public interface AdminService {
     void deleteReasonByReasonId(int reasonId);
 
     Map<String, List<UserDefectHistDetailsResponseDto>> getUserDefectHistDetails(List<Long> defectIds);
+
+    List<String> getUsernamesOfAllUsers();
+
+    String scheduleNotification(@Valid ScheduleNotificationRequestDto requestDto);
+
+    List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin();
+
+    void cancelTheUserScheduling(Long scheduleId);
+
+    void updateAdminPlacedSchedules(@Valid AdminScheduleRequestDto requestDto);
 }

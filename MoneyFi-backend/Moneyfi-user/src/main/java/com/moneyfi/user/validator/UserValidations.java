@@ -1,13 +1,11 @@
 package com.moneyfi.user.validator;
 
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
-import com.moneyfi.user.model.ProfileModel;
 import com.moneyfi.user.model.dto.OtpTempModel;
 import com.moneyfi.user.model.dto.UserAuthModel;
 import com.moneyfi.user.service.common.dto.request.AccountBlockOrDeleteRequestDto;
 import com.moneyfi.user.util.constants.StringUtils;
 import com.moneyfi.user.util.enums.AccDeactivationType;
-import org.apache.commons.lang3.ObjectUtils;
 
 import java.time.LocalDateTime;
 
