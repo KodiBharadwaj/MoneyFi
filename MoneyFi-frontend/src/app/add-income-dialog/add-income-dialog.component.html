@@ -37,6 +37,12 @@
       <mat-error *ngIf="incomeSource.category.trim() === ''">Category is required</mat-error>
     </mat-form-field>
 
+    <mat-form-field appearance="outline" class="form-field">
+      <mat-label>Income Description</mat-label>
+      <input matInput [(ngModel)]="incomeSource.description"  name="source" placeholder="Description">
+      <mat-icon matPrefix>account_balance</mat-icon>
+    </mat-form-field>
+
     <div class="recurring-checkbox">
       <mat-checkbox [(ngModel)]="incomeSource.recurring" name="recurring" color="primary">
         Recurring Income

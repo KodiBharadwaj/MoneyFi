@@ -81,7 +81,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public ProfileDetailsDto saveUserDetails(Long userId, ProfileModel profile) {
         ProfileModel fetchProfile = profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_DETAILS_NOT_FOUND));
 
@@ -105,14 +105,6 @@ public class ProfileServiceImpl implements ProfileService {
         fetchProfile.setAddress(profile.getAddress());
         fetchProfile.setIncomeRange(profile.getIncomeRange());
         return convertProfileModelToProfileDetailsDto(profileRepository.save(fetchProfile));
-    }
-
-    private ProfileDetailsDto convertProfileModelToProfileDetailsDto(ProfileModel savedProfile) {
-        ProfileDetailsDto profileDetailsDto = new ProfileDetailsDto();
-        BeanUtils.copyProperties(savedProfile, profileDetailsDto);
-        profileDetailsDto.setCreatedDate(Date.valueOf(savedProfile.getCreatedDate().toLocalDate()));
-        profileDetailsDto.setDateOfBirth(Date.valueOf(savedProfile.getDateOfBirth()));
-        return profileDetailsDto;
     }
 
     @Override
@@ -170,7 +162,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public void saveFeedback(UserFeedbackRequestDto feedback) {
         String rating = feedback.getMessage().substring(0, 1);
         String message = feedback.getMessage().substring(2);
@@ -198,7 +190,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public void parseUserProfileDataFromExcel(MultipartFile excel, Long userId) {
         try (InputStream is = excel.getInputStream()) {
             Workbook workbook = new XSSFWorkbook(is);
@@ -236,5 +228,13 @@ public class ProfileServiceImpl implements ProfileService {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + template.getName())
                 .contentType(MediaType.parseMediaType(template.getContentType()))
                 .body(template.getContent());
+    }
+
+    private ProfileDetailsDto convertProfileModelToProfileDetailsDto(ProfileModel savedProfile) {
+        ProfileDetailsDto profileDetailsDto = new ProfileDetailsDto();
+        BeanUtils.copyProperties(savedProfile, profileDetailsDto);
+        profileDetailsDto.setCreatedDate(Date.valueOf(savedProfile.getCreatedDate().toLocalDate()));
+        profileDetailsDto.setDateOfBirth(Date.valueOf(savedProfile.getDateOfBirth()));
+        return profileDetailsDto;
     }
 }

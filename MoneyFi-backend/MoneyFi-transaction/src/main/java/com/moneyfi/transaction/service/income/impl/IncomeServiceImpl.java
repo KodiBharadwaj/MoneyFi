@@ -97,7 +97,7 @@ public class IncomeServiceImpl implements IncomeService {
 
             // Create Header Row
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"Category", "Source", "Amount", "Date", "Recurring"};
+            String[] headers = {"Category", "Source", "Amount", "Date", "Recurring", "Description"};
             for(int i=0; i< headers.length; i++){
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
@@ -120,6 +120,7 @@ public class IncomeServiceImpl implements IncomeService {
                 dateCell.setCellStyle(dateStyle); // Apply formatting
 
                 row.createCell(4).setCellValue(data.isRecurring() ? YES : NO);
+                row.createCell(5).setCellValue(data.getDescription());
             }
 
             // Auto-size columns
@@ -291,6 +292,7 @@ public class IncomeServiceImpl implements IncomeService {
                 incomeModel.getSource().equals(incomeUpdateRequest.getSource()) &&
                 incomeModel.getCategory().equals(incomeUpdateRequest.getCategory()) &&
                 incomeModel.getDate().toLocalDate().equals(LocalDateTime.parse(incomeUpdateRequest.getDate()).toLocalDate()) &&
+                incomeModel.getDescription().equals(incomeUpdateRequest.getDescription()) &&
                 incomeModel.isRecurring() == incomeUpdateRequest.getRecurring()){
             throw new ScenarioNotPossibleException(NO_CHANGES_TO_UPDATE);
         }
@@ -300,6 +302,7 @@ public class IncomeServiceImpl implements IncomeService {
         incomeModel.setDate(LocalDateTime.parse(incomeUpdateRequest.getDate()));
         incomeModel.setRecurring(incomeUpdateRequest.getRecurring());
         incomeModel.setUpdatedAt(LocalDateTime.now());
+        incomeModel.setDescription(incomeUpdateRequest.getDescription());
         incomeRepository.save(incomeModel);
     }
 

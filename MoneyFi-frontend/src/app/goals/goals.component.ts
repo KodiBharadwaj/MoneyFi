@@ -21,7 +21,8 @@ interface Goal {
   daysRemaining : number;
   progressPercentage : number;
   icon: string;
-  color: string
+  color: string;
+  description: string;
 }
 
 interface inputGoal {
@@ -34,6 +35,7 @@ interface inputGoal {
   goalStatus: string;
   daysRemaining : number;
   progressPercentage : number;
+  description: string;
 }
 
 @Component({
@@ -354,7 +356,8 @@ export class GoalsComponent {
       daysRemaining : data.daysRemaining,
       progressPercentage : data.progressPercentage,
       icon: icon,
-      color: color
+      color: color,
+      description: data.description,
     };
   } 
 

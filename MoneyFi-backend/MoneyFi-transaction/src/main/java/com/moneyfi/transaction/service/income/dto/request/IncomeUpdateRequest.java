@@ -16,4 +16,5 @@ public class IncomeUpdateRequest {
     private String date;
     private String category;
     private Boolean recurring;
+    private String description;
 }

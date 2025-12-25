@@ -16,13 +16,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-public class UserCommonController {
+public class OpenController {
 
     private final UserService userService;
     private final UserCommonService userCommonService;
 
-    public UserCommonController(UserService userService,
-                                UserCommonService resetPassword){
+    public OpenController(UserService userService,
+                          UserCommonService resetPassword){
         this.userService = userService;
         this.userCommonService = resetPassword;
     }

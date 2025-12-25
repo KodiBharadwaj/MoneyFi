@@ -25,4 +25,13 @@ public class ExpenseModel {
     private boolean recurring;
     private String description;
     private boolean isDeleted;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void initFunction() {
+        this.isDeleted = false;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
 }

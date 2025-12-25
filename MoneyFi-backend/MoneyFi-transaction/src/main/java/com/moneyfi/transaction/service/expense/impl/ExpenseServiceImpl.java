@@ -294,7 +294,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         if(expense.isRecurring()){
             expenseModel.setRecurring(expense.isRecurring());
         }
-
+        expenseModel.setUpdatedAt(LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.CREATED).body(updateExpenseDtoConversion(save(expenseModel)));
     }
 

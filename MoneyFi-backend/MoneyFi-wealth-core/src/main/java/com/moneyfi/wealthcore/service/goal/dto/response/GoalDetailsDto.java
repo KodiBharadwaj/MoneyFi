@@ -21,4 +21,5 @@ public class GoalDetailsDto {
     private Long daysRemaining;
     private Long progressPercentage;
     private String goalStatus;
+    private String description;
 }

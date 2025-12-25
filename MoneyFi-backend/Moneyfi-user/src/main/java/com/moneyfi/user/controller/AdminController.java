@@ -2,14 +2,12 @@ package com.moneyfi.user.controller;
 
 import com.moneyfi.user.config.JwtService;
 import com.moneyfi.user.service.admin.AdminService;
-import com.moneyfi.user.service.admin.dto.request.NotificationRecipientsRequest;
-import com.moneyfi.user.service.admin.dto.request.ReasonDetailsRequestDto;
-import com.moneyfi.user.service.admin.dto.request.ReasonUpdateRequestDto;
-import com.moneyfi.user.service.admin.dto.request.UserRequestsApprovalDto;
+import com.moneyfi.user.service.admin.dto.request.*;
 import com.moneyfi.user.service.admin.dto.response.*;
 import com.moneyfi.user.service.common.UserCommonService;
 import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -174,15 +172,34 @@ public class AdminController {
         adminService.deleteReasonByReasonId(reasonId);
     }
 
-    @Operation(summary = "Api to save the user notifications for particular users")
-    @PostMapping("/user-notifications/save")
-    public void saveUserNotificationsForParticularUsers(@RequestBody Map<String, Object> payload) {
-        userCommonService.saveUserNotificationsForParticularUsers((String) payload.get("recipients"), Long.valueOf(payload.get("id").toString()));
+    @Operation(summary = "Api to get all the usernames of all the users for the admin")
+    @GetMapping("/get-usernames")
+    public ResponseEntity<List<String>> getUsernamesOfAllUsers(){
+        List<String> usernamesList = adminService.getUsernamesOfAllUsers();
+        return ResponseEntity.ok(usernamesList);
     }
 
-    @Operation(summary = "Api to save the user notifications")
-    @PostMapping("/user-notifications/save-all")
-    public void saveUserNotificationsForAllUsers(@RequestBody NotificationRecipientsRequest request) {
-        userCommonService.saveUserNotificationsForAllUsers(request.getRecipients(), request.getId());
+    @Operation(summary = "Api to schedule a notification by admin")
+    @PostMapping("/schedule-notification")
+    public ResponseEntity<String> scheduleNotification(@RequestBody @Valid ScheduleNotificationRequestDto requestDto){
+        return ResponseEntity.ok(adminService.scheduleNotification(requestDto));
+    }
+
+    @Operation(summary = "Api to get all the schedules for admin screen")
+    @GetMapping("/schedule-notifications/get")
+    public ResponseEntity<List<AdminSchedulesResponseDto>> getAllActiveSchedulesOfAdmin(){
+        return ResponseEntity.ok(adminService.getAllActiveSchedulesOfAdmin());
+    }
+
+    @Operation(summary = "Api to cancel the user scheduling")
+    @PutMapping("schedule-notification/cancel")
+    public void cancelTheUserScheduling(@RequestParam("id") Long scheduleId){
+        adminService.cancelTheUserScheduling(scheduleId);
+    }
+
+    @Operation(summary = "Api to update the already scheduled notification")
+    @PutMapping("schedule-notification/update")
+    public void updateAdminPlacedSchedules(@RequestBody @Valid AdminScheduleRequestDto requestDto){
+        adminService.updateAdminPlacedSchedules(requestDto);
     }
 }

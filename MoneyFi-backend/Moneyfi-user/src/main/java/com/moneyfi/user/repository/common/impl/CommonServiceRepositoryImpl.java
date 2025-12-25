@@ -101,4 +101,18 @@ public class CommonServiceRepositoryImpl implements CommonServiceRepository {
         }
     }
 
+    @Override
+    public List<String> findAllUsernamesOfUsers() {
+        List<String> usernames = new ArrayList<>();
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getUsernamesOfAllActiveUsers " );
+            usernames.addAll(query.getResultList());
+            return usernames;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching usernames");
+        }
+    }
+
 }

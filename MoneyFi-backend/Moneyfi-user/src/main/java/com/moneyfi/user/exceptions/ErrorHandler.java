@@ -1,9 +1,5 @@
-package com.moneyfi.user.service.common;
+package com.moneyfi.user.exceptions;
 
-import com.moneyfi.user.exceptions.CloudinaryImageException;
-import com.moneyfi.user.exceptions.CustomInternalServerErrorException;
-import com.moneyfi.user.exceptions.ResourceNotFoundException;
-import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.service.common.dto.response.ErrorResponse;
 import jakarta.ws.rs.BadRequestException;
 import org.springframework.http.HttpStatus;

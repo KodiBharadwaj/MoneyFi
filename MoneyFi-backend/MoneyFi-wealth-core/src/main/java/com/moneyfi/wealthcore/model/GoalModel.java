@@ -27,8 +27,18 @@ public class GoalModel {
     private LocalDateTime deadLine;
     private String category;
     private boolean isDeleted;
+    private String description;
 
     @Column(name = "expense_ids")
     private String expenseIds;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void initFunction() {
+        this.isDeleted = false;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
 
 }

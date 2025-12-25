@@ -45,6 +45,11 @@
       <mat-error *ngIf="goalSource.category.trim() === ''">Category is required</mat-error>
     </mat-form-field>
 
+    <mat-form-field appearance="outline" class="form-field">
+      <mat-label>Goal Description</mat-label>
+      <input matInput [(ngModel)]="goalSource.description" name="description">
+    </mat-form-field>
+
     <div class="dialog-actions">
       <button mat-stroked-button (click)="onCancel()">Cancel</button>
       <button mat-raised-button color="primary" [disabled]="!isValid()" (click)="onSave()">Save Goal</button>
