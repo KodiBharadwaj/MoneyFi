@@ -11,10 +11,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ParsedTransaction {
-
-    private BigDecimal amount;
+    private String category;
     private String description;
-    private String type;   // CREDIT / DEBIT
+    private BigDecimal amount;
+    private String transactionType;
     private LocalDateTime transactionDate;
 }
 

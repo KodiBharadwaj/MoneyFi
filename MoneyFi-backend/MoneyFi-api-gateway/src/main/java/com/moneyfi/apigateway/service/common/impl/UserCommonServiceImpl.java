@@ -16,7 +16,7 @@ import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.enums.ReasonEnum;
-import com.moneyfi.apigateway.util.validators.UserValidations;
+import com.moneyfi.apigateway.validator.UserValidations;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;

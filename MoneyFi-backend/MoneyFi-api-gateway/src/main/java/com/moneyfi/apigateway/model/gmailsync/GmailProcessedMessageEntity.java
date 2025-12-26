@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.model.common;
+package com.moneyfi.apigateway.model.gmailsync;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

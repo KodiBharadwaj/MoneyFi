@@ -1,6 +1,6 @@
-package com.moneyfi.apigateway.repository.user.auth;
+package com.moneyfi.apigateway.repository.gmailsync;
 
-import com.moneyfi.apigateway.model.common.GmailProcessedMessageEntity;
+import com.moneyfi.apigateway.model.gmailsync.GmailProcessedMessageEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
