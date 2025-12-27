@@ -13,7 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
-import { environment } from '../../environments/environment.development';
+import { environment } from '../../environments/environment';
 
 interface Expense {
   id: number;
