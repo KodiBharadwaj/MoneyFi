@@ -1,6 +1,6 @@
 export const environment = {
     API_KEY: 'gemini-key',
     BASE_URL: 'https://moneyfi-api-gateway.onrender.com',
-    GOOGLE_CLIENT_ID : '510016351304-mtes8g05emjj86rbltgn14emu7rm0j0r.apps.googleusercontent.com',
-    GITHUB_CLIENT_ID : 'Ov23liRASR0EzcyFhBmB',
+    GOOGLE_CLIENT_ID : '548044701382-b3gfou7i1l16gdgi1df672u249f95o99.apps.googleusercontent.com',
+    GITHUB_CLIENT_ID : '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',
 };
