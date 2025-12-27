@@ -1,0 +1,78 @@
+<!-- Loading State -->
+<div *ngIf="loading" class="sync-loading">
+  <mat-spinner diameter="48"></mat-spinner>
+  <p>Syncing transactions from Gmail…</p>
+</div>
+
+<!-- Content -->
+<div *ngIf="!loading" class="sync-container">
+
+  <!-- Header -->
+  <div class="sync-header">
+    <h2>Detected transactions (MoneyFi-Gmail Sync)</h2>
+    <span class="sync-subtitle">
+      Please review, edit if required, and confirm the transactions to add
+    </span>
+  </div>
+
+  <!-- Table Wrapper -->
+  <div class="table-wrapper">
+    <table class="sync-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Description</th>
+          <th class="amount-col">Amount</th>
+          <th>Type</th>
+          <th>Date</th>
+          <th class="action-col"></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let tx of transactions; let i = index">
+          <td>
+            <input [(ngModel)]="tx.category" class="input" />
+          </td>
+
+          <td>
+            <input [(ngModel)]="tx.description" class="input" />
+          </td>
+
+          <td>
+            <input type="number" [(ngModel)]="tx.amount" class="input amount" />
+          </td>
+
+          <td>
+            <select [(ngModel)]="tx.transactionType" class="input">
+              <option *ngFor="let type of transactionTypes" [value]="type">
+                {{ type }}
+              </option>
+            </select>
+          </td>
+
+          <td>
+            <input
+              type="datetime-local"
+              [(ngModel)]="tx.transactionDate"
+              class="input"
+            />
+          </td>
+
+          <td class="action-cell">
+            <button class="btn btn-ignore" (click)="ignore(i)">
+              Ignore
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer -->
+  <div class="sync-footer">
+    <button class="btn btn-outline" (click)="cancel()">Cancel</button>
+    <button class="btn btn-primary" (click)="submit()">Submit</button>
+  </div>
+
+</div>
