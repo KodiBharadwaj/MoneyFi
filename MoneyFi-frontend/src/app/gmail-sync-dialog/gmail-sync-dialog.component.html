@@ -9,14 +9,21 @@
 
   <!-- Header -->
   <div class="sync-header">
-    <h2>Detected transactions (MoneyFi-Gmail Sync)</h2>
+    <h2>
+      Detected transactions (Remaining Chances: {{ remainingCount }})
+    </h2>
     <span class="sync-subtitle">
       Please review, edit if required, and confirm the transactions to add
     </span>
   </div>
 
+  <div *ngIf="transactions.length === 0" class="empty-state">
+    <p>No transactions found from Gmail.</p>
+  </div>
+
+
   <!-- Table Wrapper -->
-  <div class="table-wrapper">
+  <div class="table-wrapper" *ngIf="transactions.length > 0">
     <table class="sync-table">
       <thead>
         <tr>
@@ -72,7 +79,20 @@
   <!-- Footer -->
   <div class="sync-footer">
     <button class="btn btn-outline" (click)="cancel()">Cancel</button>
-    <button class="btn btn-primary" (click)="submit()">Submit</button>
+    <button
+      class="btn btn-primary submit-btn"
+      (click)="submit()"
+      [disabled]="transactions.length === 0 || submitting"
+    >
+      <ng-container *ngIf="!submitting; else loadingTpl">
+        Submit
+      </ng-container>
+
+      <ng-template #loadingTpl>
+        <mat-spinner diameter="18"></mat-spinner>
+        <span class="ml-2">Submitting…</span>
+      </ng-template>
+    </button>
   </div>
 
 </div>
