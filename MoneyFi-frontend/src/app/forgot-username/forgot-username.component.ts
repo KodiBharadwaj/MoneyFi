@@ -6,7 +6,7 @@ import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { NgChartsModule } from 'ng2-charts';
 import { ToastrService } from 'ngx-toastr';
-import { environment } from '../../environments/environment.development';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-forgot-username',

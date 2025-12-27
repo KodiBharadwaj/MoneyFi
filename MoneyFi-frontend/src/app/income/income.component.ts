@@ -15,7 +15,7 @@ import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
 import { IncomeDeletedComponent } from '../income-deleted/income-deleted.component';
 import { incomeDeleted } from '../model/incomeDeleted';
-import { environment } from '../../environments/environment.development';
+import { environment } from '../../environments/environment';
 
 
 interface IncomeSource {
