@@ -1,0 +1,34 @@
+spring:
+  profiles:
+    active: ${PROFILE:sqlserver}
+  application:
+    name:
+      MoneyFi-Transaction
+
+  boot:
+    admin:
+      client:
+        url: http://localhost:8760
+        username: admin        # <-- must match monitor server
+        password: admin123     # <-- must match monitor server
+        instance:
+          metadata:
+            user.name: client
+            user.password: client123
+
+jwt:
+  secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
