@@ -1,0 +1,154 @@
+/* ===== Loading ===== */
+.sync-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+  gap: 16px;
+  color: #444;
+}
+
+/* ===== Container ===== */
+.sync-container {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 24px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Header ===== */
+.sync-header {
+  margin-bottom: 16px;
+}
+
+.sync-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.sync-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* ===== Table ===== */
+.table-wrapper {
+  flex: 1;
+  overflow: auto;
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.sync-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.sync-table thead {
+  position: sticky;
+  top: 0;
+  background: #f3f4f6;
+  z-index: 1;
+}
+
+.sync-table th {
+  text-align: left;
+  padding: 12px;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sync-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.sync-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* Column sizing */
+.amount-col {
+  width: 120px;
+}
+
+.action-col {
+  width: 90px;
+}
+
+/* ===== Inputs ===== */
+.input {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 1px rgba(25, 118, 210, 0.15);
+}
+
+.input.amount {
+  text-align: right;
+}
+
+/* ===== Buttons ===== */
+.btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary {
+  background: #1976d2;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #155fa0;
+}
+
+.btn-outline {
+  background: white;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.btn-outline:hover {
+  background: #f3f4f6;
+}
+
+.btn-ignore {
+  background: transparent;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.btn-ignore:hover {
+  text-decoration: underline;
+}
+
+/* ===== Footer ===== */
+.sync-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
