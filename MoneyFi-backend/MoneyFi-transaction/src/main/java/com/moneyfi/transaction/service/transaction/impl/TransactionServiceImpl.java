@@ -1,21 +1,31 @@
 package com.moneyfi.transaction.service.transaction.impl;
 
 import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
-import com.moneyfi.transaction.repository.income.IncomeDeletedRepository;
+import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
+import com.moneyfi.transaction.model.expense.ExpenseModel;
+import com.moneyfi.transaction.model.income.IncomeModel;
+import com.moneyfi.transaction.repository.expense.ExpenseRepository;
 import com.moneyfi.transaction.repository.income.IncomeRepository;
 import com.moneyfi.transaction.repository.transaction.TransactionRepository;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
+import com.moneyfi.transaction.service.income.dto.request.IncomeSaveRequest;
 import com.moneyfi.transaction.service.income.dto.response.AccountStatementResponseDto;
 import com.moneyfi.transaction.service.income.dto.response.OverviewPageDetailsDto;
 import com.moneyfi.transaction.service.income.dto.response.UserDetailsForStatementDto;
 import com.moneyfi.transaction.service.transaction.TransactionService;
+import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction;
+import com.moneyfi.transaction.utils.CreditOrDebit;
 import com.moneyfi.transaction.utils.GeneratePdfTemplate;
 import com.moneyfi.transaction.utils.StringConstants;
+import com.moneyfi.transaction.validator.IncomeValidator;
+import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,19 +33,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TransactionServiceImpl implements TransactionService {
 
     private final IncomeRepository incomeRepository;
+    private final ExpenseRepository expenseRepository;
     private final TransactionRepository transactionRepository;
-    private final IncomeDeletedRepository incomeDeletedRepository;
     private final GeneratePdfTemplate generatePdfTemplate;
     private final RestTemplate restTemplate;
 
     public TransactionServiceImpl(IncomeRepository incomeRepository,
+                                  ExpenseRepository expenseRepository,
                                   TransactionRepository transactionRepository,
-                                  IncomeDeletedRepository incomeDeletedRepository,
                                   GeneratePdfTemplate generatePdfTemplate,
                                   RestTemplate restTemplate){
         this.incomeRepository = incomeRepository;
+        this.expenseRepository = expenseRepository;
         this.transactionRepository = transactionRepository;
-        this.incomeDeletedRepository = incomeDeletedRepository;
         this.generatePdfTemplate = generatePdfTemplate;
         this.restTemplate = restTemplate;
     }
@@ -81,6 +91,26 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void addGmailSyncTransactions(Long userId, List<ParsedTransaction> transactions) {
+        List<IncomeModel> incomesToBeSaved = new ArrayList<>();
+        List<ExpenseModel> expensesToBeSaved = new ArrayList<>();
+        for(ParsedTransaction transaction : transactions) {
+            if(transaction.getTransactionType().equalsIgnoreCase(CreditOrDebit.CREDIT.name())) {
+                IncomeValidator.validateIncomeSaveRequest(new IncomeSaveRequest(transaction.getAmount(), transaction.getDescription(), transaction.getTransactionDate().toString(), transaction.getCategory(), false, transaction.getDescription()), userId);
+                incomesToBeSaved.add(getSaveIncomeModel(transaction, userId));
+            } else if(transaction.getTransactionType().equalsIgnoreCase(CreditOrDebit.DEBIT.name())) {
+                if(ObjectUtils.isEmpty(userId)) {
+                    throw new ScenarioNotPossibleException("User Id is empty");
+                }
+                expensesToBeSaved.add(getSaveExpenseModel(transaction, userId));
+            }
+        }
+        incomeRepository.saveAll(incomesToBeSaved);
+        expenseRepository.saveAll(expensesToBeSaved);
+    }
+
     private String makeUsernamePrivate(String username){
         int index = username.indexOf('@');
         return username.substring(0, index/3) + "x".repeat(index - index/3) + username.substring(index);
@@ -106,5 +136,28 @@ public class TransactionServiceImpl implements TransactionService {
         if (!response.getStatusCode().is2xxSuccessful()) {
             throw new ResourceNotFoundException("Failed to send email: " + response.getStatusCode());
         }
+    }
+
+    private IncomeModel getSaveIncomeModel(ParsedTransaction transaction, Long userId) {
+        IncomeModel income = new IncomeModel();
+        income.setUserId(userId);
+        income.setAmount(transaction.getAmount());
+        income.setSource(transaction.getDescription());
+        income.setCategory(transaction.getCategory());
+        income.setDescription(transaction.getDescription());
+        income.setDate(transaction.getTransactionDate());
+        income.setRecurring(false);
+        return income;
+    }
+
+    private ExpenseModel getSaveExpenseModel(ParsedTransaction transaction, Long userId) {
+        ExpenseModel expense = new ExpenseModel();
+        expense.setUserId(userId);
+        expense.setCategory(transaction.getCategory());
+        expense.setDescription(transaction.getDescription());
+        expense.setDate(transaction.getTransactionDate());
+        expense.setAmount(transaction.getAmount());
+        expense.setRecurring(false);
+        return expense;
     }
 }

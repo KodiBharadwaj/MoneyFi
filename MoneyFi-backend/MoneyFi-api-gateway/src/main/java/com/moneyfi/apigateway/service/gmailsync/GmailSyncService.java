@@ -74,8 +74,10 @@ public class GmailSyncService {
         auth.setRefreshToken(cryptoUtil.encrypt((String) tokenResponse.get("refresh_token")));
         auth.setExpiresAt(Instant.now().plusSeconds(((Number) tokenResponse.get("expires_in")).longValue()));
         gmailAuthRepository.save(auth);
-
-        return syncEmails(userId);
+        return syncEmails(userId)
+                .stream()
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     public boolean isSyncEnabled(Long userId) {

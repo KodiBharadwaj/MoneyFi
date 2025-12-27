@@ -14,6 +14,7 @@ import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../environments/environment';
 import { NotificationService } from '../notification-service.service';
+import { GmailSyncDialogComponent } from '../gmail-sync-dialog/gmail-sync-dialog.component';
 
 declare const google: any;
 
@@ -121,17 +122,13 @@ initGmailSync() {
 }
 
 handleGmailSync(response: any) {
-  this.httpClient
-    .post(`${this.baseUrl}/api/v1/gmail-sync/enable`, {
-      code: response.code,
-    })
-    .subscribe({
-      next: () => {
-        this.gmailSyncEnabled = true;
-        this.toastr.success('Email sync enabled successfully');
-      },
-      error: () => this.toastr.error('Failed to enable email sync'),
-    });
+  this.dialog.open(GmailSyncDialogComponent, {
+    width: '80vw',
+    maxHeight: '85vh',
+    disableClose: true,
+    backdropClass: 'gmail-sync-backdrop',
+    data: { code: response.code },
+  });
 }
 
   

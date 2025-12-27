@@ -13,6 +13,6 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])), provideAnimationsAsync(), importProvidersFrom(ToastrModule.forRoot()),
-    provideNativeDateAdapter(),
+    provideNativeDateAdapter(), provideAnimationsAsync(),
   ],
 };
