@@ -31,4 +31,7 @@ public class GmailAuth {
 
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
+
+    @Column(name = "count")
+    private Integer count = 0;
 }

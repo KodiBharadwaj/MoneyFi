@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -53,8 +54,11 @@ public class GmailSyncService {
     private final CryptoUtil cryptoUtil;
     private final GmailProcessedMessageRepository processedRepo;
 
-    public List<ParsedTransaction> enableSync(String code, Long userId) throws IOException {
-        if(isSyncEnabled(userId)) throw new ScenarioNotPossibleException("User has no access to sync. Please try tomorrow");
+    public Map<Integer, List<ParsedTransaction>> enableSync(String code, Long userId) throws IOException {
+        GmailAuth gmailAuth = isSyncEnabled(userId);
+        if(gmailAuth != null && gmailAuth.getCount() >= 3) throw new ScenarioNotPossibleException("Sync limit crossed for today. Please try tomorrow");
+        else if(gmailAuth == null) gmailAuth = new GmailAuth();
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -68,20 +72,23 @@ public class GmailSyncService {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
         Map<String, Object> tokenResponse = externalRestTemplateForOAuth.postForObject("https://oauth2.googleapis.com/token", request, Map.class);
 
-        GmailAuth auth = new GmailAuth();
-        auth.setUserId(userId);
-        auth.setAccessToken(cryptoUtil.encrypt((String) tokenResponse.get("access_token")));
-        auth.setRefreshToken(cryptoUtil.encrypt((String) tokenResponse.get("refresh_token")));
-        auth.setExpiresAt(Instant.now().plusSeconds(((Number) tokenResponse.get("expires_in")).longValue()));
-        gmailAuthRepository.save(auth);
-        return syncEmails(userId)
+        gmailAuth.setUserId(userId);
+        gmailAuth.setAccessToken(cryptoUtil.encrypt((String) tokenResponse.get("access_token")));
+        gmailAuth.setRefreshToken(cryptoUtil.encrypt((String) tokenResponse.get("refresh_token")));
+        gmailAuth.setExpiresAt(Instant.now().plusSeconds(((Number) tokenResponse.get("expires_in")).longValue()));
+        gmailAuth.setCount((gmailAuth.getCount() != null ? gmailAuth.getCount() : 0) + 1);
+        gmailAuthRepository.save(gmailAuth);
+        List<ParsedTransaction> transactions = syncEmails(userId)
                 .stream()
                 .filter(Objects::nonNull)
                 .toList();
+        Map<Integer, List<ParsedTransaction>> resultMap = new HashMap<>();
+        resultMap.put(3 - gmailAuth.getCount(), transactions);
+        return resultMap;
     }
 
-    public boolean isSyncEnabled(Long userId) {
-        return gmailAuthRepository.existsByUserId(userId);
+    public GmailAuth isSyncEnabled(Long userId) {
+        return gmailAuthRepository.existsByUserId(userId).orElse(null);
     }
 
     public List<ParsedTransaction> syncEmails(Long userId) throws IOException {
@@ -91,7 +98,7 @@ public class GmailSyncService {
                 "from:(@hdfcbank.net OR @icicibank.com OR @sbi.co.in OR @microsoftonline.com OR @gmail.com) " +
                         "subject:(debited OR credited OR UPI OR MoneyFi - user requests) newer_than:7d"; **/
 
-        String query = "in:anywhere newer_than:60d";
+        String query = "after:" + LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
         ListMessagesResponse response = gmail.users().messages().list("me")
                         .setQ(query)
                         .setIncludeSpamTrash(false)

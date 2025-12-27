@@ -100,8 +100,11 @@ gmailSyncEnabled = false;
 
 checkGmailSyncStatus() {
   this.httpClient
-    .get<boolean>(`${this.baseUrl}/api/v1/gmail-sync/status`)
-    .subscribe((res) => (this.gmailSyncEnabled = res));
+    .get<number>(`${this.baseUrl}/api/v1/gmail-sync/status`)
+    .subscribe((res) => {
+      if(res >= 3)
+      this.gmailSyncEnabled = true; else this.gmailSyncEnabled = false;
+    });
 }
 
 initGmailSync() {

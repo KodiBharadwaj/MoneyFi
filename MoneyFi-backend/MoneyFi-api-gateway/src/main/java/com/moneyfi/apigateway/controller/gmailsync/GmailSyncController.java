@@ -1,6 +1,7 @@
 package com.moneyfi.apigateway.controller.gmailsync;
 
 import com.moneyfi.apigateway.dto.ParsedTransaction;
+import com.moneyfi.apigateway.model.gmailsync.GmailAuth;
 import com.moneyfi.apigateway.service.gmailsync.GmailSyncService;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,7 +25,7 @@ public class GmailSyncController {
 
     @Operation(summary = "Api to sync transaction related emails and return data to user to verify")
     @PostMapping("/enable")
-    public ResponseEntity<List<ParsedTransaction>> enableSync(Authentication authentication,
+    public ResponseEntity<Map<Integer, List<ParsedTransaction>>> enableSync(Authentication authentication,
                                                               @RequestBody Map<String, String> body) throws IOException {
         Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         return ResponseEntity.ok(gmailSyncService.enableSync(body.get("code"), userId));
@@ -32,8 +33,9 @@ public class GmailSyncController {
 
     @Operation(summary = "Api to check the status of user to sync email")
     @GetMapping("/status")
-    public ResponseEntity<Boolean> getStatus(Authentication authentication) {
+    public ResponseEntity<Integer> getStatus(Authentication authentication) {
         Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        return ResponseEntity.ok(gmailSyncService.isSyncEnabled(userId));
+        GmailAuth gmailAuth = gmailSyncService.isSyncEnabled(userId);
+        return ResponseEntity.ok(gmailAuth != null ? gmailAuth.getCount() != null ? gmailAuth.getCount() : 0 : 0);
     }
 }

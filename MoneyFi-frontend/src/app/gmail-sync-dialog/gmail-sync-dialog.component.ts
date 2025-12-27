@@ -24,6 +24,8 @@ export class GmailSyncDialogComponent implements OnInit {
 
   loading = true;
   transactions: ParsedTransaction[] = [];
+  remainingCount = 0;
+
   BASE_URL = environment.BASE_URL;
 
   transactionTypes = ['CREDIT', 'DEBIT', 'CREDIT OR DEBIT'];
@@ -40,55 +42,41 @@ export class GmailSyncDialogComponent implements OnInit {
   }
 
   startSync() {
-    this.http
-      .post<ParsedTransaction[]>(
-        `${this.BASE_URL}/api/v1/gmail-sync/enable`,
-        { code: this.data.code }
-      )
-      .subscribe({
-        next: (res) => {
-          this.transactions = res.map(tx => ({ ...tx, accepted: true }));
-          this.loading = false;
-        },
-        error: () => {
-          this.toastr.error('Failed to sync transactions');
-          this.dialogRef.close();
-        },
-      });
-  }
+  this.loading = true;
 
-//   startSync() {
-//   const dummyData: ParsedTransaction[] = [
-//     {
-//       category: 'others',
-//       description: 'UPI transaction',
-//       amount: 1200,
-//       transactionType: 'DEBIT',
-//       transactionDate: '2025-12-26T17:39:05',
-//     },
-//     {
-//       category: 'Bills & utilities',
-//       description: 'UPI transaction',
-//       amount: 253.0,
-//       transactionType: 'CREDIT',
-//       transactionDate: '2025-12-26T17:31:45',
-//     },
-//     {
-//       category: 'Travelling',
-//       description: 'Card transaction',
-//       amount: 56698.0,
-//       transactionType: 'CREDIT OR DEBIT',
-//       transactionDate: '2025-12-26T17:31:45',
-//     },
-//   ];
+  this.http
+    .post<Record<number, ParsedTransaction[]>>(
+      `${this.BASE_URL}/api/v1/gmail-sync/enable`,
+      { code: this.data.code }
+    )
+    .subscribe({
+      next: (res) => {
+        // Extract count (map key)
+        const [countKey] = Object.keys(res);
+        this.remainingCount = Number(countKey);
 
-//   this.transactions = dummyData.map(tx => ({
-//     ...tx,
-//     accepted: true,
-//   }));
+        // Extract transaction list
+        const txList = res[this.remainingCount] ?? [];
 
-//   this.loading = false;
-// }
+        this.transactions = txList.map(tx => ({
+          ...tx,
+          accepted: true,
+        }));
+
+        this.loading = false;
+      },
+      error: (err) => {
+        this.loading = false;
+        try {
+          const errorObj =
+            typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch {
+          console.error('Failed to parse error:', err.error);
+        }
+      },
+    });
+}
 
 
   ignore(index: number) {
@@ -99,13 +87,33 @@ export class GmailSyncDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
+  
+  submitting = false;
+
   submit() {
     const accepted = this.transactions.filter(t => t.accepted);
 
-    this.http.post(`${this.BASE_URL}/api/v1/transaction/gmail-sync/bulk-save`, accepted)
-      .subscribe(() => {
-        this.toastr.success('Transactions added successfully');
-        this.dialogRef.close(true);
+    if (accepted.length === 0) {
+      return;
+    }
+
+    this.submitting = true;
+
+    this.http
+      .post(`${this.BASE_URL}/api/v1/transaction/gmail-sync/bulk-save`, accepted)
+      .subscribe({
+        next: () => {
+          this.toastr.success('Transactions added successfully');
+          this.dialogRef.close(true);
+        },
+        error: () => {
+          this.toastr.error('Failed to add transactions');
+          this.submitting = false;
+        },
+        complete: () => {
+          this.submitting = false;
+        },
       });
   }
+
 }

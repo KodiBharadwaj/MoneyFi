@@ -2,12 +2,15 @@ package com.moneyfi.apigateway.service.common;
 
 import com.moneyfi.apigateway.dto.ContactUs;
 import com.moneyfi.apigateway.dto.ContactUsHist;
+import com.moneyfi.apigateway.dto.ParsedTransaction;
 import com.moneyfi.apigateway.dto.ProfileModel;
 import com.moneyfi.apigateway.model.auth.OtpTempModel;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.model.common.*;
+import com.moneyfi.apigateway.model.gmailsync.GmailAuth;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
+import com.moneyfi.apigateway.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.apigateway.repository.user.*;
 import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.auth.SessionTokenRepository;
@@ -42,6 +45,7 @@ public class SchedulingService {
     private final UserAuthHistRepository userAuthHistRepository;
     private final SessionTokenRepository sessionTokenRepository;
     private final OtpTempRepository otpTempRepository;
+    private final GmailSyncRepository gmailSyncRepository;
 
     public SchedulingService(TokenBlackListRepository tokenBlacklistRepository,
                              UserRepository userRepository,
@@ -49,7 +53,8 @@ public class SchedulingService {
                              EmailTemplates emailTemplates,
                              UserAuthHistRepository userAuthHistRepository,
                              SessionTokenRepository sessionTokenRepository,
-                             OtpTempRepository otpTempRepository){
+                             OtpTempRepository otpTempRepository,
+                             GmailSyncRepository gmailSyncRepository){
         this.tokenBlacklistRepository = tokenBlacklistRepository;
         this.userRepository = userRepository;
         this.commonServiceRepository = commonServiceRepository;
@@ -57,6 +62,7 @@ public class SchedulingService {
         this.userAuthHistRepository = userAuthHistRepository;
         this.sessionTokenRepository = sessionTokenRepository;
         this.otpTempRepository = otpTempRepository;
+        this.gmailSyncRepository = gmailSyncRepository;
     }
 
     @PostConstruct
@@ -74,7 +80,7 @@ public class SchedulingService {
 
     @Scheduled(cron = "0 0 0 * * *") // Runs at every 12 am of the day (starting of the day)
     public void dailyJobRunInBeginningOfTheDay(){
-        /** Scheduling algorithm to remove the previous day otp count which are greater than three **/
+        /** Scheduling algorithm to remove the previous day otp count which are greater than three for user auth table for otp sending **/
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
         List<UserAuthModel> userAuthModelList = userRepository.getUserListWhoseOtpCountGreaterThanThree(startOfToday);
         List<UserAuthModel> listToUpdate = new ArrayList<>();
@@ -83,6 +89,15 @@ public class SchedulingService {
             listToUpdate.add(userAuthModel);
         }
         userRepository.saveAll(listToUpdate);
+
+        /** Scheduling algorithm to remove the previous day otp count which are greater than three in gmail auth table **/
+        List<GmailAuth> gmailAuthListToBeUpdated = new ArrayList<>();
+        List<GmailAuth> gmailAuthList = gmailSyncRepository.getTransactionsListWhoseCountIsGreaterThanThree();
+        for(GmailAuth gmailAuth : gmailAuthList) {
+            gmailAuth.setCount(0);
+            gmailAuthListToBeUpdated.add(gmailAuth);
+        }
+        gmailSyncRepository.saveAll(gmailAuthListToBeUpdated);
 
         /** Scheduling algorithm to find the users who completed more than 1 year in MoneyFi **/
         List<String> anniversaryUsersList = commonServiceRepository.getBirthdayAndAnniversaryUsersList(LocalDate.now().getMonthValue(), LocalDate.now().getDayOfMonth(), "Birthday");
