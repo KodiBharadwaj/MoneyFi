@@ -61,6 +61,24 @@
 
     </div>
 
+    <!-- dashboard.component.html -->
+<button
+  *ngIf="!gmailSyncEnabled"
+  id="gmail-sync-btn"
+  class="btn btn-primary"
+>
+  Sync Email Transactions
+</button>
+
+<button
+  *ngIf="gmailSyncEnabled"
+  class="btn btn-success"
+  disabled
+>
+  Email Sync Enabled ✔
+</button>
+
+
     <div class="user-section">
       <button routerLink="profile" routerLinkActive="active">
         <i class="fas fa-user-circle"></i>

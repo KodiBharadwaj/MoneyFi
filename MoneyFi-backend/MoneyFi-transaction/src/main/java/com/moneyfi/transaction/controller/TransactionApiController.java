@@ -5,6 +5,7 @@ import com.moneyfi.transaction.service.income.dto.request.AccountStatementReques
 import com.moneyfi.transaction.service.income.dto.response.AccountStatementResponseDto;
 import com.moneyfi.transaction.service.income.dto.response.OverviewPageDetailsDto;
 import com.moneyfi.transaction.service.transaction.TransactionService;
+import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -61,5 +62,14 @@ public class TransactionApiController {
                                                                   @RequestBody AccountStatementRequestDto inputDto) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return transactionService.sendAccountStatementEmailToUser(userId, inputDto, authHeader);
+    }
+
+    @Operation(summary = "Api to save income-expense transactions from moneyfi gmail sync")
+    @PostMapping("/gmail-sync/bulk-save")
+    public ResponseEntity<Void> saveBulk(@RequestHeader("Authorization") String authHeader,
+                                         @RequestBody List<ParsedTransaction> transactions) {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        transactionService.addGmailSyncTransactions(userId, transactions);
+        return ResponseEntity.ok().build();
     }
 }

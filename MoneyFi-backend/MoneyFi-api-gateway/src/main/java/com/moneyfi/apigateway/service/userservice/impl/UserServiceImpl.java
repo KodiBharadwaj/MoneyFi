@@ -19,7 +19,7 @@ import com.moneyfi.apigateway.service.userservice.dto.request.*;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import com.moneyfi.apigateway.util.EmailTemplates;
 import com.moneyfi.apigateway.util.enums.*;
-import com.moneyfi.apigateway.util.validators.UserValidations;
+import com.moneyfi.apigateway.validator.UserValidations;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

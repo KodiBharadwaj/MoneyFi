@@ -14,6 +14,9 @@ import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../environments/environment';
 import { NotificationService } from '../notification-service.service';
+import { GmailSyncDialogComponent } from '../gmail-sync-dialog/gmail-sync-dialog.component';
+
+declare const google: any;
 
 @Component({
   selector: 'app-dashboard',
@@ -44,11 +47,16 @@ export class DashboardComponent implements OnInit{
   notificationCount : number = 0;
   isLogoutLoading = false;
 
+gmailSyncEnabled = false;
+
   ngOnInit(): void {
     this.notificationService.notificationCount$.subscribe(count => {
       this.notificationCount = count;
     });
     this.notificationService.loadNotificationCount();
+
+    this.checkGmailSyncStatus();
+  this.initGmailSync();
   }
 
 
@@ -89,8 +97,39 @@ export class DashboardComponent implements OnInit{
     });
   }
   
-  
-  
+
+checkGmailSyncStatus() {
+  this.httpClient
+    .get<boolean>(`${this.baseUrl}/api/v1/gmail-sync/status`)
+    .subscribe((res) => (this.gmailSyncEnabled = res));
+}
+
+initGmailSync() {
+  setTimeout(() => {
+    const btn = document.getElementById('gmail-sync-btn');
+    if (!btn) return;
+
+    const client = google.accounts.oauth2.initCodeClient({
+      client_id: environment.GOOGLE_CLIENT_ID,
+      scope:
+        'openid email profile https://www.googleapis.com/auth/gmail.readonly',
+      ux_mode: 'popup',
+      callback: (response: any) => this.handleGmailSync(response),
+    });
+
+    btn.addEventListener('click', () => client.requestCode());
+  }, 0);
+}
+
+handleGmailSync(response: any) {
+  this.dialog.open(GmailSyncDialogComponent, {
+    width: '80vw',
+    maxHeight: '85vh',
+    disableClose: true,
+    backdropClass: 'gmail-sync-backdrop',
+    data: { code: response.code },
+  });
+}
 
   
 }

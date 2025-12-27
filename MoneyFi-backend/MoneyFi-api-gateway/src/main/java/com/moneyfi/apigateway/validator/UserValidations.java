@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.util.validators;
+package com.moneyfi.apigateway.validator;
 
 import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;

@@ -10,3 +10,13 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     right: 10px !important;
 }
   
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Blur background ONLY for Gmail Sync dialog */
+.gmail-sync-backdrop {
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(6px);
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
