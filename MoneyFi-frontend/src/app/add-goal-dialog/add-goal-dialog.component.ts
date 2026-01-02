@@ -96,12 +96,10 @@ export class AddGoalDialogComponent {
         next: (categories) => {
           this.categories = categories;
 
-          // 👇 map category name to ID in edit mode
           if (this.flag && this.editCategoryName) {
             const matched = this.categories.find(
               c => c.category === this.editCategoryName
             );
-
             if (matched) {
               this.goalSource.categoryId = matched.categoryId;
             }
