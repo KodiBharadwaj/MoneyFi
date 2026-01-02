@@ -535,10 +535,11 @@ BEGIN
 
 		SELECT it.date AS transactionDate
 			,CONVERT(VARCHAR(5), it.date, 108) AS transactionTime
-			,CONCAT(it.source, ' (', it.category, ')') AS description
+			,CONCAT(it.source, ' (', clt.category, ')') AS description
 			,it.amount AS amount
 			,'credit' AS creditOrDebit
 		FROM income_table it WITH (NOLOCK)
+		INNER JOIN category_list_table clt WITH (NOLOCK) ON clt.id = it.category_id
 		WHERE it.user_id = @userId
 			AND it.is_deleted = 0
 			AND CAST(it.date AS DATE) BETWEEN @startDate AND @endDate
@@ -547,10 +548,11 @@ BEGIN
 
 		SELECT et.date AS transactionDate
 			,CONVERT(VARCHAR(5), et.date, 108) AS transactionTime
-			,CONCAT(et.description, ' (', et.category, ')') AS description
+			,CONCAT(et.description, ' (', clt.category, ')') AS description
 			,et.amount AS amount
 			,'debit' AS creditOrDebit
 		FROM expense_table et WITH (NOLOCK)
+		INNER JOIN category_list_table clt WITH (NOLOCK) ON clt.id = et.category_id
 		WHERE et.user_id = @userId
 			AND et.is_deleted = 0
 			AND CAST(et.date AS DATE) BETWEEN @startDate AND @endDate
@@ -563,10 +565,11 @@ BEGIN
 	BEGIN
 		SELECT it.date AS transactionDate
 			,CONVERT(VARCHAR(5), it.date, 108) AS transactionTime
-			,CONCAT(it.source, ' (', it.category, ')') AS description
+			,CONCAT(it.source, ' (', clt.category, ')') AS description
 			,it.amount AS amount
 			,'credit' AS creditOrDebit
 		FROM income_table it WITH (NOLOCK)
+		INNER JOIN category_list_table clt WITH (NOLOCK) ON clt.id = it.category_id
 		WHERE it.user_id = @userId
 			AND it.is_deleted = 0
 			AND CAST(it.date AS DATE) BETWEEN @startDate AND @endDate
@@ -575,10 +578,11 @@ BEGIN
 
 		SELECT et.date AS transactionDate
 			,CONVERT(VARCHAR(5), et.date, 108) AS transactionTime
-			,CONCAT(et.description, ' (', et.category, ')') as description
+			,CONCAT(et.description, ' (', clt.category, ')') as description
 			,et.amount AS amount
 			,'debit' AS creditOrDebit
 		FROM expense_table et WITH (NOLOCK)
+		INNER JOIN category_list_table clt WITH (NOLOCK) ON clt.id = et.category_id
 		WHERE et.user_id = @userId
 			AND et.is_deleted = 0
 			AND CAST(et.date AS DATE) BETWEEN @startDate AND @endDate
@@ -2132,4 +2136,5 @@ GO
 USE [master]
 GO
 ALTER DATABASE [moneyfi_db] SET  READ_WRITE 
+
 GO
