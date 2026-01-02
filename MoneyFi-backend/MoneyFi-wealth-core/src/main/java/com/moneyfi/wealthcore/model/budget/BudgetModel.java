@@ -1,4 +1,4 @@
-package com.moneyfi.wealthcore.model;
+package com.moneyfi.wealthcore.model.budget;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,7 +19,7 @@ public class BudgetModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long userId;
-    private String category;
+    private Integer categoryId;
     @Column(precision = 38, scale = 2)
     private BigDecimal currentSpending;
     @Column(precision = 38, scale = 2)

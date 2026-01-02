@@ -21,8 +21,8 @@ public class IncomeValidator {
     public static void validateIncomeSaveRequest(IncomeSaveRequest incomeSaveRequest, Long userId) {
         validateUserIdNonNull(userId);
         if(incomeSaveRequest.getSource() == null || incomeSaveRequest.getSource().trim().isEmpty()
-                || incomeSaveRequest.getCategory() == null || incomeSaveRequest.getCategory().trim().isEmpty()
-                || incomeSaveRequest.getAmount() == null || incomeSaveRequest.getDate() == null || incomeSaveRequest.getRecurring() == null) {
+                || incomeSaveRequest.getCategoryId() == null || incomeSaveRequest.getAmount() == null
+                || incomeSaveRequest.getDate() == null || incomeSaveRequest.getRecurring() == null) {
             throw new ScenarioNotPossibleException(INCOMPLETE_FIELDS);
         }
         if(incomeSaveRequest.getAmount().compareTo(BigDecimal.ZERO) == 0) throw new ScenarioNotPossibleException(INVALID_AMOUNT);
@@ -37,8 +37,8 @@ public class IncomeValidator {
 
     public static void validateIncomeUpdateRequest(IncomeUpdateRequest incomeUpdateRequest) {
         if(incomeUpdateRequest.getSource() == null || incomeUpdateRequest.getSource().trim().isEmpty()
-                || incomeUpdateRequest.getCategory() == null || incomeUpdateRequest.getCategory().trim().isEmpty()
-                || incomeUpdateRequest.getAmount() == null || incomeUpdateRequest.getDate() == null || incomeUpdateRequest.getRecurring() == null) {
+                || incomeUpdateRequest.getCategoryId() == null || incomeUpdateRequest.getAmount() == null
+                || incomeUpdateRequest.getDate() == null || incomeUpdateRequest.getRecurring() == null) {
             throw new ScenarioNotPossibleException(INCOMPLETE_FIELDS);
         }
         if(incomeUpdateRequest.getAmount().compareTo(BigDecimal.ZERO) == 0) throw new ScenarioNotPossibleException(INVALID_AMOUNT);
@@ -54,5 +54,4 @@ public class IncomeValidator {
             return true;
         }
     }
-
 }

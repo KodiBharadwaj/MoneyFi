@@ -12,6 +12,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { environment } from '../../environments/environment';
+import { Category } from '../model/category-list';
+import { CategoryService } from '../services/category.service';
+
+interface BudgetCategory {
+  categoryId: number;
+  categoryName: string;
+  percentage: number;
+  moneyLimit: number;
+}
 
 @Component({
   selector: 'app-add-budget-dialog',
@@ -35,33 +44,24 @@ export class AddBudgetDialogComponent {
 
   budgetSource = {
     moneyLimit: 0,
-    categories: [] as { category: string; percentage: number; moneyLimit: number }[],
+    categories: [] as BudgetCategory[],
   };
+
 
   totalIncome: number = 0;
 
-  categories = [
-    'Food',
-    'Travelling',
-    'Entertainment',
-    'Groceries',
-    'Shopping',
-    'Bills & utilities',
-    'House Rent',
-    'Emi and loans',
-    'Health & Medical',
-    'Goal',
-    'Miscellaneous'
-  ];
+  categories: Category[] = [];
 
   constructor(
     public dialogRef: MatDialogRef<AddBudgetDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any ,
-    private httpClient: HttpClient
+    private httpClient: HttpClient,
+    private categoryService: CategoryService
   ) {}
 
 
   
   ngOnInit() {
+    this.categoryService.getExpenseCategories().subscribe(data => this.categories = data);
     
     // Get current month and year
     const currentDate = new Date();
@@ -77,56 +77,71 @@ export class AddBudgetDialogComponent {
   }
   
   initializeCategories() {
-    // Define fixed percentages for each category
     const fixedPercentages = [
       13, // Food
-      7, // Travelling
+      7,  // Travelling
       5,  // Entertainment
-      8, // Groceries
+      8,  // Groceries
       10, // Shopping
       10, // Bills & utilities
       10, // House Rent
-      6,  // Emi and loans
+      6,  // Emi & loans
       8,  // Health & Medical
       18, // Goal
       5   // Miscellaneous
     ];
-  
-    // Validate that the total percentage sums to 100
-    const totalPercentage = fixedPercentages.reduce((sum, percentage) => sum + percentage, 0);
+
+    const totalPercentage = fixedPercentages.reduce((a, b) => a + b, 0);
     if (totalPercentage !== 100) {
-      throw new Error('Fixed percentages do not sum up to 100. Please adjust the values.');
+      throw new Error('Percentages must sum to 100');
     }
-  
-    // Assign percentages and initialize money limits
-    this.budgetSource.categories = this.categories.map((category, index) => ({
-      category,
-      percentage: fixedPercentages[index],
-      moneyLimit: 0, // Initialize moneyLimit to 0
-    }));
+
+    this.budgetSource.categories = this.categories.map(
+      (cat, index): BudgetCategory => ({
+        categoryId: cat.categoryId,
+        categoryName: cat.category,
+        percentage: fixedPercentages[index] ?? 0,
+        moneyLimit: 0,
+      })
+    );
   }
 
   onBudgetChange() {
     const totalBudget = this.budgetSource.moneyLimit;
-    this.budgetSource.categories.forEach((category) => {
+
+    this.budgetSource.categories.forEach((category: BudgetCategory) => {
       category.moneyLimit = (totalBudget * category.percentage) / 100;
     });
   }
 
   onSave() {
-
     const totalBudget = this.budgetSource.moneyLimit;
 
     if (totalBudget > this.totalIncome) {
-      alert(`The total budget cannot exceed your total income of ₹${this.totalIncome}. Please adjust your budget.`);
-      return; // Prevent saving the budget
+      alert(
+        `The total budget cannot exceed your total income of ₹${this.totalIncome}`
+      );
+      return;
     }
+
     const totalPercentage = this.budgetSource.categories.reduce(
-      (sum, category) => sum + category.percentage,
+      (sum: number, category: BudgetCategory) => sum + category.percentage,
       0
     );
-    
-    this.dialogRef.close(this.budgetSource.categories);
+
+    if (totalPercentage !== 100) {
+      alert('Category percentages must total 100%');
+      return;
+    }
+
+    // ✅ Send only what backend needs
+    const payload = this.budgetSource.categories.map(c => ({
+      categoryId: c.categoryId,
+      percentage: c.percentage,
+      moneyLimit: c.moneyLimit,
+    }));
+
+    this.dialogRef.close(payload);
   }
 
   onCancel() {

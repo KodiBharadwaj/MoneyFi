@@ -23,4 +23,6 @@ public interface TransactionRepository {
     List<ExpenseDetailsDto> getAllExpensesByDate(Long userId, int month, int year, String category, boolean deleteStatus);
 
     List<ExpenseDetailsDto> getAllExpensesByYear(Long userId, int year, String category, boolean deleteStatus);
+
+    List<Integer> getCategoryIdsBasedOnTransactionType(String categoryType);
 }

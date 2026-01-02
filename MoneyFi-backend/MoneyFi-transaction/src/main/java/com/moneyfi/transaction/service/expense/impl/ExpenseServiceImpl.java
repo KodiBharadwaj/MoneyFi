@@ -1,11 +1,13 @@
 package com.moneyfi.transaction.service.expense.impl;
 
 import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
+import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.repository.expense.ExpenseRepository;
 import com.moneyfi.transaction.repository.transaction.TransactionRepository;
 import com.moneyfi.transaction.service.expense.ExpenseService;
 import com.moneyfi.transaction.service.expense.response.ExpenseDetailsDto;
+import com.moneyfi.transaction.utils.TransactionServiceType;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -25,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.moneyfi.transaction.utils.StringConstants.CATEGORY_ID_INVALID;
+
 @Service
 public class ExpenseServiceImpl implements ExpenseService {
 
@@ -38,8 +42,12 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public ExpenseModel save(ExpenseModel expense) {
+        List<Integer> categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
+        if(!categoryIds.contains(expense.getCategoryId())) {
+            throw new ScenarioNotPossibleException(CATEGORY_ID_INVALID);
+        }
         expense.setDeleted(false);
         return expenseRepository.save(expense);
     }
@@ -267,20 +275,24 @@ public class ExpenseServiceImpl implements ExpenseService {
         expense.setDeleted(false);
 
         ExpenseModel expenseModel = expenseRepository.findById(id).orElse(null);
+        List<Integer> categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
+        if(!categoryIds.contains(expense.getCategoryId())) {
+            throw new ScenarioNotPossibleException(CATEGORY_ID_INVALID);
+        }
 
         if(expenseModel == null || !expenseModel.getUserId().equals(userId)){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
         if(expenseModel.getAmount().compareTo(expense.getAmount()) == 0 &&
-                expenseModel.getCategory().equals(expense.getCategory()) &&
+                expenseModel.getCategoryId().equals(expense.getCategoryId()) &&
                 expenseModel.getDescription().equals(expense.getDescription()) &&
                 expenseModel.getDate().equals(expense.getDate()) &&
                 expenseModel.isRecurring() == expense.isRecurring()){
             return ResponseEntity.noContent().build(); // 204
         }
 
-        if(expense.getCategory() != null){
-            expenseModel.setCategory(expense.getCategory());
+        if(expense.getCategoryId() != null){
+            expenseModel.setCategoryId(expense.getCategoryId());
         }
         if(expense.getAmount().compareTo(BigDecimal.ZERO) > 0){
             expenseModel.setAmount(expense.getAmount());
@@ -306,14 +318,15 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public boolean deleteExpenseById(List<Long> ids) {
-
+        LocalDateTime currentTime = LocalDateTime.now();
         try {
             for(Long it : ids){
                 ExpenseModel expense = expenseRepository.findById(it).orElse(null);
                 if(expense != null){
                     expense.setDeleted(true);
+                    expense.setUpdatedAt(currentTime);
                     expenseRepository.save(expense);
                 }
             }
@@ -322,7 +335,6 @@ public class ExpenseServiceImpl implements ExpenseService {
             e.printStackTrace();
             return false;
         }
-
     }
 
     @Override

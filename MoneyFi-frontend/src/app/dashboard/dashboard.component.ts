@@ -46,8 +46,9 @@ export class DashboardComponent implements OnInit{
   baseUrl = environment.BASE_URL;
   notificationCount : number = 0;
   isLogoutLoading = false;
+  categories: any[] = [];
 
-gmailSyncEnabled = false;
+  gmailSyncEnabled = false;
 
   ngOnInit(): void {
     this.notificationService.notificationCount$.subscribe(count => {
@@ -56,7 +57,35 @@ gmailSyncEnabled = false;
     this.notificationService.loadNotificationCount();
 
     this.checkGmailSyncStatus();
-  this.initGmailSync();
+    this.initGmailSync();
+    this.onTypeChange();
+  }
+
+  onTypeChange() {
+    const stored = localStorage.getItem('CATEGORIES');
+    if (stored) {
+      this.categories = JSON.parse(stored);
+      return;
+    }
+    
+    this.httpClient.post<any[]>(
+      `${this.baseUrl}/api/v1/wealth-core/common/category-list/get`,
+      ['ALL']
+    ).subscribe(res => {
+
+      const categoriesWithUiProps = res.map(item => ({
+        ...item,
+        editing: false
+      }));
+
+      this.categories = categoriesWithUiProps;
+
+      // ✅ store in localStorage
+      localStorage.setItem(
+        'CATEGORIES',
+        JSON.stringify(categoriesWithUiProps)
+      );
+    });
   }
 
 
@@ -77,8 +106,7 @@ gmailSyncEnabled = false;
                 timeOut: 1500  // time in milliseconds (3 seconds)
               });
               sessionStorage.removeItem('moneyfi.auth');
-              localStorage.removeItem('moneyfi.user.name');
-              localStorage.removeItem('moneyfi.user.profile.image');
+              localStorage.clear();
               this.router.navigate(['']);
             } else if(jsonResponse.message === 'Phone number is empty'){
               alert('Kindly fill Phone number before log out')

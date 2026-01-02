@@ -67,7 +67,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/gmail-sync/**").hasRole(UserRoles.USER.name())
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/v1/Oauth/**").permitAll()
-                        .requestMatchers("/api/v1/external-api/**").permitAll()
+                        .requestMatchers("/api/v1/external-api/**").hasRole(UserRoles.USER.name())
                         .requestMatchers("/actuator/**").permitAll()
 
                         .requestMatchers("/api/v1/transaction/income/**").hasRole(UserRoles.USER.name())
@@ -76,6 +76,8 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/v1/wealth-core/budget/**").hasRole(UserRoles.USER.name())
                         .requestMatchers("/api/v1/wealth-core/goal/**").hasRole(UserRoles.USER.name())
+                        .requestMatchers("/api/v1/wealth-core/admin/**").hasRole(UserRoles.ADMIN.name())
+                        .requestMatchers("/api/v1/wealth-core/common/**").hasAnyRole(UserRoles.ADMIN.name(), UserRoles.USER.name())
                         .requestMatchers("/api/v1/wealth-core/**").hasRole(UserRoles.USER.name())
 
                         .requestMatchers("/api/v1/user-service/open/**").permitAll()

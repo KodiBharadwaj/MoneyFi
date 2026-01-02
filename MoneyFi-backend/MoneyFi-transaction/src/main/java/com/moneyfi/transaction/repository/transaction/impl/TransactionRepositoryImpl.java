@@ -5,6 +5,7 @@ import com.moneyfi.transaction.repository.transaction.TransactionRepository;
 import com.moneyfi.transaction.service.expense.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.*;
+import com.moneyfi.transaction.utils.TransactionServiceType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -49,17 +50,18 @@ public class TransactionRepositoryImpl implements TransactionRepository {
                 incomesList.addAll(query.getResultList());
                 return incomesList;
             } else {
+                Integer categoryId = Integer.parseInt(category);
                 Query query = entityManager.createNativeQuery(
                                 "exec [getAllIncomesByMonthAndYearAndByCategory] " +
                                         "@userId = :userId, " +
                                         "@month = :month, " +
                                         "@year = :year, " +
-                                        "@category = :category, " +
+                                        "@categoryId = :categoryId, " +
                                         "@deleteStatus = :deleteStatus")
                         .setParameter(USER_ID, userId)
                         .setParameter(MONTH, month)
                         .setParameter(YEAR, year)
-                        .setParameter(CATEGORY, category)
+                        .setParameter(CATEGORY_ID, categoryId)
                         .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
@@ -112,15 +114,16 @@ public class TransactionRepositoryImpl implements TransactionRepository {
                 incomesList.addAll(query.getResultList());
                 return incomesList;
             } else {
+                Integer categoryId = Integer.parseInt(category);
                 Query query = entityManager.createNativeQuery(
                                 "exec [getAllIncomesByYearAndByCategory] " +
                                         "@userId = :userId, " +
                                         "@year = :year, " +
-                                        "@category = :category, " +
+                                        "@categoryId = :categoryId, " +
                                         "@deleteStatus = :deleteStatus")
                         .setParameter(USER_ID, userId)
                         .setParameter(YEAR, year)
-                        .setParameter(CATEGORY, category)
+                        .setParameter(CATEGORY_ID, categoryId)
                         .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
@@ -204,7 +207,6 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     public List<ExpenseDetailsDto> getAllExpensesByDate(Long userId, int month, int year, String category, boolean deleteStatus) {
         try {
             List<ExpenseDetailsDto> expenseList = new ArrayList<>();
-
             if(category.equalsIgnoreCase("all")){
                 Query query = entityManager.createNativeQuery(
                                 "exec [getAllExpensesByMonthAndYear] " +
@@ -218,30 +220,28 @@ public class TransactionRepositoryImpl implements TransactionRepository {
                         .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(ExpenseDetailsDto.class));
-
                 expenseList.addAll(query.getResultList());
                 return expenseList;
             }
             else {
+                Integer categoryId = Integer.parseInt(category);
                 Query query = entityManager.createNativeQuery(
                                 "exec [getAllExpensesByMonthAndYearAndByCategory] " +
                                         "@userId = :userId, " +
                                         "@month = :month, " +
                                         "@year = :year, " +
-                                        "@category = :category, " +
+                                        "@categoryId = :categoryId, " +
                                         "@deleteStatus = :deleteStatus")
                         .setParameter(USER_ID, userId)
                         .setParameter(MONTH, month)
                         .setParameter(YEAR, year)
-                        .setParameter("category", category)
+                        .setParameter(CATEGORY_ID, categoryId)
                         .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(ExpenseDetailsDto.class));
-
                 expenseList.addAll(query.getResultList());
                 return expenseList;
             }
-
         } catch (Exception e) {
             e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching monthly expense data");
@@ -264,31 +264,45 @@ public class TransactionRepositoryImpl implements TransactionRepository {
                         .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(ExpenseDetailsDto.class));
-
                 expenseList.addAll(query.getResultList());
                 return expenseList;
             }
             else {
+                Integer categoryId = Integer.parseInt(category);
                 Query query = entityManager.createNativeQuery(
                                 "exec [getAllExpensesByYearAndByCategory] " +
                                         "@userId = :userId, " +
                                         "@year = :year, " +
-                                        "@category = :category, " +
+                                        "@categoryId = :categoryId, " +
                                         "@deleteStatus = :deleteStatus")
                         .setParameter(USER_ID, userId)
                         .setParameter(YEAR, year)
-                        .setParameter("category", category)
+                        .setParameter(CATEGORY_ID, categoryId)
                         .setParameter(DELETE_STATUS, deleteStatus)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(ExpenseDetailsDto.class));
-
                 expenseList.addAll(query.getResultList());
                 return expenseList;
             }
-
         } catch (Exception e) {
             e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching yearly expense data");
+        }
+    }
+
+    @Override
+    public List<Integer> getCategoryIdsBasedOnTransactionType(String categoryType) {
+        try {
+            List<Integer> incomeCategoryIdList = new ArrayList<>();
+            Query query = entityManager.createNativeQuery(
+                            "exec [getCategoryIdsByCategoryType] " +
+                                    "@categoryType = :categoryType ")
+                    .setParameter("categoryType", categoryType);
+            incomeCategoryIdList.addAll(query.getResultList());
+            return incomeCategoryIdList;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Income Category Ids not found");
         }
     }
 }

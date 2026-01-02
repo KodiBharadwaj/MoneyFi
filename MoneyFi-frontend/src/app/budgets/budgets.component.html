@@ -78,7 +78,7 @@
         <mat-label>Category</mat-label>
         <mat-select [(ngModel)]="selectedCategory" (selectionChange)="filterExpenses()">
           <mat-option [value]="''">All Categories</mat-option>
-          <mat-option *ngFor="let category of categories" [value]="category">{{ category }}</mat-option>
+          <mat-option *ngFor="let category of categories" [value]="category.categoryId">{{ category.category }}</mat-option>
         </mat-select>
       </mat-form-field>
 

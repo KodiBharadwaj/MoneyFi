@@ -22,7 +22,7 @@ public class IncomeModel {
     private BigDecimal amount;
     private String source;
     private LocalDateTime date;
-    private String category;
+    private Integer categoryId;
     private boolean recurring;
     private boolean isDeleted;
     private String description;

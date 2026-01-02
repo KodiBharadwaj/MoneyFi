@@ -43,7 +43,7 @@ spring:
           - id: MoneyFi-wealth-core
             uri: lb://MoneyFi-wealth-core
             predicates:
-              - Path=/api/v1/wealth-core/budget/**, /api/v1/wealth-core/goal/**, /api/v1/wealth-core/**
+              - Path=/api/v1/wealth-core/budget/**, /api/v1/wealth-core/goal/**, /api/v1/wealth-core/**, /api/v1/wealth-core/common/**, /api/v1/wealth-core/admin/**
 
           - id: MoneyFi-user
             uri: lb://MoneyFi-user

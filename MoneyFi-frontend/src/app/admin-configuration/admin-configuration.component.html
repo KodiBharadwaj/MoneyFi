@@ -26,7 +26,7 @@
             <!-- Config Card 1 -->
             <div class="config-card">
             <h3>Schedule Notifications</h3>
-            <p>Plan and send scheduled notifications to users.</p>
+            <p>Schedule notifications to users</p>
             <button class="config-btn primary" (click)="openScheduleNotificationDialog()">
                 Schedule
             </button>
@@ -35,7 +35,7 @@
             <!-- Config Card 2 -->
             <div class="config-card">
             <h3>Manage Reasons</h3>
-            <p>Add, update and delete the reasons here.</p>
+            <p>Create, update and delete reasons</p>
             <button class="config-btn primary" [routerLink]="'/admin/configuration/reasons'">
                 Manage
             </button>
@@ -43,11 +43,11 @@
 
             <!-- Config Card 3 -->
             <div class="config-card">
-            <h3>System Preferences</h3>
-            <p>Update global preferences and settings for the system.</p>
-            <p style="color: red;"> *Under development </p>
-            <button class="config-btn primary">
-                Update
+            <h3>Manage Categories</h3>
+            <p>Create, Update and Delete financial categories</p>
+            <!-- <p style="color: red;"> *Under development </p> -->
+            <button class="config-btn primary" [routerLink]="'/admin/configuration/categories'">
+                Manage
             </button>
             </div>
         </div>

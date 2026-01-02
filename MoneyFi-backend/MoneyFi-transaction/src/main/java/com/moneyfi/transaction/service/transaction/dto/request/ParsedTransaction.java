@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ParsedTransaction {
-    private String category;
+    private Integer categoryId;
     private String description;
     private BigDecimal amount;
     private String transactionType;

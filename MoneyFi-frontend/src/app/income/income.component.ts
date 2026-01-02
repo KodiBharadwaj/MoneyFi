@@ -16,6 +16,8 @@ import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-d
 import { IncomeDeletedComponent } from '../income-deleted/income-deleted.component';
 import { incomeDeleted } from '../model/incomeDeleted';
 import { environment } from '../../environments/environment';
+import { CategoryService } from '../services/category.service';
+import { Category } from '../model/category-list';
 
 
 interface IncomeSource {
@@ -54,9 +56,7 @@ export class IncomeComponent {
   selectedYear: number = new Date().getFullYear();
   selectedMonth: number = 0; // 0 means all months
   selectedCategory: string = '';
-  categories: string[] = [
-    'Salary', 'Investments', 'Freelance', 'Business', 'Other'
-  ];
+  categories: Category[] = [];
   months: string[] = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -92,11 +92,12 @@ export class IncomeComponent {
     }
   };
 
-  constructor(public httpClient: HttpClient,private dialog: MatDialog, private router:Router, private toastr:ToastrService) {};
+  constructor(public httpClient: HttpClient,private dialog: MatDialog, private router:Router, private toastr:ToastrService, private categoryService: CategoryService) {};
 
   baseUrl = environment.BASE_URL;
   
   ngOnInit() {
+    this.categoryService.getIncomeCategories().subscribe(data => this.categories = data);
     this.initializeFilters();
     
     // Set the default month to the current month (1-based index)
@@ -239,7 +240,7 @@ export class IncomeComponent {
 
       const formattedDate = this.formatDate(result.date);
       const incomeData = {
-        ...result, // This should contain fields like source, amount, date, category, recurring, etc.
+        ...result, // This should contain fields like source, amount, date, categoryId, recurring, etc.
         date:formattedDate,
       };
 

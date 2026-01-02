@@ -1,6 +1,6 @@
 package com.moneyfi.wealthcore.service.goal;
 
-import com.moneyfi.wealthcore.model.GoalModel;
+import com.moneyfi.wealthcore.model.goal.GoalModel;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalDetailsDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalTileDetailsDto;
 import org.springframework.http.ResponseEntity;

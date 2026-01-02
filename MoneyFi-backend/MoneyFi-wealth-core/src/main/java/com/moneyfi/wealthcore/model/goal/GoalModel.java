@@ -1,4 +1,4 @@
-package com.moneyfi.wealthcore.model;
+package com.moneyfi.wealthcore.model.goal;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "goal_table")
 public class GoalModel {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -25,10 +24,9 @@ public class GoalModel {
     @Column(precision = 38, scale = 2)
     private BigDecimal targetAmount;
     private LocalDateTime deadLine;
-    private String category;
+    private Integer categoryId;
     private boolean isDeleted;
     private String description;
-
     @Column(name = "expense_ids")
     private String expenseIds;
     private LocalDateTime createdAt;
@@ -40,5 +38,4 @@ public class GoalModel {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
-
 }

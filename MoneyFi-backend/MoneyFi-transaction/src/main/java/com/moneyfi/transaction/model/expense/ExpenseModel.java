@@ -18,7 +18,7 @@ public class ExpenseModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long userId;
-    private String category;
+    private Integer categoryId;
     @Column(precision = 38, scale = 2)
     private BigDecimal amount;
     private LocalDateTime date;

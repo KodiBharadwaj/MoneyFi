@@ -17,6 +17,7 @@ import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction
 import com.moneyfi.transaction.utils.CreditOrDebit;
 import com.moneyfi.transaction.utils.GeneratePdfTemplate;
 import com.moneyfi.transaction.utils.StringConstants;
+import com.moneyfi.transaction.utils.TransactionServiceType;
 import com.moneyfi.transaction.validator.IncomeValidator;
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
@@ -28,6 +29,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.moneyfi.transaction.utils.StringConstants.*;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -96,15 +99,25 @@ public class TransactionServiceImpl implements TransactionService {
     public void addGmailSyncTransactions(Long userId, List<ParsedTransaction> transactions) {
         List<IncomeModel> incomesToBeSaved = new ArrayList<>();
         List<ExpenseModel> expensesToBeSaved = new ArrayList<>();
-        for(ParsedTransaction transaction : transactions) {
-            if(transaction.getTransactionType().equalsIgnoreCase(CreditOrDebit.CREDIT.name())) {
-                IncomeValidator.validateIncomeSaveRequest(new IncomeSaveRequest(transaction.getAmount(), transaction.getDescription(), transaction.getTransactionDate().toString(), transaction.getCategory(), false, transaction.getDescription()), userId);
+        for (ParsedTransaction transaction : transactions) {
+            if (transaction.getTransactionType().equalsIgnoreCase(CreditOrDebit.CREDIT.name())) {
+                IncomeValidator.validateIncomeSaveRequest(new IncomeSaveRequest(transaction.getAmount(), transaction.getDescription(), transaction.getTransactionDate().toString(), transaction.getCategoryId(), false, transaction.getDescription()), userId);
+                List<Integer> incomeCategoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
+                if (!incomeCategoryIds.contains(transaction.getCategoryId())) {
+                    throw new ScenarioNotPossibleException(CATEGORY_NOT_ALIGN_MESSAGE);
+                }
                 incomesToBeSaved.add(getSaveIncomeModel(transaction, userId));
-            } else if(transaction.getTransactionType().equalsIgnoreCase(CreditOrDebit.DEBIT.name())) {
-                if(ObjectUtils.isEmpty(userId)) {
-                    throw new ScenarioNotPossibleException("User Id is empty");
+            } else if (transaction.getTransactionType().equalsIgnoreCase(CreditOrDebit.DEBIT.name())) {
+                List<Integer> expenseCategoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
+                if (!expenseCategoryIds.contains(transaction.getCategoryId())) {
+                    throw new ScenarioNotPossibleException(CATEGORY_NOT_ALIGN_MESSAGE);
+                }
+                if (ObjectUtils.isEmpty(userId)) {
+                    throw new ScenarioNotPossibleException(USER_ID_EMPTY);
                 }
                 expensesToBeSaved.add(getSaveExpenseModel(transaction, userId));
+            } else {
+                throw new ScenarioNotPossibleException(INVALID_INPUT);
             }
         }
         incomeRepository.saveAll(incomesToBeSaved);
@@ -143,7 +156,7 @@ public class TransactionServiceImpl implements TransactionService {
         income.setUserId(userId);
         income.setAmount(transaction.getAmount());
         income.setSource(transaction.getDescription());
-        income.setCategory(transaction.getCategory());
+        income.setCategoryId(transaction.getCategoryId());
         income.setDescription(transaction.getDescription());
         income.setDate(transaction.getTransactionDate());
         income.setRecurring(false);
@@ -153,7 +166,7 @@ public class TransactionServiceImpl implements TransactionService {
     private ExpenseModel getSaveExpenseModel(ParsedTransaction transaction, Long userId) {
         ExpenseModel expense = new ExpenseModel();
         expense.setUserId(userId);
-        expense.setCategory(transaction.getCategory());
+        expense.setCategoryId(transaction.getCategoryId());
         expense.setDescription(transaction.getDescription());
         expense.setDate(transaction.getTransactionDate());
         expense.setAmount(transaction.getAmount());

@@ -14,6 +14,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
 import { environment } from '../../environments/environment';
+import { Category } from '../model/category-list';
+import { CategoryService } from '../services/category.service';
 
 interface Expense {
   id: number;
@@ -54,10 +56,7 @@ export class ExpensesComponent {
   selectedYear: number = new Date().getFullYear();
   selectedMonth: number = 0; // 0 means all months
   selectedCategory: string = '';
-  categories: string[] = [
-    'Food', 'Travelling', 'Entertainment', 'Groceries', 'Shopping', 'Bills & utilities', 
-    'House Rent', 'Emi and loans', 'Health & Medical', 'Goal', 'Miscellaneous'
-  ];
+  categories: Category[] = [];
   months: string[] = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -98,12 +97,13 @@ export class ExpensesComponent {
   };
 
   constructor(private httpClient: HttpClient, private dialog: MatDialog, private router:Router, 
-    private toastr:ToastrService, private activateRoute: ActivatedRoute) {}
+    private toastr:ToastrService, private activateRoute: ActivatedRoute, private categoryService: CategoryService) {}
 
   baseUrl = environment.BASE_URL;
 
 
   ngOnInit() {
+    this.categoryService.getExpenseCategories().subscribe(data => this.categories = data);
     this.activateRoute.queryParams.subscribe(params => {
       if (params['openDialog']) {
         this.addExpense();

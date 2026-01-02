@@ -32,22 +32,28 @@
 
     <mat-form-field appearance="outline" class="form-field">
       <mat-label>Category</mat-label>
-      <mat-select [(ngModel)]="goalSource.category" name="category" [disabled] = "updateGoal === true" required>
-        <mat-option value="Education">Education</mat-option>
-        <mat-option value="Savings">Savings</mat-option>
-        <mat-option value="Investments">Investments</mat-option>
-        <mat-option value="Vehicle">Vehicle</mat-option>
-        <mat-option value="Health">Health</mat-option>
-        <mat-option value="Home">Home</mat-option>
-        <mat-option value="Electronics">Electronics</mat-option>
-        <mat-option value="Other">Other</mat-option>
-      </mat-select>
-      <mat-error *ngIf="goalSource.category.trim() === ''">Category is required</mat-error>
-    </mat-form-field>
 
-    <mat-form-field appearance="outline" class="form-field">
-      <mat-label>Goal Description</mat-label>
-      <input matInput [(ngModel)]="goalSource.description" name="description">
+        <mat-select
+          [(ngModel)]="goalSource.categoryId"
+          name="categoryId"
+          [disabled] = "updateGoal === true"
+          required
+        >
+          <mat-option *ngFor="let cat of categories" [value]="cat.categoryId">
+            {{ cat.category }}
+          </mat-option>
+        </mat-select>
+
+        <mat-icon matPrefix>category</mat-icon>
+
+        <mat-error *ngIf="goalSource.categoryId === null">
+          Category is required
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Goal Description</mat-label>
+          <input matInput [(ngModel)]="goalSource.description" name="description">
     </mat-form-field>
 
     <div class="dialog-actions">

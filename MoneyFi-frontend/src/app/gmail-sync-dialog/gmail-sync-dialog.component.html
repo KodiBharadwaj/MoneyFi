@@ -39,7 +39,11 @@
       <tbody>
         <tr *ngFor="let tx of transactions; let i = index">
           <td>
-            <input [(ngModel)]="tx.category" class="input" />
+            <select [(ngModel)]="tx.categoryId" class="input">
+              <option *ngFor="let cat of categories" [value]="cat.categoryId">
+                {{ cat.category }}
+              </option>
+            </select>
           </td>
 
           <td>

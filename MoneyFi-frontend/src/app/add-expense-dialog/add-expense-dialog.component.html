@@ -17,21 +17,23 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="form-field">
-      <mat-label>Category</mat-label>
-      <mat-select [(ngModel)]="expenseSource.category" name="category" required>
-        <mat-option value="Food">Food</mat-option>
-        <mat-option value="Travelling">Travelling</mat-option>
-        <mat-option value="Entertainment">Entertainment</mat-option>
-        <mat-option value="Groceries">Groceries</mat-option>
-        <mat-option value="Shopping">Shopping</mat-option>
-        <mat-option value="Bills & utilities">Bills & utilities</mat-option>
-        <mat-option value="House Rent">House Rent</mat-option>
-        <mat-option value="Emi and loans">Emi and loans</mat-option>
-        <mat-option value="Health & Medical">Health & Medical</mat-option>
-        <mat-option value="Miscellaneous">Miscellaneous</mat-option>
-      </mat-select>
-      <mat-icon matPrefix>category</mat-icon>
-      <mat-error *ngIf="expenseSource.category.trim() === ''">Category is required</mat-error>
+  <mat-label>Category</mat-label>
+
+    <mat-select
+      [(ngModel)]="expenseSource.categoryId"
+      name="categoryId"
+      required
+    >
+      <mat-option *ngFor="let cat of categories" [value]="cat.categoryId">
+        {{ cat.category }}
+      </mat-option>
+    </mat-select>
+
+    <mat-icon matPrefix>category</mat-icon>
+
+    <mat-error *ngIf="expenseSource.categoryId === null">
+      Category is required
+      </mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="form-field">

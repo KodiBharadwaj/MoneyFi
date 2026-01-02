@@ -14,13 +14,15 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../environments/environment';
+import { CategoryService } from '../services/category.service';
+import { Category } from '../model/category-list';
 
 interface IncomeSource {
   id: number;
   source: string;
   amount: number;
   date: string;
-  category: string;
+  categoryId: number;
   recurring: boolean;
   is_deleted: boolean;
   description: string;
@@ -44,30 +46,35 @@ interface IncomeSource {
     CommonModule
   ]
 })
-export class AddIncomeDialogComponent {
+export class AddIncomeDialogComponent{
   incomeSource = {
     source: '',
     amount: '',
     date: new Date(),
-    category: '',
+    categoryId: null as number | null,
     recurring: false,
     description: '',
   };
+
+  categories: Category[] = [];
 
   dialogTitle: string;
   flag : boolean = false;
   incomeData : any;
 
+  private editCategoryName?: string;
+
   constructor(
     private httpClient:HttpClient,
+    private categoryService: CategoryService,
     private toastr:ToastrService,
     public dialogRef: MatDialogRef<AddIncomeDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     const dialogData = data || {};
-
+  
     if (dialogData.isUpdate) {
-
+      this.editCategoryName = dialogData.category; 
       this.dialogTitle = 'Update Income';
       this.incomeSource = { ...dialogData };
       this.flag = true;
@@ -77,20 +84,22 @@ export class AddIncomeDialogComponent {
         source:dialogData.source,
         date:dialogData.date,
         recurring:dialogData.recurring,
-        category:dialogData.category,
+        categoryId:dialogData.categoryId,
         is_deleted:dialogData.is_deleted,
         description:dialogData.description,
       };
+      this.loadIncomeCategories();
     } else {
       this.dialogTitle = 'Add New Income';
       this.incomeSource = {
         source: '',
         amount: '',
         date: new Date(),
-        category: '',
+        categoryId: null,
         recurring: false,
         description: '',
       };
+      this.loadIncomeCategories();
     }
   }
 
@@ -102,8 +111,31 @@ export class AddIncomeDialogComponent {
       this.incomeSource.source.trim() !== '' &&
       this.incomeSource.amount !== '' &&
       this.incomeSource.date !== null &&
-      this.incomeSource.category.trim() !== ''
+      this.incomeSource.categoryId !== null
     );
+  }
+
+  loadIncomeCategories(): void {
+    this.categoryService.getIncomeCategories()
+      .subscribe({
+        next: (categories) => {
+          this.categories = categories;
+
+          // 👇 map category name to ID in edit mode
+          if (this.flag && this.editCategoryName) {
+            const matched = this.categories.find(
+              c => c.category === this.editCategoryName
+            );
+
+            if (matched) {
+              this.incomeSource.categoryId = matched.categoryId;
+            }
+          }
+        },
+        error: () => {
+          this.toastr.error('Failed to load income categories');
+        }
+      });
   }
 
   capitalizeFirstLetter() {
