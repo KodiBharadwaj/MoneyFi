@@ -225,7 +225,7 @@ export class ExpensesComponent {
 
         this.httpClient.post<Expense>(`${this.baseUrl}/api/v1/transaction/expense/saveExpense`, expenseData).subscribe({
           next: (newExpense) => {
-            this.expenses.push(newExpense);
+            this.loadExpensesData()
             this.calculateTotalExpenses();
             this.updateChartData();
             this.toastr.success('Expense added successfully');

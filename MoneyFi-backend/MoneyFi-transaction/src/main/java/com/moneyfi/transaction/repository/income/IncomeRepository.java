@@ -40,13 +40,14 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
     Long getUserIdFromUsernameAndToken(String username, String token);
 
     @Query(
-            value = "SELECT i.category, " +
-                    "CAST(SUM(CAST(i.amount AS DECIMAL(18,2))) AS DECIMAL(18,2)) AS totalAmount " +
-                    "FROM income_table i " +
-                    "WHERE i.user_id = :userId " +
-                    "AND i.is_deleted = 0 " +
-                    "AND i.date BETWEEN :fromDate AND :toDate " +
-                    "GROUP BY i.category",
+            value = "SELECT clt.category, " +
+                    "CAST(SUM(CAST(it.amount AS DECIMAL(18,2))) AS DECIMAL(18,2)) AS totalAmount " +
+                    "FROM income_table it WITH (NOLOCK) " +
+                    "INNER JOIN category_list_table clt WITH (NOLOCK) ON clt.id = it.category_id " +
+                    "WHERE it.user_id = :userId " +
+                    "AND it.is_deleted = 0 " +
+                    "AND it.date BETWEEN :fromDate AND :toDate " +
+                    "GROUP BY clt.category",
             nativeQuery = true
     )
     List<Object[]> getTotalIncomeInSpecifiedRange(@Param("userId") Long userId, @Param("fromDate") LocalDateTime fromDate, @Param("toDate") LocalDateTime toDate);
