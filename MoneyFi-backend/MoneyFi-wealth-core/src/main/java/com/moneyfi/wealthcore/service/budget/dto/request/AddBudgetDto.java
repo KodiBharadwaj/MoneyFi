@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddBudgetDto {
-    private String category;
+    private Integer categoryId;
     private Integer percentage;
     private BigDecimal moneyLimit;
 }

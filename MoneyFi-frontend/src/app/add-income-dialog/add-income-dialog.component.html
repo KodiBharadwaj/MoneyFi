@@ -25,22 +25,28 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="form-field">
-      <mat-label>Category</mat-label>
-      <mat-select [(ngModel)]="incomeSource.category" name="category" required>
-        <mat-option value="salary">Salary</mat-option>
-        <mat-option value="freelance">Freelance</mat-option>
-        <mat-option value="investments">Investments</mat-option>
-        <mat-option value="business">Business</mat-option>
-        <mat-option value="other">Other</mat-option>
-      </mat-select>
-      <mat-icon matPrefix>category</mat-icon>
-      <mat-error *ngIf="incomeSource.category.trim() === ''">Category is required</mat-error>
+  <mat-label>Category</mat-label>
+
+    <mat-select
+      [(ngModel)]="incomeSource.categoryId"
+      name="categoryId"
+      required
+    >
+      <mat-option *ngFor="let cat of categories" [value]="cat.categoryId">
+        {{ cat.category }}
+      </mat-option>
+    </mat-select>
+
+    <mat-icon matPrefix>category</mat-icon>
+
+    <mat-error *ngIf="incomeSource.categoryId === null">
+      Category is required
+      </mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="form-field">
       <mat-label>Income Description</mat-label>
-      <input matInput [(ngModel)]="incomeSource.description"  name="source" placeholder="Description">
-      <mat-icon matPrefix>account_balance</mat-icon>
+      <input matInput [(ngModel)]="incomeSource.description"  name="description" placeholder="Description">
     </mat-form-field>
 
     <div class="recurring-checkbox">

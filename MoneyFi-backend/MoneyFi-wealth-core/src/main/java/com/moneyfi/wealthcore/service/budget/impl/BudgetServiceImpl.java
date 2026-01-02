@@ -2,12 +2,15 @@ package com.moneyfi.wealthcore.service.budget.impl;
 
 import com.moneyfi.wealthcore.exceptions.ResourceNotFoundException;
 import com.moneyfi.wealthcore.exceptions.ScenarioNotPossibleException;
-import com.moneyfi.wealthcore.model.BudgetModel;
+import com.moneyfi.wealthcore.model.budget.BudgetModel;
+import com.moneyfi.wealthcore.model.common.CategoryListModel;
 import com.moneyfi.wealthcore.repository.budget.BudgetRepository;
+import com.moneyfi.wealthcore.repository.common.CategoryListRepository;
 import com.moneyfi.wealthcore.repository.common.WealthCoreRepository;
 import com.moneyfi.wealthcore.service.budget.BudgetService;
 import com.moneyfi.wealthcore.service.budget.dto.request.AddBudgetDto;
 import com.moneyfi.wealthcore.service.budget.dto.response.BudgetDetailsDto;
+import com.moneyfi.wealthcore.utils.enums.TransactionServiceType;
 import com.moneyfi.wealthcore.validator.BudgetValidator;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.BeanUtils;
@@ -25,11 +28,14 @@ public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetRepository budgetRepository;
     private final WealthCoreRepository wealthCoreRepository;
+    private final CategoryListRepository categoryListRepository;
 
     public BudgetServiceImpl(BudgetRepository budgetRepository,
-                             WealthCoreRepository wealthCoreRepository) {
+                             WealthCoreRepository wealthCoreRepository,
+                             CategoryListRepository categoryListRepository) {
         this.budgetRepository = budgetRepository;
         this.wealthCoreRepository = wealthCoreRepository;
+        this.categoryListRepository = categoryListRepository;
     }
 
     @Override
@@ -40,6 +46,14 @@ public class BudgetServiceImpl implements BudgetService {
             throw new ScenarioNotPossibleException("Budget already exists! Please update if required");
         }
         BudgetValidator.validateBudgetSaveRequestDto(budgetList, getTotalIncomeInMonthAndYear(userId, LocalDateTime.now().getMonthValue(), LocalDateTime.now().getYear()));
+        Set<Integer> existingCategoryIds = new HashSet<>(categoryListRepository.findByType(TransactionServiceType.EXPENSE.name()).stream().map(CategoryListModel::getId).toList());
+        if (!budgetList
+                .stream()
+                .map(AddBudgetDto::getCategoryId)
+                .allMatch(existingCategoryIds::contains)
+        ) {
+            throw new ScenarioNotPossibleException(CATEGORY_ID_INVALID);
+        }
         List<BudgetModel> newBudget = new ArrayList<>();
         for (AddBudgetDto budget : budgetList) {
             BudgetModel budgetModel = new BudgetModel();

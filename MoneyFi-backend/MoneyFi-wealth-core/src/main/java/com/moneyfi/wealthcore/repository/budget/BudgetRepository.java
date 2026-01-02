@@ -1,6 +1,6 @@
 package com.moneyfi.wealthcore.repository.budget;
 
-import com.moneyfi.wealthcore.model.BudgetModel;
+import com.moneyfi.wealthcore.model.budget.BudgetModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

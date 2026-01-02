@@ -1,7 +1,7 @@
 package com.moneyfi.wealthcore.controller;
 
 import com.moneyfi.wealthcore.config.JwtService;
-import com.moneyfi.wealthcore.model.BudgetModel;
+import com.moneyfi.wealthcore.model.budget.BudgetModel;
 import com.moneyfi.wealthcore.service.budget.BudgetService;
 import com.moneyfi.wealthcore.service.budget.dto.request.AddBudgetDto;
 import com.moneyfi.wealthcore.service.budget.dto.response.BudgetDetailsDto;

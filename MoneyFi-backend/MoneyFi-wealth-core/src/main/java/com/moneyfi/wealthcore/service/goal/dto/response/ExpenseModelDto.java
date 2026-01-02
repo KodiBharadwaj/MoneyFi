@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class ExpenseModelDto {
     private Long id;
     private Long userId;
-    private String category;
+    private Integer categoryId;
     private BigDecimal amount;
     private LocalDateTime date;
     private boolean recurring;

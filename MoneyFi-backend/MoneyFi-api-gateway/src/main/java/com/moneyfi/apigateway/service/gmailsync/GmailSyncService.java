@@ -14,9 +14,11 @@ import com.moneyfi.apigateway.dto.ParsedTransaction;
 import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.gmailsync.GmailAuth;
 import com.moneyfi.apigateway.model.gmailsync.GmailProcessedMessageEntity;
+import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
 import com.moneyfi.apigateway.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.apigateway.repository.gmailsync.GmailProcessedMessageRepository;
 import com.moneyfi.apigateway.util.CryptoUtil;
+import com.moneyfi.apigateway.util.enums.TransactionServiceType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +55,7 @@ public class GmailSyncService {
     private final GmailSyncRepository gmailAuthRepository;
     private final CryptoUtil cryptoUtil;
     private final GmailProcessedMessageRepository processedRepo;
+    private final CommonServiceRepository commonServiceRepository;
 
     public Map<Integer, List<ParsedTransaction>> enableSync(String code, Long userId) throws IOException {
         GmailAuth gmailAuth = isSyncEnabled(userId);
@@ -84,6 +87,7 @@ public class GmailSyncService {
                 .toList();
         Map<Integer, List<ParsedTransaction>> resultMap = new HashMap<>();
         resultMap.put(3 - gmailAuth.getCount(), transactions);
+        /** return new HashMap<>(Map.of(2, List.of(new ParsedTransaction(1, "Upi", new BigDecimal("123"), "CREDIT OR DEBIT", LocalDateTime.now())))); **/
         return resultMap;
     }
 
@@ -106,13 +110,19 @@ public class GmailSyncService {
                         .execute();
         if (response.getMessages() == null) return null;
 
+        List<String> categories = commonServiceRepository.getCategoriesBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
+        Map<String, Integer> categoryNameIdMap = new HashMap<>();
+        categories.forEach(category -> {
+            String categoryName = category.split("-")[0];
+            Integer categoryId = Integer.parseInt(category.split("-")[1]);
+            categoryNameIdMap.put(categoryName, categoryId);
+        });
         List<ParsedTransaction> responseList = new ArrayList<>();
         for (Message msg : response.getMessages()) {
             if (alreadyProcessed(msg.getId(), userId)) continue;
-
             Message fullMessage = gmail.users().messages().get("me", msg.getId()).execute();
-            ParsedTransaction parsedTransaction = parseTransaction(fullMessage);
-            if(parsedTransaction != null && parsedTransaction.getCategory().equalsIgnoreCase("Others")
+            ParsedTransaction parsedTransaction = parseTransaction(fullMessage, categoryNameIdMap);
+            if(parsedTransaction != null && Objects.equals(parsedTransaction.getCategoryId(), categoryNameIdMap.get("Other"))
                     && parsedTransaction.getDescription().equalsIgnoreCase("Bank transaction") && parsedTransaction.getTransactionType().equalsIgnoreCase("Unrecognized")) continue;
             responseList.add(parsedTransaction);
             markProcessed(msg.getId(), userId);
@@ -122,7 +132,6 @@ public class GmailSyncService {
 
     private Gmail gmailClientForUser(Long userId) throws IOException {
         GmailAuth auth = gmailAuthRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("Gmail sync not enabled for user"));
-
         String accessToken = cryptoUtil.decrypt(auth.getAccessToken());
         AccessToken token = new AccessToken(accessToken, Date.from(auth.getExpiresAt()));
         GoogleCredentials credentials = GoogleCredentials.create(token).createScoped(Collections.singleton(GmailScopes.GMAIL_READONLY));
@@ -145,14 +154,13 @@ public class GmailSyncService {
         processedRepo.save(entity);
     }
 
-    private ParsedTransaction parseTransaction(Message message) {
+    private ParsedTransaction parseTransaction(Message message, Map<String, Integer> categoryNameIdMap) {
         String rawBody = extractEmailBody(message);
         log.info("Checking rawBody {} ", rawBody);
-
         if (rawBody.isBlank()) return null;
         String body = normalizeBody(rawBody);
         if (!containsTransactionKeywords(body)) return null;
-        return new ParsedTransaction(detectTransactionCategory(body), detectTransactionDescription(body),
+        return new ParsedTransaction(detectTransactionCategory(body, categoryNameIdMap), detectTransactionDescription(body),
                 detectTransactionAmount(body), detectTransactionType(body), detectTransactionDateTime(message));
     }
 
@@ -240,24 +248,24 @@ public class GmailSyncService {
         return "Bank transaction";
     }
 
-    private String detectTransactionCategory(String body) {
+    private Integer detectTransactionCategory(String body, Map<String, Integer> categoryNameIdMap) {
         if (body.contains("swiggy") || body.contains("zomato") || body.contains("bigbasket") || body.contains("jiomart") || body.contains("dineout"))
-            return "Food";
+            return categoryNameIdMap.get("Food");
         if (body.contains("amazon") || body.contains("flipkart"))
-            return "Shopping";
+            return categoryNameIdMap.get("Shopping");
         if (body.contains("uber") || body.contains("rapido") || body.contains("train") || body.contains("flight") || body.contains("bus") || body.contains("ticket"))
-            return "Travelling";
+            return categoryNameIdMap.get("Travelling");
         if (body.contains("bill") || body.contains("electricity") || body.contains("water") || body.contains("wifi"))
-            return "Bills & utilities";
+            return categoryNameIdMap.get("Bills & utilities");
         if (body.contains("rent"))
-            return "House Rent";
+            return categoryNameIdMap.get("House Rent");
         if (body.contains("salary"))
-            return "Salary";
+            return categoryNameIdMap.get("Salary");
         if (body.contains("investments") || body.contains("stocks") || body.contains("returns"))
-            return "Investments";
+            return categoryNameIdMap.get("Investments");
         if (body.contains("business") || body.contains("deal"))
-            return "Business";
-        return "Others";
+            return categoryNameIdMap.get("Business");
+        return categoryNameIdMap.get("Other");
     }
 
     private String extractEmailBody(Message message) {

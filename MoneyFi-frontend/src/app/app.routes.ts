@@ -30,6 +30,7 @@ import { AdminConfigurationComponent } from './admin-configuration/admin-configu
 import { UserNotificationsComponent } from './user-notifications/user-notifications.component';
 import { AdminReasonsComponent } from './admin-reasons/admin-reasons.component';
 import { HelpCenterComponent } from './help-center/help-center.component';
+import { AdminCategoriesListComponent } from './admin-categories-list/admin-categories-list.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -50,6 +51,7 @@ export const routes: Routes = [
   { path: 'admin/feedbacks', component: AdminUserFeedbackComponent },
   { path: 'admin/configuration', component: AdminConfigurationComponent },
   { path: 'admin/configuration/reasons', component: AdminReasonsComponent },
+  { path: 'admin/configuration/categories', component: AdminCategoriesListComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard],children:[
     {path:'',component:OverviewComponent},
     {path:'overview',component:OverviewComponent},

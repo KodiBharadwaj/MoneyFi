@@ -29,9 +29,13 @@
 
       <!-- Dynamic Category List -->
       <div *ngFor="let category of budgetSource.categories" class="category-row">
-        <p class="category-name"> {{ category.category }}</p>
-        <p class="category-percentage">Percentage: <strong>{{ category.percentage }}%</strong></p>
-        <p class="category-amount">Amount: ₹<strong>{{ category.moneyLimit.toFixed(2) }}</strong></p>
+        <p class="category-name">{{ category.categoryName }}</p>
+        <p class="category-percentage">
+          Percentage: <strong>{{ category.percentage }}%</strong>
+        </p>
+        <p class="category-amount">
+          Amount: ₹<strong>{{ category.moneyLimit.toFixed(2) }}</strong>
+        </p>
       </div>
     </form>
   </div>

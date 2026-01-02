@@ -15,8 +15,8 @@
       </thead>
       <tbody>
         <tr *ngFor="let income of data.deletedIncomes">
-          <td>{{ income[4] }}</td> <!-- source -->
-          <td>{{ income[2] }}</td> <!-- category (you called it 'Other del 3') -->
+          <td>{{ income[2] }}</td> <!-- source -->
+          <td>{{ income[4] }}</td> <!-- category (you called it 'Other del 3') -->
           <td>₹{{ income[1]?.toLocaleString() }}</td> <!-- amount -->
           <td>{{ income[3] | date: 'mediumDate' }}</td> <!-- date -->
           <td>{{ income[5] ? 'Recurring' : 'One-time' }}</td> <!-- recurring flag -->

@@ -11,6 +11,7 @@ import com.moneyfi.transaction.model.income.IncomeModel;
 import com.moneyfi.transaction.repository.income.IncomeDeletedRepository;
 import com.moneyfi.transaction.repository.income.IncomeRepository;
 import com.moneyfi.transaction.service.income.dto.response.*;
+import com.moneyfi.transaction.utils.TransactionServiceType;
 import com.moneyfi.transaction.validator.IncomeValidator;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,11 @@ public class IncomeServiceImpl implements IncomeService {
     @Transactional(rollbackOn = Exception.class)
     public void saveIncome(IncomeSaveRequest incomeSaveRequest, Long userId) {
         IncomeValidator.validateIncomeSaveRequest(incomeSaveRequest, userId);
-        IncomeModel incomeModel = incomeRepository.getIncomeBySourceAndCategory(userId, incomeSaveRequest.getSource().trim(), incomeSaveRequest.getCategory().trim(), LocalDateTime.parse(incomeSaveRequest.getDate()));
+        List<Integer> categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
+        if(!categoryIds.contains(incomeSaveRequest.getCategoryId())) {
+            throw new ScenarioNotPossibleException(CATEGORY_ID_INVALID);
+        }
+        IncomeModel incomeModel = incomeRepository.getIncomeBySourceAndCategory(userId, incomeSaveRequest.getSource().trim(), incomeSaveRequest.getCategoryId(), LocalDateTime.parse(incomeSaveRequest.getDate()));
         if(incomeModel != null){
             throw new ScenarioNotPossibleException(INCOME_ALREADY_PRESENT_MESSAGE);
         }
@@ -288,17 +293,13 @@ public class IncomeServiceImpl implements IncomeService {
     public void updateBySource(Long id, Long userId, IncomeUpdateRequest incomeUpdateRequest) {
         IncomeModel incomeModel = incomeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(INCOME_NOT_FOUND));
         IncomeValidator.validateIncomeUpdateRequest(incomeUpdateRequest);
-        if(incomeModel.getAmount().compareTo(incomeUpdateRequest.getAmount()) == 0 &&
-                incomeModel.getSource().equals(incomeUpdateRequest.getSource()) &&
-                incomeModel.getCategory().equals(incomeUpdateRequest.getCategory()) &&
-                incomeModel.getDate().toLocalDate().equals(LocalDateTime.parse(incomeUpdateRequest.getDate()).toLocalDate()) &&
-                incomeModel.getDescription().equals(incomeUpdateRequest.getDescription()) &&
-                incomeModel.isRecurring() == incomeUpdateRequest.getRecurring()){
-            throw new ScenarioNotPossibleException(NO_CHANGES_TO_UPDATE);
+        List<Integer> categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
+        if(!categoryIds.contains(incomeUpdateRequest.getCategoryId())) {
+            throw new ScenarioNotPossibleException(CATEGORY_ID_INVALID);
         }
         incomeModel.setAmount(incomeUpdateRequest.getAmount());
         incomeModel.setSource(incomeUpdateRequest.getSource());
-        incomeModel.setCategory(incomeUpdateRequest.getCategory());
+        incomeModel.setCategoryId(incomeUpdateRequest.getCategoryId());
         incomeModel.setDate(LocalDateTime.parse(incomeUpdateRequest.getDate()));
         incomeModel.setRecurring(incomeUpdateRequest.getRecurring());
         incomeModel.setUpdatedAt(LocalDateTime.now());

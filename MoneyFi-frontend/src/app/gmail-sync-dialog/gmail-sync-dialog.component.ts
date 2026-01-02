@@ -8,6 +8,8 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { environment } from '../../environments/environment';
+import { CategoryService } from '../services/category.service';
+import { Category } from '../model/category-list';
 
 @Component({
   selector: 'app-gmail-sync-dialog',
@@ -25,21 +27,51 @@ export class GmailSyncDialogComponent implements OnInit {
   loading = true;
   transactions: ParsedTransaction[] = [];
   remainingCount = 0;
+  categories: Category[] = [];
+
 
   BASE_URL = environment.BASE_URL;
 
-  transactionTypes = ['CREDIT', 'DEBIT', 'CREDIT OR DEBIT'];
+  transactionTypes = ['CREDIT', 'DEBIT'];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) private data: { code: string },
     private http: HttpClient,
     private dialogRef: MatDialogRef<GmailSyncDialogComponent>,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private categoryService: CategoryService
   ) {}
 
   ngOnInit(): void {
+    this.loadCategories();
     this.startSync();
   }
+
+  loadCategories() {
+    // Gmail transactions can be CREDIT or DEBIT → load ALL
+    this.categoryService.getIncomeAndExpenseCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories;
+        this.mapCategoryNames();
+      },
+      error: () => {
+        this.toastr.error('Failed to load categories');
+      }
+    });
+  }
+
+  mapCategoryNames() {
+    if (!this.categories.length || !this.transactions.length) {
+      return;
+    }
+    this.transactions.forEach(tx => {
+      const matched = this.categories.find(
+        c => c.categoryId === tx.categoryId
+      );
+      tx.categoryName = matched?.category ?? 'Unknown';
+    });
+  }
+
 
   startSync() {
   this.loading = true;
@@ -63,6 +95,7 @@ export class GmailSyncDialogComponent implements OnInit {
           accepted: true,
         }));
 
+        this.mapCategoryNames();
         this.loading = false;
       },
       error: (err) => {
@@ -106,9 +139,15 @@ export class GmailSyncDialogComponent implements OnInit {
           this.toastr.success('Transactions added successfully');
           this.dialogRef.close(true);
         },
-        error: () => {
-          this.toastr.error('Failed to add transactions');
+        error: (err) => {
           this.submitting = false;
+          try {
+            const errorObj =
+              typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            this.toastr.error(errorObj.message);
+          } catch {
+            console.error('Failed to parse error:', err.error);
+          }
         },
         complete: () => {
           this.submitting = false;

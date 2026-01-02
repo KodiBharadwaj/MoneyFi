@@ -1,0 +1,153 @@
+.admin-container {
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.top-nav {
+  background-color: #1e293b;
+  color: white;
+  padding: 1rem;
+  font-size: 1.5rem;
+}
+
+.brand {
+  font-weight: bold;
+}
+
+.layout {
+  display: flex;
+}
+
+.side-nav {
+  width: 220px;
+  background-color: #f1f5f9;
+  height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.nav-list,
+.logout-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.side-nav li {
+  padding: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.side-nav li:hover {
+  background-color: #e2e8f0;
+}
+
+.main-content {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+
+
+.category-config-container {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.page-subtitle {
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+/* Type Selector */
+.type-selector {
+  max-width: 320px;
+  margin-bottom: 24px;
+}
+
+.type-selector label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.type-selector select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+}
+
+/* Add Category */
+.add-category {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.add-category input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+}
+
+.add-category button.primary {
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+/* Table */
+.category-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.category-table th {
+  text-align: left;
+  font-size: 13px;
+  color: #6b7280;
+  padding-bottom: 10px;
+}
+
+.category-table td {
+  padding: 12px 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.actions {
+  width: 160px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+.icon-btn.success {
+  color: #16a34a;
+}
+
+.icon-btn.danger {
+  color: #dc2626;
+}
+
+.empty-state {
+  margin-top: 20px;
+  color: #9ca3af;
+}

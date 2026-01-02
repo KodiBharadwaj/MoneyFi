@@ -2,7 +2,8 @@ package com.moneyfi.wealthcore.service.goal.impl;
 
 import com.moneyfi.wealthcore.config.JwtService;
 import com.moneyfi.wealthcore.exceptions.ResourceNotFoundException;
-import com.moneyfi.wealthcore.model.GoalModel;
+import com.moneyfi.wealthcore.model.goal.GoalModel;
+import com.moneyfi.wealthcore.repository.common.CategoryListRepository;
 import com.moneyfi.wealthcore.repository.common.WealthCoreRepository;
 import com.moneyfi.wealthcore.repository.goal.GoalRepository;
 import com.moneyfi.wealthcore.service.goal.GoalService;
@@ -10,6 +11,7 @@ import com.moneyfi.wealthcore.service.goal.dto.response.ExpenseModelDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalDetailsDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalTileDetailsDto;
 import com.moneyfi.wealthcore.utils.StringConstants;
+import com.moneyfi.wealthcore.utils.enums.CategoryType;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -37,74 +39,44 @@ public class GoalServiceImpl implements GoalService {
     private final WealthCoreRepository wealthCoreRepository;
     private final RestTemplate restTemplate;
     private final JwtService jwtService;
+    private final CategoryListRepository categoryListRepository;
 
     public GoalServiceImpl(GoalRepository goalRepository,
                            WealthCoreRepository wealthCoreRepository,
                            RestTemplate restTemplate,
-                           JwtService jwtService){
+                           JwtService jwtService,
+                           CategoryListRepository categoryListRepository){
         this.goalRepository = goalRepository;
         this.wealthCoreRepository = wealthCoreRepository;
         this.restTemplate = restTemplate;
         this.jwtService = jwtService;
+        this.categoryListRepository = categoryListRepository;
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public GoalDetailsDto save(GoalModel goal, BigDecimal amountToBeAdded, String authHeader) {
         String token = authHeader.substring(7);
         Long userId = jwtService.extractUserIdFromToken(token);
         goal.setUserId(userId);
-
         Long expenseId = functionCallToExpenseServiceToSaveExpense(goal, amountToBeAdded, token);
-
         if (goal.getExpenseIds() == null || goal.getExpenseIds().isEmpty()) {
             goal.setExpenseIds(expenseId.toString());
         } else {
             goal.setExpenseIds(goal.getExpenseIds() + "," + expenseId.toString());
         }
-
         return updatedGoalDtoConversion(goalRepository.save(goal));
     }
 
-    private Long functionCallToExpenseServiceToSaveExpense(GoalModel goal, BigDecimal amountToBeAdded, String token){
-        ExpenseModelDto expenseModelDto = new ExpenseModelDto();
-        expenseModelDto.setDescription(goal.getGoalName());
-        expenseModelDto.setCategory("Goal");
-        if(amountToBeAdded.compareTo(BigDecimal.ZERO) == 0){
-            expenseModelDto.setAmount(goal.getCurrentAmount());
-        } else {
-            expenseModelDto.setAmount(amountToBeAdded);
-        }
-        expenseModelDto.setDate(LocalDateTime.now());
-        expenseModelDto.setRecurring(true);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + token);
-
-        HttpEntity<ExpenseModelDto> requestEntity = new HttpEntity<>(expenseModelDto, headers);
-
-        ResponseEntity<ExpenseModelDto> response = restTemplate.exchange(
-                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/expense/saveExpense",
-                HttpMethod.POST,
-                requestEntity,
-                ExpenseModelDto.class
-        );
-        ExpenseModelDto responseBody = response.getBody();
-        if(responseBody == null){
-            throw new ResourceNotFoundException("Failed to fetch the expense model");
-        }
-        return responseBody.getId();
-    }
-
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public GoalDetailsDto addAmount(Long id, BigDecimal amount, String authHeader) {
         GoalModel goalModel = goalRepository.findById(id).orElse(null);
         if(goalModel == null){
             throw new NullPointerException();
         }
         goalModel.setCurrentAmount(goalModel.getCurrentAmount().add(amount));
+        goalModel.setUpdatedAt(LocalDateTime.now());
         return save(goalModel, amount, authHeader);
     }
 
@@ -125,10 +97,7 @@ public class GoalServiceImpl implements GoalService {
     @Override
     public BigDecimal getTargetTotalGoalIncome(Long userId) {
         BigDecimal totalGoalTargetIncome = goalRepository.getTotalTargetGoalIncome(userId);
-        if(totalGoalTargetIncome == null){
-            return BigDecimal.ZERO;
-        }
-        return totalGoalTargetIncome;
+        return totalGoalTargetIncome != null ? totalGoalTargetIncome : BigDecimal.ZERO;
     }
 
     @Override
@@ -141,11 +110,10 @@ public class GoalServiceImpl implements GoalService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<GoalDetailsDto> updateByGoalName(Long id, GoalModel goal, String authHeader) {
         String token = authHeader.substring(7);
         Long userId = jwtService.extractUserIdFromToken(token);
-
         goal.setUserId(userId);
         GoalModel goalModel = goalRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Goal not found"));
 
@@ -169,26 +137,16 @@ public class GoalServiceImpl implements GoalService {
         return ResponseEntity.status(HttpStatus.CREATED).body(updatedGoalDtoConversion(goalRepository.save(goalModel)));
     }
 
-    private GoalDetailsDto updatedGoalDtoConversion(GoalModel updatedGoal){
-        GoalDetailsDto goalDetailsDto = new GoalDetailsDto();
-        BeanUtils.copyProperties(updatedGoal, goalDetailsDto);
-        goalDetailsDto.setDeadLine(Date.valueOf(updatedGoal.getDeadLine().toLocalDate()));
-        return goalDetailsDto;
-    }
-
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public boolean deleteGoalById(Long id, String authHeader) {
-
         try {
             GoalModel goalModel = goalRepository.findById(id).orElse(null);
-            if(goalModel != null){
+            if (goalModel != null) {
                 goalModel.setDeleted(true);
+                goalModel.setUpdatedAt(LocalDateTime.now());
                 goalRepository.save(goalModel);
-                if(functionCallToExpenseServiceToDeleteExpense(goalModel.getExpenseIds(), authHeader)){
-                    return true;
-                }
-                else return false;
+                return functionCallToExpenseServiceToDeleteExpense(goalModel.getExpenseIds(), authHeader);
             }
             return false;
         } catch (HttpClientErrorException.NotFound e) {
@@ -197,18 +155,44 @@ public class GoalServiceImpl implements GoalService {
         }
     }
 
+    private Long functionCallToExpenseServiceToSaveExpense(GoalModel goal, BigDecimal amountToBeAdded, String token){
+        ExpenseModelDto expenseModelDto = new ExpenseModelDto();
+        expenseModelDto.setDescription(goal.getGoalName());
+        expenseModelDto.setCategoryId(categoryListRepository.findByType(CategoryType.EXPENSE.name()).stream().filter(category -> category.getCategory().equalsIgnoreCase("Goal")).findFirst().get().getId());
+        if(amountToBeAdded.compareTo(BigDecimal.ZERO) == 0){
+            expenseModelDto.setAmount(goal.getCurrentAmount());
+        } else {
+            expenseModelDto.setAmount(amountToBeAdded);
+        }
+        expenseModelDto.setDate(LocalDateTime.now());
+        expenseModelDto.setRecurring(true);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<ExpenseModelDto> requestEntity = new HttpEntity<>(expenseModelDto, headers);
+        ResponseEntity<ExpenseModelDto> response = restTemplate.exchange(
+                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/expense/saveExpense",
+                HttpMethod.POST,
+                requestEntity,
+                ExpenseModelDto.class
+        );
+        ExpenseModelDto responseBody = response.getBody();
+        if(responseBody == null){
+            throw new ResourceNotFoundException("Failed to fetch the expense model");
+        }
+        return responseBody.getId();
+    }
+
     private Boolean functionCallToExpenseServiceToDeleteExpense(String expenseIds, String authHeader){
         String token = authHeader.substring(7);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + token);
-
         List<Long> expenseIdsList = Arrays.stream(expenseIds.split(","))
                 .map(Long::parseLong)
                 .collect(Collectors.toList());
-
         HttpEntity<List<Long>> requestEntity = new HttpEntity<>(expenseIdsList, headers);
-
         ResponseEntity<Void> response = restTemplate.exchange(
                 StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/expense",
                 HttpMethod.DELETE,
@@ -216,5 +200,13 @@ public class GoalServiceImpl implements GoalService {
                 Void.class
         );
         return response.getStatusCode().is2xxSuccessful();
+    }
+
+    private GoalDetailsDto updatedGoalDtoConversion(GoalModel updatedGoal){
+        GoalDetailsDto goalDetailsDto = new GoalDetailsDto();
+        BeanUtils.copyProperties(updatedGoal, goalDetailsDto);
+        goalDetailsDto.setDeadLine(Date.valueOf(updatedGoal.getDeadLine().toLocalDate()));
+        goalDetailsDto.setCategory(categoryListRepository.findById(updatedGoal.getCategoryId()).get().getCategory());
+        return goalDetailsDto;
     }
 }

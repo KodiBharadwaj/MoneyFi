@@ -16,6 +16,8 @@ import { UpdateBudgetDialogComponent } from '../update-budget-dialog/update-budg
 import { environment } from '../../environments/environment';
 import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
 import { MatIconModule } from '@angular/material/icon';
+import { Category } from '../model/category-list';
+import { CategoryService } from '../services/category.service';
 
 
 interface Budget {
@@ -47,7 +49,7 @@ interface Budget {
 })
 export class BudgetsComponent {
 
-  constructor(private httpClient:HttpClient, private router:Router, private dialog: MatDialog, private toastr:ToastrService){};
+  constructor(private httpClient:HttpClient, private router:Router, private dialog: MatDialog, private toastr:ToastrService, private categoryService: CategoryService){};
   baseUrl = environment.BASE_URL;
 
   totalBudget: number = 0;
@@ -58,10 +60,7 @@ export class BudgetsComponent {
   selectedYear: number = new Date().getFullYear();
   selectedMonth: number = 0; // 0 means all months
   selectedCategory: string = '';
-  categories: string[] = [
-    'Food', 'Travelling', 'Entertainment', 'Groceries', 'Shopping', 'Bills & utilities', 
-    'House Rent', 'Emi and loans', 'Health & Medical', 'Goal', 'Miscellaneous'
-  ];
+  categories: Category[] = [];
   months: string[] = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -72,7 +71,7 @@ export class BudgetsComponent {
 
   ngOnInit() {
     this.initializeFilters();
-    
+    this.categoryService.getExpenseCategories().subscribe(data => this.categories = data);
     // Set the default month to the current month (1-based index)
     this.selectedMonth = new Date().getMonth() + 1; // Current month in 1-based index
     this.selectedYear = new Date().getFullYear(); // Current year

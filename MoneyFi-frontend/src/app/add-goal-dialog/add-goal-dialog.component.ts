@@ -10,6 +10,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { Category } from '../model/category-list';
+import { CategoryService } from '../services/category.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-add-goal-dialog',
@@ -36,22 +39,31 @@ export class AddGoalDialogComponent {
     currentAmount: '',
     targetAmount: '',
     deadLine: new Date(),
-    category: '',
+    categoryId: null as number | null,
     description: '',
   };
 
   dialogTitle: string;
   updateGoal : boolean = false;
+  categories: Category[] = [];
+  flag : boolean = false;
+  private editCategoryName?: string;
+
   constructor(
+    private categoryService: CategoryService,
+    private toastr:ToastrService,
     public dialogRef: MatDialogRef<AddGoalDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     const dialogData = data || {};
   
     if (dialogData.isUpdate) {
+      this.editCategoryName = dialogData.category; 
       this.updateGoal = true;
       this.dialogTitle = 'Update Goal';
       this.goalSource = { ...dialogData };
+      this.flag = true;
+      this.getGoalCategories();
     } else {
       this.dialogTitle = 'Add New Goal';
       this.goalSource = {
@@ -59,9 +71,10 @@ export class AddGoalDialogComponent {
         currentAmount: '',
         targetAmount: '',
         deadLine: new Date(),
-        category: '',
+        categoryId: null,
         description: '',
       };
+      this.getGoalCategories();
     }
   }
 
@@ -73,8 +86,31 @@ export class AddGoalDialogComponent {
       this.goalSource.currentAmount !== '' &&
       this.goalSource.targetAmount !== '' &&
       this.goalSource.deadLine !== null &&
-      this.goalSource.category.trim() !== ''
+      this.goalSource.categoryId !== null
     );
+  }
+
+  getGoalCategories(): void {
+    this.categoryService.getGoalCategories()
+      .subscribe({
+        next: (categories) => {
+          this.categories = categories;
+
+          // 👇 map category name to ID in edit mode
+          if (this.flag && this.editCategoryName) {
+            const matched = this.categories.find(
+              c => c.category === this.editCategoryName
+            );
+
+            if (matched) {
+              this.goalSource.categoryId = matched.categoryId;
+            }
+          }
+        },
+        error: () => {
+          this.toastr.error('Failed to load goal categories');
+        }
+      });
   }
 
   capitalizeFirstLetter() {

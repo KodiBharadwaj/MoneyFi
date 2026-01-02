@@ -1,7 +1,7 @@
 package com.moneyfi.wealthcore.controller;
 
 import com.moneyfi.wealthcore.config.JwtService;
-import com.moneyfi.wealthcore.model.GoalModel;
+import com.moneyfi.wealthcore.model.goal.GoalModel;
 import com.moneyfi.wealthcore.service.goal.GoalService;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalDetailsDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalTileDetailsDto;

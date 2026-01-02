@@ -1,0 +1,126 @@
+<div class="admin-container">
+  <nav class="top-nav">
+    <div class="brand">MoneyFi Admin</div>
+  </nav>
+
+  <div class="layout">
+    <aside class="side-nav">
+      <ul class="nav-list">
+        <li routerLink="/admin/home">Dashboard</li>
+        <li [routerLink]="['/admin/users', 'All']">Total Users</li>
+        <li [routerLink]="['/admin/requests', 'All']">User Requests</li>
+        <li routerLink="/admin/user-defects">User Issues</li>
+        <li routerLink="/admin/feedbacks">User Feedbacks</li>
+        <li routerLink="/admin/insights">Insights/Charts</li>
+        <li routerLink="/admin/configuration">Configuration</li>
+      </ul>
+      <ul class="logout-list">
+        <li (click)="logoutUser()">Logout</li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="category-config-container">
+  <h2 class="page-title">Category Configuration</h2>
+  <p class="page-subtitle">
+    Manage categories based on category types
+  </p>
+
+  <!-- Type Selector -->
+  <div class="type-selector">
+    <label>Category Type</label>
+    <select
+      [(ngModel)]="selectedType"
+      (change)="onTypeChange()"
+    >
+      <option value="" disabled selected>
+        Select category type
+      </option>
+      <option *ngFor="let type of categoryTypes" [value]="type">
+        {{ type }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Add Category -->
+  <div class="add-category" *ngIf="selectedType">
+    <input
+      type="text"
+      placeholder="Enter new category"
+      [(ngModel)]="newCategory"
+    />
+    <button class="primary" (click)="addCategory()">
+      Add
+    </button>
+  </div>
+
+  <!-- Category List -->
+  <div class="category-table" *ngIf="categories.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th class="actions">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let item of categories">
+          <td>
+            <input
+              *ngIf="item.editing"
+              [(ngModel)]="item.category"
+            />
+            <span *ngIf="!item.editing">
+              {{ item.category }}
+            </span>
+          </td>
+
+          <td class="actions">
+            <button
+              *ngIf="!item.editing"
+              class="icon-btn"
+              (click)="enableEdit(item)"
+            >
+              ✏️
+            </button>
+
+            <button
+              *ngIf="item.editing"
+              class="icon-btn success"
+              (click)="updateCategory(item)"
+            >
+              ✔
+            </button>
+
+            <button
+              *ngIf="item.editing"
+              class="icon-btn danger"
+              (click)="cancelEdit(item)"
+            >
+              ✖
+            </button>
+
+            <button
+              class="icon-btn danger"
+              (click)="deleteCategory(item)"
+            >
+              🗑
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="selectedType && categories.length === 0">
+    No categories found for this type.
+  </div>
+</div>
+
+        </main>
+  </div>
+</div>
+
+

@@ -14,7 +14,7 @@ public class IncomeUpdateRequest {
     private BigDecimal amount;
     private String source;
     private String date;
-    private String category;
+    private Integer categoryId;
     private Boolean recurring;
     private String description;
 }

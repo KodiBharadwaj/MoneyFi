@@ -26,7 +26,6 @@ public class WealthCoreRepositoryImpl implements WealthCoreRepository {
     public List<BudgetDetailsDto> getBudgetsByUserId(Long userId, int month, int year, String category) {
         try {
             List<BudgetDetailsDto> budgetList = new ArrayList<>();
-
             if(category.equalsIgnoreCase("all")){
                 Query query = entityManager.createNativeQuery(
                                 "exec [getAllBudgetsByUserId] " +
@@ -38,28 +37,26 @@ public class WealthCoreRepositoryImpl implements WealthCoreRepository {
                         .setParameter("year", year)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(BudgetDetailsDto.class));
-
                 budgetList.addAll(query.getResultList());
                 return budgetList;
             }
             else {
+                Integer categoryId = Integer.parseInt(category);
                 Query query = entityManager.createNativeQuery(
                                 "exec [getAllBudgetsByUserIdAndByCategory] " +
                                         "@userId = :userId, " +
                                         "@month = :month, " +
                                         "@year = :year, " +
-                                        "@category = :category")
+                                        "@categoryId = :categoryId")
                         .setParameter("userId", userId)
                         .setParameter("month", month)
                         .setParameter("year", year)
-                        .setParameter("category", category)
+                        .setParameter("categoryId", categoryId)
                         .unwrap(NativeQuery.class)
                         .setResultTransformer(Transformers.aliasToBean(BudgetDetailsDto.class));
-
                 budgetList.addAll(query.getResultList());
                 return budgetList;
             }
-
         } catch (Exception e) {
             e.printStackTrace();
             throw new QueryValidationException(e.getMessage());

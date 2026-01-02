@@ -1,6 +1,9 @@
 package com.moneyfi.wealthcore.utils;
 
 import com.moneyfi.wealthcore.service.budget.dto.response.UserDetailsForSpendingAnalysisDto;
+import com.moneyfi.wealthcore.utils.enums.CategoryType;
+
+import java.util.List;
 
 public class StringConstants {
 
@@ -10,6 +13,7 @@ public class StringConstants {
     public static final String EMAIL_SENT_SUCCESS_MESSAGE = "Email sent successfully";
     public static final String EMAIL_SENT_FAILURE_MESSAGE = "Failed to send email";
     public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
+    public static final String CATEGORY_ID_INVALID = "Category is invalid";
 
     public static final String USER_ID = "userId";
     public static final String TOTAL_GOAL_AMOUNT = "totalGoalAmount";
@@ -26,5 +30,9 @@ public class StringConstants {
 
     public static String generateDocumentPasswordForUser(UserDetailsForSpendingAnalysisDto userDetails){
         return userDetails.getName().substring(0,4).toUpperCase() + userDetails.getUsername().substring(0,4).toLowerCase();
+    }
+
+    public static List<String> getCategoryListEnum() {
+        return List.of(CategoryType.INCOME.name(), CategoryType.EXPENSE.name(), CategoryType.GOAL.name());
     }
 }

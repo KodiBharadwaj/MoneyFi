@@ -9,6 +9,8 @@ import { CountUpDirective } from '../shared/directives/count-up.directive';
 import { AddAmountGoalComponent } from '../add-amount-goal/add-amount-goal.component';
 import { ConfirmDeleteDialogComponent } from '../confirm-delete-dialog/confirm-delete-dialog.component';
 import { environment } from '../../environments/environment';
+import { Category } from '../model/category-list';
+import { CategoryService } from '../services/category.service';
 
 interface Goal {
   id: number;
@@ -47,7 +49,7 @@ interface inputGoal {
 })
 export class GoalsComponent {
 
-  constructor(private httpClient:HttpClient, private dialog: MatDialog, private router:Router, private toastr:ToastrService){};
+  constructor(private httpClient:HttpClient, private dialog: MatDialog, private router:Router, private toastr:ToastrService, private categoryService: CategoryService){};
   baseUrl = environment.BASE_URL;
 
   goals: Goal[] = [];
@@ -58,11 +60,13 @@ export class GoalsComponent {
   totalGoalTargetAmount : number = 0;
   addGoalLoading = false;
   addAmountGoalLoading = false;
+  categories: Category[] = [];
 
   month : number = 0;
   year : number = 0;
 
   ngOnInit() {
+    this.categoryService.getGoalCategories().subscribe(data => this.categories = data);
     this.loadIncomeFunction();
     this.loadGoalTileData();
     this.loadGoals();

@@ -19,8 +19,8 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
     List<Object[]> findMonthlyIncomes(Long userId, int year, boolean deleteStatus);
 
     @Query(nativeQuery = true, value = "exec getIncomeBySourceAndCategory @userId = :userId, " +
-            "@source = :source, @category = :category, @date = :date")
-    IncomeModel getIncomeBySourceAndCategory(Long userId, String source, String category, LocalDateTime date);
+            "@source = :source, @categoryId = :categoryId, @date = :date")
+    IncomeModel getIncomeBySourceAndCategory(Long userId, String source, Integer categoryId, LocalDateTime date);
 
     @Query("SELECT i.amount FROM IncomeModel i WHERE i.id = :incomeId")
     BigDecimal getIncomeByIncomeId(Long incomeId);

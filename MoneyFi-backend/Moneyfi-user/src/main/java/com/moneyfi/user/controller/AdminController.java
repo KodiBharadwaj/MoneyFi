@@ -192,13 +192,13 @@ public class AdminController {
     }
 
     @Operation(summary = "Api to cancel the user scheduling")
-    @PutMapping("schedule-notification/cancel")
+    @PutMapping("/schedule-notification/cancel")
     public void cancelTheUserScheduling(@RequestParam("id") Long scheduleId){
         adminService.cancelTheUserScheduling(scheduleId);
     }
 
     @Operation(summary = "Api to update the already scheduled notification")
-    @PutMapping("schedule-notification/update")
+    @PutMapping("/schedule-notification/update")
     public void updateAdminPlacedSchedules(@RequestBody @Valid AdminScheduleRequestDto requestDto){
         adminService.updateAdminPlacedSchedules(requestDto);
     }

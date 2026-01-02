@@ -12,6 +12,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { AddIncomeDialogComponent } from '../add-income-dialog/add-income-dialog.component';
+import { Category } from '../model/category-list';
+import { CategoryService } from '../services/category.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-add-income-dialog',
@@ -36,29 +39,39 @@ export class AddExpenseDialogComponent {
   expenseSource = {
     amount: '',
     date: new Date(),
-    category: '',
+    categoryId: null as number | null,
     description:'',
     recurring: false,
   };
 
+  categories: Category[] = [];
+  private editCategoryName?: string;
+
   dialogTitle: string;
+  flag : boolean = false;
   
   constructor(
+    private categoryService: CategoryService,
+    private toastr: ToastrService,
     public dialogRef: MatDialogRef<AddIncomeDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any 
   ) {
     const dialogData = data || {}; 
 
     if (dialogData.isUpdate) {
+      this.flag = true;
+      this.editCategoryName = dialogData.category;  
       this.dialogTitle = 'Update Expense'; 
       this.expenseSource = { ...dialogData }; 
+      this.getExpenseCategories();
     } else {
       this.dialogTitle = 'Add New Expense'; 
       this.expenseSource =  {amount: '',
         date: new Date(),
-        category: '',
+        categoryId: null,
         description:'',
         recurring: false,}
+        this.getExpenseCategories();
     }
   }
 
@@ -68,7 +81,7 @@ export class AddExpenseDialogComponent {
     return (
       this.expenseSource.amount !== '' &&
       this.expenseSource.date !== null &&
-      this.expenseSource.category.trim() !== '' &&
+      this.expenseSource.categoryId !== null &&
       this.expenseSource.description.trim() !== ''
     );
   }
@@ -81,6 +94,29 @@ export class AddExpenseDialogComponent {
           trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
       }
     }
+  }
+
+  getExpenseCategories(): void {
+    this.categoryService.getExpenseCategories()
+      .subscribe({
+        next: (categories) => {
+          this.categories = categories;
+
+          // 👇 map category name to ID in edit mode
+          if (this.flag && this.editCategoryName) {
+            const matched = this.categories.find(
+              c => c.category === this.editCategoryName
+            );
+
+            if (matched) {
+              this.expenseSource.categoryId = matched.categoryId;
+            }
+          }
+        },
+        error: () => {
+          this.toastr.error('Failed to load expense categories');
+        }
+      });
   }
   
 
