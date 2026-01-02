@@ -265,11 +265,9 @@ export class GoalsComponent {
         
         this.httpClient.put<any>(`${this.baseUrl}/api/v1/wealth-core/goal/${goal.id}`, goalData).subscribe({
           next: (updatedGoal) => {
-            // const newGoalConverted = this.modelConverterFunction(updatedGoal); 
-            // this.goals.push(newGoalConverted); 
-            
             this.toastr.success("Goal " + updatedGoal.goalName + " has been updated");
             this.loadGoals();
+            this.loadGoalTileData();
           },
           error: (error) => {
             console.error('Failed to update goal data:', error);

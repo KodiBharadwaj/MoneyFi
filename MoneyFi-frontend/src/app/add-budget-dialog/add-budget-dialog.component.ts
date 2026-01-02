@@ -14,6 +14,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { environment } from '../../environments/environment';
 import { Category } from '../model/category-list';
 import { CategoryService } from '../services/category.service';
+import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
 interface BudgetCategory {
   categoryId: number;
@@ -41,21 +43,20 @@ interface BudgetCategory {
 })
 export class AddBudgetDialogComponent {
   baseUrl = environment.BASE_URL;
+  totalIncome: number = 0;
+  categories: Category[] = [];
 
   budgetSource = {
     moneyLimit: 0,
     categories: [] as BudgetCategory[],
   };
 
-
-  totalIncome: number = 0;
-
-  categories: Category[] = [];
-
   constructor(
     public dialogRef: MatDialogRef<AddBudgetDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any ,
     private httpClient: HttpClient,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private router: Router,
+    private toastr: ToastrService
   ) {}
 
 
@@ -63,7 +64,6 @@ export class AddBudgetDialogComponent {
   ngOnInit() {
     this.categoryService.getExpenseCategories().subscribe(data => this.categories = data);
     
-    // Get current month and year
     const currentDate = new Date();
     const month = currentDate.getMonth() + 1; 
     const year = currentDate.getFullYear();
@@ -134,7 +134,6 @@ export class AddBudgetDialogComponent {
       return;
     }
 
-    // ✅ Send only what backend needs
     const payload = this.budgetSource.categories.map(c => ({
       categoryId: c.categoryId,
       percentage: c.percentage,

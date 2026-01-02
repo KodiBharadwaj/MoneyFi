@@ -152,22 +152,6 @@ export class ExpensesComponent {
       },
       error: (error) => {
         console.error('Failed to load expense data:', error);
-        if(error.status === 401){
-            if (error.error === 'TokenExpired') {
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            } else if(error.error === 'Token is blacklisted'){
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            }
-            else if(error.error === 'AuthorizationFailed'){
-              alert('Service Unavailable!! Please try later');
-            }
-          } else if (error.status === 503){
-            alert('Service Unavailable!! Please try later');
-          }
       },
       complete: () => {
         this.loading = false;
@@ -180,19 +164,6 @@ export class ExpensesComponent {
       },
       error: (error) => {
         console.error('Failed to load total income:', error);
-        if(error.status === 401){
-            if (error.error === 'TokenExpired') {
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            } else if(error.error === 'Token is blacklisted'){
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            }
-            else if(error.error === 'AuthorizationFailed'){
-            }
-          } else if (error.status === 503){
-            console.log('Service Unavailable!! Please try later');
-          }
       }
     });
   }
@@ -225,29 +196,13 @@ export class ExpensesComponent {
 
         this.httpClient.post<Expense>(`${this.baseUrl}/api/v1/transaction/expense/saveExpense`, expenseData).subscribe({
           next: (newExpense) => {
-            this.expenses.push(newExpense);
+            this.loadExpensesData()
             this.calculateTotalExpenses();
             this.updateChartData();
             this.toastr.success('Expense added successfully');
           },
           error: (error) => {
             console.error('Failed to load expense data:', error);
-            if(error.status === 401){
-            if (error.error === 'TokenExpired') {
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            } else if(error.error === 'Token is blacklisted'){
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            }
-            else if(error.error === 'AuthorizationFailed'){
-              alert('Service Unavailable!! Please try later');
-            }
-          } else if (error.status === 503){
-            alert('Service Unavailable!! Please try later');
-          }
           },
           complete: () => {
             this.loading = false;
@@ -295,22 +250,6 @@ export class ExpensesComponent {
           error: (error) => {
             console.error('Failed to update Expense:', error);
             this.toastr.error('Failed to update expense', 'Error');
-            if(error.status === 401){
-            if (error.error === 'TokenExpired') {
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            } else if(error.error === 'Token is blacklisted'){
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            }
-            else if(error.error === 'AuthorizationFailed'){
-              alert('Service Unavailable!! Please try later');
-            }
-          } else if (error.status === 503){
-            alert('Service Unavailable!! Please try later');
-          }
           },
         });
       }
@@ -355,8 +294,7 @@ export class ExpensesComponent {
             next: () => {
               this.toastr.warning("Expense " + expenseDataFetch?.description + " has been deleted");
             },
-            error: (err) => {
-              console.error('Error deleting expense:', err);
+            error: (error) => {
             }
           });
         }
@@ -480,22 +418,6 @@ export class ExpensesComponent {
           this.isLoading = false;
           console.error('Failed to generate report:', error);
           alert("Failed to generate the report. Please try again.");
-          if(error.status === 401){
-            if (error.error === 'TokenExpired') {
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            } else if(error.error === 'Token is blacklisted'){
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            }
-            else if(error.error === 'AuthorizationFailed'){
-              alert('Service Unavailable!! Please try later');
-            }
-          } else if (error.status === 503){
-            alert('Service Unavailable!! Please try later');
-          }
         }
       });
   }

@@ -26,11 +26,9 @@ export class AdminConfigurationComponent {
     const dialogRef = this.dialog.open(AdminScheduleDialogComponent, {
       width: '600px'
     });
-
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         console.log('Notification scheduled:', result);
-        // Optionally refresh list
       }
     });
   }
