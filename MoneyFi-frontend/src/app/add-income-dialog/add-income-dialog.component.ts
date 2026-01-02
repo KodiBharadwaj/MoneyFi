@@ -16,6 +16,7 @@ import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../environments/environment';
 import { CategoryService } from '../services/category.service';
 import { Category } from '../model/category-list';
+import { Router } from '@angular/router';
 
 interface IncomeSource {
   id: number;
@@ -68,6 +69,7 @@ export class AddIncomeDialogComponent{
     private httpClient:HttpClient,
     private categoryService: CategoryService,
     private toastr:ToastrService,
+    private router: Router,
     public dialogRef: MatDialogRef<AddIncomeDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
@@ -121,12 +123,10 @@ export class AddIncomeDialogComponent{
         next: (categories) => {
           this.categories = categories;
 
-          // 👇 map category name to ID in edit mode
           if (this.flag && this.editCategoryName) {
             const matched = this.categories.find(
               c => c.category === this.editCategoryName
             );
-
             if (matched) {
               this.incomeSource.categoryId = matched.categoryId;
             }

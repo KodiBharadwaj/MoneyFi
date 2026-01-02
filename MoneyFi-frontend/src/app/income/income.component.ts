@@ -149,22 +149,6 @@ export class IncomeComponent {
       error: (error) => {
         console.error('Failed to load income data:', error);
         console.log(error.error);
-        if(error.status === 401){
-          if (error.error === 'TokenExpired') {
-            alert('Your session has expired. Please login again.');
-            sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']);
-          } else if(error.error === 'Token is blacklisted'){
-            alert('Your session has expired. Please login again.');
-            sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']);
-          }
-          else if(error.error === 'AuthorizationFailed'){
-            alert('Service Unavailable!! Please try later');
-          }
-        } else if (error.status === 503){
-          alert('Service Unavailable!! Please try later');
-        }
       },
       complete: () => {
         this.loading = false;
@@ -206,22 +190,6 @@ export class IncomeComponent {
       },
       error: (error) => {
         console.error('Failed to load income data:', error);
-        if(error.status === 401){
-          if (error.error === 'TokenExpired') {
-            alert('Your session has expired. Please login again.');
-            sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']);
-          } else if(error.error === 'Token is blacklisted'){
-            alert('Your session has expired. Please login again.');
-            sessionStorage.removeItem('moneyfi.auth');
-            this.router.navigate(['/']);
-          }
-          else if(error.error === 'AuthorizationFailed'){
-            alert('Service Unavailable!! Please try later');
-          }
-        } else if (error.status === 503){
-          alert('Service Unavailable!! Please try later');
-        }
       },
       complete: () => {
         this.loading = false;
@@ -255,16 +223,6 @@ export class IncomeComponent {
         error: (error) => {
           this.isLoading = false;
           console.error('Failed to add income:', error);
-          if(error.status === 401){
-            if (error.error === 'TokenExpired' || error.error === 'Token is blacklisted') {
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            }
-          } else if (error.status === 503) {
-            alert('Service Unavailable!! Please try later');
-          }
-
           try {
             const errorObj = typeof error.error === 'string' ? JSON.parse(error.error) : error.error;
             this.toastr.error(errorObj.message);
@@ -303,15 +261,6 @@ export class IncomeComponent {
         },
         error: (error) => {
           console.error('Failed to update income:', error);
-          if(error.status === 401){
-            if (error.error === 'TokenExpired' || error.error === 'Token is blacklisted') {
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            }
-          } else if (error.status === 503) {
-            alert('Service Unavailable!! Please try later');
-          }
 
           try {
             const errorObj = typeof error.error === 'string' ? JSON.parse(error.error) : error.error;
@@ -381,22 +330,6 @@ export class IncomeComponent {
           },
           error: (error) => {
             console.error('Failed to delete income:', error);
-            if(error.status === 401){
-              if (error.error === 'TokenExpired') {
-                alert('Your session has expired. Please login again.');
-                sessionStorage.removeItem('moneyfi.auth');
-                this.router.navigate(['/']);
-              } else if(error.error === 'Token is blacklisted'){
-                alert('Your session has expired. Please login again.');
-                sessionStorage.removeItem('moneyfi.auth');
-                this.router.navigate(['/']);
-              }
-              else if(error.error === 'AuthorizationFailed'){
-                alert('Service Unavailable!! Please try later');
-              }
-            } else if (error.status === 503){
-              alert('Service Unavailable!! Please try later');
-            }
           }
         });
 
@@ -481,28 +414,8 @@ export class IncomeComponent {
       error: (error) => {
         this.isLoading = false;
         console.error('Failed to generate report:', error);
-        // alert("Failed to generate the report. Please try again.");
         console.log(error.status)
         console.log(error.error?.message);
-
-        if(error.status === 401){
-            if (error.error === 'TokenExpired') {
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            } else if(error.error === 'Token is blacklisted'){
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            }
-            else if(error.error === 'AuthorizationFailed'){
-              alert('Service Unavailable!! Please try later');
-            }
-          } else if (error.status === 503){
-            alert('Service Unavailable!! Please try later');
-          } else if (error.status === 404 && error?.message === 'No income data found to generate excel'){
-            this.toastr.error('Failed to generate report due to no data');
-          }
       }
     });
   }

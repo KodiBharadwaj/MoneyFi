@@ -234,6 +234,7 @@ dummyChartOptions: ChartConfiguration<'bar'>['options'] = {
                     timeOut: 1500  // time in milliseconds (3 seconds)
                   });
                   sessionStorage.removeItem('moneyfi.auth');
+                  localStorage.clear();
                   this.router.navigate(['admin/login']);
                 } 
                 else {

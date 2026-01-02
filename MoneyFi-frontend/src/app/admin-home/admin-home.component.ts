@@ -99,15 +99,15 @@ export class AdminHomeComponent implements OnInit {
 
   fetchCounts() {
     this.adminService.getUserCounts().subscribe(data => {
-      this.totalUsers = data.totalUsers;
-      this.activeUsers = data.activeUsers;
-      this.blockedUsers = data.blockedUsers;
-      this.deletedUsers = data.deletedUsers;
-      this.accountUnblockRequests = data.accountUnblockRequests;
-      this.nameChangeRequests = data.nameChangeRequests;
-      this.accountReactivateRequests = data.accountReactivateRequests
-      this.userDefectRaises = data.userDefectRaises;
-      this.userFeedbacks = data.userFeedbacks
+        this.totalUsers = data.totalUsers;
+        this.activeUsers = data.activeUsers;
+        this.blockedUsers = data.blockedUsers;
+        this.deletedUsers = data.deletedUsers;
+        this.accountUnblockRequests = data.accountUnblockRequests;
+        this.nameChangeRequests = data.nameChangeRequests;
+        this.accountReactivateRequests = data.accountReactivateRequests
+        this.userDefectRaises = data.userDefectRaises;
+        this.userFeedbacks = data.userFeedbacks
     });
   }
 
@@ -140,6 +140,7 @@ export class AdminHomeComponent implements OnInit {
                   timeOut: 1500  // time in milliseconds (3 seconds)
                 });
                 sessionStorage.removeItem('moneyfi.auth');
+                localStorage.clear();
                 this.router.navigate(['admin/login']);
               } 
               else {
