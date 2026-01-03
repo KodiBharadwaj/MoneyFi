@@ -15,9 +15,9 @@ import java.util.Random;
 
 import static com.moneyfi.user.util.enums.ReasonEnum.*;
 
-public class StringUtils {
+public class StringConstants {
 
-    private StringUtils() {}
+    private StringConstants() {}
 
     public static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 

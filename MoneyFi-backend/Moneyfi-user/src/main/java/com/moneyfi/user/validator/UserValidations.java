@@ -4,7 +4,7 @@ import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.dto.OtpTempModel;
 import com.moneyfi.user.model.dto.UserAuthModel;
 import com.moneyfi.user.service.common.dto.request.AccountBlockOrDeleteRequestDto;
-import com.moneyfi.user.util.constants.StringUtils;
+import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.AccDeactivationType;
 
 import java.time.LocalDateTime;
@@ -21,10 +21,10 @@ public class UserValidations {
 
     public static void checkPhoneNumberValidations(String phone) {
         if (!phone.matches("\\d+")) {
-            throw new ScenarioNotPossibleException(StringUtils.PHONE_NUMBER_DIGITS_ONLY_MESSAGE);
+            throw new ScenarioNotPossibleException(StringConstants.PHONE_NUMBER_DIGITS_ONLY_MESSAGE);
         }
         if (phone.length() != 10) {
-            throw new ScenarioNotPossibleException(StringUtils.PHONE_NUMBER_MAX_LENGTH_MESSAGE);
+            throw new ScenarioNotPossibleException(StringConstants.PHONE_NUMBER_MAX_LENGTH_MESSAGE);
         }
     }
 
@@ -49,7 +49,7 @@ public class UserValidations {
         }
         if (request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.DELETE.name())) {
             String userPassword = request.getPassword();
-            if (userPassword == null || userPassword.isEmpty() || !StringUtils.encoder.matches(userPassword, user.getPassword())) {
+            if (userPassword == null || userPassword.isEmpty() || !StringConstants.encoder.matches(userPassword, user.getPassword())) {
                 throw new ScenarioNotPossibleException(INCORRECT_PASSWORD_MESSAGE);
             }
         }

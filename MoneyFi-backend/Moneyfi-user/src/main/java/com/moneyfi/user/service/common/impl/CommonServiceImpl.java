@@ -1,21 +1,38 @@
 package com.moneyfi.user.service.common.impl;
 
+import com.moneyfi.user.model.UserNotification;
 import com.moneyfi.user.repository.ProfileRepository;
+import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.service.common.CommonService;
+import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.util.EmailTemplates;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import static com.moneyfi.user.util.constants.StringUtils.functionToGetNameOfUserWithUserId;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static com.moneyfi.user.util.constants.StringConstants.functionToGetNameOfUserWithUserId;
 
 @Service
+@Slf4j
 public class CommonServiceImpl implements CommonService {
 
+    private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
+
     private final ProfileRepository profileRepository;
+    private final CommonServiceRepository commonServiceRepository;
     private final EmailTemplates emailTemplates;
 
     public CommonServiceImpl(ProfileRepository profileRepository,
+                             CommonServiceRepository commonServiceRepository,
                              EmailTemplates emailTemplates) {
         this.profileRepository = profileRepository;
+        this.commonServiceRepository = commonServiceRepository;
         this.emailTemplates = emailTemplates;
     }
 
@@ -36,6 +53,68 @@ public class CommonServiceImpl implements CommonService {
             return emailTemplates.sendSpendingAnalysisEmail(!name.trim().isEmpty() ? name : "User", username, pdfBytes);
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public SseEmitter addEmitterForNotification(String username) {
+        log.info("checking username: {}", username);
+        SseEmitter emitter = new SseEmitter(0L);
+        emitters.put(username, emitter);
+        log.info("checking emitter: {}", emitters);
+        emitter.onCompletion(() -> emitters.remove(username));
+        emitter.onTimeout(() -> emitters.remove(username));
+        emitter.onError(e -> emitters.remove(username));
+        return emitter;
+    }
+
+    @Async
+    public void asyncNotificationHandler(List<UserNotification> notificationsList, Long scheduleId) {
+        notificationsList.forEach(notification -> {
+            sendLatestNotificationSeamlessly(notification.getUsername(), scheduleId);
+            sendNotificationCountSeamlessly(notification.getUsername());
+        });
+    }
+
+    private void sendLatestNotificationSeamlessly(String username, Long scheduleId) {
+        Optional<UserNotificationResponseDto> latestNotification = commonServiceRepository.getUserNotifications(username)
+                .stream()
+                .filter(notification -> notification.getScheduleId().equals(scheduleId) && !notification.isRead())
+                .findFirst();
+        log.info("checking username: {}", username);
+        log.info("checking latest record: {}", latestNotification);
+        latestNotification.ifPresent(userNotificationResponseDto -> pushLatestNotification(username, userNotificationResponseDto));
+    }
+
+    private void sendNotificationCountSeamlessly(String username) {
+        pushNotificationCount(username, Math.toIntExact(commonServiceRepository.getUserNotifications(username)
+                .stream()
+                .filter(notification -> !notification.isRead())
+                .count()));
+    }
+
+    private void pushLatestNotification(String username, UserNotificationResponseDto userNotification) {
+        pushEvent(username, "notification", userNotification);
+    }
+
+    private void pushNotificationCount(String username, Integer notificationCount) {
+        pushEvent(username, "notification-count", notificationCount);
+    }
+
+    private void pushEvent(String username, String eventName, Object data) {
+        SseEmitter emitter = emitters.get(username);
+        log.info("SSE push [{}] for user {} -> emitter: {}", eventName, username, emitter);
+        if (emitter != null) {
+            try {
+                emitter.send(
+                        SseEmitter.event()
+                                .name(eventName)
+                                .data(data)
+                );
+            } catch (Exception e) {
+                log.error("SSE error for user {}. Removing emitter.", username, e);
+                emitters.remove(username);
+            }
         }
     }
 }

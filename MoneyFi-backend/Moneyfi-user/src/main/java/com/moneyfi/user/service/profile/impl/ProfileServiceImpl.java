@@ -18,7 +18,7 @@ import com.moneyfi.user.service.common.dto.request.UserFeedbackRequestDto;
 import com.moneyfi.user.service.profile.ProfileService;
 import com.moneyfi.user.service.profile.dto.ProfileDetailsDto;
 import com.moneyfi.user.util.EmailTemplates;
-import com.moneyfi.user.util.constants.StringUtils;
+import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.RaiseRequestStatus;
 import com.moneyfi.user.util.enums.RequestReason;
 import com.moneyfi.user.validator.UserValidations;
@@ -42,7 +42,7 @@ import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-import static com.moneyfi.user.util.constants.StringUtils.*;
+import static com.moneyfi.user.util.constants.StringConstants.*;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
@@ -127,7 +127,7 @@ public class ProfileServiceImpl implements ProfileService {
         if (!username.equals(userDefectRequestDto.getEmail().trim())) {
             throw new BadRequestException(EMAIL_MISMATCH_MESSAGE);
         }
-        String referenceNumber = StringUtils.generateAlphabetCode() + generateVerificationCode();
+        String referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
 
         ContactUs userDefect = new ContactUs();
         userDefect.setEmail(userDefectRequestDto.getEmail());

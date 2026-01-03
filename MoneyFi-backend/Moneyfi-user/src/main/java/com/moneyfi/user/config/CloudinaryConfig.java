@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Profile;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.moneyfi.user.util.constants.StringUtils.*;
+import static com.moneyfi.user.util.constants.StringConstants.*;
 
 @Configuration
 @Profile("local")

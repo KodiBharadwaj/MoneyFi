@@ -36,8 +36,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.moneyfi.user.util.constants.StringUtils.*;
-import static com.moneyfi.user.util.constants.StringUtils.USER_NOT_FOUND;
+import static com.moneyfi.user.util.constants.StringConstants.*;
+import static com.moneyfi.user.util.constants.StringConstants.USER_NOT_FOUND;
 
 @Service
 @Slf4j
@@ -424,7 +424,6 @@ public class AdminServiceImpl implements AdminService {
         ScheduleNotification scheduleNotification = new ScheduleNotification();
         BeanUtils.copyProperties(requestDto, scheduleNotification);
         ScheduleNotification response = scheduleNotificationRepository.save(scheduleNotification);
-
         if (!requestDto.getRecipients().equalsIgnoreCase("All")) {
             userCommonService.saveUserNotificationsForParticularUsers(requestDto.getRecipients(), response.getId());
         } else {
