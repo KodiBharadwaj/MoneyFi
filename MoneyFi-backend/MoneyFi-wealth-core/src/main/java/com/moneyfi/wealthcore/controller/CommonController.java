@@ -2,7 +2,6 @@ package com.moneyfi.wealthcore.controller;
 
 import com.moneyfi.wealthcore.service.admin.dto.response.CategoryResponseDto;
 import com.moneyfi.wealthcore.service.common.CommonService;
-import com.moneyfi.wealthcore.service.wealthcore.WealthCoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -28,7 +28,7 @@ export class AdminConfigurationComponent {
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        console.log('Notification scheduled:', result);
+        this.toastr.success('Notification Scheduled successfully')
       }
     });
   }

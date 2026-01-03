@@ -1,6 +1,5 @@
 package com.moneyfi.user.service.common;
 
-import com.moneyfi.user.model.dto.UserAuthModel;
 import com.moneyfi.user.service.common.dto.request.*;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserRequestStatusDto;
@@ -42,7 +41,7 @@ public interface UserCommonService {
 
     void saveUserNotificationsForParticularUsers(String recipients, Long scheduleId);
 
-    void saveUserNotificationsForAllUsers(List<String> recipients, Long id);
+    void saveUserNotificationsForAllUsers(List<String> recipients, Long scheduleId);
 
     ResponseEntity<String> blockOrDeleteAccountByUserRequest(String username, AccountBlockOrDeleteRequestDto request);
 

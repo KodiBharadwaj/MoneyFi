@@ -1,13 +1,14 @@
 package com.moneyfi.user.service.common.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 
-import static com.moneyfi.user.util.constants.StringUtils.DATE_TIME_PATTERN;
+import static com.moneyfi.user.util.constants.StringConstants.DATE_TIME_PATTERN;
 
 
 @Data
@@ -22,4 +23,6 @@ public class UserNotificationResponseDto {
     @JsonFormat(pattern = DATE_TIME_PATTERN)
     private Timestamp scheduleTo;
     private boolean isRead;
+    @JsonIgnore
+    private Long scheduleId;
 }

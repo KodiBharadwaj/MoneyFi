@@ -4,7 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.moneyfi.user.exceptions.CloudinaryImageException;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.service.common.CloudinaryService;
-import com.moneyfi.user.util.constants.StringUtils;
+import com.moneyfi.user.util.constants.StringConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 
-import static com.moneyfi.user.util.constants.StringUtils.UPLOAD_PROFILE_PICTURE;
+import static com.moneyfi.user.util.constants.StringConstants.UPLOAD_PROFILE_PICTURE;
 
 @Slf4j
 @Service
@@ -40,7 +40,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
 
     @Override
     public Map uploadPictureToCloudinary(MultipartFile file, Long id, String username, String uploadPurpose) {
-        String fileName = StringUtils.generateFileNameForPictureUpload(id, username, uploadPurpose);
+        String fileName = StringConstants.generateFileNameForPictureUpload(id, username, uploadPurpose);
         try {
             return this.cloudinary.uploader().upload(
                     file.getBytes(),
@@ -53,7 +53,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
 
     @Override
     public byte[] getImageFromCloudinary(Long id, String username, String imageType) {
-        String fileName = StringUtils.generateFileNameForPictureUpload(id, username, imageType);
+        String fileName = StringConstants.generateFileNameForPictureUpload(id, username, imageType);
         try (InputStream inputStream =
                      new URL(cloudinary.url().secure(true).generate(fileName)).openStream()) {
             return inputStream.readAllBytes();
@@ -66,7 +66,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
 
     @Override
     public ResponseEntity<String> deleteProfilePictureFromCloudinary(Long userId, String username) {
-        String fileName = StringUtils.generateFileNameForPictureUpload(userId, username, UPLOAD_PROFILE_PICTURE);
+        String fileName = StringConstants.generateFileNameForPictureUpload(userId, username, UPLOAD_PROFILE_PICTURE);
         try {
             Map result = this.cloudinary.uploader().destroy(fileName, Map.of());
             if (OK.equals(result.get(RESULT))) {

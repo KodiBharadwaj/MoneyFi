@@ -22,8 +22,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import static com.moneyfi.user.util.constants.StringUtils.UPLOAD_PROFILE_PICTURE;
-import static com.moneyfi.user.util.constants.StringUtils.generateFileNameForPictureUpload;
+import static com.moneyfi.user.util.constants.StringConstants.UPLOAD_PROFILE_PICTURE;
+import static com.moneyfi.user.util.constants.StringConstants.generateFileNameForPictureUpload;
 
 @Service
 public class AwsServicesImpl implements AwsServices {

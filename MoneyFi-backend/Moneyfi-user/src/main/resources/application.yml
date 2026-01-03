@@ -34,6 +34,9 @@ spring:
 jwt:
   secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
 
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS}
+
 eureka:
   client:
     service-url:

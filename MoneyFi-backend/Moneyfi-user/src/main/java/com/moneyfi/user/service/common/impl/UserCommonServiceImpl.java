@@ -1,6 +1,5 @@
 package com.moneyfi.user.service.common.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
@@ -14,13 +13,13 @@ import com.moneyfi.user.repository.*;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.service.common.AwsServices;
 import com.moneyfi.user.service.common.CloudinaryService;
+import com.moneyfi.user.service.common.CommonService;
 import com.moneyfi.user.service.common.UserCommonService;
 import com.moneyfi.user.service.common.dto.request.*;
-import com.moneyfi.user.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserRequestStatusDto;
 import com.moneyfi.user.util.EmailTemplates;
-import com.moneyfi.user.util.constants.StringUtils;
+import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.UserValidations;
 import jakarta.transaction.Transactional;
@@ -31,7 +30,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -39,7 +37,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.moneyfi.user.util.constants.StringUtils.*;
+import static com.moneyfi.user.util.constants.StringConstants.*;
 
 @Service
 @Slf4j
@@ -57,6 +55,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final UserNotificationRepository userNotificationRepository;
     private final EmailTemplates emailTemplates;
     private final ReasonDetailsRepository reasonDetailsRepository;
+    private final CommonService commonService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -68,7 +67,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  CommonServiceRepository commonServiceRepository,
                                  UserNotificationRepository userNotificationRepository,
                                  EmailTemplates emailTemplates,
-                                 ReasonDetailsRepository reasonDetailsRepository){
+                                 ReasonDetailsRepository reasonDetailsRepository,
+                                 CommonService commonService){
         this.cloudinaryService = cloudinaryService;
         this.awsServices = awsServices;
         this.profileRepository = profileRepository;
@@ -78,6 +78,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.userNotificationRepository = userNotificationRepository;
         this.emailTemplates = emailTemplates;
         this.reasonDetailsRepository = reasonDetailsRepository;
+        this.commonService = commonService;
     }
 
     private static final String REFERENCE_NUMBER_SENT = "Reference already sent, Please submit your details";
@@ -316,7 +317,6 @@ public class UserCommonServiceImpl implements UserCommonService {
         if(requestDto.getEmail() == null || requestDto.getPhoneNumber() == null || requestDto.getName() == null || requestDto.getDescription() == null){
             throw new ScenarioNotPossibleException("Input fields cannot be null");
         }
-
         String email = requestDto.getEmail().trim();
         String phoneNumber = requestDto.getPhoneNumber().trim();
         if(email.isEmpty() || phoneNumber.isEmpty() || requestDto.getName().trim().isEmpty() || requestDto.getDescription().trim().isEmpty()) {
@@ -332,28 +332,34 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
+    @Transactional(rollbackOn = Exception.class)
     public void saveUserNotificationsForParticularUsers(String recipients, Long scheduleId) {
         List<UserNotification> userNotificationListForSpecifiedUsers = new ArrayList<>();
         Arrays.stream(recipients.split(","))
                 .map(String::trim)
                 .forEach(username -> userNotificationListForSpecifiedUsers.add(new UserNotification(username, scheduleId, false)));
         userNotificationRepository.saveAll(userNotificationListForSpecifiedUsers);
+        commonService.asyncNotificationHandler(userNotificationListForSpecifiedUsers, scheduleId);
     }
 
     @Override
     @Async
-    public void saveUserNotificationsForAllUsers(List<String> users, Long notificationId) {
+    public void saveUserNotificationsForAllUsers(List<String> users, Long scheduleId) {
+        List<UserNotification> fullBatchList = new ArrayList<>();
         List<UserNotification> batch = new ArrayList<>();
         for (String username : users) {
-            batch.add(new UserNotification(username, notificationId, false));
+            batch.add(new UserNotification(username, scheduleId, false));
             if (batch.size() == 1000) {
+                fullBatchList.addAll(batch);
                 userNotificationRepository.saveAll(batch);
                 batch.clear();
             }
         }
         if (!batch.isEmpty()) {
+            fullBatchList.addAll(batch);
             userNotificationRepository.saveAll(batch);
         }
+        commonService.asyncNotificationHandler(fullBatchList, scheduleId);
     }
 
     @Override
@@ -435,6 +441,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<String> getReasonsForDialogForUser(int reasonCode) {
         return reasonDetailsRepository.findAll()
                 .stream()
@@ -464,11 +471,11 @@ public class UserCommonServiceImpl implements UserCommonService {
 
         Optional<OtpTempProjection> otpTempProjection = profileRepository.getOtpTempDetails(username, deactivationType, LocalDateTime.now());
         if(otpTempProjection.isPresent()){
-            OtpTempModel response = StringUtils.convertOtpTempModelInterfaceToDto(otpTempProjection.get());
+            OtpTempModel response = StringConstants.convertOtpTempModelInterfaceToDto(otpTempProjection.get());
             UserValidations.otpCheckDuringAccountDeactivationValidations(request, response, user);
 
             ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
-            String referenceNumber = StringUtils.generateReferenceNumberForUserToSendEmail(referencePrefix, userProfile, username);
+            String referenceNumber = StringConstants.generateReferenceNumberForUserToSendEmail(referencePrefix, userProfile, username);
 
             ContactUs accountDeactivationRequest = new ContactUs();
             UserAuthHist userAuthHist = new UserAuthHist();

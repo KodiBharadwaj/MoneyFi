@@ -72,7 +72,6 @@ public class CommonServiceRepositoryImpl implements CommonServiceRepository {
                     .setParameter("username", username)
                     .unwrap(NativeQuery.class)
                     .setResultTransformer(Transformers.aliasToBean(UserNotificationResponseDto.class));
-
             userNotificationsList.addAll(query.getResultList());
             return userNotificationsList;
         } catch (Exception e) {
