@@ -50,11 +50,6 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.google.auth</groupId>
-            <artifactId>google-auth-library-oauth2-http</artifactId>
-        </dependency>
-
         <!-- spring mail -->
         <dependency>
             <groupId>jakarta.mail</groupId>
