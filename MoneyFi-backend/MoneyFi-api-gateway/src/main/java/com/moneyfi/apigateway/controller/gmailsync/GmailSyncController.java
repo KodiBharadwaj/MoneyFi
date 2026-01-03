@@ -2,6 +2,7 @@ package com.moneyfi.apigateway.controller.gmailsync;
 
 import com.moneyfi.apigateway.dto.ParsedTransaction;
 import com.moneyfi.apigateway.model.gmailsync.GmailAuth;
+import com.moneyfi.apigateway.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.apigateway.service.gmailsync.GmailSyncService;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 
@@ -22,13 +24,14 @@ public class GmailSyncController {
 
     private final GmailSyncService gmailSyncService;
     private final UserService userService;
+    private final GmailSyncRepository gmailSyncRepository;
 
-    @Operation(summary = "Api to sync transaction related emails and return data to user to verify")
+    @Operation(summary = "Api to silent verification without further google consent")
     @PostMapping("/enable")
-    public ResponseEntity<Map<Integer, List<ParsedTransaction>>> enableSync(Authentication authentication,
-                                                              @RequestBody Map<String, String> body) throws IOException {
-        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        return ResponseEntity.ok(gmailSyncService.enableSync(body.get("code"), userId));
+    public void enableSync(Authentication authentication,
+                           @RequestBody Map<String, String> body) {
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        gmailSyncService.enableSync(body.get("code"), username, userService.getUserIdByUsername(username));
     }
 
     @Operation(summary = "Api to check the status of user to sync email")
@@ -37,5 +40,19 @@ public class GmailSyncController {
         Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         GmailAuth gmailAuth = gmailSyncService.isSyncEnabled(userId);
         return ResponseEntity.ok(gmailAuth != null ? gmailAuth.getCount() != null ? gmailAuth.getCount() : 0 : 0);
+    }
+
+    @Operation(summary = "Api to check the consent status of the user")
+    @GetMapping("/consent-status")
+    public Map<String, Boolean> consentStatus(Authentication authentication) {
+        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        return gmailSyncService.getConsentStatus(userId);
+    }
+
+    @Operation(summary = "Api to sync transaction related emails and return data to user to verify")
+    @PostMapping("/start")
+    public ResponseEntity<Map<Integer, List<ParsedTransaction>>> startSync(Authentication auth) throws IOException, URISyntaxException {
+        Long userId = userService.getUserIdByUsername(((UserDetails) auth.getPrincipal()).getUsername());
+        return ResponseEntity.ok(gmailSyncService.startSync(userId));
     }
 }

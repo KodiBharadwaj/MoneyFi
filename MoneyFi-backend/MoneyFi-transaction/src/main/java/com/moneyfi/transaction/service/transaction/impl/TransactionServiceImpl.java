@@ -122,6 +122,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
         incomeRepository.saveAll(incomesToBeSaved);
         expenseRepository.saveAll(expensesToBeSaved);
+        transactionRepository.updateGmailProcessedAsVerified(transactions.stream().map(ParsedTransaction::getGmailProcessedId).toList());
     }
 
     private String makeUsernamePrivate(String username){

@@ -69,3 +69,11 @@ values (1, 'profile-template.xlsx', 0x504B03041400060008000000210062EE9D685E0100
 INSERT INTO reason_code_table (id, name)
 VALUES (1, 'Block Account'), (2, 'Password Change'), (3, 'Name Change'), (4, 'Unblock Account'), (5, 'Delete Account'), (6, 'Account retrieval'), (7, 'Phone Number Change'), (8, 'Ignore User Request');
 
+
+
+--sample code for primary foreign key relationship
+ALTER TABLE user_notification_table
+ADD CONSTRAINT FK_user_notification_schedule_id
+FOREIGN KEY (schedule_id) 
+REFERENCES schedule_notification_table(id);
+

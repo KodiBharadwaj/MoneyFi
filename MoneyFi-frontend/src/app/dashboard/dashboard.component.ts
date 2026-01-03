@@ -53,6 +53,8 @@ export class DashboardComponent implements OnInit{
   categories: any[] = [];
 
   gmailSyncEnabled = false;
+  isGmailConnected = false;
+
 
   ngOnInit(): void {
     this.notificationService.notificationCount$.subscribe(count => {
@@ -60,8 +62,14 @@ export class DashboardComponent implements OnInit{
     });
     this.notificationService.loadNotificationCount();
 
+    this.httpClient.get<{ connected: boolean }>(
+      `${this.baseUrl}/api/v1/gmail-sync/consent-status`
+    ).subscribe(res => {
+      this.isGmailConnected = res.connected;
+    });
+
     this.checkGmailSyncStatus();
-    this.initGmailSync();
+    // this.initGmailSync();
     this.onTypeChange();
     this.subscribeToNotifications();
   }
@@ -164,42 +172,60 @@ export class DashboardComponent implements OnInit{
   }
   
 
-checkGmailSyncStatus() {
-  this.httpClient
-    .get<number>(`${this.baseUrl}/api/v1/gmail-sync/status`)
-    .subscribe((res) => {
-      if(res >= 3)
-      this.gmailSyncEnabled = true; else this.gmailSyncEnabled = false;
-    });
-}
+  checkGmailSyncStatus() {
+    this.httpClient
+      .get<number>(`${this.baseUrl}/api/v1/gmail-sync/status`)
+      .subscribe((res) => {
+        if(res >= 3)
+        this.gmailSyncEnabled = true; else this.gmailSyncEnabled = false;
+      });
+  }
 
-initGmailSync() {
-  setTimeout(() => {
-    const btn = document.getElementById('gmail-sync-btn');
-    if (!btn) return;
+  onGmailSyncClick() {
+    if (this.isGmailConnected) {
+      // Silent sync
+      this.startSync();
+    } else {
+      // First-time auth
+      this.startGoogleConsent();
+    }
+  }
 
+  startGoogleConsent() {
     const client = google.accounts.oauth2.initCodeClient({
       client_id: environment.GOOGLE_CLIENT_ID,
-      scope:
-        'openid email profile https://www.googleapis.com/auth/gmail.readonly',
-      ux_mode: 'popup',
+      scope: 'openid email profile https://www.googleapis.com/auth/gmail.readonly',
+      access_type: 'offline',
+      prompt: 'consent', // ONLY here
       callback: (response: any) => this.handleGmailSync(response),
     });
+    client.requestCode();
+  }
 
-    btn.addEventListener('click', () => client.requestCode());
-  }, 0);
-}
+  startSync() {
+    const dialogRef = this.dialog.open(GmailSyncDialogComponent, {
+      width: '80vw',
+      maxHeight: '85vh',
+      disableClose: true,
+      backdropClass: 'gmail-sync-backdrop',
+    });
+    this.checkGmailSyncStatus();
+  }
 
-handleGmailSync(response: any) {
-  this.dialog.open(GmailSyncDialogComponent, {
-    width: '80vw',
-    maxHeight: '85vh',
-    disableClose: true,
-    backdropClass: 'gmail-sync-backdrop',
-    data: { code: response.code },
-  });
-}
-
+  handleGmailSync(response: any) {
+    this.httpClient
+      .post(`${this.baseUrl}/api/v1/gmail-sync/enable`, { code: response.code })
+      .subscribe({
+        next: () => {
+          console.log('Gmail sync enabled');
+          this.isGmailConnected = true;
+          this.startSync(); // ✅ start ONLY after backend success
+        },
+        error: (err) => {
+          console.error('Failed to enable Gmail sync', err);
+        }
+      });
+  }
   
 }
 

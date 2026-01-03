@@ -1,7 +1,10 @@
-package com.moneyfi.apigateway.service.common;
+package com.moneyfi.apigateway.exceptions.handler;
 
-import com.moneyfi.apigateway.exceptions.*;
-import com.moneyfi.apigateway.service.common.dto.response.ErrorResponse;
+import com.moneyfi.apigateway.exceptions.CustomAuthenticationFailedException;
+import com.moneyfi.apigateway.exceptions.CustomInternalServerErrorException;
+import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
+import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
+import com.moneyfi.apigateway.exceptions.dto.response.ErrorResponse;
 import jakarta.ws.rs.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +28,11 @@ public class ErrorHandler {
     @ExceptionHandler({BadCredentialsException.class})
     public ResponseEntity<ErrorResponse> handleBadCredentialsExceptionFunction(BadCredentialsException ex) {
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage()), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler({CustomAuthenticationFailedException.class})
+    public ResponseEntity<ErrorResponse> handleForbiddenExceptionFunction(CustomAuthenticationFailedException ex) {
+        return new ResponseEntity<>(new ErrorResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage()), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler({CustomInternalServerErrorException.class})

@@ -31,6 +31,11 @@ public class AppConfig {
         return new RestTemplate();
     }
 
+    @Bean
+    public RestTemplate externalRestTemplate() {
+        return new RestTemplate();
+    }
+
     /** Aws s3 security connection **/
     @Bean
     public AmazonS3 s3Client(){

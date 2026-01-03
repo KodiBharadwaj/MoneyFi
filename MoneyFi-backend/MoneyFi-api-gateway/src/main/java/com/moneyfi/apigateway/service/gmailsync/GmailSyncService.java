@@ -3,14 +3,14 @@ package com.moneyfi.apigateway.service.gmailsync;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.gmail.Gmail;
-import com.google.api.services.gmail.GmailScopes;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePart;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.AccessToken;
-import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.UserCredentials;
 import com.moneyfi.apigateway.dto.ParsedTransaction;
+import com.moneyfi.apigateway.exceptions.CustomAuthenticationFailedException;
 import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.gmailsync.GmailAuth;
 import com.moneyfi.apigateway.model.gmailsync.GmailProcessedMessageEntity;
@@ -31,6 +31,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -52,16 +54,12 @@ public class GmailSyncService {
     private String googleClientSecret;
 
     private final RestTemplate externalRestTemplateForOAuth;
-    private final GmailSyncRepository gmailAuthRepository;
+    private final GmailSyncRepository gmailSyncRepository;
     private final CryptoUtil cryptoUtil;
-    private final GmailProcessedMessageRepository processedRepo;
+    private final GmailProcessedMessageRepository processedRepository;
     private final CommonServiceRepository commonServiceRepository;
 
-    public Map<Integer, List<ParsedTransaction>> enableSync(String code, Long userId) throws IOException {
-        GmailAuth gmailAuth = isSyncEnabled(userId);
-        if(gmailAuth != null && gmailAuth.getCount() >= 3) throw new ScenarioNotPossibleException("Sync limit crossed for today. Please try tomorrow");
-        else if(gmailAuth == null) gmailAuth = new GmailAuth();
-
+    public void enableSync(String code, String username, Long userId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -75,40 +73,59 @@ public class GmailSyncService {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
         Map<String, Object> tokenResponse = externalRestTemplateForOAuth.postForObject("https://oauth2.googleapis.com/token", request, Map.class);
 
-        gmailAuth.setUserId(userId);
-        gmailAuth.setAccessToken(cryptoUtil.encrypt((String) tokenResponse.get("access_token")));
-        gmailAuth.setRefreshToken(cryptoUtil.encrypt((String) tokenResponse.get("refresh_token")));
-        gmailAuth.setExpiresAt(Instant.now().plusSeconds(((Number) tokenResponse.get("expires_in")).longValue()));
-        gmailAuth.setCount((gmailAuth.getCount() != null ? gmailAuth.getCount() : 0) + 1);
-        gmailAuthRepository.save(gmailAuth);
-        List<ParsedTransaction> transactions = syncEmails(userId)
-                .stream()
-                .filter(Objects::nonNull)
-                .toList();
-        Map<Integer, List<ParsedTransaction>> resultMap = new HashMap<>();
-        resultMap.put(3 - gmailAuth.getCount(), transactions);
-        /** return new HashMap<>(Map.of(2, List.of(new ParsedTransaction(1, "Upi", new BigDecimal("123"), "CREDIT OR DEBIT", LocalDateTime.now())))); **/
-        return resultMap;
+        HttpHeaders authHeaders = new HttpHeaders();
+        authHeaders.setBearerAuth((String) tokenResponse.get("access_token"));
+        HttpEntity<Void> authRequest = new HttpEntity<>(authHeaders);
+        Map<String, Object> userInfo = externalRestTemplateForOAuth.exchange("https://openidconnect.googleapis.com/v1/userinfo", HttpMethod.GET, authRequest, Map.class).getBody();
+
+        String gmailFromCode = (String) userInfo.get("email");
+        if(!username.trim().equals(gmailFromCode.trim())) throw new CustomAuthenticationFailedException("Unauthorized Access");
+
+        GmailAuth newAuth = new GmailAuth();
+        Optional<GmailAuth> gmailAuth = gmailSyncRepository.findByUserId(userId);
+        if(gmailAuth.isPresent()) newAuth = gmailAuth.get();
+        newAuth.setUserId(userId);
+        newAuth.setAccessToken(cryptoUtil.encrypt((String) tokenResponse.get("access_token")));
+        newAuth.setRefreshToken(cryptoUtil.encrypt((String) tokenResponse.get("refresh_token")));
+        newAuth.setExpiresAt(Instant.now().plusSeconds(((Number) tokenResponse.get("expires_in")).longValue()));
+        gmailSyncRepository.save(newAuth);
     }
 
     public GmailAuth isSyncEnabled(Long userId) {
-        return gmailAuthRepository.existsByUserId(userId).orElse(null);
+        return gmailSyncRepository.existsByUserId(userId).orElse(null);
     }
 
-    public List<ParsedTransaction> syncEmails(Long userId) throws IOException {
-        Gmail gmail = gmailClientForUser(userId);
+    public Map<String, Boolean> getConsentStatus(Long userId) {
+        boolean connected = gmailSyncRepository
+                .findByUserId(userId)
+                .filter(auth -> auth.getRefreshToken() != null)
+                .isPresent();
+        return Map.of("connected", connected);
+    }
 
+    public Map<Integer, List<ParsedTransaction>> startSync(Long userId) throws IOException, URISyntaxException {
+        GmailAuth gmailAuth = isSyncEnabled(userId);
+        if(gmailAuth != null && gmailAuth.getCount() >= 3) throw new ScenarioNotPossibleException("Sync limit crossed for today. Please try tomorrow");
+        else if(gmailAuth == null) gmailAuth = new GmailAuth();
+
+        gmailAuth.setCount((gmailAuth.getCount() != null ? gmailAuth.getCount() : 0) + 1);
+        gmailSyncRepository.save(gmailAuth);
+        /** return new HashMap<>(Map.of(2, List.of(new ParsedTransaction(1, "Upi", new BigDecimal("123"), "CREDIT OR DEBIT", LocalDateTime.now())))); **/
+        return Map.of(3 - gmailAuth.getCount(), syncEmails(userId).stream().filter(Objects::nonNull).toList());
+    }
+
+    public List<ParsedTransaction> syncEmails(Long userId) throws IOException, URISyntaxException {
+        Gmail gmail = gmailClientForUser(userId);
         /** String query =
                 "from:(@hdfcbank.net OR @icicibank.com OR @sbi.co.in OR @microsoftonline.com OR @gmail.com) " +
                         "subject:(debited OR credited OR UPI OR MoneyFi - user requests) newer_than:7d"; **/
-
         String query = "after:" + LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
         ListMessagesResponse response = gmail.users().messages().list("me")
                         .setQ(query)
                         .setIncludeSpamTrash(false)
                         .setMaxResults(10L)
                         .execute();
-        if (response.getMessages() == null) return null;
+        if (response.getMessages() == null) return new ArrayList<>();
 
         List<String> categories = commonServiceRepository.getCategoriesBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
         Map<String, Integer> categoryNameIdMap = new HashMap<>();
@@ -121,21 +138,41 @@ public class GmailSyncService {
         for (Message msg : response.getMessages()) {
             if (alreadyProcessed(msg.getId(), userId)) continue;
             Message fullMessage = gmail.users().messages().get("me", msg.getId()).execute();
-            ParsedTransaction parsedTransaction = parseTransaction(fullMessage, categoryNameIdMap);
-            if(parsedTransaction != null && Objects.equals(parsedTransaction.getCategoryId(), categoryNameIdMap.get("Other"))
-                    && parsedTransaction.getDescription().equalsIgnoreCase("Bank transaction") && parsedTransaction.getTransactionType().equalsIgnoreCase("Unrecognized")) continue;
-            responseList.add(parsedTransaction);
-            markProcessed(msg.getId(), userId);
+            try {
+                ParsedTransaction parsedTransaction = parseTransaction(fullMessage, categoryNameIdMap);
+                if(parsedTransaction == null) continue;
+                if(Objects.equals(parsedTransaction.getCategoryId(), categoryNameIdMap.get("Other"))
+                        && parsedTransaction.getDescription().equalsIgnoreCase("Bank transaction") && parsedTransaction.getTransactionType().equalsIgnoreCase("Unrecognized")) continue;
+                parsedTransaction.setGmailProcessedId(markProcessed(msg.getId(), userId));
+                responseList.add(parsedTransaction);
+            } catch (Exception ex) {
+                log.warn(
+                        "Skipping email {} for user {} due to parse error: {}",
+                        msg.getId(),
+                        userId,
+                        ex.getMessage()
+                );
+            }
         }
         return responseList;
     }
 
-    private Gmail gmailClientForUser(Long userId) throws IOException {
-        GmailAuth auth = gmailAuthRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("Gmail sync not enabled for user"));
-        String accessToken = cryptoUtil.decrypt(auth.getAccessToken());
-        AccessToken token = new AccessToken(accessToken, Date.from(auth.getExpiresAt()));
-        GoogleCredentials credentials = GoogleCredentials.create(token).createScoped(Collections.singleton(GmailScopes.GMAIL_READONLY));
-        credentials.refreshIfExpired();
+    private Gmail gmailClientForUser(Long userId) throws IOException, URISyntaxException {
+        GmailAuth auth = gmailSyncRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("Gmail sync not enabled"));
+
+        UserCredentials credentials = UserCredentials.newBuilder().setClientId(googleClientId)
+                        .setClientSecret(googleClientSecret)
+                        .setAccessToken(new AccessToken(cryptoUtil.decrypt(auth.getAccessToken()), Date.from(auth.getExpiresAt())))
+                        .setRefreshToken(cryptoUtil.decrypt(auth.getRefreshToken()))
+                        .setTokenServerUri(new URI("https://oauth2.googleapis.com/token"))
+                        .build();
+        if (credentials.getAccessToken().getExpirationTime().before(new Date())) {
+            credentials.refresh();
+            AccessToken refreshed = credentials.getAccessToken();
+            auth.setAccessToken(cryptoUtil.encrypt(refreshed.getTokenValue()));
+            auth.setExpiresAt(refreshed.getExpirationTime().toInstant());
+            gmailSyncRepository.save(auth);
+        }
         return new Gmail.Builder(
                 new NetHttpTransport(),
                 JacksonFactory.getDefaultInstance(),
@@ -144,14 +181,19 @@ public class GmailSyncService {
     }
 
     private boolean alreadyProcessed(String messageId, Long userId) {
-        return processedRepo.existsByMessageIdAndUserId(messageId, userId);
+        return processedRepository.findByMessageIdAndUserId(messageId, userId).map(GmailProcessedMessageEntity::isVerified).orElse(false);
     }
 
-    private void markProcessed(String messageId, Long userId) {
-        GmailProcessedMessageEntity entity = new GmailProcessedMessageEntity();
-        entity.setMessageId(messageId);
-        entity.setUserId(userId);
-        processedRepo.save(entity);
+    private Long markProcessed(String messageId, Long userId) {
+        Optional<GmailProcessedMessageEntity> entity = processedRepository.findByMessageId(messageId);
+        if(entity.isPresent()) {
+            entity.get().setUpdatedAt(LocalDateTime.now());
+            return processedRepository.save(entity.get()).getId();
+        }
+        GmailProcessedMessageEntity newEntity = new GmailProcessedMessageEntity();
+        newEntity.setMessageId(messageId);
+        newEntity.setUserId(userId);
+        return processedRepository.save(newEntity).getId();
     }
 
     private ParsedTransaction parseTransaction(Message message, Map<String, Integer> categoryNameIdMap) {
@@ -160,7 +202,7 @@ public class GmailSyncService {
         if (rawBody.isBlank()) return null;
         String body = normalizeBody(rawBody);
         if (!containsTransactionKeywords(body)) return null;
-        return new ParsedTransaction(detectTransactionCategory(body, categoryNameIdMap), detectTransactionDescription(body),
+        return new ParsedTransaction(detectTransactionCategory(body, categoryNameIdMap), null, detectTransactionDescription(body),
                 detectTransactionAmount(body), detectTransactionType(body), detectTransactionDateTime(message));
     }
 
@@ -196,12 +238,12 @@ public class GmailSyncService {
     private String detectTransactionType(String body) {
         boolean credit =
                 body.contains("credited") || body.contains("credit") ||
-                body.contains("received") ||
+                body.contains("received") || body.contains("settlement") ||
                 body.contains("refund");
 
         boolean debit =
                 body.contains("debited") || body.contains("debit") ||
-                body.contains("spent") ||
+                body.contains("spent") || body.contains("settlement") ||
                 body.contains("withdrawn") ||
                 body.contains("purchase") || body.contains("purchased") ||
                 body.contains("transferred") || body.contains("transfer") ||
@@ -245,6 +287,7 @@ public class GmailSyncService {
         }
         if (body.contains("atm")) return "ATM withdrawal";
         if (body.contains("cash")) return "Cash transaction";
+        if (body.contains("bank")) return "Bank Transaction";
         return "Bank transaction";
     }
 
@@ -265,6 +308,8 @@ public class GmailSyncService {
             return categoryNameIdMap.get("Investments");
         if (body.contains("business") || body.contains("deal"))
             return categoryNameIdMap.get("Business");
+        if (body.contains("grocery") || body.contains("groceries") || body.contains("instamart"))
+            return categoryNameIdMap.get("Groceries");
         return categoryNameIdMap.get("Other");
     }
 

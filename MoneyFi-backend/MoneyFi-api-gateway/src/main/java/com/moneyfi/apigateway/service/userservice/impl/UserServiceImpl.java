@@ -7,11 +7,14 @@ import com.moneyfi.apigateway.model.auth.OtpTempModel;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.model.common.UserAuthHist;
+import com.moneyfi.apigateway.model.gmailsync.GmailAuth;
+import com.moneyfi.apigateway.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.apigateway.repository.user.UserAuthHistRepository;
 import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.common.UserCommonService;
-import com.moneyfi.apigateway.service.userservice.MultipartInputStreamFileResource;
+import com.moneyfi.apigateway.util.CryptoUtil;
+import com.moneyfi.apigateway.util.MultipartInputStreamFileResource;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
@@ -37,11 +40,12 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-import static com.moneyfi.apigateway.util.constants.StringUtils.*;
+import static com.moneyfi.apigateway.util.constants.StringConstants.*;
 
 @Service
 @Slf4j
@@ -80,6 +84,8 @@ public class UserServiceImpl implements UserService {
     private final UserAuthHistRepository userAuthHistRepository;
     private final AuthenticationManager authenticationManager;
     private final RestTemplate restTemplate;
+    private final GmailSyncRepository gmailSyncRepository;
+    private final CryptoUtil cryptoUtil;
 
     public UserServiceImpl(UserRepository userRepository,
                            OtpTempRepository otpTempRepository,
@@ -88,7 +94,9 @@ public class UserServiceImpl implements UserService {
                            AuthenticationManager authenticationManager,
                            EmailTemplates emailTemplates,
                            UserAuthHistRepository userAuthHistRepository,
-                           @Qualifier("getRestTemplate") RestTemplate restTemplate){
+                           @Qualifier("getRestTemplate") RestTemplate restTemplate,
+                           GmailSyncRepository gmailSyncRepository,
+                           CryptoUtil cryptoUtil){
         this.userRepository = userRepository;
         this.otpTempRepository = otpTempRepository;
         this.jwtService = jwtService;
@@ -97,6 +105,8 @@ public class UserServiceImpl implements UserService {
         this.emailTemplates = emailTemplates;
         this.userAuthHistRepository = userAuthHistRepository;
         this.restTemplate = restTemplate;
+        this.gmailSyncRepository = gmailSyncRepository;
+        this.cryptoUtil = cryptoUtil;
     }
 
     @Override
@@ -189,6 +199,7 @@ public class UserServiceImpl implements UserService {
                 if (authentication.isAuthenticated()) {
                     JwtToken token = jwtService.generateToken(userAuthModel);
                     functionToPreventMultipleLogins(userAuthModel, token);
+                    gmailSyncRepository.deleteByUserId(getUserIdByUsername(requestDto.getUsername().trim()));
                     userRoleToken.put(userRoleAssociation.get(existingUser.getRoleId()), token.getJwtToken());
                     return ResponseEntity.ok(userRoleToken);
                 }
@@ -234,6 +245,16 @@ public class UserServiceImpl implements UserService {
                     newOrExistingUser = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Google User", email, GOOGLE_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()), LoginMode.GOOGLE_OAUTH.name(), null);
                     if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(newOrExistingUser.getUsername(), newOrExistingUser.getId(), convertImageUrlToMultipartFile(picture));
                 }
+
+                GmailAuth newAuth = new GmailAuth();
+                Optional<GmailAuth> gmailAuth = gmailSyncRepository.findByUserId(newOrExistingUser.getId());
+                if(gmailAuth.isPresent()) newAuth = gmailAuth.get();
+                newAuth.setUserId(newOrExistingUser.getId());
+                newAuth.setAccessToken(cryptoUtil.encrypt((String) tokenResponse.getBody().get("access_token")));
+                newAuth.setRefreshToken(cryptoUtil.encrypt((String) tokenResponse.getBody().get("refresh_token")));
+                newAuth.setExpiresAt(Instant.now().plusSeconds(((Number) tokenResponse.getBody().get("expires_in")).longValue()));
+                gmailSyncRepository.save(newAuth);
+
                 if (newOrExistingUser.isBlocked()) {
                     userRoleToken.put(ERROR, ACCOUNT_BLOCKED);
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
@@ -409,7 +430,9 @@ public class UserServiceImpl implements UserService {
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
-        userRepository.getUserDetailsByUsername(jwtService.extractUserName(token)).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        String username = jwtService.extractUserName(token);
+        userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        gmailSyncRepository.deleteByUserId(getUserIdByUsername(username));
         if (makeUserTokenBlacklisted(token) != null && makeUserSessionInActive(token) != null) {
             response.put(MESSAGE, LOGOUT_SUCCESS_MESSAGE);
         } else {

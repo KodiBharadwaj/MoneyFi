@@ -1,7 +1,7 @@
 package com.moneyfi.apigateway.util;
 
 import com.moneyfi.apigateway.exceptions.CustomInternalServerErrorException;
-import com.moneyfi.apigateway.util.constants.StringUtils;
+import com.moneyfi.apigateway.util.constants.StringConstants;
 import jakarta.activation.DataHandler;
 import jakarta.activation.DataSource;
 import jakarta.mail.*;
@@ -51,7 +51,7 @@ public class EmailFilter {
             message.setContent(body, "text/html; charset=UTF-8");  // Change to HTML content
             // Send the email
             Transport.send(message);
-            log.info(StringUtils.EMAIL_SENT_SUCCESS_MESSAGE);
+            log.info(StringConstants.EMAIL_SENT_SUCCESS_MESSAGE);
             return true;
         } catch (MessagingException e) {
             e.printStackTrace();
@@ -97,7 +97,7 @@ public class EmailFilter {
             message.setContent(multipart);
             // Send email
             Transport.send(message);
-            log.info(StringUtils.EMAIL_SENT_SUCCESS_MESSAGE);
+            log.info(StringConstants.EMAIL_SENT_SUCCESS_MESSAGE);
             return true;
         } catch (MessagingException e) {
             e.printStackTrace();

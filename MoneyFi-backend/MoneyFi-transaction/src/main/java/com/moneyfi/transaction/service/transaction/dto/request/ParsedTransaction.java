@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ParsedTransaction {
     private Integer categoryId;
+    private Long gmailProcessedId;
     private String description;
     private BigDecimal amount;
     private String transactionType;

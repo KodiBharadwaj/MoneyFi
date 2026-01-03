@@ -72,7 +72,7 @@ export class OverviewComponent implements OnInit {
   }
 
   getQuoteFunction(){
-    this.httpClient.get<any>(`${this.baseUrl}/api/v1/external-api/get-quote/today`).subscribe({
+    this.httpClient.get<any>(`${this.baseUrl}/api/v1/user-service/external-api/get-quote/today`).subscribe({
       next : (data) => {
         this.quote = data.q;
         this.author = data.a;
