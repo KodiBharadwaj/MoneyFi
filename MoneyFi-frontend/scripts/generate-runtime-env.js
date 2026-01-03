@@ -6,6 +6,7 @@ const env = {
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+  USER_SERVICE_URL: process.env.USER_SERVICE_URL
 };
 
 if (!env.BASE_URL) {
