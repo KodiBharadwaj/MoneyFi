@@ -78,8 +78,8 @@ export class GmailSyncDialogComponent implements OnInit {
 
   this.http
     .post<Record<number, ParsedTransaction[]>>(
-      `${this.BASE_URL}/api/v1/gmail-sync/enable`,
-      { code: this.data.code }
+      `${this.BASE_URL}/api/v1/gmail-sync/start`,
+      {}
     )
     .subscribe({
       next: (res) => {

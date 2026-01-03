@@ -6,7 +6,6 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -43,7 +42,7 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
 
     public SecurityConfig(UserDetailsService userDetailsService,
-                          @Lazy JwtFilter jwtFilter){
+                          JwtFilter jwtFilter){
         this.userDetailsService = userDetailsService;
         this.jwtFilter = jwtFilter;
     }
@@ -67,7 +66,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/gmail-sync/**").hasRole(UserRoles.USER.name())
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/v1/Oauth/**").permitAll()
-                        .requestMatchers("/api/v1/external-api/**").hasRole(UserRoles.USER.name())
                         .requestMatchers("/actuator/**").permitAll()
 
                         .requestMatchers("/api/v1/transaction/income/**").hasRole(UserRoles.USER.name())
@@ -82,6 +80,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/v1/user-service/open/**").permitAll()
                         .requestMatchers("/api/v1/user-service/admin/**").hasRole(UserRoles.ADMIN.name())
+                        .requestMatchers("/api/v1/user-service/external-api/**").hasRole(UserRoles.USER.name())
                         .requestMatchers("/api/v1/user-service/user/**").hasRole(UserRoles.USER.name())
                         .anyRequest().hasAnyRole(UserRoles.USER.name()))
                 .httpBasic(Customizer.withDefaults())

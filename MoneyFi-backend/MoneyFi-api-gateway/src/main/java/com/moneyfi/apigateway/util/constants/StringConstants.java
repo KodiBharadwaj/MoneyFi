@@ -19,9 +19,9 @@ import java.util.Random;
 
 import static com.moneyfi.apigateway.util.enums.ReasonEnum.*;
 
-public class StringUtils {
+public class StringConstants {
 
-    private StringUtils() {}
+    private StringConstants() {}
 
     public static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
@@ -58,7 +58,6 @@ public class StringUtils {
     public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
     public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-    public static final String DAILY_QUOTE_EXTERNAL_API_URL = "https://zenquotes.io/api/random";
     public static final String USER_SERVICE_URL_FOR_ADMIN = "http://MONEYFI-USER/api/v1/user-service/admin";
     public static final String USER_SERVICE_OPEN_URL = "http://MONEYFI-USER/api/v1/user-service/open";
 

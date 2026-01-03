@@ -1,5 +1,6 @@
 package com.moneyfi.user.service.common.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
@@ -16,6 +17,7 @@ import com.moneyfi.user.service.common.CloudinaryService;
 import com.moneyfi.user.service.common.CommonService;
 import com.moneyfi.user.service.common.UserCommonService;
 import com.moneyfi.user.service.common.dto.request.*;
+import com.moneyfi.user.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserRequestStatusDto;
 import com.moneyfi.user.util.EmailTemplates;
@@ -24,12 +26,14 @@ import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.UserValidations;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -56,6 +60,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final EmailTemplates emailTemplates;
     private final ReasonDetailsRepository reasonDetailsRepository;
     private final CommonService commonService;
+    private final RestTemplate externalRestTemplate;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -68,7 +73,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  UserNotificationRepository userNotificationRepository,
                                  EmailTemplates emailTemplates,
                                  ReasonDetailsRepository reasonDetailsRepository,
-                                 CommonService commonService){
+                                 CommonService commonService,
+                                 @Qualifier("externalRestTemplate") RestTemplate externalRestTemplate){
         this.cloudinaryService = cloudinaryService;
         this.awsServices = awsServices;
         this.profileRepository = profileRepository;
@@ -79,6 +85,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.emailTemplates = emailTemplates;
         this.reasonDetailsRepository = reasonDetailsRepository;
         this.commonService = commonService;
+        this.externalRestTemplate = externalRestTemplate;
     }
 
     private static final String REFERENCE_NUMBER_SENT = "Reference already sent, Please submit your details";
@@ -533,6 +540,26 @@ public class UserCommonServiceImpl implements UserCommonService {
         log.info("Username fetched: {}", username);
         emailTemplates.sendUserNameToUser(username);
         return true;
+    }
+
+    @Override
+    public QuoteResponseDto getTodayQuoteByExternalCall(String externalApiUrl) {
+        QuoteResponseDto quoteResponseDto = new QuoteResponseDto();
+        try {
+            String jsonStringResponse = externalRestTemplate.getForObject(DAILY_QUOTE_EXTERNAL_API_URL, String.class);
+
+            List<QuoteResponseDto> quoteList = objectMapper.readValue(jsonStringResponse, new TypeReference<List<QuoteResponseDto>>() {});
+            if(!quoteList.isEmpty()){
+                quoteResponseDto.setQuote(quoteList.get(0).getQuote());
+                quoteResponseDto.setAuthor(quoteList.get(0).getAuthor());
+                quoteResponseDto.setDescription(quoteList.get(0).getDescription());
+                return quoteResponseDto;
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new ScenarioNotPossibleException("Failed to parse the json response -> " + e);
+        }
+        throw new ResourceNotFoundException("No quote response found from external api");
     }
 
     private String functionCallToRetrieveUsername(ForgotUsernameDto userDetails) {

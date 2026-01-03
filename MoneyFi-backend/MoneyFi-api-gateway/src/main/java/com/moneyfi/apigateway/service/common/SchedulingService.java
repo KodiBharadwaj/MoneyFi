@@ -2,7 +2,6 @@ package com.moneyfi.apigateway.service.common;
 
 import com.moneyfi.apigateway.dto.ContactUs;
 import com.moneyfi.apigateway.dto.ContactUsHist;
-import com.moneyfi.apigateway.dto.ParsedTransaction;
 import com.moneyfi.apigateway.dto.ProfileModel;
 import com.moneyfi.apigateway.model.auth.OtpTempModel;
 import com.moneyfi.apigateway.model.auth.SessionTokenModel;
@@ -17,7 +16,7 @@ import com.moneyfi.apigateway.repository.user.auth.SessionTokenRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.util.EmailTemplates;
-import com.moneyfi.apigateway.util.constants.StringUtils;
+import com.moneyfi.apigateway.util.constants.StringConstants;
 import com.moneyfi.apigateway.util.enums.ReasonEnum;
 import com.moneyfi.apigateway.util.enums.UserRoles;
 import jakarta.annotation.PostConstruct;
@@ -32,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.moneyfi.apigateway.util.constants.StringUtils.userRoleAssociation;
+import static com.moneyfi.apigateway.util.constants.StringConstants.userRoleAssociation;
 
 @Service
 @Slf4j
@@ -126,7 +125,7 @@ public class SchedulingService {
                 roleId = it.getKey();
             }
         }
-        List<UserAuthModel> accountDeletedUsersList = userRepository.getDeletedUsersList(roleId, StringUtils.reasonCodeIdAssociation.get(ReasonEnum.DELETE_ACCOUNT));
+        List<UserAuthModel> accountDeletedUsersList = userRepository.getDeletedUsersList(roleId, StringConstants.reasonCodeIdAssociation.get(ReasonEnum.DELETE_ACCOUNT));
         List<UserAuthHist> userAuthHistList = new ArrayList<>();
         List<ContactUs> contactUsList = new ArrayList<>();
         List<ContactUsHist> contactUsHistList = new ArrayList<>();
@@ -136,13 +135,13 @@ public class SchedulingService {
 
         accountDeletedUsersList.forEach(user -> {
             userAuthHistList.addAll(userAuthHistRepository.findByUserId(user.getId()));
-            contactUsList.addAll(userRepository.getContactUsRecordsByUsername(user.getUsername()).stream().map(StringUtils::convertContactUsInterfaceToDto).toList());
-            userProfileDetailsList.add(userRepository.getUserProfileDetailsByUserId(user.getId()).stream().map(StringUtils::convertProfileDetailsInterfaceToDto).findFirst().get());
+            contactUsList.addAll(userRepository.getContactUsRecordsByUsername(user.getUsername()).stream().map(StringConstants::convertContactUsInterfaceToDto).toList());
+            userProfileDetailsList.add(userRepository.getUserProfileDetailsByUserId(user.getId()).stream().map(StringConstants::convertProfileDetailsInterfaceToDto).findFirst().get());
             sessionTokenModelList.add(sessionTokenRepository.findByUsername(user.getUsername()));
             otpTempModelList.addAll(otpTempRepository.findByEmail(user.getUsername()));
         });
         contactUsList.forEach(contactUs ->
-            contactUsHistList.addAll(userRepository.getContactUsHistoryDetailsByContactUsId(contactUs.getId()).stream().map(StringUtils::convertContactUsHistInterfaceToDto).toList()));
+            contactUsHistList.addAll(userRepository.getContactUsHistoryDetailsByContactUsId(contactUs.getId()).stream().map(StringConstants::convertContactUsHistInterfaceToDto).toList()));
         userRepository.deleteAll(accountDeletedUsersList);
         userAuthHistRepository.deleteAll(userAuthHistList);
 //        contactUsRepository.deleteAll(contactUsList);

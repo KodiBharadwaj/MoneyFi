@@ -1,17 +1,17 @@
-package com.moneyfi.apigateway.controller.common;
+package com.moneyfi.user.controller.user;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.moneyfi.apigateway.service.common.UserCommonService;
-import com.moneyfi.apigateway.service.common.dto.response.QuoteResponseDto;
+import com.moneyfi.user.service.common.UserCommonService;
+import com.moneyfi.user.service.common.dto.response.QuoteResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.moneyfi.apigateway.util.constants.StringUtils.DAILY_QUOTE_EXTERNAL_API_URL;
+import static com.moneyfi.user.util.constants.StringConstants.DAILY_QUOTE_EXTERNAL_API_URL;
 
 @RestController
-@RequestMapping("/api/v1/external-api")
+@RequestMapping("/api/v1/user-service/external-api")
 public class ExternalApiCallsController {
 
     private final UserCommonService userCommonService;

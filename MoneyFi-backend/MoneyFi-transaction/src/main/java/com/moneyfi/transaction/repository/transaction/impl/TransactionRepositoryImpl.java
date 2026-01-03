@@ -1,18 +1,21 @@
 package com.moneyfi.transaction.repository.transaction.impl;
 
+import com.microsoft.sqlserver.jdbc.SQLServerDataTable;
 import com.moneyfi.transaction.exceptions.QueryValidationException;
 import com.moneyfi.transaction.repository.transaction.TransactionRepository;
 import com.moneyfi.transaction.service.expense.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.*;
-import com.moneyfi.transaction.utils.TransactionServiceType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.CallableStatement;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
@@ -304,5 +307,22 @@ public class TransactionRepositoryImpl implements TransactionRepository {
             e.printStackTrace();
             throw new QueryValidationException("Income Category Ids not found");
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateGmailProcessedAsVerified(List<Long> gmailProsessedIdList) {
+        entityManager.unwrap(Session.class).doWork(connection -> {
+            SQLServerDataTable table = new SQLServerDataTable();
+            table.addColumnMetadata("id", java.sql.Types.BIGINT);
+            for (Long id : gmailProsessedIdList) {
+                table.addRow(id);
+            }
+            try (CallableStatement cs = connection.prepareCall(
+                    "{call dbo.updateGmailProcessedAsVerified(?)}")) {
+                cs.setObject(1, table);
+                cs.execute();
+            }
+        });
     }
 }

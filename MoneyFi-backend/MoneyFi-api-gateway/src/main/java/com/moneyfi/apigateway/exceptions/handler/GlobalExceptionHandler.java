@@ -1,7 +1,7 @@
-package com.moneyfi.apigateway.service.common;
+package com.moneyfi.apigateway.exceptions.handler;
 
 import com.moneyfi.apigateway.exceptions.QueryValidationException;
-import com.moneyfi.apigateway.service.common.dto.response.ErrorResponse;
+import com.moneyfi.apigateway.exceptions.dto.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

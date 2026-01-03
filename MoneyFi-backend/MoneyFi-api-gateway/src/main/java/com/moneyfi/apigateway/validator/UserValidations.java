@@ -5,7 +5,7 @@ import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.service.userservice.dto.request.ChangePasswordDto;
 import org.springframework.security.authentication.BadCredentialsException;
 
-import static com.moneyfi.apigateway.util.constants.StringUtils.*;
+import static com.moneyfi.apigateway.util.constants.StringConstants.*;
 
 public class UserValidations {
 

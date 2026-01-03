@@ -25,4 +25,6 @@ public interface TransactionRepository {
     List<ExpenseDetailsDto> getAllExpensesByYear(Long userId, int year, String category, boolean deleteStatus);
 
     List<Integer> getCategoryIdsBasedOnTransactionType(String categoryType);
+
+    void updateGmailProcessedAsVerified(List<Long> gmailProsessedIdList);
 }

@@ -1,4 +1,4 @@
-package com.moneyfi.user.controller;
+package com.moneyfi.user.controller.user;
 
 import com.moneyfi.user.config.JwtService;
 import com.moneyfi.user.service.common.CommonService;

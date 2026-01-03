@@ -1,6 +1,8 @@
 package com.moneyfi.user.service.common;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.service.common.dto.request.*;
+import com.moneyfi.user.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserRequestStatusDto;
 import org.springframework.core.io.ByteArrayResource;
@@ -46,4 +48,6 @@ public interface UserCommonService {
     ResponseEntity<String> blockOrDeleteAccountByUserRequest(String username, AccountBlockOrDeleteRequestDto request);
 
     Boolean getUsernameByDetails(ForgotUsernameDto userDetails);
+
+    QuoteResponseDto getTodayQuoteByExternalCall(String externalApiUrl) throws JsonProcessingException;
 }

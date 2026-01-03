@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.service.common.dto.response;
+package com.moneyfi.apigateway.exceptions.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
