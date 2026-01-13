@@ -21,5 +21,5 @@ public interface AdminRepository {
 
     List<UserFeedbackResponseDto> getUserFeedbackListForAdmin();
 
-    List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin();
+    List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status);
 }

@@ -63,13 +63,15 @@ public class CommonServiceRepositoryImpl implements CommonServiceRepository {
     }
 
     @Override
-    public List<UserNotificationResponseDto> getUserNotifications(String username) {
+    public List<UserNotificationResponseDto> getUserNotifications(String username, String status) {
         List<UserNotificationResponseDto> userNotificationsList = new ArrayList<>();
         try {
             Query query = entityManager.createNativeQuery(
                             "exec getUserScheduledNotifications " +
-                                    "@username = :username ")
+                                    "@username = :username, " +
+                                    "@status = :status ")
                     .setParameter("username", username)
+                    .setParameter("status", status)
                     .unwrap(NativeQuery.class)
                     .setResultTransformer(Transformers.aliasToBean(UserNotificationResponseDto.class));
             userNotificationsList.addAll(query.getResultList());

@@ -7,11 +7,12 @@ import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { ConfirmLogoutDialogComponent } from '../confirm-logout-dialog/confirm-logout-dialog.component';
 import { environment } from '../../environments/environment';
+import { CommonModule, DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-admin-configuration',
   standalone: true,
-  imports: [RouterModule],
+  imports: [RouterModule, DatePipe, CommonModule],
   templateUrl: './admin-configuration.component.html',
   styleUrl: './admin-configuration.component.css'
 })
@@ -20,7 +21,12 @@ export class AdminConfigurationComponent {
   constructor(private adminService: AdminService, private router:Router, private dialog: MatDialog, 
         private route: ActivatedRoute, private httpClient:HttpClient,
       private toastr: ToastrService) {}
-  baseUrl = environment.BASE_URL;
+    baseUrl = environment.BASE_URL;
+
+    showExpiredNotifications = false;
+    isExpiredLoading = false;
+    expiredSchedules: any[] = [];
+
 
   openScheduleNotificationDialog(){
     const dialogRef = this.dialog.open(AdminScheduleDialogComponent, {
@@ -31,6 +37,49 @@ export class AdminConfigurationComponent {
         this.toastr.success('Notification Scheduled successfully')
       }
     });
+  }
+
+  reuseSchedule(schedule: any) {
+    const dialogRef = this.dialog.open(AdminScheduleDialogComponent, {
+      width: '600px',
+      data: {
+        reuse: true,
+        schedule
+      }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.toastr.success('Notification reused successfully')
+      }
+    });
+  }
+
+  toggleExpiredNotifications() {
+    this.showExpiredNotifications = !this.showExpiredNotifications;
+
+    if (this.showExpiredNotifications && this.expiredSchedules.length === 0) {
+      this.getExpiredScheduledNotifications();
+    }
+  }
+
+
+  getExpiredScheduledNotifications() {
+    this.isExpiredLoading = true;
+
+    this.httpClient
+      .get<any[]>(
+        `${this.baseUrl}/api/v1/user-service/admin/schedule-notifications/get?status=EXPIRED`
+      )
+      .subscribe({
+        next: (data) => {
+          this.expiredSchedules = data;
+          this.isExpiredLoading = false;
+        },
+        error: () => {
+          this.toastr.error('Failed to load expired notifications');
+          this.isExpiredLoading = false;
+        }
+      });
   }
 
 
@@ -48,7 +97,7 @@ export class AdminConfigurationComponent {
             const jsonResponse = JSON.parse(response);
             if(jsonResponse.message === 'Logged out successfully'){
                 this.toastr.success(jsonResponse.message, '', {
-                timeOut: 1500  // time in milliseconds (3 seconds)
+                timeOut: 1500
               });
               sessionStorage.removeItem('moneyfi.auth');
               this.router.navigate(['admin/login']);

@@ -23,7 +23,7 @@ public interface UserCommonService {
 
     ResponseEntity<String> deleteProfilePictureFromS3(String username, Long userId);
 
-    List<UserNotificationResponseDto> getUserNotifications(String username);
+    List<UserNotificationResponseDto> getUserNotifications(String username, String status);
 
     Integer getUserNotificationsCount(String username);
 

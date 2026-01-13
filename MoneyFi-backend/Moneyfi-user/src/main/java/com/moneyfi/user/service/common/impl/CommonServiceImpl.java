@@ -77,7 +77,7 @@ public class CommonServiceImpl implements CommonService {
     }
 
     private void sendLatestNotificationSeamlessly(String username, Long scheduleId) {
-        Optional<UserNotificationResponseDto> latestNotification = commonServiceRepository.getUserNotifications(username)
+        Optional<UserNotificationResponseDto> latestNotification = commonServiceRepository.getUserNotifications(username, "ACTIVE")
                 .stream()
                 .filter(notification -> notification.getScheduleId().equals(scheduleId) && !notification.isRead())
                 .findFirst();
@@ -87,7 +87,7 @@ public class CommonServiceImpl implements CommonService {
     }
 
     private void sendNotificationCountSeamlessly(String username) {
-        pushNotificationCount(username, Math.toIntExact(commonServiceRepository.getUserNotifications(username)
+        pushNotificationCount(username, Math.toIntExact(commonServiceRepository.getUserNotifications(username, "ACTIVE")
                 .stream()
                 .filter(notification -> !notification.isRead())
                 .count()));

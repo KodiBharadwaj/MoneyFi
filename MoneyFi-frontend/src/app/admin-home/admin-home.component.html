@@ -98,8 +98,11 @@
             </div>
 
             <div class="schedule-row">
-              <div class="schedule-col full">
+              <div class="schedule-col">
                 <strong>Description:</strong> {{ s.description }}
+              </div>
+              <div class="schedule-col">
+                <strong>Target Users:</strong> {{ s.recipients }}
               </div>
             </div>
 
@@ -117,6 +120,7 @@
               <button (click)="cancelSchedule(s.scheduleId)" [disabled]="s.cancelled">
                 {{ s.cancelled ? 'Cancelled' : 'Cancel' }}
               </button>
+              <button (click)="deleteSchedule(s.scheduleId)">Delete</button>
             </div>
           </div>
         </div>

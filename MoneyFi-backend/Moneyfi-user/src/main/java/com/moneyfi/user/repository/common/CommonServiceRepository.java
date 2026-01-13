@@ -11,7 +11,7 @@ public interface CommonServiceRepository {
 
     UserRequestStatusDto trackUserRequestUsingReferenceNumber(String referenceNumber);
 
-    List<UserNotificationResponseDto> getUserNotifications(String username);
+    List<UserNotificationResponseDto> getUserNotifications(String username, String status);
 
     List<String> getBirthdayAndAnniversaryUsersList(int month, int day, String occasion);
 

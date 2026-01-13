@@ -50,11 +50,13 @@ public interface AdminService {
 
     List<String> getUsernamesOfAllUsers();
 
-    String scheduleNotification(@Valid ScheduleNotificationRequestDto requestDto);
+    void scheduleNotification(@Valid ScheduleNotificationRequestDto requestDto);
 
-    List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin();
+    List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status);
 
     void cancelTheUserScheduling(Long scheduleId);
 
     void updateAdminPlacedSchedules(@Valid AdminScheduleRequestDto requestDto);
+
+    void deleteUserScheduling(Long scheduleId);
 }

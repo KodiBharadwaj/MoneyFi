@@ -1,6 +1,6 @@
-import { Component, NgModule, OnInit } from '@angular/core';
+import { Component, Inject, NgModule, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -36,7 +36,8 @@ export class AdminScheduleDialogComponent implements OnInit {
   showSuggestions = false;
   isSubmitting = false;
 
-  selectedUsers: string[] = [];   // multiple users stored here
+  selectedUsers: string[] = []; 
+  scheduleIdToUpdate: number = 0;
 
   baseUrl = environment.BASE_URL;
 
@@ -44,7 +45,8 @@ export class AdminScheduleDialogComponent implements OnInit {
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<AdminScheduleDialogComponent>,
     private http: HttpClient,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
 
   ngOnInit(): void {
@@ -55,12 +57,61 @@ export class AdminScheduleDialogComponent implements OnInit {
       scheduleFromTime: ['', Validators.required],
       scheduleToDate: ['', Validators.required],
       scheduleToTime: ['', Validators.required],
-      recipients: ['All', Validators.required]  // All or Specific
+      recipients: ['All', Validators.required] 
     });
 
-    this.http.get<string[]>(`${this.baseUrl}/api/v1/user-service/admin/get-usernames`)
-      .subscribe(data => this.allUsers = data);
+     this.http.get<string[]>(`${this.baseUrl}/api/v1/user-service/admin/get-usernames`)
+      .subscribe(data => {
+        this.allUsers = data;
+        this.patchReuseData(); // <-- important
+      });
   }
+
+  private patchReuseData() {
+    console.log(this.data);
+    if (!this.data?.schedule) return;
+
+    const schedule = this.data.schedule;
+
+    // Subject & Description
+    this.scheduleForm.patchValue({
+      subject: schedule.subject,
+      description: schedule.description,
+      recipients: schedule.recipients // All | Specific
+    });
+
+    // Specific users
+    if (schedule.recipients === 'Specific') {
+      this.selectedUsers = Array.isArray(schedule.recipentList)
+        ? [...schedule.recipentList]
+        : [];
+    } else {
+      this.selectedUsers = [];
+    }
+
+    // Prefill dates ONLY for EDIT
+    if (this.data.mode === 'EDIT') {
+      const from = new Date(schedule.scheduleFrom);
+      const to = new Date(schedule.scheduleTo);
+
+      this.scheduleForm.patchValue({
+        scheduleFromDate: this.formatDate(from),
+        scheduleFromTime: this.formatTime(from),
+        scheduleToDate: this.formatDate(to),
+        scheduleToTime: this.formatTime(to)
+      });
+      this.scheduleIdToUpdate = this.data.scheduleId;
+    }
+  }
+
+  private formatDate(date: Date): string {
+    return date.toISOString().split('T')[0];
+  }
+
+  private formatTime(date: Date): string {
+    return date.toTimeString().slice(0, 5);
+  }
+
 
   onRecipientChange(event: Event) {
     const value = (event.target as HTMLSelectElement).value;
@@ -151,6 +202,8 @@ export class AdminScheduleDialogComponent implements OnInit {
       recipientsValue = this.selectedUsers.join(',');
     }
 
+    let scheduleId = this.scheduleIdToUpdate;
+
     const payload = {
       subject,
       description,
@@ -159,11 +212,38 @@ export class AdminScheduleDialogComponent implements OnInit {
       scheduleTo
     };
 
-    this.http.post<string>(`${this.baseUrl}/api/v1/user-service/admin/schedule-notification`, payload, { responseType: 'text' as 'json' })
+    const updatePayload = {
+      scheduleId,
+      subject,
+      description,
+      recipients: recipientsValue,
+      scheduleFrom,
+      scheduleTo
+    };
+
+    // EDIT mode → update
+    if (this.data?.mode === 'EDIT') {
+      updatePayload.scheduleId = this.data.schedule.scheduleId;
+
+      this.http.put(
+        `${this.baseUrl}/api/v1/user-service/admin/schedule-notification/update`,
+        updatePayload
+      ).subscribe({
+        next: () => {
+          this.toastr.success('Schedule updated');
+          this.dialogRef.close({ success: true });
+        },
+        error: () => this.toastr.error('Failed to update schedule')
+      });
+
+      return;
+    }
+
+    this.http.post(`${this.baseUrl}/api/v1/user-service/admin/schedule-notification`, payload, { responseType: 'text' as 'json' })
       .subscribe({
-        next: (response: string) => {
+        next: () => {
           this.isSubmitting = false;
-          this.dialogRef.close({ success: true, message: response });
+          this.dialogRef.close({ success: true, message: 'Notification set successfully' });
         },
         error: (errorResponse) => {
           this.isSubmitting = false;

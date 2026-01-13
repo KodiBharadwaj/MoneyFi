@@ -2,8 +2,10 @@ package com.moneyfi.user.repository;
 
 import com.moneyfi.user.model.UserNotification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,4 +18,8 @@ public interface UserNotificationRepository extends JpaRepository<UserNotificati
 
     @Query("select u from UserNotification u where u.scheduleId = :scheduleId and u.isRead = true")
     List<UserNotification> findByScheduleId(Long scheduleId);
+
+    @Modifying
+    @Transactional
+    void deleteAllByScheduleId(Long scheduleId);
 }

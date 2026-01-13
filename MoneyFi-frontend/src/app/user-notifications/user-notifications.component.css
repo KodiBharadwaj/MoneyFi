@@ -208,3 +208,41 @@
   100% { transform: rotate(360deg); }
 }
 
+
+.tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.tab {
+  padding: 8px 16px;
+  border: none;
+  background: #f0f0f0;
+  cursor: pointer;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.tab.active {
+  background: #1976d2;
+  color: white;
+}
+
+.notification-card.read,
+.notification-card.expired {
+  opacity: 0.6;
+  background: #fafafa;
+}
+
+.expired-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 12px;
+  background: #e0e0e0;
+  color: #555;
+}
+
+

@@ -181,20 +181,26 @@ public class AdminController {
 
     @Operation(summary = "Api to schedule a notification by admin")
     @PostMapping("/schedule-notification")
-    public ResponseEntity<String> scheduleNotification(@RequestBody @Valid ScheduleNotificationRequestDto requestDto){
-        return ResponseEntity.ok(adminService.scheduleNotification(requestDto));
+    public void scheduleNotification(@RequestBody @Valid ScheduleNotificationRequestDto requestDto){
+        adminService.scheduleNotification(requestDto);
     }
 
     @Operation(summary = "Api to get all the schedules for admin screen")
     @GetMapping("/schedule-notifications/get")
-    public ResponseEntity<List<AdminSchedulesResponseDto>> getAllActiveSchedulesOfAdmin(){
-        return ResponseEntity.ok(adminService.getAllActiveSchedulesOfAdmin());
+    public ResponseEntity<List<AdminSchedulesResponseDto>> getAllActiveSchedulesOfAdmin(@RequestParam("status") String status){
+        return ResponseEntity.ok(adminService.getAllActiveSchedulesOfAdmin(status));
     }
 
     @Operation(summary = "Api to cancel the user scheduling")
     @PutMapping("/schedule-notification/cancel")
     public void cancelTheUserScheduling(@RequestParam("id") Long scheduleId){
         adminService.cancelTheUserScheduling(scheduleId);
+    }
+
+    @Operation(summary = "Api to soft delete the user scheduling")
+    @DeleteMapping("/schedule-notification/delete")
+    public void deleteUserScheduling(@RequestParam("id") Long scheduleId){
+        adminService.deleteUserScheduling(scheduleId);
     }
 
     @Operation(summary = "Api to update the already scheduled notification")

@@ -18,6 +18,7 @@ export class UserNotificationsComponent implements OnInit {
   selectedIds: number[] = [];
   isLoading = false;
   private eventSource?: EventSource;
+  currentTab: 'ACTIVE' | 'EXPIRED' = 'ACTIVE';
 
   constructor(private http: HttpClient, private notificationService: NotificationService, private ngZone: NgZone) {}
 
@@ -33,20 +34,36 @@ export class UserNotificationsComponent implements OnInit {
     this.subscribeToNotifications();
   }
 
-  loadNotifications() {
-    this.isLoading = true;
-    this.http.get<UserNotification[]>(`${this.baseUrl}/api/v1/user-service/user/notifications/get`)
-      .subscribe({
-        next: (data) => {
-          this.notificationService.setNotifications(data);
-          this.isLoading = false;
-        },
-        error: (err) => {
-          console.error('Error fetching notifications', err);
-          this.isLoading = false;
-        }
-      });
+  switchTab(tab: 'ACTIVE' | 'EXPIRED') {
+    if (this.currentTab === tab) return;
+
+    this.currentTab = tab;
+    this.selectedIds = [];
+    this.loadNotifications();
   }
+
+  loadNotifications() {
+  this.isLoading = true;
+
+  this.http.get<UserNotification[]>(
+      `${this.baseUrl}/api/v1/user-service/user/notifications/get?status=${this.currentTab}`
+    ).subscribe({
+      next: (data) => {
+        // EXPIRED notifications should look read
+        const processed = this.currentTab === 'EXPIRED'
+          ? data.map(n => ({ ...n, read: true }))
+          : data;
+
+        this.notificationService.setNotifications(processed);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error fetching notifications', err);
+        this.isLoading = false;
+      }
+    });
+  }
+
 
   subscribeToNotifications() {
     if (this.eventSource) return;

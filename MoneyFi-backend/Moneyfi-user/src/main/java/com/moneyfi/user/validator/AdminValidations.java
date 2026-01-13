@@ -22,6 +22,19 @@ public class AdminValidations {
         }
         if(requestDto.getRecipients() == null || requestDto.getRecipients().isEmpty()){
             throw new ScenarioNotPossibleException("Recipients should be empty");
+        } else if(!requestDto.getRecipients().equalsIgnoreCase("All")) {
+            validateUserRequestEmails(requestDto.getRecipients());
+        }
+    }
+
+    private static void validateUserRequestEmails(String emails) {
+        String emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        String[] emailArray = emails.split(",");
+        for (String email : emailArray) {
+            String trimmedEmail = email.trim();
+            if (!trimmedEmail.matches(emailRegex)) {
+                throw new ScenarioNotPossibleException("Invalid email address: " + trimmedEmail);
+            }
         }
     }
 }

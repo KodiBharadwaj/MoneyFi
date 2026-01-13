@@ -128,9 +128,10 @@ public class UserController {
 
     @Operation(summary = "Api to get the admin scheduled notifications")
     @GetMapping("/notifications/get")
-    public ResponseEntity<List<UserNotificationResponseDto>> getUserNotifications(@RequestHeader("Authorization") String authHeader){
+    public ResponseEntity<List<UserNotificationResponseDto>> getUserNotifications(@RequestHeader("Authorization") String authHeader,
+                                                                                  @RequestParam("status") String status){
         String username = jwtService.extractUsernameFromToken(authHeader.substring(7));
-        return ResponseEntity.ok(userCommonService.getUserNotifications(username));
+        return ResponseEntity.ok(userCommonService.getUserNotifications(username, status));
     }
 
     @Operation(summary = "Api to get the admin scheduled notifications count")

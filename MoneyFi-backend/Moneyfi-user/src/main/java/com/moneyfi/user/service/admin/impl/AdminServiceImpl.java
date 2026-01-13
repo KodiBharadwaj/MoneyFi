@@ -419,26 +419,27 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public String scheduleNotification(ScheduleNotificationRequestDto requestDto) {
+    public void scheduleNotification(ScheduleNotificationRequestDto requestDto) {
         AdminValidations.validateScheduleNotificationRequestDetails(requestDto);
         ScheduleNotification scheduleNotification = new ScheduleNotification();
         BeanUtils.copyProperties(requestDto, scheduleNotification);
         ScheduleNotification response = scheduleNotificationRepository.save(scheduleNotification);
-        if (!requestDto.getRecipients().equalsIgnoreCase("All")) {
-            userCommonService.saveUserNotificationsForParticularUsers(requestDto.getRecipients(), response.getId());
-        } else {
-            /** Currently using @Async batch process for saving notifications for all the users.
-             * For more traffic of users, It is advisable to use direct insert queries.
-             * Else For more efficient approach, we can use Kafka or any messaging queue to handle such huge number of people scenarios.
-             */
-            userCommonService.saveUserNotificationsForAllUsers(getUsernamesOfAllUsers(), response.getId());
-        }
-        return "Notification set successfully";
+        functionToSaveNotificationToUsers(requestDto.getRecipients(), response.getId());
     }
 
     @Override
-    public List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin() {
-        return adminRepository.getAllActiveSchedulesOfAdmin();
+    public List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status) {
+        return adminRepository.getAllActiveSchedulesOfAdmin(status)
+                .stream()
+                .map(schedule -> {
+                    if (schedule.getRecipients().equalsIgnoreCase(TargetUsersForScheduleNotification.ALL.name())) {
+                        schedule.setRecipients(TargetUsersForScheduleNotification.ALL.getTargetUser());
+                    } else {
+                        schedule.setRecipentList(Arrays.stream(schedule.getRecipients().split(",")).toList());
+                        schedule.setRecipients(TargetUsersForScheduleNotification.SPECIFIC.getTargetUser());
+                    }
+                    return schedule;
+                }).toList();
     }
 
     @Override
@@ -459,29 +460,43 @@ public class AdminServiceImpl implements AdminService {
     public void updateAdminPlacedSchedules(AdminScheduleRequestDto requestDto) {
         ScheduleNotification notification = scheduleNotificationRepository.findById(requestDto.getScheduleId())
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + requestDto.getScheduleId()));
-        ScheduleNotificationRequestDto dtoToBeValidated = new ScheduleNotificationRequestDto();
-        dtoToBeValidated.setSubject(requestDto.getSubject());
-        dtoToBeValidated.setDescription(requestDto.getDescription());
-        dtoToBeValidated.setScheduleFrom(requestDto.getScheduleFrom().toLocalDateTime());
-        dtoToBeValidated.setScheduleTo(requestDto.getScheduleTo().toLocalDateTime());
-        dtoToBeValidated.setRecipients(requestDto.getRecipients());
-        AdminValidations.validateScheduleNotificationRequestDetails(dtoToBeValidated);
+        AdminValidations.validateScheduleNotificationRequestDetails(new ScheduleNotificationRequestDto(requestDto.getSubject(), requestDto.getDescription(), requestDto.getScheduleFrom(), requestDto.getScheduleTo(), requestDto.getRecipients()));
 
         notification.setSubject(requestDto.getSubject());
         notification.setDescription(requestDto.getDescription());
-        notification.setScheduleFrom(requestDto.getScheduleFrom().toLocalDateTime());
-        notification.setScheduleTo(requestDto.getScheduleTo().toLocalDateTime());
+        notification.setScheduleFrom(requestDto.getScheduleFrom());
+        notification.setScheduleTo(requestDto.getScheduleTo());
         notification.setRecipients(requestDto.getRecipients());
-        notification.setDescription("New Update: " + notification.getDescription());
+        notification.setDescription(notification.getDescription());
         notification.setUpdatedAt(LocalDateTime.now());
+        notification.setCancelled(false);
+        notification.setActive(true);
         scheduleNotificationRepository.save(notification);
+        new Thread(() -> userNotificationRepository.deleteAllByScheduleId(requestDto.getScheduleId())).start();
+        functionToSaveNotificationToUsers(requestDto.getRecipients(), requestDto.getScheduleId());
+    }
 
-        List<UserNotification> notificationList = new ArrayList<>();
-        userNotificationRepository.findByScheduleId(requestDto.getScheduleId()).forEach(userNotification -> {
-            userNotification.setRead(false);
-            notificationList.add(userNotification);
-        });
-        userNotificationRepository.saveAll(notificationList);
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void deleteUserScheduling(Long scheduleId) {
+        ScheduleNotification notification = scheduleNotificationRepository.findById(scheduleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + scheduleId));
+        notification.setActive(false);
+        notification.setUpdatedAt(LocalDateTime.now());
+        new Thread(() -> userNotificationRepository.deleteAllByScheduleId(scheduleId)).start();
+        scheduleNotificationRepository.save(notification);
+    }
+
+    private void functionToSaveNotificationToUsers(String recipients, Long scheduleId) {
+        if (!recipients.equalsIgnoreCase("All")) {
+            userCommonService.saveUserNotificationsForParticularUsers(recipients, scheduleId);
+        } else {
+            /** Currently using @Async batch process for saving notifications for all the users.
+             * For more traffic of users, It is advisable to use direct insert queries.
+             * Else For more efficient approach, we can use Kafka or any messaging queue to handle such huge number of people scenarios.
+             */
+            userCommonService.saveUserNotificationsForAllUsers(getUsernamesOfAllUsers(), scheduleId);
+        }
     }
 
     private byte[] generateExcelReport(List<UserGridDto> userGridDtoList){

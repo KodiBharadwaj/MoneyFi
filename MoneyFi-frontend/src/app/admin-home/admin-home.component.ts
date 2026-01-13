@@ -12,6 +12,7 @@ import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { AdminScheduleDialogComponent } from '../admin-schedule-dialog/admin-schedule-dialog.component';
 
 @Component({
   selector: 'app-admin-home',
@@ -58,7 +59,7 @@ export class AdminHomeComponent implements OnInit {
   }
 
   getAdminScheduledNotifications() {
-    this.httpClient.get<any[]>(`${this.baseUrl}/api/v1/user-service/admin/schedule-notifications/get`).subscribe({
+    this.httpClient.get<any[]>(`${this.baseUrl}/api/v1/user-service/admin/schedule-notifications/get?status=ACTIVE`).subscribe({
       next: (data) => {
         this.schedules = data;
       },
@@ -79,23 +80,33 @@ export class AdminHomeComponent implements OnInit {
       });
   }
 
-  editSchedule(schedule: any) {
-    // Open a modal/dialog for editing
-    // You can reuse your existing dialog service if available
-    // Example with simple prompt (replace with Angular Material dialog for better UX):
-    const updatedSubject = prompt('Update Subject:', schedule.subject);
-    if (updatedSubject !== null) {
-      const updatedSchedule = { ...schedule, subject: updatedSubject };
-      this.httpClient.put(`${this.baseUrl}/api/v1/admin/schedule-notification/update`, updatedSchedule)
-        .subscribe({
-          next: () => {
-            this.toastr.success('Schedule updated');
-            this.getAdminScheduledNotifications();
-          },
-          error: () => this.toastr.error('Failed to update schedule')
-        });
-    }
+  deleteSchedule(scheduleId: number) {
+    this.httpClient.delete(`${this.baseUrl}/api/v1/user-service/admin/schedule-notification/delete?id=${scheduleId}`)
+    .subscribe({
+      next: () => {
+        this.toastr.success('Schedule Deleted');
+        this.getAdminScheduledNotifications();
+      },
+      error: () => this.toastr.error('Failed to delete schedule')
+    })
   }
+
+  editSchedule(schedule: any) {
+    const dialogRef = this.dialog.open(AdminScheduleDialogComponent, {
+      width: '600px',
+      data: {
+        mode: 'EDIT',
+        schedule
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success) {
+        this.getAdminScheduledNotifications(); // refresh grid
+      }
+    });
+  }
+
 
   fetchCounts() {
     this.adminService.getUserCounts().subscribe(data => {

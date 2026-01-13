@@ -32,6 +32,18 @@
             </button>
             </div>
 
+            <div class="config-card">
+            <h3>Expired Notifications</h3>
+            <p>History & Reuse Expired Notifications</p>
+            <button
+              class="config-btn primary"
+              (click)="toggleExpiredNotifications()"
+            >
+              History
+            </button>
+
+            </div>
+
             <!-- Config Card 2 -->
             <div class="config-card">
             <h3>Manage Reasons</h3>
@@ -51,7 +63,63 @@
             </button>
             </div>
         </div>
-        </main>
 
+        <div
+          class="expired-section"
+          *ngIf="showExpiredNotifications"
+        >
+          <h3 class="section-title">Expired Notifications</h3>
+
+          <!-- Loader -->
+          <div *ngIf="isExpiredLoading" class="loading">
+            Loading expired notifications...
+          </div>
+
+          <!-- Empty State -->
+          <div
+            *ngIf="!isExpiredLoading && expiredSchedules.length === 0"
+            class="empty-state"
+          >
+            No expired notifications found
+          </div>
+
+          <!-- Table -->
+          <table
+            *ngIf="!isExpiredLoading && expiredSchedules.length > 0"
+            class="expired-table"
+          >
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Description</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let schedule of expiredSchedules">
+                <td>{{ schedule.subject }}</td>
+                <td class="desc">{{ schedule.description }}</td>
+                <td>{{ schedule.scheduleFrom | date:'short' }}</td>
+                <td>{{ schedule.scheduleTo | date:'short' }}</td>
+                <td>
+                  <span class="status expired">Expired</span>
+                </td>
+                <td>
+                <button
+                  class="reuse-btn"
+                  (click)="reuseSchedule(schedule)"
+                >
+                  Reuse
+                </button>
+              </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </main>
   </div>
 </div>

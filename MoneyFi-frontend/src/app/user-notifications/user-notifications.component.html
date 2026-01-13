@@ -7,8 +7,30 @@
     <p>Loading notifications...</p>
   </div>
 
+  <div class="tabs">
+    <button
+      class="tab"
+      [class.active]="currentTab === 'ACTIVE'"
+      (click)="switchTab('ACTIVE')"
+    >
+      Active
+    </button>
+
+    <button
+      class="tab"
+      [class.active]="currentTab === 'EXPIRED'"
+      (click)="switchTab('EXPIRED')"
+    >
+      History
+    </button>
+  </div>
+
+
   <!-- Top Action Bar -->
-  <div class="action-bar" *ngIf="!isLoading && notifications.length > 0">
+  <div
+    class="action-bar"
+    *ngIf="!isLoading && currentTab === 'ACTIVE' && notifications.length > 0"
+  >
     <button
       class="mark-read-btn"
       [disabled]="selectedIds.length === 0"
@@ -18,6 +40,7 @@
     </button>
   </div>
 
+
   <!-- No Notifications -->
   <div *ngIf="!isLoading && notifications.length === 0" class="empty-state">
     <i class="fa fa-bell-slash"></i>
@@ -25,33 +48,44 @@
   </div>
 
   <!-- Notifications List -->
-<ng-container *ngIf="!isLoading">
-  <div
-    *ngFor="let notif of notifications"
-    class="notification-card"
-    [class.read]="notif.read"
-  >
-    <div class="notification-header">
-      <div class="left">
-        <!-- Show checkbox only if unread -->
-        <label class="custom-checkbox" *ngIf="!notif.read">
-          <input
-            type="checkbox"
-            [checked]="isSelected(notif.notificationId)"
-            (change)="toggleSelection(notif.notificationId, $event)"
-          />
-          <span class="checkmark"></span>
-        </label>
-        <h3>{{ notif.subject }}</h3>
+  <ng-container *ngIf="!isLoading">
+    <div
+      *ngFor="let notif of notifications"
+      class="notification-card"
+      [class.read]="notif.read || currentTab === 'EXPIRED'"
+      [class.expired]="currentTab === 'EXPIRED'"
+    >
+      <div class="notification-header">
+        <div class="left">
+          <!-- Checkbox ONLY for ACTIVE + unread -->
+          <label
+            class="custom-checkbox"
+            *ngIf="currentTab === 'ACTIVE' && !notif.read"
+          >
+            <input
+              type="checkbox"
+              [checked]="isSelected(notif.notificationId)"
+              (change)="toggleSelection(notif.notificationId, $event)"
+            />
+            <span class="checkmark"></span>
+          </label>
+
+          <h3>{{ notif.subject }}</h3>
+        </div>
+
+        <span class="time">
+          {{ notif.scheduleFrom | date: 'short' }} -
+          {{ notif.scheduleTo | date: 'short' }}
+        </span>
       </div>
 
-      <span class="time">
-        {{ notif.scheduleFrom | date: 'short' }} -
-        {{ notif.scheduleTo | date: 'short' }}
+      <p class="description">{{ notif.description }}</p>
+
+      <!-- Expired badge -->
+      <span class="expired-badge" *ngIf="currentTab === 'EXPIRED'">
+        Expired
       </span>
     </div>
-    <p class="description">{{ notif.description }}</p>
-  </div>
-</ng-container>
+  </ng-container>
 
 </div>

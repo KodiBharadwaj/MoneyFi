@@ -417,13 +417,13 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    public List<UserNotificationResponseDto> getUserNotifications(String username) {
-        return commonServiceRepository.getUserNotifications(username);
+    public List<UserNotificationResponseDto> getUserNotifications(String username, String status) {
+        return commonServiceRepository.getUserNotifications(username,status);
     }
 
     @Override
     public Integer getUserNotificationsCount(String username) {
-        return Math.toIntExact(getUserNotifications(username)
+        return Math.toIntExact(getUserNotifications(username, "ACTIVE")
                 .stream()
                 .filter(notification -> !notification.isRead())
                 .count());

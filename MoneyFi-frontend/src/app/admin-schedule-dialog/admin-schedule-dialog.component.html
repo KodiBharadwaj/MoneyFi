@@ -1,6 +1,14 @@
 <div class="dialog-overlay">
   <div class="dialog-box">
-    <h2 class="dialog-title">Schedule Notification</h2>
+    <h2 class="dialog-title">
+      {{
+        data?.mode === 'EDIT'
+          ? 'Edit Scheduled Notification'
+          : data?.mode === 'REUSE'
+            ? 'Reuse Notification'
+            : 'Schedule Notification'
+      }}
+    </h2>
 
     <form [formGroup]="scheduleForm" (ngSubmit)="submit()" class="dialog-form">
 
