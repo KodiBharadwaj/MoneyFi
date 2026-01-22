@@ -96,8 +96,8 @@ export class ProfileComponent implements OnInit {
   loadProfilePicture(): void {
     this.isImageLoading = true;
 
-    // Check if already in localStorage
-    const cachedImage = localStorage.getItem('moneyfi.user.profile.image');
+    // Check if already in sessionStorage
+    const cachedImage = sessionStorage.getItem('moneyfi.user.profile.image');
     if (cachedImage) {
       this.profileImage = cachedImage;
       this.isImageLoading = false;
@@ -110,7 +110,7 @@ export class ProfileComponent implements OnInit {
             const reader = new FileReader();
             reader.onload = (e: any) => {
               this.profileImage = e.target.result; // base64 string
-              localStorage.setItem('moneyfi.user.profile.image', this.profileImage);
+              sessionStorage.setItem('moneyfi.user.profile.image', this.profileImage);
               this.isImageLoading = false;
             };
             reader.readAsDataURL(blob);
@@ -130,8 +130,9 @@ export class ProfileComponent implements OnInit {
       this.http.delete(`${this.baseUrl}/api/v1/user-service/user/profile-picture/delete`, { responseType: 'text' })
         .subscribe({
           next: (response) => {
+            sessionStorage.removeItem('moneyfi.user.profile.image');
+            this.profileImage = '';
             alert('Profile picture deleted successfully.');
-            this.profileImage = '';  // clear from UI
           },
           error: (err) => {
             console.error('Error deleting profile picture:', err);

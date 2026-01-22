@@ -2,6 +2,7 @@ package com.moneyfi.user.validator;
 
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.service.admin.dto.request.ScheduleNotificationRequestDto;
+import com.moneyfi.user.util.constants.StringConstants;
 
 public class AdminValidations {
 
@@ -22,7 +23,7 @@ public class AdminValidations {
         }
         if(requestDto.getRecipients() == null || requestDto.getRecipients().isEmpty()){
             throw new ScenarioNotPossibleException("Recipients should be empty");
-        } else if(!requestDto.getRecipients().equalsIgnoreCase("All")) {
+        } else if(!requestDto.getRecipients().equalsIgnoreCase(StringConstants.ALL)) {
             validateUserRequestEmails(requestDto.getRecipients());
         }
     }

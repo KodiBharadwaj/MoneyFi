@@ -131,11 +131,11 @@ public class AdminServiceImpl implements AdminService {
         } else if(status.equalsIgnoreCase("Retrieve")){
             requestReason = RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name();
         } else {
-            requestReason = "All";
+            requestReason = ALL;
         }
         List<UserRequestsGridDto> userRequestsGridDtoList = adminRepository.getUserRequestsGridForAdmin(requestReason);
         userRequestsGridDtoList.forEach(userGrid -> {
-            if((status.equalsIgnoreCase("Rename") || status.equalsIgnoreCase("All"))
+            if((status.equalsIgnoreCase("Rename") || status.equalsIgnoreCase(ALL))
                     && userGrid.getRequestType().equalsIgnoreCase("Name Change")){
                 userGrid.setDescription("My old name: " + userGrid.getDescription());
                 userGrid.setName("New Name: " + userGrid.getName());
@@ -488,7 +488,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     private void functionToSaveNotificationToUsers(String recipients, Long scheduleId) {
-        if (!recipients.equalsIgnoreCase("All")) {
+        if (!recipients.equalsIgnoreCase(ALL)) {
             userCommonService.saveUserNotificationsForParticularUsers(recipients, scheduleId);
         } else {
             /** Currently using @Async batch process for saving notifications for all the users.
