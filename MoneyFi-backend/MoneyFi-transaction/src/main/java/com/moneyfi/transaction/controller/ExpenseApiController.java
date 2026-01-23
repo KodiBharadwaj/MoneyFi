@@ -3,7 +3,7 @@ package com.moneyfi.transaction.controller;
 import com.moneyfi.transaction.config.JwtService;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.service.expense.ExpenseService;
-import com.moneyfi.transaction.service.expense.response.ExpenseDetailsDto;
+import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

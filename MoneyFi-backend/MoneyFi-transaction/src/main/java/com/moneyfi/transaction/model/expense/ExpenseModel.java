@@ -24,6 +24,7 @@ public class ExpenseModel {
     private LocalDateTime date;
     private boolean recurring;
     private String description;
+    private String entryMode;
     private boolean isDeleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

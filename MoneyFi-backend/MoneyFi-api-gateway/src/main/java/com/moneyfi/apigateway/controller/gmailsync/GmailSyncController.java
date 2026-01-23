@@ -4,6 +4,7 @@ import com.moneyfi.apigateway.dto.ParsedTransaction;
 import com.moneyfi.apigateway.model.gmailsync.GmailAuth;
 import com.moneyfi.apigateway.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.apigateway.service.gmailsync.GmailSyncService;
+import com.moneyfi.apigateway.service.gmailsync.dto.response.GmailSyncHistoryResponse;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -51,8 +53,16 @@ public class GmailSyncController {
 
     @Operation(summary = "Api to sync transaction related emails and return data to user to verify")
     @PostMapping("/start")
-    public ResponseEntity<Map<Integer, List<ParsedTransaction>>> startSync(Authentication auth) throws IOException, URISyntaxException {
-        Long userId = userService.getUserIdByUsername(((UserDetails) auth.getPrincipal()).getUsername());
-        return ResponseEntity.ok(gmailSyncService.startSync(userId));
+    public ResponseEntity<Map<Integer, List<ParsedTransaction>>> startGmailSync(Authentication authentication,
+                                                                                @RequestParam LocalDate date) throws IOException, URISyntaxException {
+        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        return ResponseEntity.ok(gmailSyncService.startGmailSync(userId, date));
+    }
+
+    @Operation(summary = "Api to get history gmail sync data")
+    @GetMapping("/history")
+    public ResponseEntity<List<GmailSyncHistoryResponse>> getSyncHistoryResponse(Authentication authentication) {
+        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        return ResponseEntity.ok(gmailSyncService.getSyncHistoryResponse(userId));
     }
 }

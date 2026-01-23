@@ -76,9 +76,10 @@ export class GmailSyncDialogComponent implements OnInit {
   startSync() {
   this.loading = true;
 
+  const today = new Date().toISOString().split('T')[0]; 
   this.http
     .post<Record<number, ParsedTransaction[]>>(
-      `${this.BASE_URL}/api/v1/gmail-sync/start`,
+      `${this.BASE_URL}/api/v1/gmail-sync/start?date=${today}`,
       {}
     )
     .subscribe({

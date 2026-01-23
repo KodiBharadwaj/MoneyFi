@@ -3,7 +3,7 @@ package com.moneyfi.transaction.repository.transaction.impl;
 import com.microsoft.sqlserver.jdbc.SQLServerDataTable;
 import com.moneyfi.transaction.exceptions.QueryValidationException;
 import com.moneyfi.transaction.repository.transaction.TransactionRepository;
-import com.moneyfi.transaction.service.expense.response.ExpenseDetailsDto;
+import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.*;
 import jakarta.persistence.EntityManager;

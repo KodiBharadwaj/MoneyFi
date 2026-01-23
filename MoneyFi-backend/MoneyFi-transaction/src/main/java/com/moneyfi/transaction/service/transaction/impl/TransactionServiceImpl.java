@@ -7,17 +7,21 @@ import com.moneyfi.transaction.model.income.IncomeModel;
 import com.moneyfi.transaction.repository.expense.ExpenseRepository;
 import com.moneyfi.transaction.repository.income.IncomeRepository;
 import com.moneyfi.transaction.repository.transaction.TransactionRepository;
+import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
 import com.moneyfi.transaction.service.income.dto.request.IncomeSaveRequest;
 import com.moneyfi.transaction.service.income.dto.response.AccountStatementResponseDto;
+import com.moneyfi.transaction.service.income.dto.response.IncomeDetailsDto;
 import com.moneyfi.transaction.service.income.dto.response.OverviewPageDetailsDto;
 import com.moneyfi.transaction.service.income.dto.response.UserDetailsForStatementDto;
 import com.moneyfi.transaction.service.transaction.TransactionService;
 import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction;
-import com.moneyfi.transaction.utils.CreditOrDebit;
+import com.moneyfi.transaction.service.transaction.dto.response.GmailSyncTransactionsResponse;
+import com.moneyfi.transaction.utils.enums.CreditOrDebit;
 import com.moneyfi.transaction.utils.GeneratePdfTemplate;
 import com.moneyfi.transaction.utils.StringConstants;
-import com.moneyfi.transaction.utils.TransactionServiceType;
+import com.moneyfi.transaction.utils.enums.EntryModeEnum;
+import com.moneyfi.transaction.utils.enums.TransactionServiceType;
 import com.moneyfi.transaction.validator.IncomeValidator;
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
@@ -26,6 +30,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -125,6 +132,38 @@ public class TransactionServiceImpl implements TransactionService {
         transactionRepository.updateGmailProcessedAsVerified(transactions.stream().map(ParsedTransaction::getGmailProcessedId).toList());
     }
 
+    @Override
+    public GmailSyncTransactionsResponse getGmailSyncAddedTransactions(Long userId, LocalDate date) {
+        return new GmailSyncTransactionsResponse(
+                incomeRepository.getGmailSyncAddedIncomes(userId, date)
+                        .stream()
+                        .map(income -> IncomeDetailsDto.builder()
+                                .id(income.getId())
+                                .amount(income.getAmount())
+                                .source(income.getSource())
+                                .date(income.getDate() == null ? null : Date.from(income.getDate().atZone(ZoneId.systemDefault()).toInstant()))
+                                .category(incomeRepository.getCategoryNameById(income.getCategoryId()))
+                                .recurring(income.isRecurring())
+                                .description(income.getDescription())
+                                .build()
+                        )
+                        .toList(),
+                expenseRepository.getGmailSyncAddedExpenses(userId, date)
+                        .stream()
+                        .map(expense -> ExpenseDetailsDto.builder()
+                                .id(expense.getId())
+                                .amount(expense.getAmount())
+                                .description(expense.getDescription())
+                                .date(expense.getDate() == null ? null : Date.from(expense.getDate().atZone(ZoneId.systemDefault()).toInstant()))
+                                .category(incomeRepository.getCategoryNameById(expense.getCategoryId()))
+                                .recurring(expense.isRecurring())
+                                .description(expense.getDescription())
+                                .build()
+                        )
+                        .toList()
+        );
+    }
+
     private String makeUsernamePrivate(String username){
         int index = username.indexOf('@');
         return username.substring(0, index/3) + "x".repeat(index - index/3) + username.substring(index);
@@ -161,6 +200,7 @@ public class TransactionServiceImpl implements TransactionService {
         income.setDescription(transaction.getDescription());
         income.setDate(transaction.getTransactionDate());
         income.setRecurring(false);
+        income.setEntryMode(EntryModeEnum.GMAIL_SYNC.name());
         return income;
     }
 
@@ -172,6 +212,7 @@ public class TransactionServiceImpl implements TransactionService {
         expense.setDate(transaction.getTransactionDate());
         expense.setAmount(transaction.getAmount());
         expense.setRecurring(false);
+        expense.setEntryMode(EntryModeEnum.GMAIL_SYNC.name());
         return expense;
     }
 }

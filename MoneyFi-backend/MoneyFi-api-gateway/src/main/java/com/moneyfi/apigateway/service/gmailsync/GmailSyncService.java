@@ -14,9 +14,12 @@ import com.moneyfi.apigateway.exceptions.CustomAuthenticationFailedException;
 import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.gmailsync.GmailAuth;
 import com.moneyfi.apigateway.model.gmailsync.GmailProcessedMessageEntity;
+import com.moneyfi.apigateway.model.gmailsync.GmailSyncHistory;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
+import com.moneyfi.apigateway.repository.gmailsync.GmailSyncHistoryRepository;
 import com.moneyfi.apigateway.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.apigateway.repository.gmailsync.GmailProcessedMessageRepository;
+import com.moneyfi.apigateway.service.gmailsync.dto.response.GmailSyncHistoryResponse;
 import com.moneyfi.apigateway.util.CryptoUtil;
 import com.moneyfi.apigateway.util.enums.TransactionServiceType;
 import jakarta.transaction.Transactional;
@@ -41,6 +44,7 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +62,7 @@ public class GmailSyncService {
     private final CryptoUtil cryptoUtil;
     private final GmailProcessedMessageRepository processedRepository;
     private final CommonServiceRepository commonServiceRepository;
+    private final GmailSyncHistoryRepository gmailSyncHistoryRepository;
 
     public void enableSync(String code, String username, Long userId) {
         HttpHeaders headers = new HttpHeaders();
@@ -103,7 +108,7 @@ public class GmailSyncService {
         return Map.of("connected", connected);
     }
 
-    public Map<Integer, List<ParsedTransaction>> startSync(Long userId) throws IOException, URISyntaxException {
+    public Map<Integer, List<ParsedTransaction>> startGmailSync(Long userId, LocalDate date) throws IOException, URISyntaxException {
         GmailAuth gmailAuth = isSyncEnabled(userId);
         if(gmailAuth != null && gmailAuth.getCount() >= 3) throw new ScenarioNotPossibleException("Sync limit crossed for today. Please try tomorrow");
         else if(gmailAuth == null) gmailAuth = new GmailAuth();
@@ -111,21 +116,24 @@ public class GmailSyncService {
         gmailAuth.setCount((gmailAuth.getCount() != null ? gmailAuth.getCount() : 0) + 1);
         gmailSyncRepository.save(gmailAuth);
         /** return new HashMap<>(Map.of(2, List.of(new ParsedTransaction(1, "Upi", new BigDecimal("123"), "CREDIT OR DEBIT", LocalDateTime.now())))); **/
-        return Map.of(3 - gmailAuth.getCount(), syncEmails(userId).stream().filter(Objects::nonNull).toList());
+        return Map.of(3 - gmailAuth.getCount(), syncEmails(userId, date).stream().filter(Objects::nonNull).toList());
     }
 
-    public List<ParsedTransaction> syncEmails(Long userId) throws IOException, URISyntaxException {
+    public List<ParsedTransaction> syncEmails(Long userId, LocalDate date) throws IOException, URISyntaxException {
         Gmail gmail = gmailClientForUser(userId);
         /** String query =
                 "from:(@hdfcbank.net OR @icicibank.com OR @sbi.co.in OR @microsoftonline.com OR @gmail.com) " +
                         "subject:(debited OR credited OR UPI OR MoneyFi - user requests) newer_than:7d"; **/
-        String query = "after:" + LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
+        String query = "after:" + date.atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
         ListMessagesResponse response = gmail.users().messages().list("me")
                         .setQ(query)
                         .setIncludeSpamTrash(false)
-                        .setMaxResults(10L)
+                        .setMaxResults(100L)
                         .execute();
-        if (response.getMessages() == null) return new ArrayList<>();
+        gmailSyncHistoryRepository.save(new GmailSyncHistory(LocalDateTime.now(), userId));
+        if (response.getMessages() == null) {
+            return new ArrayList<>();
+        }
 
         List<String> categories = commonServiceRepository.getCategoriesBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
         Map<String, Integer> categoryNameIdMap = new HashMap<>();
@@ -339,5 +347,25 @@ public class GmailSyncService {
             }
         }
         return "";
+    }
+
+    public List<GmailSyncHistoryResponse> getSyncHistoryResponse(Long userId) {
+        return gmailSyncHistoryRepository.findByUserId(userId)
+                .stream()
+                .collect(Collectors.groupingBy(history -> history.getSyncTime().toLocalDate()))
+                .entrySet()
+                .stream()
+                .map(entry -> {
+                    LocalDateTime latestSyncTime = entry.getValue().stream()
+                            .map(GmailSyncHistory::getSyncTime)
+                            .max(LocalDateTime::compareTo)
+                            .orElse(null);
+                    return GmailSyncHistoryResponse.builder()
+                            .syncTime(latestSyncTime)
+                            .syncCount(entry.getValue().size())
+                            .build();
+                })
+                .sorted(Comparator.comparing(GmailSyncHistoryResponse::getSyncTime).reversed())
+                .toList();
     }
 }
