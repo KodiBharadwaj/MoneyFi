@@ -37,10 +37,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -100,17 +97,34 @@ public class GmailSyncService {
         return gmailSyncRepository.existsByUserId(userId).orElse(null);
     }
 
-    public Map<String, Boolean> getConsentStatus(Long userId) {
-        boolean connected = gmailSyncRepository
-                .findByUserId(userId)
-                .filter(auth -> auth.getRefreshToken() != null)
-                .isPresent();
-        return Map.of("connected", connected);
+    public Integer getGmailConsentStatus(Long userId) {
+        GmailAuth gmailAuth = isSyncEnabled(userId);
+        return gmailAuth != null ? gmailAuth.getCount() != null ? gmailAuth.getCount() : 0 : null;
+    }
+
+    public List<GmailSyncHistoryResponse> getSyncHistoryResponse(Long userId) {
+        return gmailSyncHistoryRepository.findByUserId(userId)
+                .stream()
+                .collect(Collectors.groupingBy(history -> history.getSyncTime().toLocalDate()))
+                .entrySet()
+                .stream()
+                .map(entry -> {
+                    LocalDateTime latestSyncTime = entry.getValue().stream()
+                            .map(GmailSyncHistory::getSyncTime)
+                            .max(LocalDateTime::compareTo)
+                            .orElse(null);
+                    return GmailSyncHistoryResponse.builder()
+                            .syncTime(latestSyncTime)
+                            .syncCount(entry.getValue().size())
+                            .build();
+                })
+                .sorted(Comparator.comparing(GmailSyncHistoryResponse::getSyncTime).reversed())
+                .toList();
     }
 
     public Map<Integer, List<ParsedTransaction>> startGmailSync(Long userId, LocalDate date) throws IOException, URISyntaxException {
         GmailAuth gmailAuth = isSyncEnabled(userId);
-        if(gmailAuth != null && gmailAuth.getCount() >= 3) throw new ScenarioNotPossibleException("Sync limit crossed for today. Please try tomorrow");
+        if(gmailAuth != null && gmailAuth.getCount() >= 3) throw new ScenarioNotPossibleException("Sync limit crossed. Please login again to use");
         else if(gmailAuth == null) gmailAuth = new GmailAuth();
 
         gmailAuth.setCount((gmailAuth.getCount() != null ? gmailAuth.getCount() : 0) + 1);
@@ -119,21 +133,27 @@ public class GmailSyncService {
         return Map.of(3 - gmailAuth.getCount(), syncEmails(userId, date).stream().filter(Objects::nonNull).toList());
     }
 
-    public List<ParsedTransaction> syncEmails(Long userId, LocalDate date) throws IOException, URISyntaxException {
+    private List<ParsedTransaction> syncEmails(Long userId, LocalDate date) throws IOException, URISyntaxException {
         Gmail gmail = gmailClientForUser(userId);
         /** String query =
                 "from:(@hdfcbank.net OR @icicibank.com OR @sbi.co.in OR @microsoftonline.com OR @gmail.com) " +
                         "subject:(debited OR credited OR UPI OR MoneyFi - user requests) newer_than:7d"; **/
-        String query = "after:" + date.atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
+        long start = date
+                .atStartOfDay(ZoneOffset.UTC)
+                .toEpochSecond();
+        long end = date
+                .plusDays(1)
+                .atStartOfDay(ZoneOffset.UTC)
+                .toEpochSecond();
+
+        String query = "after:" + start + " before:" + end;
         ListMessagesResponse response = gmail.users().messages().list("me")
                         .setQ(query)
                         .setIncludeSpamTrash(false)
                         .setMaxResults(100L)
                         .execute();
-        gmailSyncHistoryRepository.save(new GmailSyncHistory(LocalDateTime.now(), userId));
-        if (response.getMessages() == null) {
-            return new ArrayList<>();
-        }
+        gmailSyncHistoryRepository.save(new GmailSyncHistory(date.atTime(LocalTime.now()), userId));
+        if (response.getMessages() == null) return new ArrayList<>();
 
         List<String> categories = commonServiceRepository.getCategoriesBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
         Map<String, Integer> categoryNameIdMap = new HashMap<>();
@@ -347,25 +367,5 @@ public class GmailSyncService {
             }
         }
         return "";
-    }
-
-    public List<GmailSyncHistoryResponse> getSyncHistoryResponse(Long userId) {
-        return gmailSyncHistoryRepository.findByUserId(userId)
-                .stream()
-                .collect(Collectors.groupingBy(history -> history.getSyncTime().toLocalDate()))
-                .entrySet()
-                .stream()
-                .map(entry -> {
-                    LocalDateTime latestSyncTime = entry.getValue().stream()
-                            .map(GmailSyncHistory::getSyncTime)
-                            .max(LocalDateTime::compareTo)
-                            .orElse(null);
-                    return GmailSyncHistoryResponse.builder()
-                            .syncTime(latestSyncTime)
-                            .syncCount(entry.getValue().size())
-                            .build();
-                })
-                .sorted(Comparator.comparing(GmailSyncHistoryResponse::getSyncTime).reversed())
-                .toList();
     }
 }

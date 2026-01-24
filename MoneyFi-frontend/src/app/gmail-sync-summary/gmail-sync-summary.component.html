@@ -1,0 +1,113 @@
+<div class="gmail-sync-container">
+  <!-- Header Section -->
+  <div class="sync-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h2 class="header-title">
+          <svg class="icon-mail" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+          Gmail Transaction Sync
+        </h2>
+        <p class="header-subtitle">Sync and manage your email transactions</p>
+      </div>
+      
+      <div class="header-right">
+        <div class="selected-date-card">
+          <span class="date-label">Selected Date</span>
+          <span class="date-value">{{ selectedDate | date: 'dd MMM yyyy' }}</span>
+        </div>
+        
+        <button
+          *ngIf="!gmailSyncEnabled"
+          class="btn btn-sync"
+          (click)="onGmailSyncClick()"
+        >
+          <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          Sync Email Transactions
+        </button>
+
+        <button *ngIf="gmailSyncEnabled" class="btn btn-enabled" disabled>
+          <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Email Sync Enabled
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Section -->
+  <div class="sync-body">
+    <!-- Left: Calendar Panel -->
+    <div class="calendar-panel">
+      <div class="panel-card">
+        <app-gmail-sync-calendar
+          [history]="syncHistory"
+          (dateSelected)="onDateSelected($event)">
+        </app-gmail-sync-calendar>
+      </div>
+    </div>
+
+    <!-- Right: Transactions Panel -->
+    <div class="transactions-panel">
+      <div class="panel-card">
+        <div class="panel-header">
+          <h3 class="panel-title">
+            Transactions
+          </h3>
+          <span class="transaction-count">{{ transactions.length }} items</span>
+        </div>
+
+        <div class="transactions-content">
+          <ng-container *ngIf="loadingTransactions">
+            <div class="loading-state">
+              <mat-spinner diameter="40"></mat-spinner>
+              <p class="loading-text">Loading transactions...</p>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="!loadingTransactions && transactions.length === 0">
+            <div class="empty-state">
+              <svg class="empty-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <p class="empty-text">No transactions found</p>
+              <p class="empty-subtext">Select a date with synced data from the calendar</p>
+            </div>
+          </ng-container>
+
+          <div class="transaction-list" *ngIf="!loadingTransactions && transactions.length > 0">
+            <div *ngFor="let tx of transactions" class="transaction-item">
+              <div class="tx-icon" [class.income]="tx.type === 'income'" [class.expense]="tx.type === 'expense'">
+                <svg *ngIf="tx.type === 'income'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="19" x2="12" y2="5"></line>
+                  <polyline points="5 12 12 5 19 12"></polyline>
+                </svg>
+                <svg *ngIf="tx.type === 'expense'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <polyline points="19 12 12 19 5 12"></polyline>
+                </svg>
+              </div>
+              
+              <div class="tx-details">
+                <div class="tx-category">{{ tx.category || 'Uncategorized' }}</div>
+                <div class="tx-date">{{ tx.date | date:'MMM dd, yyyy · h:mm a' }}</div>
+              </div>
+              
+              <div class="tx-amount" [class.income]="tx.type === 'income'" [class.expense]="tx.type === 'expense'">
+                {{ tx.amount | currency:'INR' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

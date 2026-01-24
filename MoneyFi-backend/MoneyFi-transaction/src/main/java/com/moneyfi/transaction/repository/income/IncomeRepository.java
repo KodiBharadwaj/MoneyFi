@@ -59,7 +59,7 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
                     "WHERE it.user_id = :userId " +
                     "AND it.is_deleted = 0 " +
                     "AND it.entry_mode = 'GMAIL_SYNC' " +
-                    "AND CAST(it.created_at AS DATE) = :date ",
+                    "AND CAST(it.date AS DATE) = :date ",
             nativeQuery = true)
     List<IncomeModel> getGmailSyncAddedIncomes(Long userId, LocalDate date);
 

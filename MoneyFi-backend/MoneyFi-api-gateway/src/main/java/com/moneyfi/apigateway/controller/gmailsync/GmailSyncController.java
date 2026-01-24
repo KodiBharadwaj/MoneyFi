@@ -1,8 +1,6 @@
 package com.moneyfi.apigateway.controller.gmailsync;
 
 import com.moneyfi.apigateway.dto.ParsedTransaction;
-import com.moneyfi.apigateway.model.gmailsync.GmailAuth;
-import com.moneyfi.apigateway.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.apigateway.service.gmailsync.GmailSyncService;
 import com.moneyfi.apigateway.service.gmailsync.dto.response.GmailSyncHistoryResponse;
 import com.moneyfi.apigateway.service.userservice.UserService;
@@ -26,7 +24,6 @@ public class GmailSyncController {
 
     private final GmailSyncService gmailSyncService;
     private final UserService userService;
-    private final GmailSyncRepository gmailSyncRepository;
 
     @Operation(summary = "Api to silent verification without further google consent")
     @PostMapping("/enable")
@@ -40,15 +37,7 @@ public class GmailSyncController {
     @GetMapping("/status")
     public ResponseEntity<Integer> getStatus(Authentication authentication) {
         Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        GmailAuth gmailAuth = gmailSyncService.isSyncEnabled(userId);
-        return ResponseEntity.ok(gmailAuth != null ? gmailAuth.getCount() != null ? gmailAuth.getCount() : 0 : 0);
-    }
-
-    @Operation(summary = "Api to check the consent status of the user")
-    @GetMapping("/consent-status")
-    public Map<String, Boolean> consentStatus(Authentication authentication) {
-        Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        return gmailSyncService.getConsentStatus(userId);
+        return ResponseEntity.ok(gmailSyncService.getGmailConsentStatus(userId));
     }
 
     @Operation(summary = "Api to sync transaction related emails and return data to user to verify")
