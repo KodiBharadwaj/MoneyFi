@@ -108,7 +108,7 @@ export class DashboardComponent implements OnInit{
   }
 
   onTypeChange() {
-    const stored = localStorage.getItem('CATEGORIES');
+    const stored = sessionStorage.getItem('CATEGORIES');
     if (stored) {
       this.categories = JSON.parse(stored);
       return;
@@ -126,8 +126,8 @@ export class DashboardComponent implements OnInit{
 
       this.categories = categoriesWithUiProps;
 
-      // ✅ store in localStorage
-      localStorage.setItem(
+      // ✅ store in sessionStorage
+      sessionStorage.setItem(
         'CATEGORIES',
         JSON.stringify(categoriesWithUiProps)
       );
@@ -152,7 +152,7 @@ export class DashboardComponent implements OnInit{
                 timeOut: 1500  // time in milliseconds (3 seconds)
               });
               sessionStorage.removeItem('moneyfi.auth');
-              localStorage.clear();
+              sessionStorage.clear();
               this.router.navigate(['']);
             } else if(jsonResponse.message === 'Phone number is empty'){
               alert('Kindly fill Phone number before log out')

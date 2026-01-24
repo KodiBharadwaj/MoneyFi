@@ -226,8 +226,8 @@ export class UserConfigurationComponent implements AfterViewInit{
                 timeOut: 1500  // time in milliseconds (3 seconds)
               });
               sessionStorage.removeItem('moneyfi.auth');
-              localStorage.removeItem('moneyfi.user.name');
-              localStorage.removeItem('moneyfi.user.profile.image');
+              sessionStorage.removeItem('moneyfi.user.name');
+              sessionStorage.removeItem('moneyfi.user.profile.image');
               this.router.navigate(['']);
             } else if(jsonResponse.message === 'Phone number is empty'){
               alert('Kindly fill Phone number before log out')
@@ -272,8 +272,8 @@ export class UserConfigurationComponent implements AfterViewInit{
                 timeOut: 1500  // time in milliseconds (3 seconds)
               });
               sessionStorage.removeItem('moneyfi.auth');
-              localStorage.removeItem('moneyfi.user.name');
-              localStorage.removeItem('moneyfi.user.profile.image');
+              sessionStorage.removeItem('moneyfi.user.name');
+              sessionStorage.removeItem('moneyfi.user.profile.image');
               this.router.navigate(['']);
             } else if(jsonResponse.message === 'Phone number is empty'){
               alert('Kindly fill Phone number before log out')
