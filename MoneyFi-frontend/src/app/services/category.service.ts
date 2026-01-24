@@ -11,7 +11,7 @@ export class CategoryService {
   constructor(private http: HttpClient) {}
 
   getIncomeCategories(): Observable<Category[]> {
-  const stored = localStorage.getItem(this.STORAGE_KEY);
+  const stored = sessionStorage.getItem(this.STORAGE_KEY);
 
     if (stored) {
         const categories: Category[] = JSON.parse(stored);
@@ -28,7 +28,7 @@ export class CategoryService {
     ).pipe(
         map(res => {
         const withUiProps = res.map(c => ({ ...c, editing: false }));
-        localStorage.setItem(
+        sessionStorage.setItem(
             this.STORAGE_KEY,
             JSON.stringify(withUiProps)
         );
@@ -40,7 +40,7 @@ export class CategoryService {
 
 
     getExpenseCategories(): Observable<Category[]> {
-  const stored = localStorage.getItem(this.STORAGE_KEY);
+  const stored = sessionStorage.getItem(this.STORAGE_KEY);
 
     if (stored) {
         const categories: Category[] = JSON.parse(stored);
@@ -57,7 +57,7 @@ export class CategoryService {
     ).pipe(
         map(res => {
         const withUiProps = res.map(c => ({ ...c, editing: false }));
-        localStorage.setItem(
+        sessionStorage.setItem(
             this.STORAGE_KEY,
             JSON.stringify(withUiProps)
         );
@@ -69,7 +69,7 @@ export class CategoryService {
 
 
     getIncomeAndExpenseCategories(): Observable<Category[]> {
-  const stored = localStorage.getItem(this.STORAGE_KEY);
+  const stored = sessionStorage.getItem(this.STORAGE_KEY);
 
   if (stored) {
     const categories: Category[] = JSON.parse(stored);
@@ -92,14 +92,14 @@ export class CategoryService {
         )
       ),
       tap(filtered =>
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filtered))
+        sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(filtered))
       )
     );
 }
 
 
 getGoalCategories(): Observable<Category[]> {
-  const stored = localStorage.getItem(this.STORAGE_KEY);
+  const stored = sessionStorage.getItem(this.STORAGE_KEY);
 
     if (stored) {
         const categories: Category[] = JSON.parse(stored);
@@ -116,7 +116,7 @@ getGoalCategories(): Observable<Category[]> {
     ).pipe(
         map(res => {
         const withUiProps = res.map(c => ({ ...c, editing: false }));
-        localStorage.setItem(
+        sessionStorage.setItem(
             this.STORAGE_KEY,
             JSON.stringify(withUiProps)
         );

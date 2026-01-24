@@ -24,6 +24,7 @@ public class StringConstants {
     public static final String MESSAGE = "message";
     public static final String USER_ROLE = "USER";
     public static final String ADMIN_ROLE = "ADMIN";
+    public static final String ALL = "All";
     public static final String LOCAL_PROFILE = "local";
     public static final String USER_PROFILE_DETAILS_NOT_FOUND = "User profile details not found";
     public static final String UPLOAD_PROFILE_PICTURE = "profile_pic_";

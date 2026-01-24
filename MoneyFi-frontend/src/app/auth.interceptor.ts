@@ -28,7 +28,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         sessionGuard.sessionExpiredHandled = true;
         alert('Your session has expired. Please login again.');
         sessionStorage.removeItem('moneyfi.auth');
-        localStorage.clear();
+        sessionStorage.clear();
         router.navigate(['/']);
       }
       return throwError(() => error);
