@@ -127,7 +127,7 @@ public class GeneratePdfTemplate {
         addCell(summaryTable, "Total Expense", headerFont);
         addCell(summaryTable, responseDto.getTotalExpense().toString(), cellFont);
 
-        addCell(summaryTable, "Amount Available Till Now", headerFont);
+        addCell(summaryTable, "Amount available in selected range", headerFont);
         addCell(summaryTable, responseDto.getAmountAvailableTillNow().toString(), cellFont);
 
         document.add(summaryTable);
