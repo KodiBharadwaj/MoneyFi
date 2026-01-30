@@ -4,9 +4,11 @@ import com.moneyfi.transaction.service.income.dto.request.AccountStatementReques
 import com.moneyfi.transaction.service.income.dto.response.AccountStatementResponseDto;
 import com.moneyfi.transaction.service.income.dto.response.OverviewPageDetailsDto;
 import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction;
+import com.moneyfi.transaction.service.transaction.dto.response.GmailSyncTransactionsResponse;
 import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface TransactionService {
@@ -19,4 +21,6 @@ public interface TransactionService {
     OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year);
 
     void addGmailSyncTransactions(Long userId, List<ParsedTransaction> transactions);
+
+    GmailSyncTransactionsResponse getGmailSyncAddedTransactions(Long userId, LocalDate date);
 }

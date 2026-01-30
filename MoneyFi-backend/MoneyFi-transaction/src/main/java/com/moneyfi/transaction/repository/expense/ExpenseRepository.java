@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -44,4 +45,14 @@ public interface ExpenseRepository extends JpaRepository<ExpenseModel, Long> {
             nativeQuery = true
     )
     List<Object[]> getTotalIncomeInSpecifiedRange(@Param("userId") Long userId, @Param("fromDate") LocalDateTime fromDate, @Param("toDate") LocalDateTime toDate);
+
+    @Query(
+            value = "SELECT et.* " +
+                    "FROM expense_table et WITH (NOLOCK) " +
+                    "WHERE et.user_id = :userId " +
+                    "AND et.is_deleted = 0 " +
+                    "AND et.entry_mode = 'GMAIL_SYNC' " +
+                    "AND CAST(et.created_at AS DATE) = :date ",
+            nativeQuery = true)
+    List<ExpenseModel> getGmailSyncAddedExpenses(Long userId, LocalDate date);
 }

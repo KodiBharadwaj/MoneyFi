@@ -1,7 +1,7 @@
 package com.moneyfi.transaction.service.expense;
 
 import com.moneyfi.transaction.model.expense.ExpenseModel;
-import com.moneyfi.transaction.service.expense.response.ExpenseDetailsDto;
+import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;

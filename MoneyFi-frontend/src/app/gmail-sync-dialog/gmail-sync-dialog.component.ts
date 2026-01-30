@@ -35,7 +35,7 @@ export class GmailSyncDialogComponent implements OnInit {
   transactionTypes = ['CREDIT', 'DEBIT'];
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) private data: { code: string },
+    @Inject(MAT_DIALOG_DATA) private data: { code: string, syncDate: string },
     private http: HttpClient,
     private dialogRef: MatDialogRef<GmailSyncDialogComponent>,
     private toastr: ToastrService,
@@ -76,9 +76,11 @@ export class GmailSyncDialogComponent implements OnInit {
   startSync() {
   this.loading = true;
 
+  // const today = new Date().toISOString().split('T')[0]; 
+  const syncDate = this.data.syncDate || new Date().toISOString().split('T')[0];
   this.http
     .post<Record<number, ParsedTransaction[]>>(
-      `${this.BASE_URL}/api/v1/gmail-sync/start`,
+      `${this.BASE_URL}/api/v1/gmail-sync/start?date=${syncDate}`,
       {}
     )
     .subscribe({

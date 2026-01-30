@@ -1,6 +1,6 @@
 package com.moneyfi.transaction.repository.transaction;
 
-import com.moneyfi.transaction.service.expense.response.ExpenseDetailsDto;
+import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.*;
 

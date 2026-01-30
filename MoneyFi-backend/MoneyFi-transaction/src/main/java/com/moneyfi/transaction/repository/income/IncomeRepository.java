@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -51,4 +52,22 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
             nativeQuery = true
     )
     List<Object[]> getTotalIncomeInSpecifiedRange(@Param("userId") Long userId, @Param("fromDate") LocalDateTime fromDate, @Param("toDate") LocalDateTime toDate);
+
+    @Query(
+            value = "SELECT it.* " +
+                    "FROM income_table it WITH (NOLOCK) " +
+                    "WHERE it.user_id = :userId " +
+                    "AND it.is_deleted = 0 " +
+                    "AND it.entry_mode = 'GMAIL_SYNC' " +
+                    "AND CAST(it.created_at AS DATE) = :date ",
+            nativeQuery = true)
+    List<IncomeModel> getGmailSyncAddedIncomes(Long userId, LocalDate date);
+
+    @Query(
+            value = "SELECT clt.category " +
+                    "FROM category_list_table clt " +
+                    "WHERE clt.id = :categoryId ",
+            nativeQuery = true
+    )
+    String getCategoryNameById(Integer categoryId);
 }

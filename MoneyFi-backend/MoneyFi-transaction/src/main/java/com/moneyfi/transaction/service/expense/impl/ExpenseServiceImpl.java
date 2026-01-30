@@ -6,8 +6,9 @@ import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.repository.expense.ExpenseRepository;
 import com.moneyfi.transaction.repository.transaction.TransactionRepository;
 import com.moneyfi.transaction.service.expense.ExpenseService;
-import com.moneyfi.transaction.service.expense.response.ExpenseDetailsDto;
-import com.moneyfi.transaction.utils.TransactionServiceType;
+import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
+import com.moneyfi.transaction.utils.enums.EntryModeEnum;
+import com.moneyfi.transaction.utils.enums.TransactionServiceType;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -49,6 +50,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             throw new ScenarioNotPossibleException(CATEGORY_ID_INVALID);
         }
         expense.setDeleted(false);
+        expense.setEntryMode(EntryModeEnum.MANUAL.name());
         return expenseRepository.save(expense);
     }
 
@@ -269,7 +271,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<ExpenseDetailsDto> updateBySource(Long id, Long userId, ExpenseModel expense) {
         expense.setUserId(userId);
         expense.setDeleted(false);
@@ -307,7 +309,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             expenseModel.setRecurring(expense.isRecurring());
         }
         expenseModel.setUpdatedAt(LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.CREATED).body(updateExpenseDtoConversion(save(expenseModel)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(updateExpenseDtoConversion(expenseRepository.save(expenseModel)));
     }
 
     private ExpenseDetailsDto updateExpenseDtoConversion(ExpenseModel updatedExpense){

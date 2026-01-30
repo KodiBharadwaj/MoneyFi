@@ -11,7 +11,8 @@ import com.moneyfi.transaction.model.income.IncomeModel;
 import com.moneyfi.transaction.repository.income.IncomeDeletedRepository;
 import com.moneyfi.transaction.repository.income.IncomeRepository;
 import com.moneyfi.transaction.service.income.dto.response.*;
-import com.moneyfi.transaction.utils.TransactionServiceType;
+import com.moneyfi.transaction.utils.enums.EntryModeEnum;
+import com.moneyfi.transaction.utils.enums.TransactionServiceType;
 import com.moneyfi.transaction.validator.IncomeValidator;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +66,7 @@ public class IncomeServiceImpl implements IncomeService {
         BeanUtils.copyProperties(incomeSaveRequest, income);
         income.setDate(LocalDateTime.parse(incomeSaveRequest.getDate()));
         income.setUserId(userId);
+        income.setEntryMode(EntryModeEnum.MANUAL.name());
         incomeRepository.save(income);
     }
 

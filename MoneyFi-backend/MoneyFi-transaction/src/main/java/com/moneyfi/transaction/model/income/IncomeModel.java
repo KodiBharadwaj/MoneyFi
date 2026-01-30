@@ -26,6 +26,7 @@ public class IncomeModel {
     private boolean recurring;
     private boolean isDeleted;
     private String description;
+    private String entryMode;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

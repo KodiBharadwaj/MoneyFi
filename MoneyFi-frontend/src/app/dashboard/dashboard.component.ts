@@ -4,7 +4,7 @@ import { IncomeComponent } from '../income/income.component';
 import { ExpensesComponent } from '../expenses/expenses.component';
 import { BudgetsComponent } from '../budgets/budgets.component';
 import { GoalsComponent } from '../goals/goals.component';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { OverviewComponent } from '../overview/overview.component';
 import { ConfirmLogoutDialogComponent } from '../confirm-logout-dialog/confirm-logout-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -14,7 +14,6 @@ import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../environments/environment';
 import { NotificationService } from '../notification-service.service';
-import { GmailSyncDialogComponent } from '../gmail-sync-dialog/gmail-sync-dialog.component';
 import { UserNotification } from '../model/user-notification';
 
 declare const google: any;
@@ -39,8 +38,7 @@ declare const google: any;
 })
 export class DashboardComponent implements OnInit{
 
-  constructor(private router:Router, private dialog: MatDialog, private ngZone: NgZone,
-    private route: ActivatedRoute, private httpClient:HttpClient, private notificationService: NotificationService,
+  constructor(private router:Router, private dialog: MatDialog, private ngZone: NgZone, private httpClient:HttpClient, private notificationService: NotificationService,
   private toastr: ToastrService){};
 
   isLoading = false;
@@ -62,14 +60,6 @@ export class DashboardComponent implements OnInit{
     });
     this.notificationService.loadNotificationCount();
 
-    this.httpClient.get<{ connected: boolean }>(
-      `${this.baseUrl}/api/v1/gmail-sync/consent-status`
-    ).subscribe(res => {
-      this.isGmailConnected = res.connected;
-    });
-
-    this.checkGmailSyncStatus();
-    // this.initGmailSync();
     this.onTypeChange();
     this.subscribeToNotifications();
   }
@@ -170,62 +160,9 @@ export class DashboardComponent implements OnInit{
       }
     });
   }
-  
-
-  checkGmailSyncStatus() {
-    this.httpClient
-      .get<number>(`${this.baseUrl}/api/v1/gmail-sync/status`)
-      .subscribe((res) => {
-        if(res >= 3)
-        this.gmailSyncEnabled = true; else this.gmailSyncEnabled = false;
-      });
-  }
 
   onGmailSyncClick() {
-    if (this.isGmailConnected) {
-      // Silent sync
-      this.startSync();
-    } else {
-      // First-time auth
-      this.startGoogleConsent();
-    }
+    this.router.navigate(['dashboard/gmail-sync-summary']);
   }
-
-  startGoogleConsent() {
-    const client = google.accounts.oauth2.initCodeClient({
-      client_id: environment.GOOGLE_CLIENT_ID,
-      scope: 'openid email profile https://www.googleapis.com/auth/gmail.readonly',
-      access_type: 'offline',
-      prompt: 'consent', // ONLY here
-      callback: (response: any) => this.handleGmailSync(response),
-    });
-    client.requestCode();
-  }
-
-  startSync() {
-    const dialogRef = this.dialog.open(GmailSyncDialogComponent, {
-      width: '80vw',
-      maxHeight: '85vh',
-      disableClose: true,
-      backdropClass: 'gmail-sync-backdrop',
-    });
-    this.checkGmailSyncStatus();
-  }
-
-  handleGmailSync(response: any) {
-    this.httpClient
-      .post(`${this.baseUrl}/api/v1/gmail-sync/enable`, { code: response.code })
-      .subscribe({
-        next: () => {
-          console.log('Gmail sync enabled');
-          this.isGmailConnected = true;
-          this.startSync(); // ✅ start ONLY after backend success
-        },
-        error: (err) => {
-          console.error('Failed to enable Gmail sync', err);
-        }
-      });
-  }
-  
 }
 

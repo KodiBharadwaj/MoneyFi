@@ -31,6 +31,7 @@ import { UserNotificationsComponent } from './user-notifications/user-notificati
 import { AdminReasonsComponent } from './admin-reasons/admin-reasons.component';
 import { HelpCenterComponent } from './help-center/help-center.component';
 import { AdminCategoriesListComponent } from './admin-categories-list/admin-categories-list.component';
+import { GmailSyncSummaryComponent } from './gmail-sync-summary/gmail-sync-summary.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -65,5 +66,6 @@ export const routes: Routes = [
     {path: 'ai-assistant', component: AiAssistantComponent},
     {path: 'reports-insights', component:ReportsInsightsComponent},
     {path: 'notifications', component:UserNotificationsComponent},
+    {path: 'gmail-sync-summary', component:GmailSyncSummaryComponent},
   ]},
 ];

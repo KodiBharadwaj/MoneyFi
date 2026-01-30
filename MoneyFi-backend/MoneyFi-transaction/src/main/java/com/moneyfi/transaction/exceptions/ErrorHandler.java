@@ -1,7 +1,5 @@
-package com.moneyfi.transaction.service.income.common;
+package com.moneyfi.transaction.exceptions;
 
-import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
-import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.transaction.service.income.dto.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

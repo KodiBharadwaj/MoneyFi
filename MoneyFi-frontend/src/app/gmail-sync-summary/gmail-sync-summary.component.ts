@@ -1,0 +1,173 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { MatDialog } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { NgZone } from '@angular/core';
+import { ToastrService } from 'ngx-toastr';
+import { GmailSyncCalendarComponent } from '../gmail-sync-calendar/gmail-sync-calendar.component';
+import { environment } from '../../environments/environment';
+import { GmailSyncDialogComponent } from '../gmail-sync-dialog/gmail-sync-dialog.component';
+
+declare const google: any;
+
+interface GmailSyncHistoryResponse {
+  syncTime: string;
+  syncCount: number;
+}
+
+@Component({
+  selector: 'app-gmail-sync-summary',
+  standalone: true,
+  imports: [CommonModule, MatProgressSpinnerModule, GmailSyncCalendarComponent],
+  templateUrl: './gmail-sync-summary.component.html',
+  styleUrl: './gmail-sync-summary.component.css'
+})
+export class GmailSyncSummaryComponent implements OnInit {
+
+  constructor(
+    private dialog: MatDialog,
+    private httpClient: HttpClient,
+    private toastr: ToastrService
+  ) {}
+
+  selectedDate: Date = new Date();
+  syncHistory: GmailSyncHistoryResponse[] = [];
+  transactions: any[] = [];
+  loadingTransactions = false;
+  isLoading = false;
+  
+  baseUrl = environment.BASE_URL;
+  userServiceBaseUrl = environment.USER_SERVICE_URL;
+  
+  gmailSyncEnabled = false;
+  isGmailConnected = false;
+
+  ngOnInit(): void {
+    this.checkGmailSyncStatus();
+    this.loadHistory();
+  }
+
+  loadHistory() {
+    this.httpClient
+      .get<GmailSyncHistoryResponse[]>(
+        `${this.baseUrl}/api/v1/gmail-sync/history`
+      )
+      .subscribe(res => {
+        this.syncHistory = res;
+      });
+  }
+
+  onDateSelected(date: Date) {
+    this.selectedDate = date;
+    
+    // Check if this date has sync history
+    const hasHistory = this.syncHistory.find(h =>
+      new Date(h.syncTime).toDateString() === date.toDateString()
+    );
+    
+    if (hasHistory) {
+      // Date has history, fetch transactions from API
+      this.fetchTransactions(date);
+    } else {
+      // Date has no history, directly show empty state without API call
+      this.transactions = [];
+      this.loadingTransactions = false;
+    }
+  }
+
+  fetchTransactions(date: Date) {
+    this.loadingTransactions = true;
+    // Format date in local timezone to avoid timezone offset issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`;
+
+    this.httpClient
+      .get<any>(
+        `${this.baseUrl}/api/v1/transaction/gmail-sync-transactions?date=${formattedDate}`
+      )
+      .subscribe({
+        next: res => {
+          this.transactions = [
+            ...(res.incomes || []),
+            ...(res.expenses || [])
+          ];
+          this.loadingTransactions = false;
+        },
+        error: () => {
+          this.loadingTransactions = false;
+        }
+      });
+  }
+
+  checkGmailSyncStatus() {
+    this.httpClient
+      .get<number>(`${this.baseUrl}/api/v1/gmail-sync/status`)
+      .subscribe((res) => {
+        if(res === null) {
+          this.isGmailConnected = false;
+        } else this.isGmailConnected = true;
+        this.gmailSyncEnabled = res >= 3;
+      });
+  }
+
+  onGmailSyncClick() {
+    if (this.isGmailConnected) {
+      this.startSync();
+    } else {
+      this.startGoogleConsent();
+    }
+  }
+
+  startGoogleConsent() {
+    const client = google.accounts.oauth2.initCodeClient({
+      client_id: environment.GOOGLE_CLIENT_ID,
+      scope: 'openid email profile https://www.googleapis.com/auth/gmail.readonly',
+      access_type: 'offline',
+      prompt: 'consent',
+      callback: (response: any) => this.handleGmailSync(response),
+    });
+    client.requestCode();
+  }
+
+  startSync() {
+    // Format date in local timezone to avoid timezone offset issues
+    const year = this.selectedDate.getFullYear();
+    const month = String(this.selectedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(this.selectedDate.getDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`;
+    
+    const dialogRef = this.dialog.open(GmailSyncDialogComponent, {
+      width: '80vw',
+      maxHeight: '85vh',
+      disableClose: true,
+      backdropClass: 'gmail-sync-backdrop',
+      data: { syncDate: formattedDate }
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.checkGmailSyncStatus();
+      this.loadHistory();
+      this.fetchTransactions(this.selectedDate);
+    });
+  }
+
+  handleGmailSync(response: any) {
+    this.httpClient
+      .post(`${this.baseUrl}/api/v1/gmail-sync/enable`, { code: response.code })
+      .subscribe({
+        next: () => {
+          console.log('Gmail sync enabled');
+          this.isGmailConnected = true;
+          this.startSync();
+        },
+        error: (err) => {
+          console.error('Failed to enable Gmail sync', err);
+          this.toastr.error('Failed to enable Gmail sync');
+        }
+      });
+  }
+}

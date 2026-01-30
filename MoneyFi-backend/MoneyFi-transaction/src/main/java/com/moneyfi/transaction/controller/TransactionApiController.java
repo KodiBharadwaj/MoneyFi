@@ -6,12 +6,14 @@ import com.moneyfi.transaction.service.income.dto.response.AccountStatementRespo
 import com.moneyfi.transaction.service.income.dto.response.OverviewPageDetailsDto;
 import com.moneyfi.transaction.service.transaction.TransactionService;
 import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction;
+import com.moneyfi.transaction.service.transaction.dto.response.GmailSyncTransactionsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -71,5 +73,13 @@ public class TransactionApiController {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         transactionService.addGmailSyncTransactions(userId, transactions);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Api to get gmail sync added transactions")
+    @GetMapping("/gmail-sync-transactions")
+    public ResponseEntity<GmailSyncTransactionsResponse> getGmailSyncAddedTransactions(@RequestHeader("Authorization") String authHeader,
+                                                                                       @RequestParam LocalDate date){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return ResponseEntity.ok(transactionService.getGmailSyncAddedTransactions(userId, date));
     }
 }

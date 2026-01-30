@@ -6,6 +6,7 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.moneyfi.transaction.service.income.dto.response.AccountStatementResponseDto;
 import com.moneyfi.transaction.service.income.dto.response.UserDetailsForStatementDto;
+import com.moneyfi.transaction.utils.enums.CreditOrDebit;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
