@@ -34,4 +34,7 @@ public class GmailAuth {
 
     @Column(name = "count")
     private Integer count = 0;
+
+    @Column(name = "is_active")
+    private Boolean isActive;
 }

@@ -199,7 +199,7 @@ public class UserServiceImpl implements UserService {
                 if (authentication.isAuthenticated()) {
                     JwtToken token = jwtService.generateToken(userAuthModel);
                     functionToPreventMultipleLogins(userAuthModel, token);
-                    gmailSyncRepository.deleteByUserId(getUserIdByUsername(requestDto.getUsername().trim()));
+                    makeGmailAuthInactiveForUser(getUserIdByUsername(requestDto.getUsername().trim()));
                     userRoleToken.put(userRoleAssociation.get(existingUser.getRoleId()), token.getJwtToken());
                     return ResponseEntity.ok(userRoleToken);
                 }
@@ -253,6 +253,7 @@ public class UserServiceImpl implements UserService {
                 newAuth.setAccessToken(cryptoUtil.encrypt((String) tokenResponse.getBody().get("access_token")));
                 newAuth.setRefreshToken(cryptoUtil.encrypt((String) tokenResponse.getBody().get("refresh_token")));
                 newAuth.setExpiresAt(Instant.now().plusSeconds(((Number) tokenResponse.getBody().get("expires_in")).longValue()));
+                newAuth.setIsActive(Boolean.TRUE);
                 gmailSyncRepository.save(newAuth);
 
                 if (newOrExistingUser.isBlocked()) {
@@ -432,7 +433,7 @@ public class UserServiceImpl implements UserService {
         }
         String username = jwtService.extractUserName(token);
         userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
-        gmailSyncRepository.deleteByUserId(getUserIdByUsername(username));
+        makeGmailAuthInactiveForUser(getUserIdByUsername(username));
         if (makeUserTokenBlacklisted(token) != null && makeUserSessionInActive(token) != null) {
             response.put(MESSAGE, LOGOUT_SUCCESS_MESSAGE);
         } else {
@@ -479,6 +480,12 @@ public class UserServiceImpl implements UserService {
 
     private void saveUserProfileDetails(Long userId, UserProfile userProfile, String address){
         userRepository.insertProfileDetailsDuringSignup(userId, userProfile.getName(), LocalDateTime.now(), (address != null && !address.isEmpty()) ? address : null);
+    }
+
+    private void makeGmailAuthInactiveForUser(Long userId) {
+        GmailAuth gmailAuth = gmailSyncRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("Gmail Auth not found"));
+        gmailAuth.setIsActive(Boolean.FALSE);
+        gmailSyncRepository.save(gmailAuth);
     }
 
     private void makeOldSessionInActiveOfUserForNewLogin(String username){

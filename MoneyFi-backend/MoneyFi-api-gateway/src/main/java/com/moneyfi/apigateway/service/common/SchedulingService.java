@@ -94,6 +94,7 @@ public class SchedulingService {
         List<GmailAuth> gmailAuthList = gmailSyncRepository.getTransactionsListWhoseCountIsGreaterThanThree();
         for(GmailAuth gmailAuth : gmailAuthList) {
             gmailAuth.setCount(0);
+            gmailAuth.setIsActive(Boolean.FALSE);
             gmailAuthListToBeUpdated.add(gmailAuth);
         }
         gmailSyncRepository.saveAll(gmailAuthListToBeUpdated);

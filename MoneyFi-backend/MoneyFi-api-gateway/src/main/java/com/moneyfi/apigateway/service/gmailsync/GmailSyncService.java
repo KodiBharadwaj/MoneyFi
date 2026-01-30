@@ -90,6 +90,7 @@ public class GmailSyncService {
         newAuth.setAccessToken(cryptoUtil.encrypt((String) tokenResponse.get("access_token")));
         newAuth.setRefreshToken(cryptoUtil.encrypt((String) tokenResponse.get("refresh_token")));
         newAuth.setExpiresAt(Instant.now().plusSeconds(((Number) tokenResponse.get("expires_in")).longValue()));
+        newAuth.setIsActive(Boolean.TRUE);
         gmailSyncRepository.save(newAuth);
     }
 
@@ -124,8 +125,8 @@ public class GmailSyncService {
 
     public Map<Integer, List<ParsedTransaction>> startGmailSync(Long userId, LocalDate date) throws IOException, URISyntaxException {
         GmailAuth gmailAuth = isSyncEnabled(userId);
-        if(gmailAuth != null && gmailAuth.getCount() >= 3) throw new ScenarioNotPossibleException("Sync limit crossed. Please login again to use");
-        else if(gmailAuth == null) gmailAuth = new GmailAuth();
+        if(gmailAuth != null && gmailAuth.getCount() >= 3) throw new ScenarioNotPossibleException("Sync limit crossed for today. Please try tomorrow");
+        else if(gmailAuth == null) throw new ScenarioNotPossibleException("User not allowed to sync");
 
         gmailAuth.setCount((gmailAuth.getCount() != null ? gmailAuth.getCount() : 0) + 1);
         gmailSyncRepository.save(gmailAuth);

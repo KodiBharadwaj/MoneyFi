@@ -108,12 +108,12 @@
 }
 
 /* Calendar Grid */
-.calendar-grid {
+/* .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0.5rem;
 }
-
+*/
 .calendar-day {
   aspect-ratio: 1;
   border-radius: 12px;
@@ -125,7 +125,16 @@
   transition: all 0.2s ease;
   border: 2px solid transparent;
   padding: 0.5rem;
+} 
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.5rem;
 }
+
+
+
 
 .calendar-day.empty {
   background: transparent;

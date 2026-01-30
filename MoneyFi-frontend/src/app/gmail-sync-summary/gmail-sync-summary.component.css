@@ -119,17 +119,22 @@
 /* Main Content */
 .sync-body {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
-  align-items: start;
+  align-items: stretch;
 }
+
+.sync-body > * {
+  min-width: 0;
+}
+
 
 .panel-card {
   background: white;
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
-  min-height: 500px;
+  height: 100%;
 }
 
 /* Transactions Panel */

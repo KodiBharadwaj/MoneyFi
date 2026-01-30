@@ -271,7 +271,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<ExpenseDetailsDto> updateBySource(Long id, Long userId, ExpenseModel expense) {
         expense.setUserId(userId);
         expense.setDeleted(false);
@@ -309,7 +309,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             expenseModel.setRecurring(expense.isRecurring());
         }
         expenseModel.setUpdatedAt(LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.CREATED).body(updateExpenseDtoConversion(save(expenseModel)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(updateExpenseDtoConversion(expenseRepository.save(expenseModel)));
     }
 
     private ExpenseDetailsDto updateExpenseDtoConversion(ExpenseModel updatedExpense){
