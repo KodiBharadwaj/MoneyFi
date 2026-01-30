@@ -483,7 +483,8 @@ public class UserServiceImpl implements UserService {
     }
 
     private void makeGmailAuthInactiveForUser(Long userId) {
-        GmailAuth gmailAuth = gmailSyncRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("Gmail Auth not found"));
+        GmailAuth gmailAuth = gmailSyncRepository.findByUserId(userId).orElse(null);
+        if(gmailAuth == null) return;
         gmailAuth.setIsActive(Boolean.FALSE);
         gmailSyncRepository.save(gmailAuth);
     }
