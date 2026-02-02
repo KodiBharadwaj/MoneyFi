@@ -133,7 +133,7 @@ public class ProfileServiceImpl implements ProfileService {
         userDefect.setEmail(userDefectRequestDto.getEmail());
         userDefect.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
         userDefect.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-        userDefect.setStartTime(LocalDateTime.now());
+        userDefect.setStartTime(CURRENT_DATE_TIME);
         userDefect.setRequestActive(true);
         userDefect.setVerified(false);
         userDefect.setReferenceNumber(referenceNumber);
@@ -173,7 +173,7 @@ public class ProfileServiceImpl implements ProfileService {
         userFeedback.setVerified(false);
         userFeedback.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
         userFeedback.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-        userFeedback.setStartTime(LocalDateTime.now());
+        userFeedback.setStartTime(CURRENT_DATE_TIME);
         ContactUs savedFeedback = contactUsRepository.save(userFeedback);
 
         ContactUsHist userFeedbackHist = new ContactUsHist();

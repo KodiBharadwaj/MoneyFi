@@ -134,7 +134,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 saveRequest.setVerified(false);
                 saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
                 saveRequest.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-                saveRequest.setStartTime(LocalDateTime.now());
+                saveRequest.setStartTime(CURRENT_DATE_TIME);
                 savedRequest = contactUsRepository.save(saveRequest);
             }
             emailTemplates.sendReferenceNumberEmailToUser(userProfile.getName(), email, "account unblock", referenceNumber);
@@ -177,7 +177,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 saveRequest.setVerified(false);
                 saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
                 saveRequest.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
-                saveRequest.setStartTime(LocalDateTime.now());
+                saveRequest.setStartTime(CURRENT_DATE_TIME);
                 savedRequest = contactUsRepository.save(saveRequest);
             }
             emailTemplates.sendReferenceNumberEmailToUser(userProfile.getName(), email, "account retrieval", referenceNumber);
@@ -209,7 +209,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             saveRequest.setVerified(false);
             saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
             saveRequest.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
-            saveRequest.setStartTime(LocalDateTime.now());
+            saveRequest.setStartTime(CURRENT_DATE_TIME);
             ContactUs savedRequest = contactUsRepository.save(saveRequest);
 
             ContactUsHist userRequestHist = new ContactUsHist();
@@ -255,7 +255,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             userRequestHist.setContactUsId(savedRequest.getId());
             userRequestHist.setName(requestDto.getName());
             userRequestHist.setMessage(requestDto.getDescription());
-            userRequestHist.setUpdatedTime(LocalDateTime.now());
+            userRequestHist.setUpdatedTime(CURRENT_DATE_TIME);
             userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
             contactUsHistRepository.save(userRequestHist);
         } else if (user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name())) {
@@ -285,7 +285,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         userRequestHist.setContactUsId(savedRequest.getId());
         userRequestHist.setName(requestDto.getNewName());
         userRequestHist.setMessage(requestDto.getOldName() + "," + requestDto.getDescription());
-        userRequestHist.setUpdatedTime(LocalDateTime.now());
+        userRequestHist.setUpdatedTime(CURRENT_DATE_TIME);
         userRequestHist.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
         userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
         contactUsHistRepository.save(userRequestHist);
@@ -476,7 +476,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             throw new ScenarioNotPossibleException(INVALID_REQUEST_MESSAGE);
         }
 
-        Optional<OtpTempProjection> otpTempProjection = profileRepository.getOtpTempDetails(username, deactivationType, LocalDateTime.now());
+        Optional<OtpTempProjection> otpTempProjection = profileRepository.getOtpTempDetails(username, deactivationType, CURRENT_DATE_TIME);
         if(otpTempProjection.isPresent()){
             OtpTempModel response = StringConstants.convertOtpTempModelInterfaceToDto(otpTempProjection.get());
             UserValidations.otpCheckDuringAccountDeactivationValidations(request, response, user);
@@ -503,7 +503,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             accountDeactivationRequest.setRequestActive(true);
             accountDeactivationRequest.setVerified(false);
             accountDeactivationRequest.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-            accountDeactivationRequest.setStartTime(LocalDateTime.now());
+            accountDeactivationRequest.setStartTime(CURRENT_DATE_TIME);
             ContactUs savedRequest = contactUsRepository.save(accountDeactivationRequest);
 
             blockAccountOrDeleteRequestHistory.setName(userProfile.getName());

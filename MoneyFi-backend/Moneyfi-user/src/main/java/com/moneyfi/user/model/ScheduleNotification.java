@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import static com.moneyfi.user.util.constants.StringConstants.CURRENT_DATE_TIME;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,8 +30,8 @@ public class ScheduleNotification {
 
     @PrePersist
     public void init() {
-        this.createdDate = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdDate = CURRENT_DATE_TIME;
+        this.updatedAt = CURRENT_DATE_TIME;
         this.setActive(true);
         this.setCancelled(false);
     }

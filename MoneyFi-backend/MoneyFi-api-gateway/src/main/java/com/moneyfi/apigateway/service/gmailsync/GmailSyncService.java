@@ -43,6 +43,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.moneyfi.apigateway.util.constants.StringConstants.CURRENT_DATE_TIME;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -130,7 +132,7 @@ public class GmailSyncService {
 
         gmailAuth.setCount((gmailAuth.getCount() != null ? gmailAuth.getCount() : 0) + 1);
         gmailSyncRepository.save(gmailAuth);
-        /** return new HashMap<>(Map.of(2, List.of(new ParsedTransaction(1, "Upi", new BigDecimal("123"), "CREDIT OR DEBIT", LocalDateTime.now())))); **/
+        /** return new HashMap<>(Map.of(2, List.of(new ParsedTransaction(1, "Upi", new BigDecimal("123"), "CREDIT OR DEBIT", CURRENT_DATE_TIME)))); **/
         return Map.of(3 - gmailAuth.getCount(), syncEmails(userId, date).stream().filter(Objects::nonNull).toList());
     }
 
@@ -216,7 +218,7 @@ public class GmailSyncService {
     private Long markProcessed(String messageId, Long userId) {
         Optional<GmailProcessedMessageEntity> entity = processedRepository.findByMessageId(messageId);
         if(entity.isPresent()) {
-            entity.get().setUpdatedAt(LocalDateTime.now());
+            entity.get().setUpdatedAt(CURRENT_DATE_TIME);
             return processedRepository.save(entity.get()).getId();
         }
         GmailProcessedMessageEntity newEntity = new GmailProcessedMessageEntity();
@@ -305,7 +307,7 @@ public class GmailSyncService {
                     .atZone(ZoneId.systemDefault())
                     .toLocalDateTime();
         }
-        return LocalDateTime.now();
+        return CURRENT_DATE_TIME;
     }
 
     private String detectTransactionDescription(String body) {
