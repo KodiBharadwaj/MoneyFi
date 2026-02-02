@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import static com.moneyfi.transaction.utils.StringConstants.CURRENT_DATE_TIME;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -32,7 +34,7 @@ public class ExpenseModel {
     @PrePersist
     public void initFunction() {
         this.isDeleted = false;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = CURRENT_DATE_TIME;
+        this.updatedAt = CURRENT_DATE_TIME;
     }
 }

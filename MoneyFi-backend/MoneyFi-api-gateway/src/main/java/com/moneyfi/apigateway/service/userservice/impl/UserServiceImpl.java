@@ -373,9 +373,9 @@ public class UserServiceImpl implements UserService {
         UserValidations.changePasswordValidations(changePasswordDto, user);
         user.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
         user.setOtpCount(user.getOtpCount() + 1);
-        user.setVerificationCodeExpiration(LocalDateTime.now());
+        user.setVerificationCodeExpiration(CURRENT_DATE_TIME);
         userRepository.save(user);
-        userAuthHistRepository.save(new UserAuthHist(changePasswordDto.getUserId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE), changePasswordDto.getDescription(), changePasswordDto.getUserId()));
+        userAuthHistRepository.save(new UserAuthHist(changePasswordDto.getUserId(), CURRENT_DATE_TIME, reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE), changePasswordDto.getDescription(), changePasswordDto.getUserId()));
         new Thread(() ->
                 emailTemplates.sendPasswordChangeAlertMail(userRepository.getUserNameByUsername(user.getUsername()), user.getUsername())
         ).start();
@@ -385,10 +385,10 @@ public class UserServiceImpl implements UserService {
     public RemainingTimeCountDto checkOtpActiveMethod(String email) {
         UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         UserValidations.otpSendToUserDuringSignupValidation(user);
-        if (user.getVerificationCodeExpiration() == null || user.getVerificationCodeExpiration().isBefore(LocalDateTime.now())) {
+        if (user.getVerificationCodeExpiration() == null || user.getVerificationCodeExpiration().isBefore(CURRENT_DATE_TIME)) {
             return new RemainingTimeCountDto(0, true);
         }
-        return new RemainingTimeCountDto((int) ChronoUnit.MINUTES.between(LocalDateTime.now(), user.getVerificationCodeExpiration()), false);
+        return new RemainingTimeCountDto((int) ChronoUnit.MINUTES.between(CURRENT_DATE_TIME, user.getVerificationCodeExpiration()), false);
     }
 
     @Override
@@ -402,10 +402,10 @@ public class UserServiceImpl implements UserService {
                 .findFirst();
         if (tempModel.isPresent()) {
             tempModel.get().setOtp(verificationCode);
-            tempModel.get().setExpirationTime(LocalDateTime.now().plusMinutes(5));
+            tempModel.get().setExpirationTime(CURRENT_DATE_TIME.plusMinutes(5));
             otpTempRepository.save(tempModel.get());
         } else {
-            otpTempRepository.save(new OtpTempModel(email, verificationCode, LocalDateTime.now().plusMinutes(5), OtpType.USER_CREATION.name()));
+            otpTempRepository.save(new OtpTempModel(email, verificationCode, CURRENT_DATE_TIME.plusMinutes(5), OtpType.USER_CREATION.name()));
         }
         return EMAIL_SENT_SUCCESS_MESSAGE;
     }
@@ -415,7 +415,7 @@ public class UserServiceImpl implements UserService {
         Optional<OtpTempModel> tempModel = otpTempRepository.findByEmail(email)
                 .stream()
                 .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.USER_CREATION.name())
-                        && tempOtp.getOtp().equals(inputOtp) && tempOtp.getExpirationTime().isAfter(LocalDateTime.now()))
+                        && tempOtp.getOtp().equals(inputOtp) && tempOtp.getExpirationTime().isAfter(CURRENT_DATE_TIME))
                 .findFirst();
         if (tempModel.isPresent()) {
             int rowsAffected = otpTempRepository.deleteByEmailAndRequestType(email, OtpType.USER_CREATION.name());
@@ -459,12 +459,12 @@ public class UserServiceImpl implements UserService {
         }
         verificationCode = otpTempRepository.findByEmail(username)
                 .stream()
-                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(otpType) && tempOtp.getExpirationTime().isAfter(LocalDateTime.now()))
+                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(otpType) && tempOtp.getExpirationTime().isAfter(CURRENT_DATE_TIME))
                 .map(OtpTempModel::getOtp)
                 .findFirst()
                 .orElseGet(() -> {
                     String newOtp = generateVerificationCode();
-                    otpTempRepository.save(new OtpTempModel(username, newOtp, LocalDateTime.now().plusMinutes(5), otpType));
+                    otpTempRepository.save(new OtpTempModel(username, newOtp, CURRENT_DATE_TIME.plusMinutes(5), otpType));
                     return newOtp;
                 });
         emailTemplates.sendOtpToUserForAccountBlock(username, userRepository.getUserNameByUsername(username.trim()), verificationCode, type);
@@ -479,7 +479,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private void saveUserProfileDetails(Long userId, UserProfile userProfile, String address){
-        userRepository.insertProfileDetailsDuringSignup(userId, userProfile.getName(), LocalDateTime.now(), (address != null && !address.isEmpty()) ? address : null);
+        userRepository.insertProfileDetailsDuringSignup(userId, userProfile.getName(), CURRENT_DATE_TIME, (address != null && !address.isEmpty()) ? address : null);
     }
 
     private void makeGmailAuthInactiveForUser(Long userId) {
@@ -503,14 +503,14 @@ public class UserServiceImpl implements UserService {
         if(userCommonService.getUserByUsername(userAuthModel.getUsername()) != null){
             SessionTokenModel sessionTokens = userCommonService.getUserByUsername(userAuthModel.getUsername());
             sessionTokens.setUsername(userAuthModel.getUsername());
-            sessionTokens.setCreatedTime(LocalDateTime.now());
+            sessionTokens.setCreatedTime(CURRENT_DATE_TIME);
             sessionTokens.setToken(token.getJwtToken());
             sessionTokens.setIsActive(true);
             userCommonService.save(sessionTokens);
         } else {
             SessionTokenModel sessionTokens = new SessionTokenModel();
             sessionTokens.setUsername(userAuthModel.getUsername());
-            sessionTokens.setCreatedTime(LocalDateTime.now());
+            sessionTokens.setCreatedTime(CURRENT_DATE_TIME);
             sessionTokens.setToken(token.getJwtToken());
             sessionTokens.setIsActive(true);
             userCommonService.save(sessionTokens);

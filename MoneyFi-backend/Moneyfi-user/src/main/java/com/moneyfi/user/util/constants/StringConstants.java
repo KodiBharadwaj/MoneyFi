@@ -9,6 +9,7 @@ import com.moneyfi.user.repository.ProfileRepository;
 import com.moneyfi.user.util.enums.ReasonEnum;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -49,6 +50,8 @@ public class StringConstants {
     public static final String CLOUDINARY_SECURE = "secure";
     public static final String BLOCKED_BY_ADMIN = "Blocked by Admin";
     public static final String BLOCKED_BY_USER = "Blocked by User";
+
+    public static final LocalDateTime CURRENT_DATE_TIME = LocalDateTime.now();
 
     public static final Map<String, Integer> templateIdAssociation = Map.of("profile-template", 1);
     public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation = Map.of(BLOCK_ACCOUNT, 1, PASSWORD_CHANGE, 2, NAME_CHANGE, 3,

@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.utils;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -27,6 +28,8 @@ public class StringConstants {
     public static final String ERROR_GENERATION_EXCEL = "Error in generating excel report";
     public static final String YES = "Yes";
     public static final String NO = "No";
+
+    public static final LocalDateTime CURRENT_DATE_TIME = LocalDateTime.now();
 
     public static final String ACCOUNT_STATEMENT_USER_SERVICE_URL = "http://MONEYFI-USER/api/v1/user-service/user/account-statement/email";
 

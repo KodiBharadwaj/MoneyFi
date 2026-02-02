@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.HttpURLConnection;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Random;
 
@@ -50,6 +51,8 @@ public class StringConstants {
     public static final String ACCOUNT_DELETED = "Account Deleted! Please contact admin";
     public static final String INVALID_CREDENTIALS = "Invalid Credentials Entered";
     public static final String LOGIN_ERROR = "An error occurred during login";
+
+    public static final LocalDateTime CURRENT_DATE_TIME = LocalDateTime.now();
 
     public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name(), 3, UserRoles.DEVELOPER.name());
     public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation = Map.of(BLOCK_ACCOUNT, 1, PASSWORD_CHANGE, 2, NAME_CHANGE, 3,

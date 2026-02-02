@@ -45,7 +45,7 @@ public class BudgetServiceImpl implements BudgetService {
         if(existingBudget.isPresent() && !existingBudget.get().isEmpty()) {
             throw new ScenarioNotPossibleException("Budget already exists! Please update if required");
         }
-        BudgetValidator.validateBudgetSaveRequestDto(budgetList, getTotalIncomeInMonthAndYear(userId, LocalDateTime.now().getMonthValue(), LocalDateTime.now().getYear()));
+        BudgetValidator.validateBudgetSaveRequestDto(budgetList, getTotalIncomeInMonthAndYear(userId, CURRENT_DATE_TIME.getMonthValue(), CURRENT_DATE_TIME.getYear()));
         Set<Integer> existingCategoryIds = new HashSet<>(categoryListRepository.findByType(TransactionServiceType.EXPENSE.name()).stream().map(CategoryListModel::getId).toList());
         if (!budgetList
                 .stream()
@@ -82,7 +82,7 @@ public class BudgetServiceImpl implements BudgetService {
     public void updateBudget(Long userId, List<BudgetModel> budgetList) {
         BudgetValidator.validateBudgetUpdateRequestDto(budgetList);
         List<BudgetModel> budgetListToUpdate = new ArrayList<>();
-        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime currentTime = CURRENT_DATE_TIME;
         for (BudgetModel budget : budgetList) {
             BudgetModel budgetModel = budgetRepository.findById(budget.getId()).orElseThrow(() -> new ResourceNotFoundException(BUDGET_NOT_FOUND));
             if (budget.getMoneyLimit().compareTo(BigDecimal.ZERO) >= 0) {

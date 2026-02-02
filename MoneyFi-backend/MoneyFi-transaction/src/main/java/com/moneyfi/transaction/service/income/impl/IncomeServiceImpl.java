@@ -25,6 +25,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -264,7 +265,7 @@ public class IncomeServiceImpl implements IncomeService {
     public boolean incomeRevertFunction(Long incomeId, Long userId) {
         IncomeDeleted incomeDeleted = incomeDeletedRepository.findByIncomeId(incomeId);
         LocalDateTime expiryTime = incomeDeleted.getExpiryDateTime();
-        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime currentTime = CURRENT_DATE_TIME;
         Integer numberOfDays = (int) ChronoUnit.DAYS.between(currentTime.toLocalDate(), expiryTime.toLocalDate());
         if(numberOfDays > 0){
             IncomeModel income = incomeRepository.findById(incomeId).orElse(null);
@@ -296,15 +297,16 @@ public class IncomeServiceImpl implements IncomeService {
         IncomeModel incomeModel = incomeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(INCOME_NOT_FOUND));
         IncomeValidator.validateIncomeUpdateRequest(incomeUpdateRequest);
         List<Integer> categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
-        if(!categoryIds.contains(incomeUpdateRequest.getCategoryId())) {
+        if (!categoryIds.contains(incomeUpdateRequest.getCategoryId())) {
             throw new ScenarioNotPossibleException(CATEGORY_ID_INVALID);
         }
         incomeModel.setAmount(incomeUpdateRequest.getAmount());
         incomeModel.setSource(incomeUpdateRequest.getSource());
         incomeModel.setCategoryId(incomeUpdateRequest.getCategoryId());
-        incomeModel.setDate(LocalDateTime.parse(incomeUpdateRequest.getDate()));
+        if (!incomeModel.getDate().toLocalDate().equals(LocalDate.parse(incomeUpdateRequest.getDate())))
+            incomeModel.setDate(LocalDateTime.parse(incomeUpdateRequest.getDate()));
         incomeModel.setRecurring(incomeUpdateRequest.getRecurring());
-        incomeModel.setUpdatedAt(LocalDateTime.now());
+        incomeModel.setUpdatedAt(CURRENT_DATE_TIME);
         incomeModel.setDescription(incomeUpdateRequest.getDescription());
         incomeRepository.save(incomeModel);
     }
@@ -314,7 +316,7 @@ public class IncomeServiceImpl implements IncomeService {
     public boolean deleteIncomeById(Long id, Long userId) {
         try {
             IncomeModel income = incomeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(INCOME_NOT_FOUND));
-            LocalDateTime currentTime = LocalDateTime.now();
+            LocalDateTime currentTime = CURRENT_DATE_TIME;
             income.setUpdatedAt(currentTime);
             income.setDeleted(true);
             saveIncomeDeletedDetails(id, currentTime);
@@ -328,9 +330,9 @@ public class IncomeServiceImpl implements IncomeService {
 
     private void saveIncomeDeletedDetails(Long id, LocalDateTime currentTime){
         IncomeDeleted incomeDeleted = new IncomeDeleted();
-        LocalDateTime expiryTime = LocalDateTime.now().plusDays(30);
+        LocalDateTime expiryTime = CURRENT_DATE_TIME.plusDays(30);
         incomeDeleted.setIncomeId(id);
-        incomeDeleted.setStartDateTime(LocalDateTime.now());
+        incomeDeleted.setStartDateTime(CURRENT_DATE_TIME);
         incomeDeleted.setExpiryDateTime(expiryTime);
         incomeDeleted.setDeletedAt(currentTime);
         incomeDeletedRepository.save(incomeDeleted);

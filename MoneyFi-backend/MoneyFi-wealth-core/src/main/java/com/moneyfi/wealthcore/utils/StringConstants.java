@@ -3,6 +3,7 @@ package com.moneyfi.wealthcore.utils;
 import com.moneyfi.wealthcore.service.budget.dto.response.UserDetailsForSpendingAnalysisDto;
 import com.moneyfi.wealthcore.utils.enums.CategoryType;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class StringConstants {
@@ -19,6 +20,8 @@ public class StringConstants {
     public static final String TOTAL_GOAL_AMOUNT = "totalGoalAmount";
     public static final String TOTAL_GOAL_TARGET_AMOUNT = "totalGoalTargetAmount";
     public static final String TOTAL_AVAILABLE_INCOME = "availableIncome";
+
+    public static final LocalDateTime CURRENT_DATE_TIME = LocalDateTime.now();
 
     public static final String EUREKA_TRANSACTION_SERVICE_URL = "http://MONEYFI-TRANSACTION/api/v1/transaction";
     public static final String USER_SERVICE_URL_CONTROLLER = "http://MONEYFI-USER/api/v1/user-service/user";
