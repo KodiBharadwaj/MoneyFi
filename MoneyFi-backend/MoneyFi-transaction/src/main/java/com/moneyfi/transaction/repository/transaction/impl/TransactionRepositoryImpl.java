@@ -12,6 +12,8 @@ import jakarta.persistence.Query;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.Transformers;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,9 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private static final String NO_MONTHLY_INCOME_DATE = "Error occurred while fetching monthly income data";
     private static final String NO_YEARLY_INCOME_DATE = "Error occurred while fetching yearly income data";
@@ -139,6 +144,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         }
     }
 
+    /**
     @Override
     public List<AccountStatementResponseDto> getAccountStatementOfUser(Long userId, AccountStatementRequestDto inputDto) {
         Date startDate = Date.valueOf(inputDto.getFromDate());
@@ -167,7 +173,33 @@ public class TransactionRepositoryImpl implements TransactionRepository {
             throw new QueryValidationException("Error occurred while fetching user's account statement");
         }
     }
+    **/
+    @Override
+    public List<AccountStatementResponseDto> getAccountStatementOfUser(Long userId, AccountStatementRequestDto inputDto) {
+        Date startDate = Date.valueOf(inputDto.getFromDate());
+        Date endDate = Date.valueOf(inputDto.getToDate());
+        try {
+            String sql = "EXEC getAccountStatementOfUser @userId = ?, @startDate = ?, @endDate = ?, @offset = ?, @limit = ?";
+            return jdbcTemplate.query(
+                    sql,
+                    new Object[]{userId, startDate, endDate, inputDto.getStartIndex(), inputDto.getThreshold()},
+                    (rs, rowNum) -> {
+                        AccountStatementResponseDto responseDto = new AccountStatementResponseDto();
+                        responseDto.setTransactionDate(rs.getDate("transactionDate"));
+                        responseDto.setTransactionTime(rs.getString("transactionTime"));
+                        responseDto.setDescription(rs.getString("description"));
+                        responseDto.setAmount(rs.getBigDecimal("amount"));
+                        responseDto.setCreditOrDebit(rs.getString("creditOrDebit"));
+                        return responseDto;
+                    }
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user's account statement");
+        }
+    }
 
+    /**
     @Override
     public UserDetailsForStatementDto getUserDetailsForAccountStatement(Long userId) {
         try {
@@ -184,7 +216,30 @@ public class TransactionRepositoryImpl implements TransactionRepository {
             throw new QueryValidationException("Error occurred while fetching user's details");
         }
     }
+     **/
+    @Override
+    public UserDetailsForStatementDto getUserDetailsForAccountStatement(Long userId) {
+        try {
+            String sql = "EXEC getUserDetailsForPdfGeneration @userId = ?";
+            return jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{userId},
+                    (rs, rowNum) -> {
+                        UserDetailsForStatementDto responseDto = new UserDetailsForStatementDto();
+                        responseDto.setName(rs.getString("name"));
+                        responseDto.setUsername(rs.getString("username"));
+                        responseDto.setPhoneNumber(rs.getString("phoneNumber"));
+                        responseDto.setAddress(rs.getString("address"));
+                        return responseDto;
+                    }
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user's details");
+        }
+    }
 
+    /**
     @Override
     public OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year) {
         try {
@@ -200,6 +255,30 @@ public class TransactionRepositoryImpl implements TransactionRepository {
                     .setResultTransformer(Transformers.aliasToBean(OverviewPageDetailsDto.class));
 
             return (OverviewPageDetailsDto) query.getSingleResult();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user's overview page details");
+        }
+    }
+     **/
+    @Override
+    public OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year) {
+        try {
+            String sql = "EXEC getOverviewPageDetails @userId = ?, @month = ?, @year = ?";
+            return jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{ userId, month, year },
+                    (rs, rowNum) -> {
+                        OverviewPageDetailsDto dto = new OverviewPageDetailsDto();
+                        dto.setAvailableBalance(rs.getBigDecimal("availableBalance"));
+                        dto.setTotalExpense(rs.getBigDecimal("totalExpense"));
+                        dto.setTotalBudget(rs.getBigDecimal("totalBudget"));
+                        dto.setBudgetProgress(rs.getBigDecimal("budgetProgress"));
+                        dto.setTotalGoalIncome(rs.getBigDecimal("totalGoalIncome"));
+                        dto.setGoalProgress(rs.getBigDecimal("goalProgress"));
+                        return dto;
+                    }
+            );
         } catch (Exception e) {
             e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching user's overview page details");
@@ -293,6 +372,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         }
     }
 
+    /**
     @Override
     public List<Integer> getCategoryIdsBasedOnTransactionType(String categoryType) {
         try {
@@ -308,7 +388,21 @@ public class TransactionRepositoryImpl implements TransactionRepository {
             throw new QueryValidationException("Income Category Ids not found");
         }
     }
-
+     **/
+    @Override
+    public List<Integer> getCategoryIdsBasedOnTransactionType(String categoryType) {
+        try {
+            String sql = "EXEC getCategoryIdsByCategoryType @categoryType = ?";
+            return jdbcTemplate.query(
+                    sql,
+                    new Object[]{ categoryType },
+                    (rs, rowNum) -> rs.getInt(1)
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Income Category Ids not found");
+        }
+    }
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateGmailProcessedAsVerified(List<Long> gmailProsessedIdList) {

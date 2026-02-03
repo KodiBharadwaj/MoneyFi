@@ -16,6 +16,5 @@ public class AccountStatementResponseDto {
     private String transactionTime;
     private String description;
     private BigDecimal amount;
-    private BigDecimal totalExpenses;
     private String creditOrDebit;
 }
