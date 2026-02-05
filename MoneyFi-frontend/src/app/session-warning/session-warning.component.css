@@ -1,0 +1,33 @@
+.session-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .session-modal {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    width: 350px;
+    text-align: center;
+  }
+  
+  .actions {
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .extend {
+    background: #28a745;
+    color: white;
+  }
+  
+  .cancel {
+    background: #dc3545;
+    color: white;
+  }
+  

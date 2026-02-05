@@ -1,0 +1,25 @@
+<div class="session-overlay" *ngIf="show$ | async">
+
+    <div class="session-modal">
+      <h2>Session Expiring Soon</h2>
+  
+      <p>
+        Your session will expire in 
+        <strong>{{ remaining$ | async }} seconds</strong>
+      </p>
+  
+      <label>Extend by:</label>
+      <select [(ngModel)]="selectedMinutes">
+        <option value="15">15 minutes</option>
+        <option value="30">30 minutes</option>
+        <option value="60">1 hour</option>
+      </select>
+  
+      <div class="actions">
+        <button class="extend" (click)="extendSession()">Extend</button>
+        <button class="cancel" (click)="cancel()">Cancel</button>
+      </div>
+    </div>
+  
+  </div>
+  

@@ -471,6 +471,12 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity.ok(EMAIL_SENT_SUCCESS_MESSAGE);
     }
 
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void updateUserSessionExpirationTime(int minutes) {
+
+    }
+
     private void saveUserAuthDetails(UserAuthModel userAuthModel, String username){
         userAuthModel.setUsername(username.trim());
         userAuthModel.setOtpCount(0);

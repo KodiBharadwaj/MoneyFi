@@ -30,4 +30,6 @@ public interface UserService {
     Map<String, String> logout(String token);
 
     ResponseEntity<String> sendOtpToBlockAccount(String username, String type);
+
+    void updateUserSessionExpirationTime(int minutes);
 }
