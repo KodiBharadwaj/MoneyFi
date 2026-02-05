@@ -53,8 +53,12 @@ public class UserController {
     }
 
     @Operation(summary = "Api to increase otp expiration time on user request")
-    @PatchMapping("/expiration-time")
-    public void updateUserSessionExpirationTime(@RequestParam int minutes) {
-        userService.updateUserSessionExpirationTime(minutes);
+    @GetMapping("/extend-session")
+    public ResponseEntity<String> updateUserSessionExpirationTime(Authentication authentication,
+                                                                  @RequestParam long minutes) {
+        System.out.println("reached");
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        System.out.println("username " + username);
+        return ResponseEntity.ok(userService.updateUserSessionExpirationTime(minutes, username));
     }
 }

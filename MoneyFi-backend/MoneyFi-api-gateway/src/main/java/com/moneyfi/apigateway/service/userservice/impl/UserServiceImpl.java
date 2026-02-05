@@ -197,7 +197,7 @@ public class UserServiceImpl implements UserService {
                 Authentication authentication = authenticationManager
                         .authenticate(new UsernamePasswordAuthenticationToken(userAuthModel.getUsername(), userAuthModel.getPassword()));
                 if (authentication.isAuthenticated()) {
-                    JwtToken token = jwtService.generateToken(userAuthModel);
+                    JwtToken token = jwtService.generateToken(userAuthModel, 10L);
                     functionToPreventMultipleLogins(userAuthModel, token);
                     makeGmailAuthInactiveForUser(getUserIdByUsername(requestDto.getUsername().trim()));
                     userRoleToken.put(userRoleAssociation.get(existingUser.getRoleId()), token.getJwtToken());
@@ -264,7 +264,7 @@ public class UserServiceImpl implements UserService {
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
                 }
                 makeOldSessionInActiveOfUserForNewLogin(email);
-                JwtToken jwtToken = jwtService.generateToken(newOrExistingUser);
+                JwtToken jwtToken = jwtService.generateToken(newOrExistingUser, 10L);
                 functionToPreventMultipleLogins(newOrExistingUser, jwtToken);
                 userRoleToken.put(userRoleAssociation.get(newOrExistingUser.getRoleId()), jwtToken.getJwtToken());
                 return ResponseEntity.ok(userRoleToken);
@@ -342,7 +342,7 @@ public class UserServiceImpl implements UserService {
             }
             makeOldSessionInActiveOfUserForNewLogin(email);
             // 4. Generate JWT
-            JwtToken jwtToken = jwtService.generateToken(user);
+            JwtToken jwtToken = jwtService.generateToken(user, 10L);
             functionToPreventMultipleLogins(user, jwtToken);
             String token = jwtToken.getJwtToken().replace("'", "\\'"); // escape quotes
 
@@ -472,9 +472,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
-    public void updateUserSessionExpirationTime(int minutes) {
-
+    public String updateUserSessionExpirationTime(long minutes, String username) {
+        if (minutes == 0) {
+            throw new ScenarioNotPossibleException("Minutes cannot be zero");
+        }
+        return jwtService.generateToken(userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)), minutes).getJwtToken();
     }
 
     private void saveUserAuthDetails(UserAuthModel userAuthModel, String username){

@@ -6,51 +6,75 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class SessionTimerService {
 
-  private warningTimeMs = 10 * 60 * 1000; // 10 min
-  private timeoutId: any;
-  private warningId: any;
+  private warningTimeMs = 10 * 60 * 1000;
+
+  private timeoutId?: number;
+  private warningId?: number;
+  private countdownId?: number;
 
   showWarning$ = new BehaviorSubject<boolean>(false);
   remainingSeconds$ = new BehaviorSubject<number>(0);
 
   start(expiryTime: number) {
+
+    this.clearAll();
+
     const now = Date.now();
     const totalMs = expiryTime - now;
 
-    const warningAt = totalMs - this.warningTimeMs;
+    if (totalMs <= 0) {
+      this.forceLogout();
+      return;
+    }
 
-    this.warningId = setTimeout(() => {
-      this.startCountdown();
+    const warningAt = Math.max(totalMs - this.warningTimeMs, 0);
+
+    this.warningId = window.setTimeout(() => {
       this.showWarning$.next(true);
+      this.startCountdown(Math.min(600, Math.floor(totalMs / 1000)));
     }, warningAt);
 
-    this.timeoutId = setTimeout(() => {
+    this.timeoutId = window.setTimeout(() => {
       this.forceLogout();
     }, totalMs);
   }
 
-  private startCountdown() {
-    let seconds = 600;
+  private startCountdown(startSeconds: number) {
 
-    this.remainingSeconds$.next(seconds);
+    this.remainingSeconds$.next(startSeconds);
 
-    const interval = setInterval(() => {
-      seconds--;
-      this.remainingSeconds$.next(seconds);
+    this.countdownId = window.setInterval(() => {
+      const current = this.remainingSeconds$.value - 1;
+      this.remainingSeconds$.next(current);
 
-      if (seconds <= 0) clearInterval(interval);
+      if (current <= 0) {
+        this.clearCountdown();
+      }
     }, 1000);
   }
 
   reset(newExpiry: number) {
-    clearTimeout(this.warningId);
-    clearTimeout(this.timeoutId);
-    this.showWarning$.next(false);
     this.start(newExpiry);
+    this.showWarning$.next(false);
+  }
+
+  private clearCountdown() {
+    if (this.countdownId) {
+      clearInterval(this.countdownId);
+      this.countdownId = undefined;
+    }
+  }
+
+  private clearAll() {
+    if (this.timeoutId) clearTimeout(this.timeoutId);
+    if (this.warningId) clearTimeout(this.warningId);
+    this.clearCountdown();
   }
 
   forceLogout() {
-    localStorage.clear();
-    window.location.href = '/login';
+    this.clearAll();
+    sessionStorage.clear();
+    alert('Timer done')
+    // location.href = '/login';
   }
 }

@@ -6,7 +6,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 public interface JwtService {
 
-    JwtToken generateToken(UserAuthModel user);
+    JwtToken generateToken(UserAuthModel user, long minutes);
 
     String extractUserName(String token);
 
