@@ -472,10 +472,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String updateUserSessionExpirationTime(long minutes, String username) {
+    @Transactional(rollbackOn = Exception.class)
+    public String updateUserSessionExpirationTime(long minutes, String username, String token) {
         if (minutes == 0) {
             throw new ScenarioNotPossibleException("Minutes cannot be zero");
         }
+        makeUserTokenBlacklisted(token);
         return jwtService.generateToken(userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)), minutes).getJwtToken();
     }
 
@@ -548,11 +550,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private BlackListedToken makeUserTokenBlacklisted(String token){
-        Date expiryDate = new Date(System.currentTimeMillis());
-        BlackListedToken blackListedToken = new BlackListedToken();
-        blackListedToken.setToken(token);
-        blackListedToken.setExpiry(expiryDate);
-        return userCommonService.blacklistToken(blackListedToken);
+        return userCommonService.blacklistToken(new BlackListedToken(token, new Date(System.currentTimeMillis())));
     }
 
     private SessionTokenModel makeUserSessionInActive(String token){

@@ -1,10 +1,13 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SessionTimerService {
+
+    constructor(private router:Router){};
 
   private warningTimeMs = 10 * 60 * 1000;
 
@@ -71,10 +74,15 @@ export class SessionTimerService {
     this.clearCountdown();
   }
 
+  hideWarning() {
+    this.showWarning$.next(false);
+  }  
+
   forceLogout() {
     this.clearAll();
     sessionStorage.clear();
-    alert('Timer done')
-    // location.href = '/login';
+    alert('Your session has been completed. Please login again');
+    sessionStorage.clear();
+    this.router.navigate(['']);
   }
 }

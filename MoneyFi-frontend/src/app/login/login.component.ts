@@ -9,6 +9,7 @@ import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { SessionTimerService } from '../services/session-timer.service';
 
 declare const google: any;
 
@@ -71,7 +72,8 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private authApiService: AuthApiService,
     private toastr: ToastrService,
-    private http: HttpClient
+    private http: HttpClient,
+    private sessionTimerService: SessionTimerService
   ) {
     this.loginForm = this.fb.group({
       username: ['', [Validators.required, Validators.email]],
@@ -224,6 +226,10 @@ private fbClientId = '1488343345815971';
             sessionStorage.setItem('moneyfi.auth', token);
             this.toastr.success('Login successful', 'Success', { timeOut: 1500 });
             this.router.navigate(['dashboard']);
+
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const expiry = payload.exp * 1000;
+            this.sessionTimerService.start(expiry);
           } else this.toastr.error('User is not authorized to login');
         },
         error: error => {

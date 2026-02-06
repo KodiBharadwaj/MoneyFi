@@ -31,5 +31,5 @@ public interface UserService {
 
     ResponseEntity<String> sendOtpToBlockAccount(String username, String type);
 
-    String updateUserSessionExpirationTime(long minutes, String username);
+    String updateUserSessionExpirationTime(long minutes, String username, String token);
 }
