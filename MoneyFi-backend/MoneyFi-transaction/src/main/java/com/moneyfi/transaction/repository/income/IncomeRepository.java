@@ -57,7 +57,6 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
             value = "SELECT it.* " +
                     "FROM income_table it WITH (NOLOCK) " +
                     "WHERE it.user_id = :userId " +
-                    "AND it.is_deleted = 0 " +
                     "AND it.entry_mode = 'GMAIL_SYNC' " +
                     "AND CAST(it.gmail_sync_date AS DATE) = :date ",
             nativeQuery = true)
