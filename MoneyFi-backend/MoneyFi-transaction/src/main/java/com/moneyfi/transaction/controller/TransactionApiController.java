@@ -8,6 +8,7 @@ import com.moneyfi.transaction.service.transaction.TransactionService;
 import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction;
 import com.moneyfi.transaction.service.transaction.dto.response.GmailSyncTransactionsResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -67,11 +68,12 @@ public class TransactionApiController {
     }
 
     @Operation(summary = "Api to save income-expense transactions from moneyfi gmail sync")
-    @PostMapping("/gmail-sync/bulk-save")
+    @PostMapping("/gmail-sync/bulk-save/{syncDate}")
     public ResponseEntity<Void> saveBulk(@RequestHeader("Authorization") String authHeader,
+                                         @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate syncDate,
                                          @RequestBody List<ParsedTransaction> transactions) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        transactionService.addGmailSyncTransactions(userId, transactions);
+        transactionService.addGmailSyncTransactions(userId, syncDate, transactions);
         return ResponseEntity.ok().build();
     }
 

@@ -32,6 +32,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -103,9 +104,10 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void addGmailSyncTransactions(Long userId, List<ParsedTransaction> transactions) {
+    public void addGmailSyncTransactions(Long userId, LocalDate syncDate, List<ParsedTransaction> transactions) {
         List<IncomeModel> incomesToBeSaved = new ArrayList<>();
         List<ExpenseModel> expensesToBeSaved = new ArrayList<>();
+
         for (ParsedTransaction transaction : transactions) {
             if (transaction.getTransactionType().equalsIgnoreCase(CreditOrDebit.CREDIT.name())) {
                 IncomeValidator.validateIncomeSaveRequest(new IncomeSaveRequest(transaction.getAmount(), transaction.getDescription(), transaction.getTransactionDate().toString(), transaction.getCategoryId(), false, transaction.getDescription()), userId);
@@ -113,7 +115,7 @@ public class TransactionServiceImpl implements TransactionService {
                 if (!incomeCategoryIds.contains(transaction.getCategoryId())) {
                     throw new ScenarioNotPossibleException(CATEGORY_NOT_ALIGN_MESSAGE);
                 }
-                incomesToBeSaved.add(getSaveIncomeModel(transaction, userId));
+                incomesToBeSaved.add(getSaveIncomeModel(transaction, syncDate, userId));
             } else if (transaction.getTransactionType().equalsIgnoreCase(CreditOrDebit.DEBIT.name())) {
                 List<Integer> expenseCategoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
                 if (!expenseCategoryIds.contains(transaction.getCategoryId())) {
@@ -122,7 +124,7 @@ public class TransactionServiceImpl implements TransactionService {
                 if (ObjectUtils.isEmpty(userId)) {
                     throw new ScenarioNotPossibleException(USER_ID_EMPTY);
                 }
-                expensesToBeSaved.add(getSaveExpenseModel(transaction, userId));
+                expensesToBeSaved.add(getSaveExpenseModel(transaction, syncDate, userId));
             } else {
                 throw new ScenarioNotPossibleException(INVALID_INPUT);
             }
@@ -133,6 +135,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public GmailSyncTransactionsResponse getGmailSyncAddedTransactions(Long userId, LocalDate date) {
         return new GmailSyncTransactionsResponse(
                 incomeRepository.getGmailSyncAddedIncomes(userId, date)
@@ -191,7 +194,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    private IncomeModel getSaveIncomeModel(ParsedTransaction transaction, Long userId) {
+    private IncomeModel getSaveIncomeModel(ParsedTransaction transaction, LocalDate syncDate, Long userId) {
         IncomeModel income = new IncomeModel();
         income.setUserId(userId);
         income.setAmount(transaction.getAmount());
@@ -199,12 +202,13 @@ public class TransactionServiceImpl implements TransactionService {
         income.setCategoryId(transaction.getCategoryId());
         income.setDescription(transaction.getDescription());
         income.setDate(transaction.getTransactionDate());
+        income.setGmailSyncDate(syncDate.atTime(LocalTime.now()));
         income.setRecurring(false);
         income.setEntryMode(EntryModeEnum.GMAIL_SYNC.name());
         return income;
     }
 
-    private ExpenseModel getSaveExpenseModel(ParsedTransaction transaction, Long userId) {
+    private ExpenseModel getSaveExpenseModel(ParsedTransaction transaction, LocalDate syncDate, Long userId) {
         ExpenseModel expense = new ExpenseModel();
         expense.setUserId(userId);
         expense.setCategoryId(transaction.getCategoryId());
@@ -212,6 +216,7 @@ public class TransactionServiceImpl implements TransactionService {
         expense.setDate(transaction.getTransactionDate());
         expense.setAmount(transaction.getAmount());
         expense.setRecurring(false);
+        expense.setGmailSyncDate(syncDate.atTime(LocalTime.now()));
         expense.setEntryMode(EntryModeEnum.GMAIL_SYNC.name());
         return expense;
     }

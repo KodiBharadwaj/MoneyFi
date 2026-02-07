@@ -28,6 +28,7 @@ public class ExpenseModel {
     private String description;
     private String entryMode;
     private boolean isDeleted;
+    private LocalDateTime gmailSyncDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

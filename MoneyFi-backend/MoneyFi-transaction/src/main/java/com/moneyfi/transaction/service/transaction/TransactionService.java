@@ -20,7 +20,7 @@ public interface TransactionService {
 
     OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year);
 
-    void addGmailSyncTransactions(Long userId, List<ParsedTransaction> transactions);
+    void addGmailSyncTransactions(Long userId, LocalDate syncDate, List<ParsedTransaction> transactions);
 
     GmailSyncTransactionsResponse getGmailSyncAddedTransactions(Long userId, LocalDate date);
 }
