@@ -1,0 +1,94 @@
+.session-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.session-modal {
+  background: #ffffff;
+  padding: 28px 32px;
+  border-radius: 14px;
+  width: 360px;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  animation: popIn 0.25s ease-out;
+}
+
+.session-modal h3 {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.session-modal p {
+  margin-bottom: 18px;
+  color: #555;
+  font-size: 15px;
+}
+
+.session-modal strong {
+  font-size: 18px;
+  color: #d9534f;
+}
+
+.session-modal select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 20px;
+}
+
+.session-modal select:focus {
+  border-color: #4f46e5;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.actions button {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.2s ease;
+}
+
+.actions button:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.actions button:first-child {
+  background: #4f46e5;
+  color: white;
+}
+
+.actions button:last-child {
+  background: #e5e7eb;
+  color: #111;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

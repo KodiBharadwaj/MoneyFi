@@ -30,7 +30,7 @@ public class JwtServiceImplementation implements JwtService {
     private String secret;
 
     @Override
-    public JwtToken generateToken(UserAuthModel user) {
+    public JwtToken generateToken(UserAuthModel user, long minutes) {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         Key key = Keys.hmacShaKeyFor(keyBytes);
         Map<String, Object> claims = new HashMap<>();
@@ -39,7 +39,7 @@ public class JwtServiceImplementation implements JwtService {
                 .setClaims(claims)
                 .setSubject(user.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date((System.currentTimeMillis() + 1000 * 60 * 60)))
+                .setExpiration(new Date(System.currentTimeMillis() + minutes * 60 * 1000))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
         return new JwtToken(token);

@@ -197,7 +197,7 @@ public class UserServiceImpl implements UserService {
                 Authentication authentication = authenticationManager
                         .authenticate(new UsernamePasswordAuthenticationToken(userAuthModel.getUsername(), userAuthModel.getPassword()));
                 if (authentication.isAuthenticated()) {
-                    JwtToken token = jwtService.generateToken(userAuthModel);
+                    JwtToken token = jwtService.generateToken(userAuthModel, SESSION_LOGIN_MINUTES);
                     functionToPreventMultipleLogins(userAuthModel, token);
                     makeGmailAuthInactiveForUser(getUserIdByUsername(requestDto.getUsername().trim()));
                     userRoleToken.put(userRoleAssociation.get(existingUser.getRoleId()), token.getJwtToken());
@@ -264,7 +264,7 @@ public class UserServiceImpl implements UserService {
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
                 }
                 makeOldSessionInActiveOfUserForNewLogin(email);
-                JwtToken jwtToken = jwtService.generateToken(newOrExistingUser);
+                JwtToken jwtToken = jwtService.generateToken(newOrExistingUser, SESSION_LOGIN_MINUTES);
                 functionToPreventMultipleLogins(newOrExistingUser, jwtToken);
                 userRoleToken.put(userRoleAssociation.get(newOrExistingUser.getRoleId()), jwtToken.getJwtToken());
                 return ResponseEntity.ok(userRoleToken);
@@ -342,7 +342,7 @@ public class UserServiceImpl implements UserService {
             }
             makeOldSessionInActiveOfUserForNewLogin(email);
             // 4. Generate JWT
-            JwtToken jwtToken = jwtService.generateToken(user);
+            JwtToken jwtToken = jwtService.generateToken(user, SESSION_LOGIN_MINUTES);
             functionToPreventMultipleLogins(user, jwtToken);
             String token = jwtToken.getJwtToken().replace("'", "\\'"); // escape quotes
 
@@ -392,6 +392,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(rollbackOn = Exception.class)
     public String sendOtpForSignup(String email, String name) {
         UserValidations.checkForUserAlreadyExistenceValidation(userRepository.getUserDetailsByUsername(email).orElse(null));
         String verificationCode = generateVerificationCode();
@@ -471,6 +472,19 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity.ok(EMAIL_SENT_SUCCESS_MESSAGE);
     }
 
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public String updateUserSessionExpirationTime(long minutes, String username, String token) {
+        if (minutes == 0) {
+            throw new ScenarioNotPossibleException("Minutes cannot be zero");
+        }
+        UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        makeUserTokenBlacklisted(token);
+        String newToken = jwtService.generateToken(user, minutes).getJwtToken();
+        functionToPreventMultipleLogins(user, new JwtToken(newToken));
+        return newToken;
+    }
+
     private void saveUserAuthDetails(UserAuthModel userAuthModel, String username){
         userAuthModel.setUsername(username.trim());
         userAuthModel.setOtpCount(0);
@@ -540,11 +554,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private BlackListedToken makeUserTokenBlacklisted(String token){
-        Date expiryDate = new Date(System.currentTimeMillis());
-        BlackListedToken blackListedToken = new BlackListedToken();
-        blackListedToken.setToken(token);
-        blackListedToken.setExpiry(expiryDate);
-        return userCommonService.blacklistToken(blackListedToken);
+        return userCommonService.blacklistToken(new BlackListedToken(token, new Date(System.currentTimeMillis())));
     }
 
     private SessionTokenModel makeUserSessionInActive(String token){

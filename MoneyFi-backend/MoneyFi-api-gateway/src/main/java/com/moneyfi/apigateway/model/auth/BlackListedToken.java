@@ -23,4 +23,9 @@ public class BlackListedToken {
 
     @Column(nullable = false)
     private Date expiry;
+
+    public BlackListedToken(String token, Date expiry) {
+        this.token = token;
+        this.expiry = expiry;
+    }
 }

@@ -9,6 +9,7 @@ import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { SessionTimerService } from '../services/session-timer.service';
 
 declare const google: any;
 

@@ -50,9 +50,8 @@ public interface ExpenseRepository extends JpaRepository<ExpenseModel, Long> {
             value = "SELECT et.* " +
                     "FROM expense_table et WITH (NOLOCK) " +
                     "WHERE et.user_id = :userId " +
-                    "AND et.is_deleted = 0 " +
                     "AND et.entry_mode = 'GMAIL_SYNC' " +
-                    "AND CAST(et.created_at AS DATE) = :date ",
+                    "AND CAST(et.gmail_sync_date AS DATE) = :date ",
             nativeQuery = true)
     List<ExpenseModel> getGmailSyncAddedExpenses(Long userId, LocalDate date);
 }

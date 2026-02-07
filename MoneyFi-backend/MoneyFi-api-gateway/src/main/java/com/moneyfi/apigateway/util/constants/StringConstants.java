@@ -53,6 +53,7 @@ public class StringConstants {
     public static final String LOGIN_ERROR = "An error occurred during login";
 
     public static final LocalDateTime CURRENT_DATE_TIME = LocalDateTime.now();
+    public static final long SESSION_LOGIN_MINUTES = 60L;
 
     public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name(), 3, UserRoles.DEVELOPER.name());
     public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation = Map.of(BLOCK_ACCOUNT, 1, PASSWORD_CHANGE, 2, NAME_CHANGE, 3,

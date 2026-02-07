@@ -128,6 +128,8 @@ export class GmailSyncDialogComponent implements OnInit {
   submit() {
     const accepted = this.transactions.filter(t => t.accepted);
 
+    const syncDate = this.data.syncDate || new Date().toISOString().split('T')[0];
+
     if (accepted.length === 0) {
       return;
     }
@@ -135,7 +137,7 @@ export class GmailSyncDialogComponent implements OnInit {
     this.submitting = true;
 
     this.http
-      .post(`${this.BASE_URL}/api/v1/transaction/gmail-sync/bulk-save`, accepted)
+      .post(`${this.BASE_URL}/api/v1/transaction/gmail-sync/bulk-save/${syncDate}`, accepted)
       .subscribe({
         next: () => {
           this.toastr.success('Transactions added successfully');
