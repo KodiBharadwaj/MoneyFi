@@ -77,23 +77,47 @@ public class GmailSyncService {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
         Map<String, Object> tokenResponse = externalRestTemplateForOAuth.postForObject("https://oauth2.googleapis.com/token", request, Map.class);
 
+        if (tokenResponse == null || !tokenResponse.containsKey("access_token")) {
+            throw new CustomAuthenticationFailedException("Failed to obtain access token from Google");
+        }
+
+        String accessToken = (String) tokenResponse.get("access_token");
+        String refreshToken = (String) tokenResponse.get("refresh_token");
+        Number expiresIn = (Number) tokenResponse.get("expires_in");
+
+        Map<String, Object> tokenInfo = externalRestTemplateForOAuth.getForObject("https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={token}", Map.class, accessToken);
+
+        String scope = tokenInfo != null ? (String) tokenInfo.get("scope") : null;
+
+        if (scope == null || !scope.contains("https://www.googleapis.com/auth/gmail.readonly")) {
+            throw new CustomAuthenticationFailedException("Gmail permission not granted. Please re-consent again");
+        }
+
         HttpHeaders authHeaders = new HttpHeaders();
-        authHeaders.setBearerAuth((String) tokenResponse.get("access_token"));
+        authHeaders.setBearerAuth(accessToken);
         HttpEntity<Void> authRequest = new HttpEntity<>(authHeaders);
         Map<String, Object> userInfo = externalRestTemplateForOAuth.exchange("https://openidconnect.googleapis.com/v1/userinfo", HttpMethod.GET, authRequest, Map.class).getBody();
 
-        String gmailFromCode = (String) userInfo.get("email");
-        if(!username.trim().equals(gmailFromCode.trim())) throw new CustomAuthenticationFailedException("Unauthorized Access");
+        if (userInfo == null || userInfo.get("email") == null) {
+            throw new CustomAuthenticationFailedException("Failed to fetch Google user info");
+        }
 
-        GmailAuth newAuth = new GmailAuth();
-        Optional<GmailAuth> gmailAuth = gmailSyncRepository.findByUserId(userId);
-        if(gmailAuth.isPresent()) newAuth = gmailAuth.get();
-        newAuth.setUserId(userId);
-        newAuth.setAccessToken(cryptoUtil.encrypt((String) tokenResponse.get("access_token")));
-        newAuth.setRefreshToken(cryptoUtil.encrypt((String) tokenResponse.get("refresh_token")));
-        newAuth.setExpiresAt(Instant.now().plusSeconds(((Number) tokenResponse.get("expires_in")).longValue()));
-        newAuth.setIsActive(Boolean.TRUE);
-        gmailSyncRepository.save(newAuth);
+        String gmailFromCode = ((String) userInfo.get("email")).trim();
+
+        if (!username.trim().equalsIgnoreCase(gmailFromCode)) {
+            throw new CustomAuthenticationFailedException("Unauthorized Gmail account");
+        }
+
+        GmailAuth auth = gmailSyncRepository.findByUserId(userId).orElseGet(GmailAuth::new);
+        auth.setUserId(userId);
+        auth.setAccessToken(cryptoUtil.encrypt(accessToken));
+
+        if (refreshToken != null) {
+            auth.setRefreshToken(cryptoUtil.encrypt(refreshToken));
+        }
+        auth.setExpiresAt(Instant.now().plusSeconds(expiresIn.longValue()));
+        auth.setIsActive(Boolean.TRUE);
+        gmailSyncRepository.save(auth);
     }
 
     public GmailAuth isSyncEnabled(Long userId) {
