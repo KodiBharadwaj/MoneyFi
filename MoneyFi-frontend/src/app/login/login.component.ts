@@ -93,7 +93,7 @@ export class LoginComponent implements OnInit {
 
       const client = google.accounts.oauth2.initCodeClient({
         client_id: environment.GOOGLE_CLIENT_ID,
-        scope: "openid email profile",
+        scope: "openid email profile https://www.googleapis.com/auth/gmail.readonly",
         ux_mode: "popup",
         callback: (response: any) => this.handleGoogleResponse(response)
       });
