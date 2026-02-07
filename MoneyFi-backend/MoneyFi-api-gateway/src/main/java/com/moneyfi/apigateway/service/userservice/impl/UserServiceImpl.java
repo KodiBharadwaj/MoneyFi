@@ -197,7 +197,7 @@ public class UserServiceImpl implements UserService {
                 Authentication authentication = authenticationManager
                         .authenticate(new UsernamePasswordAuthenticationToken(userAuthModel.getUsername(), userAuthModel.getPassword()));
                 if (authentication.isAuthenticated()) {
-                    JwtToken token = jwtService.generateToken(userAuthModel, 10L);
+                    JwtToken token = jwtService.generateToken(userAuthModel, SESSION_LOGIN_MINUTES);
                     functionToPreventMultipleLogins(userAuthModel, token);
                     makeGmailAuthInactiveForUser(getUserIdByUsername(requestDto.getUsername().trim()));
                     userRoleToken.put(userRoleAssociation.get(existingUser.getRoleId()), token.getJwtToken());

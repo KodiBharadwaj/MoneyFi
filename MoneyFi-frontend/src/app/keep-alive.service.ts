@@ -23,6 +23,7 @@ export class KeepAliveService implements OnDestroy {
 
       const token = sessionStorage.getItem('moneyfi.auth');
       if (!token) {
+        this.stopPinging();
         return;
       }
       const payload = JSON.parse(atob(token.split('.')[1]));

@@ -18,8 +18,6 @@ export class AppComponent implements OnInit{
   constructor(private keepAlive: KeepAliveService, private sessionTimerService: SessionTimerService) {}
 
   ngOnInit() {
-    this.keepAlive.startPinging();
-
     const token = sessionStorage.getItem('moneyfi.auth');
     if (!token) return;
 
