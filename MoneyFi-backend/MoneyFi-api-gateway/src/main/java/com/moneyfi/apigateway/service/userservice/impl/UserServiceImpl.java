@@ -264,7 +264,7 @@ public class UserServiceImpl implements UserService {
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
                 }
                 makeOldSessionInActiveOfUserForNewLogin(email);
-                JwtToken jwtToken = jwtService.generateToken(newOrExistingUser, 10L);
+                JwtToken jwtToken = jwtService.generateToken(newOrExistingUser, SESSION_LOGIN_MINUTES);
                 functionToPreventMultipleLogins(newOrExistingUser, jwtToken);
                 userRoleToken.put(userRoleAssociation.get(newOrExistingUser.getRoleId()), jwtToken.getJwtToken());
                 return ResponseEntity.ok(userRoleToken);
@@ -342,7 +342,7 @@ public class UserServiceImpl implements UserService {
             }
             makeOldSessionInActiveOfUserForNewLogin(email);
             // 4. Generate JWT
-            JwtToken jwtToken = jwtService.generateToken(user, 10L);
+            JwtToken jwtToken = jwtService.generateToken(user, SESSION_LOGIN_MINUTES);
             functionToPreventMultipleLogins(user, jwtToken);
             String token = jwtToken.getJwtToken().replace("'", "\\'"); // escape quotes
 
@@ -478,8 +478,11 @@ public class UserServiceImpl implements UserService {
         if (minutes == 0) {
             throw new ScenarioNotPossibleException("Minutes cannot be zero");
         }
+        UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         makeUserTokenBlacklisted(token);
-        return jwtService.generateToken(userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)), minutes).getJwtToken();
+        String newToken = jwtService.generateToken(user, minutes).getJwtToken();
+        functionToPreventMultipleLogins(user, new JwtToken(newToken));
+        return newToken;
     }
 
     private void saveUserAuthDetails(UserAuthModel userAuthModel, String username){

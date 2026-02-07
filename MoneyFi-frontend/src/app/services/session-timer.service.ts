@@ -9,7 +9,7 @@ export class SessionTimerService {
 
     constructor(private router:Router){};
 
-  private warningTimeMs = 10 * 60 * 1000;
+  private warningTimeMs = 5 * 60 * 1000;
 
   private timeoutId?: number;
   private warningId?: number;
@@ -34,7 +34,7 @@ export class SessionTimerService {
 
     this.warningId = window.setTimeout(() => {
       this.showWarning$.next(true);
-      this.startCountdown(Math.min(600, Math.floor(totalMs / 1000)));
+      this.startCountdown(Math.min(300, Math.floor(totalMs / 1000)));
     }, warningAt);
 
     this.timeoutId = window.setTimeout(() => {
@@ -82,7 +82,6 @@ export class SessionTimerService {
     this.clearAll();
     sessionStorage.clear();
     alert('Your session has been completed. Please login again');
-    sessionStorage.clear();
     this.router.navigate(['']);
   }
 }

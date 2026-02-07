@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient, HttpHeaders } from '@angular/common/http';
 import { SessionTimerService } from '../services/session-timer.service';
 import { environment } from '../../environments/environment';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-session-warning',
@@ -21,7 +22,8 @@ export class SessionWarningComponent {
 
   constructor(
     private sessionService: SessionTimerService,
-    private http: HttpClient
+    private http: HttpClient,
+    private toastr: ToastrService
   ) {
     this.show$ = this.sessionService.showWarning$;
     this.remaining$ = this.sessionService.remainingSeconds$;
@@ -39,7 +41,8 @@ export class SessionWarningComponent {
   this.http.get(`${this.baseUrl}/api/v1/user/extend-session?minutes=${this.selectedMinutes}`,{ headers, responseType: 'text' }).subscribe(
     newToken => {
       sessionStorage.setItem('moneyfi.auth', newToken);
-      // this.sessionService.reset(15);
+      this.sessionService.hideWarning();
+      this.toastr.success('Session extended for ' + this.selectedMinutes + ' minutes');
     });
   } 
 
