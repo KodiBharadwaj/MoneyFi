@@ -67,8 +67,8 @@ values (1, 'profile-template.xlsx', 0x504B03041400060008000000210062EE9D685E0100
 
 -- Fixed reason id and reason names
 INSERT INTO reason_code_table (id, name)
-VALUES (1, 'Block Account'), (2, 'Password Change'), (3, 'Name Change'), (4, 'Unblock Account'), (5, 'Delete Account'), (6, 'Account retrieval'), (7, 'Phone Number Change'), (8, 'Ignore User Request');
-
+VALUES (1, 'Block Account'), (2, 'Password Change'), (3, 'Name Change'), (4, 'Unblock Account'), (5, 'Delete Account'), (6, 'Account retrieval'), 
+(7, 'Phone Number Change'), (8, 'Ignore User Request'), (9, 'Gmail Sync Request Type');
 
 
 --sample code for primary foreign key relationship

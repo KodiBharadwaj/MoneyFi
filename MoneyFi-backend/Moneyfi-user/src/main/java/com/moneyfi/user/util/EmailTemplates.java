@@ -1,5 +1,6 @@
 package com.moneyfi.user.util;
 
+import com.moneyfi.user.service.common.dto.request.GmailSyncCountIncreaseRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -172,7 +173,6 @@ public class EmailTemplates {
 
     public void sendUserRaiseDefectEmailToAdmin(com.moneyfi.user.service.common.dto.request.UserDefectRequestDto userDefectRequestDto, MultipartFile image){
         String subject = "MoneyFi's User Report Alert!!";
-
         String body = "<html>"
                 + "<body>"
                 + "<p style='font-size: 16px;'>Hello Admin,</p>"
@@ -182,6 +182,33 @@ public class EmailTemplates {
                 + "<br> <hr>"
                 + "<p style='font-size: 14px;'>" + userDefectRequestDto.getName() + "</p>"
                 + "<p style='font-size: 14px;'>" + userDefectRequestDto.getEmail() + "</p>"
+                + "<br>"
+                + "<p style='font-size: 16px;'>Please login for more details</p>"
+                + "</body>"
+                + "</html>";
+        if (image != null && !image.isEmpty()) {
+            try {
+                byte[] imageBytes = image.getBytes();
+                emailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, image.getOriginalFilename() != null ? image.getOriginalFilename() : "attachment.jpg");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
+        }
+    }
+
+    public void sendUserRaisedGmailSyncRequestEmailToAdmin(GmailSyncCountIncreaseRequestDto request, String name, String email, MultipartFile image){
+        String subject = "MoneyFi - User Gmail Sync Request Alert!!";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello Admin,</p>"
+                + "<p style='font-size: 16px;'>You received the Gmail Sync Increase Count Request by a user: </p>"
+                + "<br>"
+                + "<p style='font-size: 16px;'> Request Reason: " + request.getReason() + "</p>"
+                + "<br> <hr>"
+                + "<p style='font-size: 14px;'>" + name + "</p>"
+                + "<p style='font-size: 14px;'>" + email + "</p>"
                 + "<br>"
                 + "<p style='font-size: 16px;'>Please login for more details</p>"
                 + "</body>"
@@ -321,6 +348,23 @@ public class EmailTemplates {
                 + "</body>"
                 + "</html>";
         emailFilter.sendEmailWithAttachment(email, subject, body, file, "reason-attachment.pdf");
+    }
+
+    public void sendUserGmailSyncApprovedMail(String name, String email, int gmailSyncRequestCount) {
+        String subject = "Gmail Sync Request Approved - MoneyFi";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
+                + "<p style='font-size: 16px;'>Your Gmail Sync Count Increase Request has been approved by Admin and provided " + gmailSyncRequestCount + " chances." + "</p>"
+                + "<p style='font-size: 16px;'>Please login to your account and use the services.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendContactUsDetailsEmailToAdmin(String email, String phoneNumber, String name, String description) {

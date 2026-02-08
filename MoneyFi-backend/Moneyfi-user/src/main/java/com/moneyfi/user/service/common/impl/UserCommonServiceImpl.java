@@ -1,7 +1,7 @@
 package com.moneyfi.user.service.common.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.*;
@@ -16,6 +16,7 @@ import com.moneyfi.user.service.common.AwsServices;
 import com.moneyfi.user.service.common.CloudinaryService;
 import com.moneyfi.user.service.common.CommonService;
 import com.moneyfi.user.service.common.UserCommonService;
+import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
 import com.moneyfi.user.service.common.dto.request.*;
 import com.moneyfi.user.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
@@ -26,6 +27,7 @@ import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.UserValidations;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -36,7 +38,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,8 +64,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final ReasonDetailsRepository reasonDetailsRepository;
     private final CommonService commonService;
     private final RestTemplate externalRestTemplate;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ScheduleNotificationRepository scheduleNotificationRepository;
 
     public UserCommonServiceImpl(CloudinaryService cloudinaryService,
                                  AwsServices awsServices,
@@ -74,7 +76,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  EmailTemplates emailTemplates,
                                  ReasonDetailsRepository reasonDetailsRepository,
                                  CommonService commonService,
-                                 @Qualifier("externalRestTemplate") RestTemplate externalRestTemplate){
+                                 @Qualifier("externalRestTemplate") RestTemplate externalRestTemplate,
+                                 ScheduleNotificationRepository scheduleNotificationRepository){
         this.cloudinaryService = cloudinaryService;
         this.awsServices = awsServices;
         this.profileRepository = profileRepository;
@@ -86,6 +89,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.reasonDetailsRepository = reasonDetailsRepository;
         this.commonService = commonService;
         this.externalRestTemplate = externalRestTemplate;
+        this.scheduleNotificationRepository = scheduleNotificationRepository;
     }
 
     private static final String REFERENCE_NUMBER_SENT = "Reference already sent, Please submit your details";
@@ -418,7 +422,28 @@ public class UserCommonServiceImpl implements UserCommonService {
 
     @Override
     public List<UserNotificationResponseDto> getUserNotifications(String username, String status) {
-        return commonServiceRepository.getUserNotifications(username,status);
+        return commonServiceRepository.getUserNotifications(username, status).stream()
+                .peek(notification -> {
+                    if (notification.getNotificationType().equalsIgnoreCase(UserRequestType.GMAIL_SYNC_COUNT_INCREASE.name())) {
+                        GmailSyncCountJsonDto gmailSyncCountJsonDto = null;
+                        try {
+                            gmailSyncCountJsonDto = objectMapper.readValue(notification.getDescription(), GmailSyncCountJsonDto.class);
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
+                        if (notification.getRole().equalsIgnoreCase(UserRoles.USER.name())) {
+                            notification.setDescription("Requested count: " + gmailSyncCountJsonDto.getCount() + " | " + "Requested Reason: " + gmailSyncCountJsonDto.getReason());
+                        } else if (notification.getRole().equalsIgnoreCase(UserRoles.ADMIN.name())) {
+                            GmailSyncCountJsonDto parentGmailSyncCountJsonDto = null;
+                            try {
+                                parentGmailSyncCountJsonDto = objectMapper.readValue(scheduleNotificationRepository.findById(notification.getParentKey()).get().getDescription(), GmailSyncCountJsonDto.class);
+                            } catch (JsonProcessingException e) {
+                                throw new RuntimeException(e);
+                            }
+                            notification.setDescription("Requested count: " + parentGmailSyncCountJsonDto.getCount() + " | " + "Approved Count: " + gmailSyncCountJsonDto.getCount() + " | " + "Remarks: " + gmailSyncCountJsonDto.getReason());
+                        }
+                    }
+                }).toList();
     }
 
     @Override
@@ -548,7 +573,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         try {
             String jsonStringResponse = externalRestTemplate.getForObject(DAILY_QUOTE_EXTERNAL_API_URL, String.class);
 
-            List<QuoteResponseDto> quoteList = objectMapper.readValue(jsonStringResponse, new TypeReference<List<QuoteResponseDto>>() {});
+            List<QuoteResponseDto> quoteList = StringConstants.objectMapper.readValue(jsonStringResponse, new TypeReference<List<QuoteResponseDto>>() {});
             if(!quoteList.isEmpty()){
                 quoteResponseDto.setQuote(quoteList.get(0).getQuote());
                 quoteResponseDto.setAuthor(quoteList.get(0).getAuthor());
@@ -560,6 +585,59 @@ public class UserCommonServiceImpl implements UserCommonService {
             throw new ScenarioNotPossibleException("Failed to parse the json response -> " + e);
         }
         throw new ResourceNotFoundException("No quote response found from external api");
+    }
+
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void userRequestToIncreaseGmailSyncDailyCount(GmailSyncCountIncreaseRequestDto request, MultipartFile image, String username) throws JsonProcessingException {
+        UserValidations.validateUserGmailSyncCountIncreaseRequest(request);
+        ContactUs existingRequest = contactUsRepository.findByEmail(username).stream()
+                .filter(gmailSyncRequest -> gmailSyncRequest.getRequestReason().equalsIgnoreCase(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name()) && gmailSyncRequest.getStartTime().toLocalDate().equals(LocalDate.now()))
+                .findFirst().orElse(null);
+        if(ObjectUtils.isNotEmpty(existingRequest)) {
+            throw new ScenarioNotPossibleException("Request already " + existingRequest.getRequestStatus().substring(0,1).toUpperCase() + existingRequest.getRequestStatus().substring(1).toLowerCase());
+        }
+
+        UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
+        ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
+        String referenceNumber = StringConstants.generateReferenceNumberForUserToSendEmail("GS", userProfile, username);
+
+        ContactUs contactUs = new ContactUs();
+        contactUs.setEmail(username);
+        contactUs.setReferenceNumber(referenceNumber);
+        contactUs.setRequestActive(Boolean.TRUE);
+        contactUs.setRequestReason(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name());
+        contactUs.setVerified(Boolean.FALSE);
+        contactUs.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+        contactUs.setStartTime(CURRENT_DATE_TIME);
+        ContactUs savedRequest = contactUsRepository.save(contactUs);
+        contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), userProfile.getName(), request.getReason(), savedRequest.getStartTime(), savedRequest.getRequestReason(), savedRequest.getRequestStatus()));
+
+        GmailSyncCountJsonDto gmailSyncCountJsonDto = new GmailSyncCountJsonDto(request.getCount(), request.getReason(), savedRequest.getId());
+        String jsonString = StringConstants.objectMapper.writeValueAsString(gmailSyncCountJsonDto);
+
+        ScheduleNotification scheduleNotification = new ScheduleNotification();
+        scheduleNotification.setSubject("Gmail Sync Request Count Increase");
+        scheduleNotification.setDescription(jsonString);
+        scheduleNotification.setScheduleFrom(CURRENT_DATE_TIME);
+        scheduleNotification.setScheduleTo(LocalDate.now().atTime(LocalTime.MAX));
+        scheduleNotification.setRecipients(username);
+        scheduleNotification.setScheduleBy(user.getId());
+        scheduleNotification.setUpdatedBy(user.getId());
+        scheduleNotification.setNotificationType(UserRequestType.GMAIL_SYNC_COUNT_INCREASE.name());
+        saveUserNotificationsForParticularUsers(username, scheduleNotificationRepository.save(scheduleNotification).getId());
+
+        if (ObjectUtils.isNotEmpty(image)) {
+            if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
+                cloudinaryService.uploadPictureToCloudinary(image, savedRequest.getId(), username, GMAIL_SYNC_COUNT_INCREASE_REQUEST);
+            } else {
+                awsServices.uploadPictureToS3(savedRequest.getId(), username, image, GMAIL_SYNC_COUNT_INCREASE_REQUEST);
+            }
+        }
+        new Thread(() -> {
+            emailTemplates.sendUserRaisedGmailSyncRequestEmailToAdmin(request, userProfile.getName(), username, image != null && !image.isEmpty() ? image : null);
+            emailTemplates.sendReferenceNumberEmailToUser(userProfile.getName(), username, "request Gmail Sync Count Increase", referenceNumber);
+        }).start();
     }
 
     private String functionCallToRetrieveUsername(ForgotUsernameDto userDetails) {

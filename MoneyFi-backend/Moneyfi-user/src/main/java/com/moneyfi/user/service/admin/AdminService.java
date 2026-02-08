@@ -22,7 +22,7 @@ public interface AdminService {
 
     void updateDefectStatus(Long defectId, String status, String reason);
 
-    boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId, String approveStatus, String declineReason);
+    boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId, String approveStatus, String declineReason, int gmailSyncRequestCount);
 
     String blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId);
 
@@ -38,7 +38,7 @@ public interface AdminService {
 
     void updateUserFeedback(Long feedbackId);
 
-    void addReasonsForUserReasonDialog(ReasonDetailsRequestDto reason);
+    void addReasonsForUserReasonDialog(ReasonDetailsRequestDto reason, Long adminUserId);
 
     List<ReasonListResponseDto> getAllReasonsBasedOnReasonCode(int reasonCode);
 
@@ -50,13 +50,13 @@ public interface AdminService {
 
     List<String> getUsernamesOfAllUsers();
 
-    void scheduleNotification(@Valid ScheduleNotificationRequestDto requestDto);
+    void scheduleNotification(@Valid ScheduleNotificationRequestDto requestDto, Long adminUserId);
 
     List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status);
 
-    void cancelTheUserScheduling(Long scheduleId);
+    void cancelTheUserScheduling(Long scheduleId, Long adminUserId);
 
-    void updateAdminPlacedSchedules(@Valid AdminScheduleRequestDto requestDto);
+    void updateAdminPlacedSchedules(@Valid AdminScheduleRequestDto requestDto, Long adminUserId);
 
-    void deleteUserScheduling(Long scheduleId);
+    void deleteUserScheduling(Long scheduleId, Long adminUserId);
 }

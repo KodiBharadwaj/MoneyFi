@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import static com.moneyfi.user.util.constants.StringConstants.CURRENT_DATE_TIME;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,11 +23,15 @@ public class ReasonDetails {
     private LocalDateTime createdTime;
     private LocalDateTime updatedTime;
     private Boolean isDeleted;
+    private Long createdBy;
+    private Long updatedBy;
 
     @PrePersist
     public void prePersist(){
         if(this.isDeleted == null){
             isDeleted = false;
         }
+        this.createdTime = CURRENT_DATE_TIME;
+        this.updatedTime = CURRENT_DATE_TIME;
     }
 }

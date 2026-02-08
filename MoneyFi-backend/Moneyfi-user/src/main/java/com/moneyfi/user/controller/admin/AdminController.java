@@ -73,7 +73,7 @@ public class AdminController {
     public boolean accountReactivationAndNameChangeRequest(@RequestHeader("Authorization") String authHeader,
                                                            @RequestBody UserRequestsApprovalDto requestDto){
         Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return adminService.accountReactivationAndNameChangeRequest(requestDto.getEmail(), requestDto.getReferenceNumber(), requestDto.getRequestStatus(), adminUserId, requestDto.getApproveStatus(), requestDto.getDeclineReason());
+        return adminService.accountReactivationAndNameChangeRequest(requestDto.getEmail(), requestDto.getReferenceNumber(), requestDto.getRequestStatus(), adminUserId, requestDto.getApproveStatus(), requestDto.getDeclineReason(), requestDto.getGmailSyncRequestCount());
     }
 
     @Operation(summary = "Api to block the user's account by admin")
@@ -145,8 +145,10 @@ public class AdminController {
 
     @Operation(summary = "Api to add the reason dropdown names")
     @PostMapping("/reasons/add")
-    public void addReasonsForUserReasonDialog(@RequestBody ReasonDetailsRequestDto requestDto){
-        adminService.addReasonsForUserReasonDialog(requestDto);
+    public void addReasonsForUserReasonDialog(@RequestHeader("Authorization") String authHeader,
+                                              @RequestBody ReasonDetailsRequestDto requestDto){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.addReasonsForUserReasonDialog(requestDto, adminUserId);
     }
 
     @Operation(summary = "Api to get the reason based on reason code")
@@ -181,8 +183,10 @@ public class AdminController {
 
     @Operation(summary = "Api to schedule a notification by admin")
     @PostMapping("/schedule-notification")
-    public void scheduleNotification(@RequestBody @Valid ScheduleNotificationRequestDto requestDto){
-        adminService.scheduleNotification(requestDto);
+    public void scheduleNotification(@RequestHeader("Authorization") String authHeader,
+                                     @RequestBody @Valid ScheduleNotificationRequestDto requestDto){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.scheduleNotification(requestDto, adminUserId);
     }
 
     @Operation(summary = "Api to get all the schedules for admin screen")
@@ -193,19 +197,25 @@ public class AdminController {
 
     @Operation(summary = "Api to cancel the user scheduling")
     @PutMapping("/schedule-notification/cancel")
-    public void cancelTheUserScheduling(@RequestParam("id") Long scheduleId){
-        adminService.cancelTheUserScheduling(scheduleId);
+    public void cancelTheUserScheduling(@RequestHeader("Authorization") String authHeader,
+                                        @RequestParam("id") Long scheduleId){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.cancelTheUserScheduling(scheduleId, adminUserId);
     }
 
     @Operation(summary = "Api to soft delete the user scheduling")
     @DeleteMapping("/schedule-notification/delete")
-    public void deleteUserScheduling(@RequestParam("id") Long scheduleId){
-        adminService.deleteUserScheduling(scheduleId);
+    public void deleteUserScheduling(@RequestHeader("Authorization") String authHeader,
+                                     @RequestParam("id") Long scheduleId){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.deleteUserScheduling(scheduleId, adminUserId);
     }
 
     @Operation(summary = "Api to update the already scheduled notification")
     @PutMapping("/schedule-notification/update")
-    public void updateAdminPlacedSchedules(@RequestBody @Valid AdminScheduleRequestDto requestDto){
-        adminService.updateAdminPlacedSchedules(requestDto);
+    public void updateAdminPlacedSchedules(@RequestHeader("Authorization") String authHeader,
+                                           @RequestBody @Valid AdminScheduleRequestDto requestDto){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.updateAdminPlacedSchedules(requestDto, adminUserId);
     }
 }

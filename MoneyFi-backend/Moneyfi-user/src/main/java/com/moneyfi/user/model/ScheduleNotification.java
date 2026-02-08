@@ -1,5 +1,6 @@
 package com.moneyfi.user.model;
 
+import com.moneyfi.user.util.enums.UserRequestType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,6 +28,10 @@ public class ScheduleNotification {
     private LocalDateTime updatedAt;
     private boolean isCancelled;
     private boolean isActive;
+    private Long scheduleBy;
+    private Long updatedBy;
+    private Long parentKey;
+    private String notificationType;
 
     @PrePersist
     public void init() {

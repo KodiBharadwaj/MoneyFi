@@ -4,8 +4,10 @@ import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.dto.OtpTempModel;
 import com.moneyfi.user.model.dto.UserAuthModel;
 import com.moneyfi.user.service.common.dto.request.AccountBlockOrDeleteRequestDto;
+import com.moneyfi.user.service.common.dto.request.GmailSyncCountIncreaseRequestDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.AccDeactivationType;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.time.LocalDateTime;
 
@@ -54,6 +56,15 @@ public class UserValidations {
             if (userPassword == null || userPassword.isEmpty() || !StringConstants.encoder.matches(userPassword, user.getPassword())) {
                 throw new ScenarioNotPossibleException(INCORRECT_PASSWORD_MESSAGE);
             }
+        }
+    }
+
+    public static void validateUserGmailSyncCountIncreaseRequest(GmailSyncCountIncreaseRequestDto request) {
+        if (request.getCount() <= 0 || request.getCount() > 3) {
+            throw new ScenarioNotPossibleException("Please enter valid count");
+        }
+        if (ObjectUtils.isEmpty(request.getReason())) {
+            throw new ScenarioNotPossibleException("Reason should not be empty");
         }
     }
 }
