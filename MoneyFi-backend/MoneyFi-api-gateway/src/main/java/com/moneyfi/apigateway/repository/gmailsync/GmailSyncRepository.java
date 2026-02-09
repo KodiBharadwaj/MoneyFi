@@ -13,9 +13,6 @@ public interface GmailSyncRepository extends JpaRepository<GmailAuth, Long> {
 
     Optional<GmailAuth> findByUserId(Long userId);
 
-    @Query("SELECT g FROM GmailAuth g WHERE g.userId = :userId AND g.isActive = true")
-    Optional<GmailAuth> existsByUserId(Long userId);
-
     @Query("SELECT g from GmailAuth g WHERE g.count >= 3")
     List<GmailAuth> getTransactionsListWhoseCountIsGreaterThanThree();
 }

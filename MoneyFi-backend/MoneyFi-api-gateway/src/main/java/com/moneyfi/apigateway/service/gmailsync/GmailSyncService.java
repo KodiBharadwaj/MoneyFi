@@ -11,6 +11,7 @@ import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.UserCredentials;
 import com.moneyfi.apigateway.dto.ParsedTransaction;
 import com.moneyfi.apigateway.exceptions.CustomAuthenticationFailedException;
+import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
 import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.gmailsync.GmailAuth;
 import com.moneyfi.apigateway.model.gmailsync.GmailProcessedMessageEntity;
@@ -120,13 +121,9 @@ public class GmailSyncService {
         gmailSyncRepository.save(auth);
     }
 
-    public GmailAuth isSyncEnabled(Long userId) {
-        return gmailSyncRepository.existsByUserId(userId).orElse(null);
-    }
-
     public Integer getGmailConsentStatus(Long userId) {
-        GmailAuth gmailAuth = isSyncEnabled(userId);
-        return gmailAuth != null ? gmailAuth.getCount() != null ? gmailAuth.getCount() : 0 : null;
+        Optional<GmailAuth> gmailAuth = gmailSyncRepository.findByUserId(userId);
+        return (gmailAuth.isPresent() && Boolean.TRUE.equals(gmailAuth.get().getIsActive())) ? gmailAuth.get().getCount() : null;
     }
 
     public List<GmailSyncHistoryResponse> getSyncHistoryResponse(Long userId) {
@@ -150,7 +147,7 @@ public class GmailSyncService {
     }
 
     public Map<Integer, List<ParsedTransaction>> startGmailSync(Long userId, LocalDate date) throws IOException, URISyntaxException {
-        GmailAuth gmailAuth = isSyncEnabled(userId);
+        GmailAuth gmailAuth = gmailSyncRepository.findByUserId(userId).filter(GmailAuth::getIsActive).orElseThrow(() -> new ResourceNotFoundException("User consent not found"));
         if(gmailAuth != null && gmailAuth.getCount() >= 3) throw new ScenarioNotPossibleException("Sync limit crossed for today. Please try tomorrow");
         else if(gmailAuth == null) throw new ScenarioNotPossibleException("User not allowed to sync");
 
