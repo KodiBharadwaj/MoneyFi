@@ -120,14 +120,21 @@ public class AdminServiceImpl implements AdminService {
                         i.getReferenceNumber().trim().equalsIgnoreCase(referenceNumber.trim()))
                 .findFirst()
                 .map(request -> {
+                    UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
+                    ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
                     if (approveStatus.equalsIgnoreCase(ApproveStatus.APPROVE.name())) {
                         try {
-                            functionCallToChangeDetails(email, request, requestStatus, adminUserId, gmailSyncRequestCount);
+                            functionCallToChangeDetails(user, userProfile, email, request, requestStatus, adminUserId, gmailSyncRequestCount);
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
                         }
-                    } else if (approveStatus.equalsIgnoreCase(ApproveStatus.DECLINE.name()))
-                        functionCallToDeclineTheUserRequest(request, declineReason);
+                    } else if (approveStatus.equalsIgnoreCase(ApproveStatus.DECLINE.name())) {
+                        try {
+                            functionCallToDeclineTheUserRequest(user, userProfile, request, declineReason, email, adminUserId, gmailSyncRequestCount);
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                     return true;
                 })
                 .orElse(false);
@@ -588,8 +595,7 @@ public class AdminServiceImpl implements AdminService {
         return style;
     }
 
-    private void functionCallToChangeDetails(String email, ContactUs contactUs, String requestStatus, Long adminUserId, int gmailSyncRequestCount) throws JsonProcessingException {
-        UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
+    private void functionCallToChangeDetails(UserAuthModel user, ProfileModel userProfile, String email, ContactUs contactUs, String requestStatus, Long adminUserId, int gmailSyncRequestCount) throws JsonProcessingException {
         ContactUsHist requestUserHist = new ContactUsHist();
 
         if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())) {
@@ -617,7 +623,6 @@ public class AdminServiceImpl implements AdminService {
             requestUserHist.setMessage("Admin has been approved Account Retrieval");
             methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())) {
-            ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
             ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
                     .stream()
                     .findFirst()
@@ -636,17 +641,6 @@ public class AdminServiceImpl implements AdminService {
             if (gmailSyncRequestCount <= 0 || gmailSyncRequestCount > 3) {
                 throw new ScenarioNotPossibleException("Please enter valid count");
             }
-            ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
-            ScheduleNotification existingSchedule = scheduleNotificationRepository.findByScheduleBy(user.getId()).stream()
-                    .filter(schedule -> {
-                        try {
-                            return schedule.getNotificationType().equalsIgnoreCase(UserRequestType.GMAIL_SYNC_COUNT_INCREASE.name())
-                                    && schedule.getCreatedDate().toLocalDate().equals(LocalDate.now())
-                                    && Objects.equals(StringConstants.objectMapper.readValue(schedule.getDescription(), GmailSyncCountJsonDto.class).getContactUsId(), contactUs.getId());
-                        } catch (JsonProcessingException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }).findFirst().orElseThrow(() -> new ResourceNotFoundException("Schedule Gmail Sync request not found to Approve"));
 
             int rowsAffected = profileRepository.updateGmailSyncCountByUserRequest(user.getId(), gmailSyncRequestCount);
             log.info("Rows Affected {}", rowsAffected);
@@ -658,14 +652,7 @@ public class AdminServiceImpl implements AdminService {
             ScheduleNotification scheduleNotification = new ScheduleNotification();
             scheduleNotification.setSubject("Gmail Sync Count Increase Request Approved");
             scheduleNotification.setDescription(StringConstants.objectMapper.writeValueAsString(new GmailSyncCountJsonDto(gmailSyncRequestCount, STATUS_APPROVED, contactUs.getId())));
-            scheduleNotification.setUpdatedBy(adminUserId);
-            scheduleNotification.setScheduleFrom(CURRENT_DATE_TIME);
-            scheduleNotification.setScheduleTo(LocalDate.now().atTime(LocalTime.MAX));
-            scheduleNotification.setScheduleBy(adminUserId);
-            scheduleNotification.setParentKey(existingSchedule.getId());
-            scheduleNotification.setRecipients(email);
-            scheduleNotification.setNotificationType(UserRequestType.GMAIL_SYNC_COUNT_INCREASE.name());
-            userCommonService.saveUserNotificationsForParticularUsers(user.getUsername(), scheduleNotificationRepository.save(scheduleNotification).getId());
+            functionToScheduleGmailSyncUpdateToUser(scheduleNotification, adminUserId, email, user, contactUs);
             new Thread(() -> emailTemplates.sendUserGmailSyncApprovedMail(userProfile.getName(), email, gmailSyncRequestCount)).start();
         }
     }
@@ -688,8 +675,8 @@ public class AdminServiceImpl implements AdminService {
         profileRepository.insertUserAuthHistory(userId, completedTime, reasonTypeId, comment, updatedUserId);
     }
 
-    private void functionCallToDeclineTheUserRequest(ContactUs contactUs, String declineReason){
-        if(StringUtils.isBlank(declineReason)){
+    private void functionCallToDeclineTheUserRequest(UserAuthModel user, ProfileModel userProfile, ContactUs contactUs, String declineReason, String email, Long adminUserId, int gmailSyncRequestCount) throws JsonProcessingException {
+        if (StringUtils.isBlank(declineReason)) {
             throw new ScenarioNotPossibleException("Decline reason should not be empty");
         }
         contactUs.setCompletedTime(CURRENT_DATE_TIME);
@@ -706,6 +693,38 @@ public class AdminServiceImpl implements AdminService {
         contactUsHist.setRequestStatus(response.getRequestStatus());
         contactUsHist.setUpdatedTime(response.getCompletedTime());
         contactUsHistRepository.save(contactUsHist);
+
+        if (contactUs.getRequestReason().equalsIgnoreCase(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name())) {
+            ScheduleNotification scheduleNotification = new ScheduleNotification();
+            scheduleNotification.setSubject("Gmail Sync Count Increase Request Rejected");
+            scheduleNotification.setDescription(StringConstants.objectMapper.writeValueAsString(new GmailSyncCountJsonDto(0, STATUS_REJECTED + ". Reason: " + declineReason, contactUs.getId())));
+            functionToScheduleGmailSyncUpdateToUser(scheduleNotification, adminUserId, email, user, contactUs);
+            new Thread(() -> emailTemplates.sendUserGmailSyncCountIncreaseRequestRejection(userProfile.getName(), email)).start();
+        }
+    }
+
+    private ScheduleNotification getUserScheduledGmailSyncNotification(UserAuthModel user, ContactUs contactUs) {
+        return scheduleNotificationRepository.findByScheduleBy(user.getId()).stream()
+                .filter(schedule -> {
+                    try {
+                        return schedule.getNotificationType().equalsIgnoreCase(UserRequestType.GMAIL_SYNC_COUNT_INCREASE.name())
+                                && schedule.getCreatedDate().toLocalDate().equals(LocalDate.now())
+                                && Objects.equals(StringConstants.objectMapper.readValue(schedule.getDescription(), GmailSyncCountJsonDto.class).getContactUsId(), contactUs.getId());
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).findFirst().orElseThrow(() -> new ResourceNotFoundException("Schedule Gmail Sync request not found"));
+    }
+
+    private void functionToScheduleGmailSyncUpdateToUser(ScheduleNotification scheduleNotification, Long adminUserId, String email, UserAuthModel user, ContactUs contactUs) {
+        scheduleNotification.setUpdatedBy(adminUserId);
+        scheduleNotification.setScheduleFrom(CURRENT_DATE_TIME);
+        scheduleNotification.setScheduleTo(LocalDate.now().atTime(LocalTime.MAX));
+        scheduleNotification.setScheduleBy(adminUserId);
+        scheduleNotification.setParentKey(getUserScheduledGmailSyncNotification(user, contactUs).getId());
+        scheduleNotification.setRecipients(email);
+        scheduleNotification.setNotificationType(UserRequestType.GMAIL_SYNC_COUNT_INCREASE.name());
+        userCommonService.saveUserNotificationsForParticularUsers(user.getUsername(), scheduleNotificationRepository.save(scheduleNotification).getId());
     }
 
     private void addNameRequestDetailsToUserDetails(UserProfileAndRequestDetailsDto userDetails, List<ContactUs> allUserRequests, AdminUserRequestsCountDto saveCountDto){

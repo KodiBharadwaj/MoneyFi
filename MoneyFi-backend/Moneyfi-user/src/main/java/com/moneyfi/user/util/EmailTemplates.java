@@ -367,6 +367,23 @@ public class EmailTemplates {
         emailFilter.sendEmail(email, subject, body);
     }
 
+    public void sendUserGmailSyncCountIncreaseRequestRejection(String name, String email) {
+        String subject = "Gmail Sync Request Rejected - MoneyFi";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
+                + "<p style='font-size: 16px;'>Your Gmail Sync Count Increase Request has been rejected by Admin." + "</p>"
+                + "<p style='font-size: 16px;'>Please login to your account and find the remarks by Admin.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(email, subject, body);
+    }
+
     public void sendContactUsDetailsEmailToAdmin(String email, String phoneNumber, String name, String description) {
         String subject = "MoneyFi - Help center/Contact";
         String body = "<html>"
