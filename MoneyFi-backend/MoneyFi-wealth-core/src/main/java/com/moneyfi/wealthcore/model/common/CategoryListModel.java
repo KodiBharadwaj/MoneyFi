@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-import static com.moneyfi.wealthcore.utils.StringConstants.CURRENT_DATE_TIME;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,7 +24,7 @@ public class CategoryListModel {
 
     @PrePersist
     public void init() {
-        this.createdAt = CURRENT_DATE_TIME;
-        this.updatedAt = CURRENT_DATE_TIME;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }

@@ -11,8 +11,6 @@ import org.apache.commons.lang3.ObjectUtils;
 
 import java.time.LocalDateTime;
 
-import static com.moneyfi.user.util.constants.StringConstants.CURRENT_DATE_TIME;
-
 public class UserValidations {
 
     private UserValidations() {}
@@ -48,7 +46,7 @@ public class UserValidations {
         if (!response.getOtp().equals(request.getOtp())) {
             throw new ScenarioNotPossibleException(PLEASE_ENTER_CORRECT_OTP);
         }
-        if (response.getExpirationTime().isBefore(CURRENT_DATE_TIME)) {
+        if (response.getExpirationTime().isBefore(LocalDateTime.now())) {
             throw new ScenarioNotPossibleException(OTP_EXPIRED_MESSAGE);
         }
         if (request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.DELETE.name())) {

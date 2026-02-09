@@ -166,7 +166,13 @@ export class GmailSyncSummaryComponent implements OnInit {
         },
         error: (err) => {
           console.error('Failed to enable Gmail sync', err);
-          this.toastr.error('Failed to enable Gmail sync');
+          try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            this.toastr.error(errorObj.message);
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+            this.toastr.error('Failed to sync Gmail Transactions');
+          }
         }
       });
   }

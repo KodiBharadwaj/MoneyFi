@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-import static com.moneyfi.user.util.constants.StringConstants.CURRENT_DATE_TIME;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,7 +29,7 @@ public class ReasonDetails {
         if(this.isDeleted == null){
             isDeleted = false;
         }
-        this.createdTime = CURRENT_DATE_TIME;
-        this.updatedTime = CURRENT_DATE_TIME;
+        this.createdTime = LocalDateTime.now();
+        this.updatedTime = LocalDateTime.now();
     }
 }

@@ -39,6 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 import static com.moneyfi.user.util.constants.StringConstants.*;
@@ -132,7 +133,7 @@ public class ProfileServiceImpl implements ProfileService {
         userDefect.setEmail(userDefectRequestDto.getEmail());
         userDefect.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
         userDefect.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-        userDefect.setStartTime(CURRENT_DATE_TIME);
+        userDefect.setStartTime(LocalDateTime.now());
         userDefect.setRequestActive(true);
         userDefect.setVerified(false);
         userDefect.setReferenceNumber(referenceNumber);
@@ -173,7 +174,7 @@ public class ProfileServiceImpl implements ProfileService {
         userFeedback.setVerified(false);
         userFeedback.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
         userFeedback.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-        userFeedback.setStartTime(CURRENT_DATE_TIME);
+        userFeedback.setStartTime(LocalDateTime.now());
         ContactUs savedFeedback = contactUsRepository.save(userFeedback);
 
         ContactUsHist userFeedbackHist = new ContactUsHist();

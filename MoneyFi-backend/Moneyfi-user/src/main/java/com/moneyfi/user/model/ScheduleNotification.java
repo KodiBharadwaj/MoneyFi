@@ -1,14 +1,11 @@
 package com.moneyfi.user.model;
 
-import com.moneyfi.user.util.enums.UserRequestType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
-import static com.moneyfi.user.util.constants.StringConstants.CURRENT_DATE_TIME;
 
 @Data
 @NoArgsConstructor
@@ -35,8 +32,8 @@ public class ScheduleNotification {
 
     @PrePersist
     public void init() {
-        this.createdDate = CURRENT_DATE_TIME;
-        this.updatedAt = CURRENT_DATE_TIME;
+        this.createdDate = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
         this.setActive(true);
         this.setCancelled(false);
     }

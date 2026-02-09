@@ -40,6 +40,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -139,7 +140,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 saveRequest.setVerified(false);
                 saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
                 saveRequest.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-                saveRequest.setStartTime(CURRENT_DATE_TIME);
+                saveRequest.setStartTime(LocalDateTime.now());
                 savedRequest = contactUsRepository.save(saveRequest);
             }
             emailTemplates.sendReferenceNumberEmailToUser(userProfile.getName(), email, "account unblock", referenceNumber);
@@ -182,7 +183,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 saveRequest.setVerified(false);
                 saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
                 saveRequest.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
-                saveRequest.setStartTime(CURRENT_DATE_TIME);
+                saveRequest.setStartTime(LocalDateTime.now());
                 savedRequest = contactUsRepository.save(saveRequest);
             }
             emailTemplates.sendReferenceNumberEmailToUser(userProfile.getName(), email, "account retrieval", referenceNumber);
@@ -214,7 +215,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             saveRequest.setVerified(false);
             saveRequest.setRequestStatus(RaiseRequestStatus.INITIATED.name());
             saveRequest.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
-            saveRequest.setStartTime(CURRENT_DATE_TIME);
+            saveRequest.setStartTime(LocalDateTime.now());
             ContactUs savedRequest = contactUsRepository.save(saveRequest);
 
             ContactUsHist userRequestHist = new ContactUsHist();
@@ -262,7 +263,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             userRequestHist.setContactUsId(savedRequest.getId());
             userRequestHist.setName(requestDto.getName());
             userRequestHist.setMessage(requestDto.getDescription());
-            userRequestHist.setUpdatedTime(CURRENT_DATE_TIME);
+            userRequestHist.setUpdatedTime(LocalDateTime.now());
             userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
             userRequestHist.setUpdatedBy(userAuth.getId());
             contactUsHistRepository.save(userRequestHist);
@@ -294,7 +295,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         userRequestHist.setContactUsId(savedRequest.getId());
         userRequestHist.setName(requestDto.getNewName());
         userRequestHist.setMessage(requestDto.getOldName() + "," + requestDto.getDescription());
-        userRequestHist.setUpdatedTime(CURRENT_DATE_TIME);
+        userRequestHist.setUpdatedTime(LocalDateTime.now());
         userRequestHist.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
         userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
         userRequestHist.setUpdatedBy(userAuth.getId());
@@ -507,7 +508,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             throw new ScenarioNotPossibleException(INVALID_REQUEST_MESSAGE);
         }
 
-        Optional<OtpTempProjection> otpTempProjection = profileRepository.getOtpTempDetails(username, deactivationType, CURRENT_DATE_TIME);
+        Optional<OtpTempProjection> otpTempProjection = profileRepository.getOtpTempDetails(username, deactivationType, LocalDateTime.now());
         if(otpTempProjection.isPresent()){
             OtpTempModel response = StringConstants.convertOtpTempModelInterfaceToDto(otpTempProjection.get());
             UserValidations.otpCheckDuringAccountDeactivationValidations(request, response, user);
@@ -534,7 +535,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             accountDeactivationRequest.setRequestActive(true);
             accountDeactivationRequest.setVerified(false);
             accountDeactivationRequest.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-            accountDeactivationRequest.setStartTime(CURRENT_DATE_TIME);
+            accountDeactivationRequest.setStartTime(LocalDateTime.now());
             ContactUs savedRequest = contactUsRepository.save(accountDeactivationRequest);
 
             blockAccountOrDeleteRequestHistory.setName(userProfile.getName());
@@ -572,7 +573,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         log.info("Username fetched: {}", username);
         if(StringUtils.isNotBlank(username)) {
             UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
-            profileRepository.insertUserAuthHistory(user.getId(), CURRENT_DATE_TIME, reasonCodeIdAssociation.get(ReasonEnum.FORGOT_USERNAME), "Forgot my username, fetched with my known personal values", user.getId());
+            profileRepository.insertUserAuthHistory(user.getId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.FORGOT_USERNAME), "Forgot my username, fetched with my known personal values", user.getId());
         }
         emailTemplates.sendUserNameToUser(username);
         return true;
@@ -620,7 +621,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         contactUs.setRequestReason(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name());
         contactUs.setVerified(Boolean.FALSE);
         contactUs.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-        contactUs.setStartTime(CURRENT_DATE_TIME);
+        contactUs.setStartTime(LocalDateTime.now());
         ContactUs savedRequest = contactUsRepository.save(contactUs);
         contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), userProfile.getName(), request.getReason(), savedRequest.getStartTime(), savedRequest.getRequestReason(), savedRequest.getRequestStatus(), user.getId()));
 
@@ -630,7 +631,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         ScheduleNotification scheduleNotification = new ScheduleNotification();
         scheduleNotification.setSubject("Gmail Sync Request Count Increase");
         scheduleNotification.setDescription(jsonString);
-        scheduleNotification.setScheduleFrom(CURRENT_DATE_TIME);
+        scheduleNotification.setScheduleFrom(LocalDateTime.now());
         scheduleNotification.setScheduleTo(LocalDate.now().atTime(LocalTime.MAX));
         scheduleNotification.setRecipients(username);
         scheduleNotification.setScheduleBy(user.getId());

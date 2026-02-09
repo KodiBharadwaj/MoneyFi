@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import static com.moneyfi.wealthcore.utils.StringConstants.CURRENT_DATE_TIME;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,7 +29,7 @@ public class BudgetModel {
 
     @PrePersist
     public void function() {
-        createdAt = CURRENT_DATE_TIME;
-        updatedAt = CURRENT_DATE_TIME;
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 }

@@ -52,7 +52,6 @@ public class StringConstants {
     public static final String INVALID_CREDENTIALS = "Invalid Credentials Entered";
     public static final String LOGIN_ERROR = "An error occurred during login";
 
-    public static final LocalDateTime CURRENT_DATE_TIME = LocalDateTime.now();
     public static final long SESSION_LOGIN_MINUTES = 60L;
 
     public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name(), 3, UserRoles.DEVELOPER.name());

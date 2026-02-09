@@ -29,8 +29,6 @@ public class StringConstants {
     public static final String YES = "Yes";
     public static final String NO = "No";
 
-    public static final LocalDateTime CURRENT_DATE_TIME = LocalDateTime.now();
-
     public static final String ACCOUNT_STATEMENT_USER_SERVICE_URL = "http://MONEYFI-USER/api/v1/user-service/user/account-statement/email";
 
     public static String changeTransactionTimeToTwelveHourFormat(String transactionTime) {
