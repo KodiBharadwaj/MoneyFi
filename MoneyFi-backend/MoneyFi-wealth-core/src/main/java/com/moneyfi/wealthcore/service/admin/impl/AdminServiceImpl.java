@@ -12,9 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
-
-import static com.moneyfi.wealthcore.utils.StringConstants.CURRENT_DATE_TIME;
 
 @Service
 @Slf4j
@@ -47,7 +46,7 @@ public class AdminServiceImpl implements AdminService {
         CategoryListModel categoryModel = categoryListRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
         AdminValidations.validateInputCategoryList(adminUserId, requestDto);
         categoryModel.setUpdatedBy(adminUserId);
-        categoryModel.setUpdatedAt(CURRENT_DATE_TIME);
+        categoryModel.setUpdatedAt(LocalDateTime.now());
         categoryModel.setCategory(requestDto.getCategory());
         categoryListRepository.save(categoryModel);
     }

@@ -51,8 +51,6 @@ public class StringConstants {
     public static final String BLOCKED_BY_ADMIN = "Blocked by Admin";
     public static final String BLOCKED_BY_USER = "Blocked by User";
 
-    public static final LocalDateTime CURRENT_DATE_TIME = LocalDateTime.now();
-
     public static final Map<String, Integer> templateIdAssociation = Map.of("profile-template", 1);
     public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation = Map.of(BLOCK_ACCOUNT, 1, PASSWORD_CHANGE, 2, NAME_CHANGE, 3,
             UNBLOCK_ACCOUNT, 4, DELETE_ACCOUNT, 5, ACCOUNT_RETRIEVAL, 6, PHONE_NUMBER_CHANGE, 7, FORGOT_PASSWORD, 8, USER_RAISED_REQUEST_IGNORED, 9);

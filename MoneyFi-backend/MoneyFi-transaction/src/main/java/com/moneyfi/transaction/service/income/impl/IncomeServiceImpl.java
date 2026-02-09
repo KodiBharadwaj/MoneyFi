@@ -265,7 +265,7 @@ public class IncomeServiceImpl implements IncomeService {
     public boolean incomeRevertFunction(Long incomeId, Long userId) {
         IncomeDeleted incomeDeleted = incomeDeletedRepository.findByIncomeId(incomeId);
         LocalDateTime expiryTime = incomeDeleted.getExpiryDateTime();
-        LocalDateTime currentTime = CURRENT_DATE_TIME;
+        LocalDateTime currentTime = LocalDateTime.now();;
         Integer numberOfDays = (int) ChronoUnit.DAYS.between(currentTime.toLocalDate(), expiryTime.toLocalDate());
         if(numberOfDays > 0){
             IncomeModel income = incomeRepository.findById(incomeId).orElse(null);
@@ -306,7 +306,7 @@ public class IncomeServiceImpl implements IncomeService {
         if (!incomeModel.getDate().toLocalDate().equals(LocalDate.parse(incomeUpdateRequest.getDate())))
             incomeModel.setDate(LocalDateTime.parse(incomeUpdateRequest.getDate()));
         incomeModel.setRecurring(incomeUpdateRequest.getRecurring());
-        incomeModel.setUpdatedAt(CURRENT_DATE_TIME);
+        incomeModel.setUpdatedAt(LocalDateTime.now());
         incomeModel.setDescription(incomeUpdateRequest.getDescription());
         incomeRepository.save(incomeModel);
     }
@@ -316,7 +316,7 @@ public class IncomeServiceImpl implements IncomeService {
     public boolean deleteIncomeById(Long id, Long userId) {
         try {
             IncomeModel income = incomeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(INCOME_NOT_FOUND));
-            LocalDateTime currentTime = CURRENT_DATE_TIME;
+            LocalDateTime currentTime = LocalDateTime.now();;
             income.setUpdatedAt(currentTime);
             income.setDeleted(true);
             saveIncomeDeletedDetails(id, currentTime);
@@ -330,9 +330,9 @@ public class IncomeServiceImpl implements IncomeService {
 
     private void saveIncomeDeletedDetails(Long id, LocalDateTime currentTime){
         IncomeDeleted incomeDeleted = new IncomeDeleted();
-        LocalDateTime expiryTime = CURRENT_DATE_TIME.plusDays(30);
+        LocalDateTime expiryTime = LocalDateTime.now().plusDays(30);
         incomeDeleted.setIncomeId(id);
-        incomeDeleted.setStartDateTime(CURRENT_DATE_TIME);
+        incomeDeleted.setStartDateTime(LocalDateTime.now());
         incomeDeleted.setExpiryDateTime(expiryTime);
         incomeDeleted.setDeletedAt(currentTime);
         incomeDeletedRepository.save(incomeDeleted);

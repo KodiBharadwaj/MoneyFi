@@ -21,11 +21,15 @@ public class ReasonDetails {
     private LocalDateTime createdTime;
     private LocalDateTime updatedTime;
     private Boolean isDeleted;
+    private Long createdBy;
+    private Long updatedBy;
 
     @PrePersist
     public void prePersist(){
         if(this.isDeleted == null){
             isDeleted = false;
         }
+        this.createdTime = LocalDateTime.now();
+        this.updatedTime = LocalDateTime.now();
     }
 }
