@@ -147,6 +147,9 @@ public class GmailSyncService {
     }
 
     public Map<Integer, List<ParsedTransaction>> startGmailSync(Long userId, LocalDate date) throws IOException, URISyntaxException {
+        if (date.isAfter(LocalDate.now())) {
+            throw new ScenarioNotPossibleException("Future date sync is not allowed");
+        }
         GmailAuth gmailAuth = gmailSyncRepository.findByUserId(userId).filter(GmailAuth::getIsActive).orElseThrow(() -> new ResourceNotFoundException("User consent not found"));
         if(gmailAuth != null && gmailAuth.getCount() >= 3) throw new ScenarioNotPossibleException("Sync limit crossed for today. Please try tomorrow");
         else if(gmailAuth == null) throw new ScenarioNotPossibleException("User not allowed to sync");
