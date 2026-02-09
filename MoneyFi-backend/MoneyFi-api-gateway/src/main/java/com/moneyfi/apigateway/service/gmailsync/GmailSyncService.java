@@ -43,8 +43,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.moneyfi.apigateway.util.constants.StringConstants.CURRENT_DATE_TIME;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -156,7 +154,7 @@ public class GmailSyncService {
 
         gmailAuth.setCount((gmailAuth.getCount() != null ? gmailAuth.getCount() : 0) + 1);
         gmailSyncRepository.save(gmailAuth);
-        /** return new HashMap<>(Map.of(2, List.of(new ParsedTransaction(1, "Upi", new BigDecimal("123"), "CREDIT OR DEBIT", CURRENT_DATE_TIME)))); **/
+        /** return new HashMap<>(Map.of(2, List.of(new ParsedTransaction(1, "Upi", new BigDecimal("123"), "CREDIT OR DEBIT", LocalDateTime.now())))); **/
         return Map.of(3 - gmailAuth.getCount(), syncEmails(userId, date).stream().filter(Objects::nonNull).toList());
     }
 
@@ -242,7 +240,7 @@ public class GmailSyncService {
     private Long markProcessed(String messageId, Long userId) {
         Optional<GmailProcessedMessageEntity> entity = processedRepository.findByMessageId(messageId);
         if(entity.isPresent()) {
-            entity.get().setUpdatedAt(CURRENT_DATE_TIME);
+            entity.get().setUpdatedAt(LocalDateTime.now());
             return processedRepository.save(entity.get()).getId();
         }
         GmailProcessedMessageEntity newEntity = new GmailProcessedMessageEntity();
@@ -291,18 +289,17 @@ public class GmailSyncService {
     }
 
     private String detectTransactionType(String body) {
-        boolean credit =
-                body.contains("credited") || body.contains("credit") ||
-                body.contains("received") || body.contains("settlement") ||
-                body.contains("refund");
-
         boolean debit =
                 body.contains("debited") || body.contains("debit") ||
                 body.contains("spent") || body.contains("settlement") ||
-                body.contains("withdrawn") ||
+                body.contains("withdrawn") || body.contains("transaction") ||
                 body.contains("purchase") || body.contains("purchased") ||
                 body.contains("transferred") || body.contains("transfer") ||
-                body.contains("paid");
+                body.contains("paid") || body.contains("used") || body.contains("has been used");
+
+        boolean credit =
+                body.contains("credited") || body.contains("credit") ||
+                        body.contains("received") || body.contains("settlement") || body.contains("refund");
         boolean creditOrDebit =
                 body.contains("transaction") || body.contains("payment");
 
@@ -331,7 +328,7 @@ public class GmailSyncService {
                     .atZone(ZoneId.systemDefault())
                     .toLocalDateTime();
         }
-        return CURRENT_DATE_TIME;
+        return LocalDateTime.now();
     }
 
     private String detectTransactionDescription(String body) {

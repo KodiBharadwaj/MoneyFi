@@ -172,7 +172,7 @@ public class AdminServiceImpl implements AdminService {
             userDefect.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
             userDefect.setRequestActive(false);
             userDefect.setReferenceNumber("COM_" + userDefect.getReferenceNumber());
-            userDefect.setCompletedTime(CURRENT_DATE_TIME);
+            userDefect.setCompletedTime(LocalDateTime.now());
             userDefect.setVerified(true);
 
             userDefectHist.setMessage("Development team completed, Admin has been approved");
@@ -188,12 +188,12 @@ public class AdminServiceImpl implements AdminService {
             userDefectHist.setContactUsId(userDefect.getId());
             userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
             userDefectHist.setRequestStatus(RaiseRequestStatus.PENDED.name());
-            userDefectHist.setUpdatedTime(CURRENT_DATE_TIME);
+            userDefectHist.setUpdatedTime(LocalDateTime.now());
         } else if (status.equalsIgnoreCase("Ignore")){
             userDefect.setRequestStatus(RaiseRequestStatus.IGNORED.name());
             userDefect.setRequestActive(false);
             userDefect.setReferenceNumber("COM_" + userDefect.getReferenceNumber());
-            userDefect.setCompletedTime(CURRENT_DATE_TIME);
+            userDefect.setCompletedTime(LocalDateTime.now());
             userDefect.setVerified(true);
 
             userDefectHist.setMessage("Admin ignored. Reason: " + reason);
@@ -278,7 +278,7 @@ public class AdminServiceImpl implements AdminService {
             throw new ResourceNotFoundException("Feedback with id " + feedbackId + " is not found");
         }
         userFeedback.get().setRequestStatus(RaiseRequestStatus.COMPLETED.name());
-        userFeedback.get().setCompletedTime(CURRENT_DATE_TIME);
+        userFeedback.get().setCompletedTime(LocalDateTime.now());
         userFeedback.get().setVerified(true);
         userFeedback.get().setRequestActive(false);
         ContactUs savedUserFeedback = contactUsRepository.save(userFeedback.get());
@@ -306,7 +306,6 @@ public class AdminServiceImpl implements AdminService {
         ReasonDetails reasonDetails = new ReasonDetails();
         reasonDetails.setReason(requestDto.getReason().trim());
         reasonDetails.setReasonCode(requestDto.getReasonCode());
-        reasonDetails.setCreatedTime(CURRENT_DATE_TIME);
         reasonDetailsRepository.save(reasonDetails);
     }
 
@@ -335,7 +334,7 @@ public class AdminServiceImpl implements AdminService {
         ReasonDetails reasonDetails = reasonDetailsRepository.findById(requestDto.getReasonId())
                 .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + requestDto.getReasonId() + " is not found"));
         reasonDetails.setReason(requestDto.getReason());
-        reasonDetails.setUpdatedTime(CURRENT_DATE_TIME);
+        reasonDetails.setUpdatedTime(LocalDateTime.now());
         reasonDetailsRepository.save(reasonDetails);
     }
 
@@ -345,6 +344,7 @@ public class AdminServiceImpl implements AdminService {
         ReasonDetails reasonDetails = reasonDetailsRepository.findById(reasonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + reasonId + " is not found"));
         reasonDetails.setIsDeleted(true);
+        reasonDetails.setUpdatedTime(LocalDateTime.now());
         reasonDetailsRepository.save(reasonDetails);
     }
 
@@ -370,7 +370,7 @@ public class AdminServiceImpl implements AdminService {
         contactUs.setRequestActive(true);
         contactUs.setVerified(false);
         contactUs.setRequestStatus(RaiseRequestStatus.INITIATED.name());
-        contactUs.setStartTime(CURRENT_DATE_TIME);
+        contactUs.setStartTime(LocalDateTime.now());
         String referenceNumber = "BL" + userProfile.getName().substring(0,2) + email.substring(0,2)
                 + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
         contactUs.setReferenceNumber(referenceNumber);
@@ -384,7 +384,7 @@ public class AdminServiceImpl implements AdminService {
         contactUsHist.setRequestStatus(RaiseRequestStatus.INITIATED.name());
         contactUsHist.setUpdatedTime(savedContactUs.getStartTime());
         contactUsHistRepository.save(contactUsHist);
-        methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT), reason, adminUserId, CURRENT_DATE_TIME);
+        methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT), reason, adminUserId, LocalDateTime.now());
         new Thread(
                 () -> emailTemplates.sendBlockAlertMailToUser(email, reason, profileRepository.findByUserId(user.getId()).get().getName(), convertMultipartFileToPdfBytes(file))
         ).start();
@@ -451,7 +451,7 @@ public class AdminServiceImpl implements AdminService {
             throw new IllegalStateException("Schedule with id " + scheduleId + " is already cancelled.");
         }
         notification.setCancelled(true);
-        notification.setUpdatedAt(CURRENT_DATE_TIME);
+        notification.setUpdatedAt(LocalDateTime.now());
         scheduleNotificationRepository.save(notification);
     }
 
@@ -468,12 +468,12 @@ public class AdminServiceImpl implements AdminService {
         notification.setScheduleTo(requestDto.getScheduleTo());
         notification.setRecipients(requestDto.getRecipients());
         notification.setDescription(notification.getDescription());
-        notification.setUpdatedAt(CURRENT_DATE_TIME);
+        notification.setUpdatedAt(LocalDateTime.now());
         notification.setCancelled(false);
         notification.setActive(true);
         scheduleNotificationRepository.save(notification);
-        new Thread(() -> userNotificationRepository.deleteAllByScheduleId(requestDto.getScheduleId())).start();
         functionToSaveNotificationToUsers(requestDto.getRecipients(), requestDto.getScheduleId());
+        new Thread(() -> userNotificationRepository.deleteAllByScheduleId(requestDto.getScheduleId())).start();
     }
 
     @Override
@@ -482,9 +482,9 @@ public class AdminServiceImpl implements AdminService {
         ScheduleNotification notification = scheduleNotificationRepository.findById(scheduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + scheduleId));
         notification.setActive(false);
-        notification.setUpdatedAt(CURRENT_DATE_TIME);
-        new Thread(() -> userNotificationRepository.deleteAllByScheduleId(scheduleId)).start();
+        notification.setUpdatedAt(LocalDateTime.now());
         scheduleNotificationRepository.save(notification);
+        new Thread(() -> userNotificationRepository.deleteAllByScheduleId(scheduleId)).start();
     }
 
     private void functionToSaveNotificationToUsers(String recipients, Long scheduleId) {
@@ -577,7 +577,7 @@ public class AdminServiceImpl implements AdminService {
                     .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
                     .findFirst()
                     .get();
-            LocalDateTime completedTime = CURRENT_DATE_TIME;
+            LocalDateTime completedTime = LocalDateTime.now();
             methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.UNBLOCK_ACCOUNT), requestDetailsHist.getMessage(), adminUserId, completedTime);
             requestUserHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
             methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
@@ -588,7 +588,7 @@ public class AdminServiceImpl implements AdminService {
                     .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
                     .findFirst()
                     .get();
-            LocalDateTime completedTime = CURRENT_DATE_TIME;
+            LocalDateTime completedTime = LocalDateTime.now();
             methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.ACCOUNT_RETRIEVAL), requestDetailsHist.getMessage(), adminUserId, completedTime);
             requestUserHist.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
             methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
@@ -601,7 +601,7 @@ public class AdminServiceImpl implements AdminService {
             if(!userProfile.getName().toLowerCase().contains(requestDetailsHist.getMessage().toLowerCase().split(",")[0])){
                 throw new ScenarioNotPossibleException("Old name didn't match");
             }
-            LocalDateTime completedTime = CURRENT_DATE_TIME;
+            LocalDateTime completedTime = LocalDateTime.now();
             userProfile.setName(requestDetailsHist.getName());
             profileRepository.save(userProfile);
             methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.NAME_CHANGE), requestDetailsHist.getMessage().split(",")[1], adminUserId, completedTime);
@@ -619,7 +619,6 @@ public class AdminServiceImpl implements AdminService {
         ContactUs savedRequest = contactUsRepository.save(contactUs);
 
         requestUserHist.setContactUsId(savedRequest.getId());
-        requestUserHist.setMessage("Admin has been approved");
         requestUserHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
         requestUserHist.setUpdatedTime(completedTime);
         contactUsHistRepository.save(requestUserHist);
@@ -633,7 +632,7 @@ public class AdminServiceImpl implements AdminService {
         if(declineReason == null || declineReason.trim().isEmpty()){
             throw new ScenarioNotPossibleException("Decline reason should not be empty");
         }
-        contactUs.setCompletedTime(CURRENT_DATE_TIME);
+        contactUs.setCompletedTime(LocalDateTime.now());
         contactUs.setRequestActive(false);
         contactUs.setVerified(true);
         contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());

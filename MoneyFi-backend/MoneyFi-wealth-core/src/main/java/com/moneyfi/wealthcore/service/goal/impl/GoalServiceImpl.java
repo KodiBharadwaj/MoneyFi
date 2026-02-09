@@ -76,7 +76,7 @@ public class GoalServiceImpl implements GoalService {
             throw new NullPointerException();
         }
         goalModel.setCurrentAmount(goalModel.getCurrentAmount().add(amount));
-        goalModel.setUpdatedAt(CURRENT_DATE_TIME);
+        goalModel.setUpdatedAt(LocalDateTime.now());
         return save(goalModel, amount, authHeader);
     }
 
@@ -129,7 +129,7 @@ public class GoalServiceImpl implements GoalService {
         if(goal.getDescription() != null){
             goalModel.setDescription(goal.getDescription());
         }
-        goalModel.setUpdatedAt(CURRENT_DATE_TIME);
+        goalModel.setUpdatedAt(LocalDateTime.now());
         /**
          * IMPORTANT:
          * Meanwhile, the ssms trigger activates here to update expense row with respective goal data.
@@ -144,7 +144,7 @@ public class GoalServiceImpl implements GoalService {
             GoalModel goalModel = goalRepository.findById(id).orElse(null);
             if (goalModel != null) {
                 goalModel.setDeleted(true);
-                goalModel.setUpdatedAt(CURRENT_DATE_TIME);
+                goalModel.setUpdatedAt(LocalDateTime.now());
                 goalRepository.save(goalModel);
                 return functionCallToExpenseServiceToDeleteExpense(goalModel.getExpenseIds(), authHeader);
             }
@@ -164,7 +164,7 @@ public class GoalServiceImpl implements GoalService {
         } else {
             expenseModelDto.setAmount(amountToBeAdded);
         }
-        expenseModelDto.setDate(CURRENT_DATE_TIME);
+        expenseModelDto.setDate(LocalDateTime.now());
         expenseModelDto.setRecurring(true);
 
         HttpHeaders headers = new HttpHeaders();

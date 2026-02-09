@@ -51,12 +51,12 @@ public class UserCommonServiceImpl implements UserCommonService {
         UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         UserValidations.userAlreadyDeactivatedCheckValidation(user);
         String verificationCode = null;
-        if (user.getVerificationCode() != null && CURRENT_DATE_TIME.isBefore(user.getVerificationCodeExpiration())) {
+        if (user.getVerificationCode() != null && LocalDateTime.now().isBefore(user.getVerificationCodeExpiration())) {
             verificationCode = user.getVerificationCode();
         } else {
             verificationCode = generateVerificationCode();
             user.setVerificationCode(verificationCode);
-            user.setVerificationCodeExpiration(CURRENT_DATE_TIME.plusMinutes(5));
+            user.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(5));
             user.setOtpCount(user.getOtpCount() + 1);
             userRepository.save(user);
         }
@@ -67,7 +67,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Override
     public String verifyCode(String email, String code) {
         UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
-        boolean response = user.getVerificationCode().equals(code) && CURRENT_DATE_TIME.isBefore(user.getVerificationCodeExpiration());
+        boolean response = user.getVerificationCode().equals(code) && LocalDateTime.now().isBefore(user.getVerificationCodeExpiration());
         if (response) return VERIFICATION_SUCCESSFUL_MESSAGE;
         else throw new ScenarioNotPossibleException(VERIFICATION_FAILURE_MESSAGE);
     }
@@ -83,7 +83,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         user.setVerificationCode(null);
         user.setVerificationCodeExpiration(null);
         userRepository.save(user);
-        userAuthHistRepository.save(new UserAuthHist(user.getId(), CURRENT_DATE_TIME, reasonCodeIdAssociation.get(ReasonEnum.FORGOT_PASSWORD), PASSWORD_UPDATED_MODE_USING_FORGOT, user.getId()));
+        userAuthHistRepository.save(new UserAuthHist(user.getId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.FORGOT_PASSWORD), PASSWORD_UPDATED_MODE_USING_FORGOT, user.getId()));
         return PASSWORD_UPDATED_SUCCESSFULLY;
     }
 

@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.moneyfi.transaction.utils.StringConstants.CATEGORY_ID_INVALID;
-import static com.moneyfi.transaction.utils.StringConstants.CURRENT_DATE_TIME;
 
 @Service
 public class ExpenseServiceImpl implements ExpenseService {
@@ -309,7 +308,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         if(expense.isRecurring()){
             expenseModel.setRecurring(expense.isRecurring());
         }
-        expenseModel.setUpdatedAt(CURRENT_DATE_TIME);
+        expenseModel.setUpdatedAt(LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.CREATED).body(updateExpenseDtoConversion(expenseRepository.save(expenseModel)));
     }
 
@@ -323,7 +322,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Override
     @Transactional(rollbackOn = Exception.class)
     public boolean deleteExpenseById(List<Long> ids) {
-        LocalDateTime currentTime = CURRENT_DATE_TIME;
+        LocalDateTime currentTime = LocalDateTime.now();
         try {
             for(Long it : ids){
                 ExpenseModel expense = expenseRepository.findById(it).orElse(null);

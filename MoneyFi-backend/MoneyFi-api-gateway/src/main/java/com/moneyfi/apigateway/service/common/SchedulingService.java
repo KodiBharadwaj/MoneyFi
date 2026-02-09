@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.moneyfi.apigateway.util.constants.StringConstants.CURRENT_DATE_TIME;
 import static com.moneyfi.apigateway.util.constants.StringConstants.userRoleAssociation;
 
 @Service
@@ -75,7 +74,7 @@ public class SchedulingService {
     @Transactional
     public void removeExpiredTokens() {
         /** Scheduling algorithm to delete the expired tokens in the table **/
-        tokenBlacklistRepository.deleteByExpiryBefore(CURRENT_DATE_TIME);
+        tokenBlacklistRepository.deleteByExpiryBefore(LocalDateTime.now());
     }
 
     @Scheduled(cron = "0 0 0 * * *") // Runs at every 12 am of the day (starting of the day)
