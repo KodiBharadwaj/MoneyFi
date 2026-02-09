@@ -81,8 +81,10 @@ public class UserController {
 
     @Operation(summary = "Api to save the user feedback details")
     @PostMapping("/submit-feedback")
-    public void saveUserFeedback(@RequestBody @Valid UserFeedbackRequestDto feedback){
-        profileService.saveFeedback(feedback);
+    public void saveUserFeedback(@RequestHeader("Authorization") String authHeader,
+                                 @RequestBody @Valid UserFeedbackRequestDto feedback){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        profileService.saveFeedback(feedback, userId);
     }
 
     @Operation(summary = "Api to send user's account statement as email")

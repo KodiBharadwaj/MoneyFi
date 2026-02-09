@@ -28,6 +28,7 @@ import com.moneyfi.user.validator.UserValidations;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -143,7 +144,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             }
             emailTemplates.sendReferenceNumberEmailToUser(userProfile.getName(), email, "account unblock", referenceNumber);
             contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), null, "Reference number requested to unblock the account", savedRequest.getStartTime(),
-                    RequestReason.ACCOUNT_UNBLOCK_REQUEST.name(), RaiseRequestStatus.INITIATED.name()));
+                    RequestReason.ACCOUNT_UNBLOCK_REQUEST.name(), RaiseRequestStatus.INITIATED.name(), user.getId()));
             response.put(true, REFERENCE_NUMBER_SENT_MESSAGE);
             return response;
         } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())) {
@@ -186,7 +187,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             }
             emailTemplates.sendReferenceNumberEmailToUser(userProfile.getName(), email, "account retrieval", referenceNumber);
             contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), null, "Reference number requested to retrieve the account", savedRequest.getStartTime(),
-                    RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name(), RaiseRequestStatus.INITIATED.name()));
+                    RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name(), RaiseRequestStatus.INITIATED.name(), user.getId()));
             response.put(true, REFERENCE_NUMBER_SENT_MESSAGE);
             return response;
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())) {
@@ -222,6 +223,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             userRequestHist.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
             userRequestHist.setMessage("Request Reference to change the name");
             userRequestHist.setUpdatedTime(savedRequest.getStartTime());
+            userRequestHist.setUpdatedBy(user.getId());
             contactUsHistRepository.save(userRequestHist);
             response.put(true, REFERENCE_NUMBER_SENT_MESSAGE);
             return response;
@@ -250,6 +252,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 .filter(i -> i.getRequestReason().equalsIgnoreCase(requestReason))
                 .findFirst();
         ContactUs user = report.orElseThrow(() -> new ResourceNotFoundException("User request not found"));
+        UserAuthModel userAuth = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(requestDto.getUsername().trim()).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
         if (user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())) {
             if (!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
                 throw new ScenarioNotPossibleException(INCORRECT_REFERENCE_NUMBER);
@@ -261,6 +264,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             userRequestHist.setMessage(requestDto.getDescription());
             userRequestHist.setUpdatedTime(CURRENT_DATE_TIME);
             userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+            userRequestHist.setUpdatedBy(userAuth.getId());
             contactUsHistRepository.save(userRequestHist);
         } else if (user.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name())) {
             throw new ScenarioNotPossibleException("Request already raised");
@@ -280,6 +284,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name()))
                 .findFirst();
         ContactUs user = report.orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
+        UserAuthModel userAuth = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(requestDto.getEmail().trim()).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
         if (!user.getReferenceNumber().equals(requestDto.getReferenceNumber()))
             throw new ScenarioNotPossibleException(INCORRECT_REFERENCE_NUMBER);
         user.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
@@ -292,6 +297,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         userRequestHist.setUpdatedTime(CURRENT_DATE_TIME);
         userRequestHist.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
         userRequestHist.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
+        userRequestHist.setUpdatedBy(userAuth.getId());
         contactUsHistRepository.save(userRequestHist);
     }
 
@@ -536,6 +542,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             blockAccountOrDeleteRequestHistory.setUpdatedTime(savedRequest.getStartTime());
             blockAccountOrDeleteRequestHistory.setRequestReason(savedRequest.getRequestReason());
             blockAccountOrDeleteRequestHistory.setRequestStatus(savedRequest.getRequestStatus());
+            blockAccountOrDeleteRequestHistory.setUpdatedBy(user.getId());
             contactUsHistRepository.save(blockAccountOrDeleteRequestHistory);
 
             userAuthHist.setUserId(user.getId());
@@ -563,6 +570,10 @@ public class UserCommonServiceImpl implements UserCommonService {
             return false;
         }
         log.info("Username fetched: {}", username);
+        if(StringUtils.isNotBlank(username)) {
+            UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
+            profileRepository.insertUserAuthHistory(user.getId(), CURRENT_DATE_TIME, reasonCodeIdAssociation.get(ReasonEnum.FORGOT_USERNAME), "Forgot my username, fetched with my known personal values", user.getId());
+        }
         emailTemplates.sendUserNameToUser(username);
         return true;
     }
@@ -611,7 +622,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         contactUs.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
         contactUs.setStartTime(CURRENT_DATE_TIME);
         ContactUs savedRequest = contactUsRepository.save(contactUs);
-        contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), userProfile.getName(), request.getReason(), savedRequest.getStartTime(), savedRequest.getRequestReason(), savedRequest.getRequestStatus()));
+        contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), userProfile.getName(), request.getReason(), savedRequest.getStartTime(), savedRequest.getRequestReason(), savedRequest.getRequestStatus(), user.getId()));
 
         GmailSyncCountJsonDto gmailSyncCountJsonDto = new GmailSyncCountJsonDto(request.getCount(), request.getReason(), savedRequest.getId());
         String jsonString = StringConstants.objectMapper.writeValueAsString(gmailSyncCountJsonDto);

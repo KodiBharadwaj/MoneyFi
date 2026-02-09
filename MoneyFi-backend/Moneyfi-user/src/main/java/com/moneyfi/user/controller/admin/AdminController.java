@@ -62,10 +62,12 @@ public class AdminController {
 
     @Operation(summary = "Api to change the user defect status in contact us table")
     @PutMapping("/{defectId}/update-defect-status")
-    public void updateDefectStatus(@PathVariable("defectId") Long defectId,
+    public void updateDefectStatus(@RequestHeader("Authorization") String authHeader,
+                                   @PathVariable("defectId") Long defectId,
                                    @RequestBody Map<String, String> body,
                                    @RequestParam String reason) {
-        adminService.updateDefectStatus(defectId, body.get("status"), reason);
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.updateDefectStatus(defectId, body.get("status"), reason, adminUserId);
     }
 
     @Operation(summary = "Api to unblock/retrieve/name change of the user account with respective details")
@@ -110,8 +112,10 @@ public class AdminController {
 
     @Operation(summary = "Api to update the user feedback by admin")
     @PutMapping("/user-feedback/update")
-    public void updateUserFeedback(@RequestParam("id") Long feedbackId){
-        adminService.updateUserFeedback(feedbackId);
+    public void updateUserFeedback(@RequestHeader("Authorization") String authHeader,
+                                   @RequestParam("id") Long feedbackId){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.updateUserFeedback(feedbackId, adminUserId);
     }
 
     @Operation(summary = "Api to the user count in every month for chart")
@@ -164,14 +168,18 @@ public class AdminController {
 
     @Operation(summary = "Api to update the reason string")
     @PutMapping("/reasons/update")
-    public void updateReasonsForUserReasonDialogByReasonCode(@RequestBody ReasonUpdateRequestDto requestDto){
-        adminService.updateReasonsForUserReasonDialogByReasonCode(requestDto);
+    public void updateReasonsForUserReasonDialogByReasonCode(@RequestHeader("Authorization") String authHeader,
+                                                             @RequestBody ReasonUpdateRequestDto requestDto){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.updateReasonsForUserReasonDialogByReasonCode(requestDto, adminUserId);
     }
 
     @Operation(summary = "Api to delete the reason names by admin - soft delete")
     @DeleteMapping("/reasons/delete")
-    public void deleteReasonByReasonIdByAdmin(@RequestParam("id") int reasonId){
-        adminService.deleteReasonByReasonId(reasonId);
+    public void deleteReasonByReasonIdByAdmin(@RequestHeader("Authorization") String authHeader,
+                                              @RequestParam("id") int reasonId){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.deleteReasonByReasonId(reasonId, adminUserId);
     }
 
     @Operation(summary = "Api to get all the usernames of all the users for the admin")

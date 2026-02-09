@@ -20,7 +20,7 @@ public interface AdminService {
 
     List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status);
 
-    void updateDefectStatus(Long defectId, String status, String reason);
+    void updateDefectStatus(Long defectId, String status, String reason, Long adminUserId);
 
     boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId, String approveStatus, String declineReason, int gmailSyncRequestCount);
 
@@ -36,15 +36,15 @@ public interface AdminService {
 
     List<UserFeedbackResponseDto> getUserFeedbackListForAdmin();
 
-    void updateUserFeedback(Long feedbackId);
+    void updateUserFeedback(Long feedbackId, Long adminUserId);
 
     void addReasonsForUserReasonDialog(ReasonDetailsRequestDto reason, Long adminUserId);
 
     List<ReasonListResponseDto> getAllReasonsBasedOnReasonCode(int reasonCode);
 
-    void updateReasonsForUserReasonDialogByReasonCode(ReasonUpdateRequestDto requestDto);
+    void updateReasonsForUserReasonDialogByReasonCode(ReasonUpdateRequestDto requestDto, Long adminUserId);
 
-    void deleteReasonByReasonId(int reasonId);
+    void deleteReasonByReasonId(int reasonId, Long adminUserId);
 
     Map<String, List<UserDefectHistDetailsResponseDto>> getUserDefectHistDetails(List<Long> defectIds);
 

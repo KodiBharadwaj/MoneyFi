@@ -57,7 +57,7 @@ public class StringConstants {
 
     public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name(), 3, UserRoles.DEVELOPER.name());
     public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation = Map.of(BLOCK_ACCOUNT, 1, PASSWORD_CHANGE, 2, NAME_CHANGE, 3,
-            UNBLOCK_ACCOUNT, 4, DELETE_ACCOUNT, 5, ACCOUNT_RETRIEVAL, 6, PHONE_NUMBER_CHANGE, 7, FORGOT_PASSWORD, 8, USER_RAISED_REQUEST_IGNORED, 9);
+            UNBLOCK_ACCOUNT, 4, DELETE_ACCOUNT, 5, ACCOUNT_RETRIEVAL, 6, PHONE_NUMBER_CHANGE, 7, FORGOT_PASSWORD, 8, USER_RAISED_REQUEST_IGNORED, 9, FORGOT_USERNAME, 10);
 
     public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
     public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

@@ -180,7 +180,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void updateDefectStatus(Long defectId, String status, String reason) {
+    public void updateDefectStatus(Long defectId, String status, String reason, Long adminUserId) {
         ContactUs userDefect = contactUsRepository.findById(defectId).orElseThrow(() -> new ResourceNotFoundException("User defect details not found"));
         Optional<ProfileModel> userProfile = profileRepository.findByUserEmail(userDefect.getEmail());
         if(userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) ||
@@ -201,6 +201,7 @@ public class AdminServiceImpl implements AdminService {
             userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
             userDefectHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
             userDefectHist.setUpdatedTime(userDefect.getCompletedTime());
+            userDefectHist.setUpdatedBy(adminUserId);
             new Thread(() -> emailTemplates.sendUserReportStatusMailToUser(userProfile.get().getName(), userDefect.getReferenceNumber().substring(4), userDefectHist.getMessage(), userDefect.getEmail().trim())).start();
         } else if(status.equalsIgnoreCase("Pend")){
             userDefect.setRequestStatus(RaiseRequestStatus.PENDED.name());
@@ -210,6 +211,7 @@ public class AdminServiceImpl implements AdminService {
             userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
             userDefectHist.setRequestStatus(RaiseRequestStatus.PENDED.name());
             userDefectHist.setUpdatedTime(CURRENT_DATE_TIME);
+            userDefectHist.setUpdatedBy(adminUserId);
         } else if (status.equalsIgnoreCase("Ignore")){
             userDefect.setRequestStatus(RaiseRequestStatus.IGNORED.name());
             userDefect.setRequestActive(false);
@@ -222,6 +224,7 @@ public class AdminServiceImpl implements AdminService {
             userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
             userDefectHist.setRequestStatus(RaiseRequestStatus.IGNORED.name());
             userDefectHist.setUpdatedTime(userDefect.getCompletedTime());
+            userDefectHist.setUpdatedBy(adminUserId);
             new Thread(() -> emailTemplates.sendUserReportStatusMailToUser(userProfile.get().getName(), userDefect.getReferenceNumber().substring(4), userDefectHist.getMessage(), userDefect.getEmail().trim())).start();
         }
         contactUsRepository.save(userDefect);
@@ -293,7 +296,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void updateUserFeedback(Long feedbackId) {
+    public void updateUserFeedback(Long feedbackId, Long adminUserId) {
         Optional<ContactUs> userFeedback = contactUsRepository.findById(feedbackId);
         if(userFeedback.isEmpty()){
             throw new ResourceNotFoundException("Feedback with id " + feedbackId + " is not found");
@@ -310,6 +313,7 @@ public class AdminServiceImpl implements AdminService {
         userFeedbackHist.setMessage("Admin has been viewed & Closed");
         userFeedbackHist.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
         userFeedbackHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+        userFeedbackHist.setUpdatedBy(adminUserId);
         contactUsHistRepository.save(userFeedbackHist);
     }
 
@@ -350,7 +354,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void updateReasonsForUserReasonDialogByReasonCode(ReasonUpdateRequestDto requestDto) {
+    public void updateReasonsForUserReasonDialogByReasonCode(ReasonUpdateRequestDto requestDto, Long adminUserId) {
         if(requestDto.getReason() == null || requestDto.getReason().isEmpty()){
             throw new ScenarioNotPossibleException("Please add details correctly");
         }
@@ -358,16 +362,18 @@ public class AdminServiceImpl implements AdminService {
                 .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + requestDto.getReasonId() + " is not found"));
         reasonDetails.setReason(requestDto.getReason());
         reasonDetails.setUpdatedTime(CURRENT_DATE_TIME);
+        reasonDetails.setUpdatedBy(adminUserId);
         reasonDetailsRepository.save(reasonDetails);
     }
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void deleteReasonByReasonId(int reasonId) {
+    public void deleteReasonByReasonId(int reasonId, Long adminUserId) {
         ReasonDetails reasonDetails = reasonDetailsRepository.findById(reasonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + reasonId + " is not found"));
         reasonDetails.setIsDeleted(true);
         reasonDetails.setUpdatedTime(CURRENT_DATE_TIME);
+        reasonDetails.setUpdatedBy(adminUserId);
         reasonDetailsRepository.save(reasonDetails);
     }
 
@@ -406,6 +412,7 @@ public class AdminServiceImpl implements AdminService {
         contactUsHist.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
         contactUsHist.setRequestStatus(RaiseRequestStatus.INITIATED.name());
         contactUsHist.setUpdatedTime(savedContactUs.getStartTime());
+        contactUsHist.setUpdatedBy(adminUserId);
         contactUsHistRepository.save(contactUsHist);
         methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT), reason, adminUserId, CURRENT_DATE_TIME);
         new Thread(
@@ -480,6 +487,7 @@ public class AdminServiceImpl implements AdminService {
         notification.setUpdatedAt(CURRENT_DATE_TIME);
         notification.setUpdatedBy(adminUserId);
         scheduleNotificationRepository.save(notification);
+        new Thread(() -> userNotificationRepository.deleteAllByScheduleId(scheduleId)).start();
     }
 
     @Override
@@ -500,8 +508,8 @@ public class AdminServiceImpl implements AdminService {
         notification.setCancelled(false);
         notification.setActive(true);
         scheduleNotificationRepository.save(notification);
-        new Thread(() -> userNotificationRepository.deleteAllByScheduleId(requestDto.getScheduleId())).start();
         functionToSaveNotificationToUsers(requestDto.getRecipients(), requestDto.getScheduleId());
+        new Thread(() -> userNotificationRepository.deleteAllByScheduleId(requestDto.getScheduleId())).start();
     }
 
     @Override
@@ -512,8 +520,8 @@ public class AdminServiceImpl implements AdminService {
         notification.setActive(false);
         notification.setUpdatedBy(adminUserId);
         notification.setUpdatedAt(CURRENT_DATE_TIME);
-        new Thread(() -> userNotificationRepository.deleteAllByScheduleId(scheduleId)).start();
         scheduleNotificationRepository.save(notification);
+        new Thread(() -> userNotificationRepository.deleteAllByScheduleId(scheduleId)).start();
     }
 
     private void functionToSaveNotificationToUsers(String recipients, Long scheduleId) {
@@ -609,7 +617,7 @@ public class AdminServiceImpl implements AdminService {
             methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.UNBLOCK_ACCOUNT), requestDetailsHist.getMessage(), adminUserId, completedTime);
             requestUserHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
             requestUserHist.setMessage("Admin has been unblocked the Account");
-            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
+            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
         } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())) {
             profileRepository.updateUserAuthTableWithDeleteOrUndeleteStatus(user.getId(), false);
             ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
@@ -621,7 +629,7 @@ public class AdminServiceImpl implements AdminService {
             methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.ACCOUNT_RETRIEVAL), requestDetailsHist.getMessage(), adminUserId, completedTime);
             requestUserHist.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
             requestUserHist.setMessage("Admin has been approved Account Retrieval");
-            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
+            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())) {
             ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
                     .stream()
@@ -636,7 +644,7 @@ public class AdminServiceImpl implements AdminService {
             methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.NAME_CHANGE), requestDetailsHist.getMessage().split(",")[1], adminUserId, completedTime);
             requestUserHist.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
             requestUserHist.setMessage("Admin has been approved Name change Request");
-            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
+            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
         } else if (requestStatus.equalsIgnoreCase(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name())) {
             if (gmailSyncRequestCount <= 0 || gmailSyncRequestCount > 3) {
                 throw new ScenarioNotPossibleException("Please enter valid count");
@@ -647,7 +655,7 @@ public class AdminServiceImpl implements AdminService {
 
             requestUserHist.setRequestReason(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name());
             requestUserHist.setMessage("Admin has been approved with " + gmailSyncRequestCount + (gmailSyncRequestCount == 1 ? "sync chance" : "sync chances"));
-            methodToUpdateContactUsTable(contactUs, requestUserHist, CURRENT_DATE_TIME);
+            methodToUpdateContactUsTable(contactUs, requestUserHist, CURRENT_DATE_TIME, adminUserId);
 
             ScheduleNotification scheduleNotification = new ScheduleNotification();
             scheduleNotification.setSubject("Gmail Sync Count Increase Request Approved");
@@ -657,7 +665,7 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    private void methodToUpdateContactUsTable(ContactUs contactUs, ContactUsHist requestUserHist, LocalDateTime completedTime){
+    private void methodToUpdateContactUsTable(ContactUs contactUs, ContactUsHist requestUserHist, LocalDateTime completedTime, Long adminUserId){
         contactUs.setRequestActive(false);
         contactUs.setVerified(true);
         contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
@@ -668,6 +676,7 @@ public class AdminServiceImpl implements AdminService {
         requestUserHist.setContactUsId(savedRequest.getId());
         requestUserHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
         requestUserHist.setUpdatedTime(completedTime);
+        requestUserHist.setUpdatedBy(adminUserId);
         contactUsHistRepository.save(requestUserHist);
     }
 
@@ -692,6 +701,7 @@ public class AdminServiceImpl implements AdminService {
         contactUsHist.setRequestReason(response.getRequestReason());
         contactUsHist.setRequestStatus(response.getRequestStatus());
         contactUsHist.setUpdatedTime(response.getCompletedTime());
+        contactUsHist.setUpdatedBy(adminUserId);
         contactUsHistRepository.save(contactUsHist);
 
         if (contactUs.getRequestReason().equalsIgnoreCase(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name())) {

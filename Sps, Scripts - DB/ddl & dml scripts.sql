@@ -36,7 +36,13 @@ VALUES (1, 'ADMIN'), (2, 'USER'), (3,'DEVELOPER');
 
 -- To add admin default login credentials
 INSERT INTO dbo.user_auth_table (username, password, is_deleted, is_blocked, role_id, otp_count)
-VALUES ('admin@access.com', '$2a$12$N1G9aEHD8QGhZBj3QC3TDOLpkOMMC2mDrka/YPjqEo2U0mhLwYVVy', 0, 0, 1, 0)
+VALUES ('admin@access-1.com', '$2a$12$N1G9aEHD8QGhZBj3QC3TDOLpkOMMC2mDrka/YPjqEo2U0mhLwYVVy', 0, 0, 1, 0)
+
+INSERT INTO dbo.user_auth_table (username, password, is_deleted, is_blocked, role_id, otp_count)
+VALUES ('admin@access-2.com', '$2a$12$N1G9aEHD8QGhZBj3QC3TDOLpkOMMC2mDrka/YPjqEo2U0mhLwYVVy', 0, 0, 1, 0)
+
+INSERT INTO dbo.user_auth_table (username, password, is_deleted, is_blocked, role_id, otp_count)
+VALUES ('admin@access-3.com', '$2a$12$N1G9aEHD8QGhZBj3QC3TDOLpkOMMC2mDrka/YPjqEo2U0mhLwYVVy', 0, 0, 1, 0)
 
 -- Credentials for monitor service as admin
 -- username : admin
@@ -68,7 +74,7 @@ values (1, 'profile-template.xlsx', 0x504B03041400060008000000210062EE9D685E0100
 -- Fixed reason id and reason names
 INSERT INTO reason_code_table (id, name)
 VALUES (1, 'Block Account'), (2, 'Password Change'), (3, 'Name Change'), (4, 'Unblock Account'), (5, 'Delete Account'), (6, 'Account retrieval'), 
-(7, 'Phone Number Change'), (8, 'Ignore User Request'), (9, 'Gmail Sync Request Type');
+(7, 'Phone Number Change'), (8, 'Ignore User Request'), (9, 'Gmail Sync Request Type'), (10, 'Forgot Username');
 
 
 --sample code for primary foreign key relationship
