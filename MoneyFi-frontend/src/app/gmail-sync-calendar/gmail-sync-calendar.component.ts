@@ -47,6 +47,7 @@ export class GmailSyncCalendarComponent {
   // Go to today
   goToToday() {
     this.currentMonth = new Date();
+    this.dateSelected.emit(new Date());
   }
 
   // Get current month name
