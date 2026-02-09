@@ -20,4 +20,5 @@ public class IncomeDetailsDto {
     private String category;
     private boolean recurring;
     private String description;
+    private String activeStatus;
 }
