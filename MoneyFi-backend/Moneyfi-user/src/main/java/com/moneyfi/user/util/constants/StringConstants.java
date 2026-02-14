@@ -1,5 +1,6 @@
 package com.moneyfi.user.util.constants;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneyfi.user.model.ProfileModel;
 import com.moneyfi.user.model.dto.OtpTempModel;
 import com.moneyfi.user.model.dto.UserAuthModel;
@@ -30,6 +31,7 @@ public class StringConstants {
     public static final String USER_PROFILE_DETAILS_NOT_FOUND = "User profile details not found";
     public static final String UPLOAD_PROFILE_PICTURE = "profile_pic_";
     public static final String UPLOAD_USER_RAISED_REPORT_PICTURE = "user_defect_pic_";
+    public static final String GMAIL_SYNC_COUNT_INCREASE_REQUEST = "gmail_sync_count_request_";
     public static final String USER_NOT_FOUND = "User not found";
     public static final String USER_PROFILE_NOT_FOUND = "User profile not found";
     public static final String EMAIL_SENT_SUCCESS_MESSAGE = "Email sent successfully!";
@@ -37,6 +39,7 @@ public class StringConstants {
     public static final String INVALID_REQUEST_MESSAGE = "Invalid request details";
     public static final String ACCOUNT_DELETED_MESSAGE = "Account is deleted. Raise retrieval request";
     public static final String INCORRECT_REFERENCE_NUMBER = "Incorrect Reference Number!";
+    public static final String REQUEST_NOT_FOUND = "Request details not found";
 
     public static final String PROFILE_TEMPLATE_NAME = "profile-template";
     public static final String PHONE_NUMBER_EMPTY_MESSAGE = "Phone number is empty";
@@ -52,13 +55,31 @@ public class StringConstants {
     public static final String BLOCKED_BY_USER = "Blocked by User";
 
     public static final Map<String, Integer> templateIdAssociation = Map.of("profile-template", 1);
-    public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation = Map.of(BLOCK_ACCOUNT, 1, PASSWORD_CHANGE, 2, NAME_CHANGE, 3,
-            UNBLOCK_ACCOUNT, 4, DELETE_ACCOUNT, 5, ACCOUNT_RETRIEVAL, 6, PHONE_NUMBER_CHANGE, 7, FORGOT_PASSWORD, 8, USER_RAISED_REQUEST_IGNORED, 9);
-
+    public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation =
+            Map.ofEntries(
+                    Map.entry(BLOCK_ACCOUNT, 1),
+                    Map.entry(PASSWORD_CHANGE, 2),
+                    Map.entry(NAME_CHANGE, 3),
+                    Map.entry(UNBLOCK_ACCOUNT, 4),
+                    Map.entry(DELETE_ACCOUNT, 5),
+                    Map.entry(ACCOUNT_RETRIEVAL, 6),
+                    Map.entry(PHONE_NUMBER_CHANGE, 7),
+                    Map.entry(FORGOT_PASSWORD, 8),
+                    Map.entry(USER_RAISED_REQUEST_IGNORED, 9),
+                    Map.entry(FORGOT_USERNAME, 10),
+                    Map.entry(ADMIN_CREATION, 11),
+                    Map.entry(ADMIN_UPDATE, 12),
+                    Map.entry(ADMIN_BLOCK, 13),
+                    Map.entry(ADMIN_UNBLOCK, 14),
+                    Map.entry(ADMIN_DELETE, 15),
+                    Map.entry(ADMIN_RETRIEVAL, 16)
+            );
     public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
     public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     public static final String DAILY_QUOTE_EXTERNAL_API_URL = "https://zenquotes.io/api/random";
+
+    public static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static String generateVerificationCode() {
         Random random = new Random();

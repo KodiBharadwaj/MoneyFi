@@ -129,7 +129,7 @@ export class AdminUsersComponent implements OnInit {
         dialogRef.afterClosed().subscribe((result) => {
           if (result) {
     
-            this.httpClient.post(`${this.baseUrl}/api/v1/user-admin/logout`, {}, { responseType: 'text' }).subscribe({
+            this.httpClient.post(`${this.baseUrl}/api/v1/common/logout`, {}, { responseType: 'text' }).subscribe({
               next: (response) => {
                 const jsonResponse = JSON.parse(response);
                 if(jsonResponse.message === 'Logged out successfully'){

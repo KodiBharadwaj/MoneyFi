@@ -32,6 +32,7 @@ import { AdminReasonsComponent } from './admin-reasons/admin-reasons.component';
 import { HelpCenterComponent } from './help-center/help-center.component';
 import { AdminCategoriesListComponent } from './admin-categories-list/admin-categories-list.component';
 import { GmailSyncSummaryComponent } from './gmail-sync-summary/gmail-sync-summary.component';
+import { MaintainerHomeComponent } from './maintainer-home/maintainer-home.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -53,6 +54,7 @@ export const routes: Routes = [
   { path: 'admin/configuration', component: AdminConfigurationComponent },
   { path: 'admin/configuration/reasons', component: AdminReasonsComponent },
   { path: 'admin/configuration/categories', component: AdminCategoriesListComponent },
+  { path: 'maintainer/home', component: MaintainerHomeComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard],children:[
     {path:'',component:OverviewComponent},
     {path:'overview',component:OverviewComponent},

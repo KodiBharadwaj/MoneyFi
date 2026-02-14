@@ -1,0 +1,287 @@
+<div class="page-container">
+
+  <!-- HEADER -->
+  <div class="header-container">    
+    <div>
+      <h2 style="margin: 0; font-weight: 600; color: #2c3e50;">
+        Admin Management
+      </h2>
+      <span style="color: #7f8c8d; font-size: 14px;">
+        Maintainer panel for managing admin users
+      </span>
+    </div>
+
+    <div style="display: flex; gap: 5px;">
+        <button
+            (click)="openAddAdminModal()"
+            style="background-color: #2c7be5; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 500; cursor: pointer;">
+            + Add Admin
+        </button>
+        
+        <button
+            (click)="logoutUser()"
+            style="background-color: #e52c2f; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 500; cursor: pointer;">
+            Logout
+        </button>
+    </div>
+
+  </div>
+
+  <!-- SEARCH -->
+  <div style="margin-bottom: 16px;">
+    <input
+      type="text"
+      [(ngModel)]="searchText"
+      (input)="applySearch()"
+      placeholder="Search admin by username..."
+      style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #e0e6ed; outline: none; font-size: 14px; background: white;">
+  </div>
+
+  <!-- TABLE CARD -->
+  <div class="card">
+
+    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+      <h3 style="margin: 0; font-size: 18px; color: #34495e;">Admin Users</h3>
+      <span style="font-size: 13px; color: #95a5a6;">
+        Total: {{ filteredAdmins.length }}
+      </span>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background-color: #f8fafc; text-align: left;">
+          <th style="padding: 12px;">USER_ID</th>
+          <th style="padding: 12px;">Username</th>
+          <th style="padding: 12px;">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let admin of filteredAdmins" style="border-top: 1px solid #ecf0f1;">
+          <td style="padding: 12px; font-weight: 500;">{{ admin.id }}</td>
+          <td style="padding: 12px;">{{ admin.username }}</td>
+          <td style="padding: 12px; display: flex; gap: 8px;">
+
+            <button
+              (click)="openUpdateModal(admin)"
+              style="background: #f7f7f6; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+              Update
+            </button>
+
+            <button
+              (click)="blockOrDeleteAdmin(admin, 'BLOCK')"
+              style="background: #f1c40f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+              Block
+            </button>
+
+            <button
+              (click)="blockOrDeleteAdmin(admin, 'DELETE')"
+              style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+              Delete
+            </button>
+
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="filteredAdmins.length === 0"
+         style="text-align: center; padding: 40px; color: #95a5a6;">
+      No admin users found.
+    </div>
+  </div>
+
+
+
+  
+<!-- ================= BLOCKED & DELETED ADMINS SECTION ================= -->
+<div class="secondary-grid-container">
+
+  <!-- BLOCKED ADMINS -->
+  <div class="card secondary-card">
+    
+    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+      <h3 style="margin: 0; font-size: 18px; color: #e67e22;">
+        Blocked Admins
+      </h3>
+      <span style="font-size: 13px; color: #95a5a6;">
+        Total: {{ blockedAdmins.length }}
+      </span>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background-color: #fff6f0; text-align: left;">
+          <th style="padding: 12px;">USER_ID</th>
+          <th style="padding: 12px;">Username</th>
+          <th style="padding: 12px;">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let admin of blockedAdmins" style="border-top: 1px solid #ecf0f1;">
+          <td style="padding: 12px; font-weight: 500;">{{ admin.id }}</td>
+          <td style="padding: 12px;">{{ admin.username }}</td>
+          <td style="padding: 12px;">
+            <button
+              (click)="unblockOrUnDeleteAdmin(admin, 'UNBLOCK')"
+              style="background: #27ae60; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer;">
+              Unblock
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="blockedAdmins.length === 0"
+         style="text-align: center; padding: 30px; color: #95a5a6;">
+      No blocked admins
+    </div>
+  </div>
+
+  <!-- DELETED ADMINS -->
+  <div class="card secondary-card"> 
+    
+    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+      <h3 style="margin: 0; font-size: 18px; color: #c0392b;">
+        Deleted Admins
+      </h3>
+      <span style="font-size: 13px; color: #95a5a6;">
+        Total: {{ deletedAdmins.length }}
+      </span>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background-color: #fff2f2; text-align: left;">
+          <th style="padding: 12px;">USER_ID</th>
+          <th style="padding: 12px;">Username</th>
+          <th style="padding: 12px;">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let admin of deletedAdmins" style="border-top: 1px solid #ecf0f1;">
+          <td style="padding: 12px; font-weight: 500;">{{ admin.id }}</td>
+          <td style="padding: 12px;">{{ admin.username }}</td>
+          <td style="padding: 12px;">
+            <button
+              (click)="unblockOrUnDeleteAdmin(admin, 'UNDELETE')"
+              style="background: #2980b9; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer;">
+              Undelete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="deletedAdmins.length === 0"
+         style="text-align: center; padding: 30px; color: #95a5a6;">
+      No deleted admins
+    </div>
+  </div>
+
+</div>
+
+
+
+
+</div>
+
+<!-- ================= ADD ADMIN MODAL ================= -->
+<div *ngIf="showAddModal" style="
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+">
+  <div style="
+      background: white;
+      width: 420px;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  ">
+    <h3 style="margin-top: 0;">Create Admin User</h3>
+
+    <div style="margin-bottom: 12px;">
+      <label>Username *</label>
+      <input [(ngModel)]="addForm.username"
+             style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+    </div>
+
+    <div style="margin-bottom: 12px;">
+      <label>Password *</label>
+      <input type="password"
+             [(ngModel)]="addForm.password"
+             style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <label>Comment</label>
+      <textarea [(ngModel)]="addForm.comment"
+                style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;"></textarea>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+      <button (click)="closeAddModal()" style="padding: 8px 16px;">Cancel</button>
+      <button (click)="createAdmin()"
+              style="background: #2c7be5; color: white; border: none; padding: 8px 18px; border-radius: 6px;">
+        Create
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= UPDATE ADMIN MODAL ================= -->
+<div *ngIf="showUpdateModal" style="
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+">
+  <div style="
+      background: white;
+      width: 420px;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  ">
+    <h3 style="margin-top: 0;">Update Admin User</h3>
+
+    <div style="margin-bottom: 12px;">
+      <label>Username *</label>
+      <input [(ngModel)]="updateForm.username"
+             style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+    </div>
+
+    <div style="margin-bottom: 12px;">
+      <label>New Password *</label>
+      <input type="password"
+             [(ngModel)]="updateForm.password"
+             style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <label>Comment</label>
+      <textarea [(ngModel)]="updateForm.comment"
+                style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;"></textarea>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+      <button (click)="closeUpdateModal()" style="padding: 8px 16px;">Cancel</button>
+      <button (click)="updateAdmin()"
+              style="background: #f39c12; color: white; border: none; padding: 8px 18px; border-radius: 6px;">
+        Update
+      </button>
+    </div>
+  </div>
+</div>
