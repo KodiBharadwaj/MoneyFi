@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/user-admin")
-public class AdminAndUserCommonController {
+@RequestMapping("/api/v1/common")
+public class CommonController {
 
     private final UserService userService;
 
-    AdminAndUserCommonController(UserService userService) {
+    CommonController(UserService userService) {
         this.userService = userService;
     }
 

@@ -93,4 +93,6 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
             WHERE cuth.contact_ud_id = :contactUsId
             """)
     List<ContactUsHistProjection> getContactUsHistoryDetailsByContactUsId(@Param("contactUsId") Long contactUsId);
+
+    List<UserAuthModel> findByRoleId(int roleId);
 }

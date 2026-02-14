@@ -111,7 +111,15 @@ export class AdminLoginComponent {
               });
               
               this.router.navigate(['admin/home']);
-            } else this.toastr.error('User is not authorized to login')
+            } else if (role === 'MAINTAINER') {
+              sessionStorage.setItem('moneyfi.auth', token);
+              this.toastr.success('Login successful', 'Success', {
+                timeOut: 1500  // 
+              });
+              
+              this.router.navigate(['maintainer/home']);
+            }
+            else this.toastr.error('User is not authorized to login')
           },
           error => {
             this.isLoading = false; // Hide loading spinner

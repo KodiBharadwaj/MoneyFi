@@ -61,9 +61,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(customizer -> customizer.disable())
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/api/v1/user-admin/**").hasAnyRole(UserRoles.ADMIN.name(), UserRoles.USER.name())
+                        .requestMatchers("/api/v1/common/**").hasAnyRole(UserRoles.ADMIN.name(), UserRoles.USER.name(), UserRoles.MAINTAINER.name())
                         .requestMatchers("/api/v1/user/**").hasRole(UserRoles.USER.name())
                         .requestMatchers("/api/v1/gmail-sync/**").hasRole(UserRoles.USER.name())
+                        .requestMatchers("/api/v1/maintainer/**").hasRole(UserRoles.MAINTAINER.name())
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/v1/Oauth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
