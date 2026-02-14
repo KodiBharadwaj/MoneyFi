@@ -4,6 +4,9 @@ import { environment } from '../../environments/environment';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
+import { ConfirmLogoutDialogComponent } from '../confirm-logout-dialog/confirm-logout-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 
 interface AdminUsersResponseDto {
   id: number;
@@ -41,7 +44,8 @@ export class MaintainerHomeComponent implements OnInit {
     comment: ''
   };
 
-  constructor(private http: HttpClient, private toastr: ToastrService) {}
+  constructor(private http: HttpClient, private toastr: ToastrService, private dialog: MatDialog, 
+    private httpClient: HttpClient, private router:Router) {}
 
   baseUrl = environment.BASE_URL;
 
@@ -182,4 +186,39 @@ export class MaintainerHomeComponent implements OnInit {
         this.getBlockedAdmins();
       });
   }
+
+  isLogoutLoading = false;
+  logoutUser(): void {
+      const dialogRef = this.dialog.open(ConfirmLogoutDialogComponent, {
+        width: '400px',
+        panelClass: 'custom-dialog-container',
+      });
+      dialogRef.afterClosed().subscribe((result) => {
+        if (result) {
+          this.isLogoutLoading = true;
+          this.httpClient.post(`${this.baseUrl}/api/v1/common/logout`, {}, { responseType: 'text' }).subscribe({
+            next: (response) => {
+              this.isLogoutLoading = false;
+              const jsonResponse = JSON.parse(response);
+              if(jsonResponse.message === 'Logged out successfully'){
+                  this.toastr.success(jsonResponse.message, '', {
+                  timeOut: 1500  // time in milliseconds (3 seconds)
+                });
+                sessionStorage.removeItem('moneyfi.auth');
+                sessionStorage.clear();
+                this.router.navigate(['']);
+              }
+              else {
+                this.toastr.error('Failed to logout')
+              }
+            },
+            error: (error) => {
+              this.isLogoutLoading = false;
+              console.error(error);
+              this.toastr.error('Failed to logout')
+            }
+          });
+        }
+      });
+    }
 }
