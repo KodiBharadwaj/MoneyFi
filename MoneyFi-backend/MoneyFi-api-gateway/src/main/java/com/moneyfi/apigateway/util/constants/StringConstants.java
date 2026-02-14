@@ -54,10 +54,26 @@ public class StringConstants {
 
     public static final long SESSION_LOGIN_MINUTES = 60L;
 
-    public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name(), 3, UserRoles.DEVELOPER.name());
-    public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation = Map.of(BLOCK_ACCOUNT, 1, PASSWORD_CHANGE, 2, NAME_CHANGE, 3,
-            UNBLOCK_ACCOUNT, 4, DELETE_ACCOUNT, 5, ACCOUNT_RETRIEVAL, 6, PHONE_NUMBER_CHANGE, 7, FORGOT_PASSWORD, 8, USER_RAISED_REQUEST_IGNORED, 9, FORGOT_USERNAME, 10);
-
+    public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name(), 3, UserRoles.DEVELOPER.name(), 4, UserRoles.MAINTAINER.name());
+    public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation =
+            Map.ofEntries(
+                    Map.entry(BLOCK_ACCOUNT, 1),
+                    Map.entry(PASSWORD_CHANGE, 2),
+                    Map.entry(NAME_CHANGE, 3),
+                    Map.entry(UNBLOCK_ACCOUNT, 4),
+                    Map.entry(DELETE_ACCOUNT, 5),
+                    Map.entry(ACCOUNT_RETRIEVAL, 6),
+                    Map.entry(PHONE_NUMBER_CHANGE, 7),
+                    Map.entry(FORGOT_PASSWORD, 8),
+                    Map.entry(USER_RAISED_REQUEST_IGNORED, 9),
+                    Map.entry(FORGOT_USERNAME, 10),
+                    Map.entry(ADMIN_CREATION, 11),
+                    Map.entry(ADMIN_UPDATE, 12),
+                    Map.entry(ADMIN_BLOCK, 13),
+                    Map.entry(ADMIN_UNBLOCK, 14),
+                    Map.entry(ADMIN_DELETE, 15),
+                    Map.entry(ADMIN_RETRIEVAL, 16)
+            );
     public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
     public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 

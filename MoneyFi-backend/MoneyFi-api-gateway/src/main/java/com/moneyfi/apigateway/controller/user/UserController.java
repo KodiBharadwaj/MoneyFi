@@ -51,13 +51,4 @@ public class UserController {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         return userService.sendOtpToBlockAccount(username, type);
     }
-
-    @Operation(summary = "Api to increase otp expiration time on user request")
-    @GetMapping("/extend-session")
-    public ResponseEntity<String> updateUserSessionExpirationTime(Authentication authentication,
-                                                                  @RequestHeader("Authorization") String authHeader,
-                                                                  @RequestParam long minutes) {
-        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        return ResponseEntity.ok(userService.updateUserSessionExpirationTime(minutes, username, authHeader.substring(7)));
-    }
 }

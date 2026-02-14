@@ -4,7 +4,8 @@ public enum LoginMode {
     EMAIL_PASSWORD(1),
     GOOGLE_OAUTH(2),
     GITHUB_OAUTH(3),
-    DML_SCRIPT(4);
+    DML_SCRIPT(4),
+    MAINTAINER_CREATION(5);
 
     private Integer loginProcessCode;
     LoginMode(Integer loginProcessCode){

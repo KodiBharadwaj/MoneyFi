@@ -38,7 +38,7 @@ export class SessionWarningComponent {
     Authorization: `Bearer ${token}`
   });
 
-  this.http.get(`${this.baseUrl}/api/v1/user/extend-session?minutes=${this.selectedMinutes}`,{ headers, responseType: 'text' }).subscribe(
+  this.http.get(`${this.baseUrl}/api/v1/common/extend-session?minutes=${this.selectedMinutes}`,{ headers, responseType: 'text' }).subscribe(
     newToken => {
       sessionStorage.setItem('moneyfi.auth', newToken);
       this.sessionService.hideWarning();
