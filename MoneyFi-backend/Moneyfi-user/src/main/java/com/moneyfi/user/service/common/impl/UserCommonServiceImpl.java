@@ -405,9 +405,13 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    public ResponseEntity<ByteArrayResource> getUserRaisedDefectImage(String username, Long defectId) {
+    public ResponseEntity<ByteArrayResource> getUserRaisedDefectImage(String username, String type, Long defectId) {
         if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
-            byte[] imageBytes = cloudinaryService.getImageFromCloudinary(defectId, username, UPLOAD_USER_RAISED_REPORT_PICTURE);
+            String imageType = "";
+            if ("DEFECT".equalsIgnoreCase(type)) imageType = UPLOAD_USER_RAISED_REPORT_PICTURE;
+            else if ("REQUEST".equalsIgnoreCase(type)) imageType = GMAIL_SYNC_COUNT_INCREASE_REQUEST;
+
+            byte[] imageBytes = cloudinaryService.getImageFromCloudinary(defectId, username, imageType);
             ByteArrayResource resource = new ByteArrayResource(imageBytes);
             return ResponseEntity.ok()
                     .contentType(MediaType.IMAGE_JPEG)
@@ -510,11 +514,11 @@ public class UserCommonServiceImpl implements UserCommonService {
 
         Optional<OtpTempProjection> otpTempProjection = profileRepository.getOtpTempDetails(username, deactivationType, LocalDateTime.now());
         if(otpTempProjection.isPresent()){
-            OtpTempModel response = StringConstants.convertOtpTempModelInterfaceToDto(otpTempProjection.get());
+            OtpTempModel response = convertOtpTempModelInterfaceToDto(otpTempProjection.get());
             UserValidations.otpCheckDuringAccountDeactivationValidations(request, response, user);
 
             ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
-            String referenceNumber = StringConstants.generateReferenceNumberForUserToSendEmail(referencePrefix, userProfile, username);
+            String referenceNumber = generateReferenceNumberForUserToSendEmail(referencePrefix, userProfile, username);
 
             ContactUs accountDeactivationRequest = new ContactUs();
             UserAuthHist userAuthHist = new UserAuthHist();
@@ -585,7 +589,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         try {
             String jsonStringResponse = externalRestTemplate.getForObject(DAILY_QUOTE_EXTERNAL_API_URL, String.class);
 
-            List<QuoteResponseDto> quoteList = StringConstants.objectMapper.readValue(jsonStringResponse, new TypeReference<List<QuoteResponseDto>>() {});
+            List<QuoteResponseDto> quoteList = objectMapper.readValue(jsonStringResponse, new TypeReference<List<QuoteResponseDto>>() {});
             if(!quoteList.isEmpty()){
                 quoteResponseDto.setQuote(quoteList.get(0).getQuote());
                 quoteResponseDto.setAuthor(quoteList.get(0).getAuthor());
@@ -612,7 +616,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         }
 
         ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
-        String referenceNumber = StringConstants.generateReferenceNumberForUserToSendEmail("GS", userProfile, username);
+        String referenceNumber = generateReferenceNumberForUserToSendEmail("GS", userProfile, username);
 
         ContactUs contactUs = new ContactUs();
         contactUs.setEmail(username);
@@ -623,10 +627,11 @@ public class UserCommonServiceImpl implements UserCommonService {
         contactUs.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
         contactUs.setStartTime(LocalDateTime.now());
         ContactUs savedRequest = contactUsRepository.save(contactUs);
-        contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), userProfile.getName(), request.getReason(), savedRequest.getStartTime(), savedRequest.getRequestReason(), savedRequest.getRequestStatus(), user.getId()));
 
         GmailSyncCountJsonDto gmailSyncCountJsonDto = new GmailSyncCountJsonDto(request.getCount(), request.getReason(), savedRequest.getId());
-        String jsonString = StringConstants.objectMapper.writeValueAsString(gmailSyncCountJsonDto);
+        String jsonString = objectMapper.writeValueAsString(gmailSyncCountJsonDto);
+
+        contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), userProfile.getName(), jsonString, savedRequest.getStartTime(), savedRequest.getRequestReason(), savedRequest.getRequestStatus(), user.getId()));
 
         ScheduleNotification scheduleNotification = new ScheduleNotification();
         scheduleNotification.setSubject("Gmail Sync Request Count Increase");

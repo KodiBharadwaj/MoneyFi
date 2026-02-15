@@ -35,6 +35,7 @@
             <th>Request Type</th>
             <th>Name</th>
             <th>Description</th>
+            <th>Image</th>
             <th>Reference Number</th>
             <th>Action</th>
           </tr>
@@ -45,6 +46,13 @@
             <td>{{ request.requestType }}</td>
             <td>{{ request.name }}</td>
             <td>{{ request.description }}</td>
+            <td> 
+              <!-- Image -->
+              <div class="image-preview" (click)="viewImage(request.username, request.requestId)">
+                <img src="assets/image-placeholder.png" alt="View" />
+                <p class="click-text">Click to view image</p>
+              </div>
+            </td>
             <td>
               <span class="ref-text">{{ request.referenceNumber }}</span>
               <button class="copy-btn" (click)="copyToClipboard(request.referenceNumber)">📋</button>
@@ -64,5 +72,13 @@
     <ng-template #noRequests>
       <div class="no-data">No user requests found.</div>
     </ng-template>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="selectedImage" class="image-modal">
+    <div class="modal-content">
+      <span class="close-btn" (click)="selectedImage = null">&times;</span>
+      <img [src]="selectedImage" alt="Defect Image" />
+    </div>
   </div>
 </div>

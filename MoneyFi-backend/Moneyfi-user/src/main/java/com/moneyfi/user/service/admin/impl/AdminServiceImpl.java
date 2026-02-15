@@ -149,7 +149,7 @@ public class AdminServiceImpl implements AdminService {
             requestReason = RequestReason.ACCOUNT_UNBLOCK_REQUEST.name();
         } else if(status.equalsIgnoreCase("Retrieve")){
             requestReason = RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name();
-        } else if(status.equalsIgnoreCase("Gmail Sync Count")){
+        } else if(status.equalsIgnoreCase("Other")){
             requestReason = RequestReason.GMAIL_SYNC_REQUEST_TYPE.name();
         } else {
             requestReason = ALL;
@@ -160,6 +160,15 @@ public class AdminServiceImpl implements AdminService {
                     && userGrid.getRequestType().equalsIgnoreCase("Name Change")){
                 userGrid.setDescription("My old name: " + userGrid.getDescription());
                 userGrid.setName("New Name: " + userGrid.getName());
+            }
+            if(userGrid.getRequestType().equalsIgnoreCase("Gmail Sync Count Increase Request")) {
+                GmailSyncCountJsonDto gmailSyncCountJsonDto = null;
+                try {
+                    gmailSyncCountJsonDto = objectMapper.readValue(userGrid.getDescription(), GmailSyncCountJsonDto.class);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+                userGrid.setDescription("Requested Count: " + gmailSyncCountJsonDto.getCount() + " | " + "Reason: " + gmailSyncCountJsonDto.getReason());
             }
         });
         return userRequestsGridDtoList;
@@ -647,14 +656,14 @@ public class AdminServiceImpl implements AdminService {
             methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
         } else if (requestStatus.equalsIgnoreCase(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name())) {
             if (gmailSyncRequestCount <= 0 || gmailSyncRequestCount > 3) {
-                throw new ScenarioNotPossibleException("Please enter valid count");
+                throw new ScenarioNotPossibleException("Please enter valid count between 0 to 3");
             }
 
-            int rowsAffected = profileRepository.updateGmailSyncCountByUserRequest(user.getId(), gmailSyncRequestCount);
+            int rowsAffected = profileRepository.updateGmailSyncCountByUserRequest(user.getId(), 3 - gmailSyncRequestCount);
             log.info("Rows Affected {}", rowsAffected);
 
             requestUserHist.setRequestReason(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name());
-            requestUserHist.setMessage("Admin has been approved with " + gmailSyncRequestCount + (gmailSyncRequestCount == 1 ? "sync chance" : "sync chances"));
+            requestUserHist.setMessage("Admin has been approved with " + gmailSyncRequestCount + " sync chance/chances");
             methodToUpdateContactUsTable(contactUs, requestUserHist, LocalDateTime.now(), adminUserId);
 
             ScheduleNotification scheduleNotification = new ScheduleNotification();

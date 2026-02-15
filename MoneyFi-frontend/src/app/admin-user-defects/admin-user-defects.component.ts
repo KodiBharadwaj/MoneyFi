@@ -73,7 +73,7 @@ export class AdminUserDefectsComponent implements OnInit{
   }
 
   viewImage(username: string, defectId: string): void {
-    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/user-defects/image?username=${username}&defectId=${defectId}`, { responseType: 'blob' })
+    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/user-defects/image?username=${username}&type=DEFECT&id=${defectId}`, { responseType: 'blob' })
       .subscribe({
         next: (blob) => {
           const reader = new FileReader();

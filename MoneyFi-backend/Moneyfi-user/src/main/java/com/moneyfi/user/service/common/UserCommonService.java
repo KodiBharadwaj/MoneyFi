@@ -20,7 +20,7 @@ public interface UserCommonService {
 
     ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username, Long userId);
 
-    ResponseEntity<ByteArrayResource> getUserRaisedDefectImage(String username, Long defectId);
+    ResponseEntity<ByteArrayResource> getUserRaisedDefectImage(String username, String type, Long defectId);
 
     ResponseEntity<String> deleteProfilePictureFromS3(String username, Long userId);
 

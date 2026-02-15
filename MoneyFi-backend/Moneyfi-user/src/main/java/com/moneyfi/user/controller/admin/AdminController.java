@@ -56,8 +56,9 @@ public class AdminController {
     @Operation(summary = "Api to get defect/user raised report image")
     @GetMapping("/user-defects/image")
     public ResponseEntity<ByteArrayResource> fetchUserRaisedDefectImage(@RequestParam String username,
-                                                                        @RequestParam Long defectId) {
-        return userCommonService.getUserRaisedDefectImage(username, defectId);
+                                                                        @RequestParam String type,
+                                                                        @RequestParam Long id) {
+        return userCommonService.getUserRaisedDefectImage(username, type, id);
     }
 
     @Operation(summary = "Api to change the user defect status in contact us table")

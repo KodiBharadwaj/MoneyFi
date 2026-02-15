@@ -44,6 +44,7 @@ export class GmailSyncSummaryComponent implements OnInit {
   
   gmailSyncEnabled = false;
   isGmailConnected = false;
+  reConsent = false;
 
   ngOnInit(): void {
     this.checkGmailSyncStatus();
@@ -120,7 +121,13 @@ export class GmailSyncSummaryComponent implements OnInit {
       this.startSync();
     } else {
       this.startGoogleConsent();
+      this.startSync();
     }
+  }
+
+  gmailSyncReConsent() {
+    this.startGoogleConsent();
+    this.reConsent = true;
   }
 
   startGoogleConsent() {
@@ -163,7 +170,7 @@ export class GmailSyncSummaryComponent implements OnInit {
         next: () => {
           console.log('Gmail sync enabled');
           this.isGmailConnected = true;
-          this.startSync();
+          if(this.reConsent) this.toastr.success('Reconsent Successful! Please sync now');
         },
         error: (err) => {
           console.error('Failed to enable Gmail sync', err);

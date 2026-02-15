@@ -37,6 +37,14 @@
           </svg>
           Email Sync Enabled
         </button>
+
+        <button
+          *ngIf="!gmailSyncEnabled"
+          class="btn btn-sync-req"
+          (click)="gmailSyncReConsent()"
+        >
+          Facing issues? Please Re-Consent
+        </button>
         <button
           *ngIf="gmailSyncEnabled"
           class="btn btn-sync-req"

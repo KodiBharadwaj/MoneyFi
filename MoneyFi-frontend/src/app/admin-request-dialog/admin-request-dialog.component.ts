@@ -13,6 +13,16 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { environment } from '../../environments/environment';
 
+interface AdminActionDto {
+  email: string;
+  referenceNumber: string;
+  requestStatus: string;
+  declineReason: string;
+  approveStatus: string;
+  gmailSyncRequestCount?: number | null; // optional field
+}
+
+
 @Component({
   selector: 'app-admin-request-dialog',
   templateUrl: './admin-request-dialog.component.html',
@@ -32,6 +42,7 @@ import { environment } from '../../environments/environment';
 })
 export class AdminRequestDialogComponent {
   enteredRefNumber: string = '';
+  adminCount: number | null = null; // new field
 
   constructor(
     public dialogRef: MatDialogRef<AdminRequestDialogComponent>,
@@ -47,12 +58,20 @@ export class AdminRequestDialogComponent {
 
   onConfirm(): void {
     if (this.enteredRefNumber === this.data.referenceNumber) {
-      const dto = {
-        email : this.data.username,
-        referenceNumber : this.enteredRefNumber,
-        requestStatus : this.data.requestType,
-        declineReason : '',
-        approveStatus : 'Approve'
+      const dto: AdminActionDto = {
+      email: this.data.username,
+      referenceNumber: this.enteredRefNumber,
+      requestStatus: this.data.requestType,
+      declineReason: '',
+      approveStatus: 'Approve'
+    };
+
+    if (this.data.requestType === 'GMAIL_SYNC_REQUEST_TYPE') {
+      dto.gmailSyncRequestCount = this.adminCount;
+    }
+      if (this.data.requestType === 'GMAIL_SYNC_REQUEST_TYPE' && !this.adminCount) {
+        alert('Please enter count');
+        return;
       }
       this.http.post(`${this.baseUrl}/api/v1/user-service/admin/user-requests/action`, dto).subscribe({
         next : () => {

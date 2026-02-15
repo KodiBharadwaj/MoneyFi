@@ -356,7 +356,7 @@ public class EmailTemplates {
         String body = "<html>"
                 + "<body>"
                 + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
-                + "<p style='font-size: 16px;'>Your Gmail Sync Count Increase Request has been approved by Admin and provided " + gmailSyncRequestCount + " chances." + "</p>"
+                + "<p style='font-size: 16px;'>Your Gmail Sync Count Increase Request has been approved by Admin and provided " + gmailSyncRequestCount + " chance/chances." + "</p>"
                 + "<p style='font-size: 16px;'>Please login to your account and use the services.</p>"
                 + "<hr>"
                 + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
