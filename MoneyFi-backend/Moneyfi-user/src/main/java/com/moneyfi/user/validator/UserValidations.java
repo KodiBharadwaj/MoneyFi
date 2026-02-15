@@ -3,9 +3,12 @@ package com.moneyfi.user.validator;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.dto.OtpTempModel;
 import com.moneyfi.user.model.dto.UserAuthModel;
+import com.moneyfi.user.repository.ProfileRepository;
 import com.moneyfi.user.service.common.dto.request.AccountBlockOrDeleteRequestDto;
+import com.moneyfi.user.service.common.dto.request.GmailSyncCountIncreaseRequestDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.AccDeactivationType;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.time.LocalDateTime;
 
@@ -51,6 +54,24 @@ public class UserValidations {
             String userPassword = request.getPassword();
             if (userPassword == null || userPassword.isEmpty() || !StringConstants.encoder.matches(userPassword, user.getPassword())) {
                 throw new ScenarioNotPossibleException(INCORRECT_PASSWORD_MESSAGE);
+            }
+        }
+    }
+
+    public static void validateUserGmailSyncCountIncreaseRequest(GmailSyncCountIncreaseRequestDto request, ProfileRepository profileRepository, Long userId) {
+        if (request.getCount() <= 0 || request.getCount() > 3) {
+            throw new ScenarioNotPossibleException("Please enter valid count between 0 to 3");
+        }
+        if (ObjectUtils.isEmpty(request.getReason())) {
+            throw new ScenarioNotPossibleException("Reason should not be empty");
+        }
+        Integer currentCount = profileRepository.getUserGmailAuthSyncCurrentCount(userId);
+        System.out.println("checking count: " + currentCount);
+        if (ObjectUtils.isEmpty(currentCount)) {
+            throw new ScenarioNotPossibleException("Gmail consent details not found");
+        } else {
+            if (currentCount < 3) {
+                throw new ScenarioNotPossibleException("You still have " + (3 - currentCount) + " chance/chances");
             }
         }
     }

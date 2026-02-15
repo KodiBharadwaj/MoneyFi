@@ -44,7 +44,7 @@ export class MaintainerHomeComponent implements OnInit {
     comment: ''
   };
 
-  constructor(private http: HttpClient, private toastr: ToastrService, private dialog: MatDialog, 
+  constructor(private http: HttpClient, private toastr: ToastrService, private dialog: MatDialog,
     private httpClient: HttpClient, private router:Router) {}
 
   baseUrl = environment.BASE_URL;

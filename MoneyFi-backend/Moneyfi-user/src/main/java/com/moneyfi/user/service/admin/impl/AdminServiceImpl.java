@@ -1,5 +1,7 @@
 package com.moneyfi.user.service.admin.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.*;
@@ -16,12 +18,15 @@ import com.moneyfi.user.service.admin.dto.request.ReasonUpdateRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.user.service.admin.dto.response.*;
 import com.moneyfi.user.service.common.UserCommonService;
+import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
 import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.user.util.EmailTemplates;
+import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.AdminValidations;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
@@ -31,7 +36,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -105,7 +112,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId, String approveStatus, String declineReason) {
+    public boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId, String approveStatus, String declineReason, int gmailSyncRequestCount) {
         return contactUsRepository.findByEmail(email)
                 .stream()
                 .filter(ContactUs::isRequestActive)
@@ -113,9 +120,21 @@ public class AdminServiceImpl implements AdminService {
                         i.getReferenceNumber().trim().equalsIgnoreCase(referenceNumber.trim()))
                 .findFirst()
                 .map(request -> {
-                    if(approveStatus.equalsIgnoreCase(ApproveStatus.APPROVE.name()))
-                    functionCallToChangeDetails(email, request, requestStatus, adminUserId);
-                    else if(approveStatus.equalsIgnoreCase(ApproveStatus.DECLINE.name())) functionCallToDeclineTheUserRequest(request, declineReason);
+                    UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
+                    ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
+                    if (approveStatus.equalsIgnoreCase(ApproveStatus.APPROVE.name())) {
+                        try {
+                            functionCallToChangeDetails(user, userProfile, email, request, requestStatus, adminUserId, gmailSyncRequestCount);
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else if (approveStatus.equalsIgnoreCase(ApproveStatus.DECLINE.name())) {
+                        try {
+                            functionCallToDeclineTheUserRequest(user, userProfile, request, declineReason, email, adminUserId, gmailSyncRequestCount);
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                     return true;
                 })
                 .orElse(false);
@@ -130,6 +149,8 @@ public class AdminServiceImpl implements AdminService {
             requestReason = RequestReason.ACCOUNT_UNBLOCK_REQUEST.name();
         } else if(status.equalsIgnoreCase("Retrieve")){
             requestReason = RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name();
+        } else if(status.equalsIgnoreCase("Other")){
+            requestReason = RequestReason.GMAIL_SYNC_REQUEST_TYPE.name();
         } else {
             requestReason = ALL;
         }
@@ -139,6 +160,15 @@ public class AdminServiceImpl implements AdminService {
                     && userGrid.getRequestType().equalsIgnoreCase("Name Change")){
                 userGrid.setDescription("My old name: " + userGrid.getDescription());
                 userGrid.setName("New Name: " + userGrid.getName());
+            }
+            if(userGrid.getRequestType().equalsIgnoreCase("Gmail Sync Count Increase Request")) {
+                GmailSyncCountJsonDto gmailSyncCountJsonDto = null;
+                try {
+                    gmailSyncCountJsonDto = objectMapper.readValue(userGrid.getDescription(), GmailSyncCountJsonDto.class);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+                userGrid.setDescription("Requested Count: " + gmailSyncCountJsonDto.getCount() + " | " + "Reason: " + gmailSyncCountJsonDto.getReason());
             }
         });
         return userRequestsGridDtoList;
@@ -159,7 +189,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void updateDefectStatus(Long defectId, String status, String reason) {
+    public void updateDefectStatus(Long defectId, String status, String reason, Long adminUserId) {
         ContactUs userDefect = contactUsRepository.findById(defectId).orElseThrow(() -> new ResourceNotFoundException("User defect details not found"));
         Optional<ProfileModel> userProfile = profileRepository.findByUserEmail(userDefect.getEmail());
         if(userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) ||
@@ -180,6 +210,7 @@ public class AdminServiceImpl implements AdminService {
             userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
             userDefectHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
             userDefectHist.setUpdatedTime(userDefect.getCompletedTime());
+            userDefectHist.setUpdatedBy(adminUserId);
             new Thread(() -> emailTemplates.sendUserReportStatusMailToUser(userProfile.get().getName(), userDefect.getReferenceNumber().substring(4), userDefectHist.getMessage(), userDefect.getEmail().trim())).start();
         } else if(status.equalsIgnoreCase("Pend")){
             userDefect.setRequestStatus(RaiseRequestStatus.PENDED.name());
@@ -189,6 +220,7 @@ public class AdminServiceImpl implements AdminService {
             userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
             userDefectHist.setRequestStatus(RaiseRequestStatus.PENDED.name());
             userDefectHist.setUpdatedTime(LocalDateTime.now());
+            userDefectHist.setUpdatedBy(adminUserId);
         } else if (status.equalsIgnoreCase("Ignore")){
             userDefect.setRequestStatus(RaiseRequestStatus.IGNORED.name());
             userDefect.setRequestActive(false);
@@ -201,6 +233,7 @@ public class AdminServiceImpl implements AdminService {
             userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
             userDefectHist.setRequestStatus(RaiseRequestStatus.IGNORED.name());
             userDefectHist.setUpdatedTime(userDefect.getCompletedTime());
+            userDefectHist.setUpdatedBy(adminUserId);
             new Thread(() -> emailTemplates.sendUserReportStatusMailToUser(userProfile.get().getName(), userDefect.getReferenceNumber().substring(4), userDefectHist.getMessage(), userDefect.getEmail().trim())).start();
         }
         contactUsRepository.save(userDefect);
@@ -272,7 +305,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void updateUserFeedback(Long feedbackId) {
+    public void updateUserFeedback(Long feedbackId, Long adminUserId) {
         Optional<ContactUs> userFeedback = contactUsRepository.findById(feedbackId);
         if(userFeedback.isEmpty()){
             throw new ResourceNotFoundException("Feedback with id " + feedbackId + " is not found");
@@ -289,12 +322,13 @@ public class AdminServiceImpl implements AdminService {
         userFeedbackHist.setMessage("Admin has been viewed & Closed");
         userFeedbackHist.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
         userFeedbackHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+        userFeedbackHist.setUpdatedBy(adminUserId);
         contactUsHistRepository.save(userFeedbackHist);
     }
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void addReasonsForUserReasonDialog(ReasonDetailsRequestDto requestDto) {
+    public void addReasonsForUserReasonDialog(ReasonDetailsRequestDto requestDto, Long adminUserId) {
         if(requestDto.getReasonCode() == null || requestDto.getReason() == null || requestDto.getReason().isEmpty()){
             throw new ScenarioNotPossibleException("Please add details correctly");
         }
@@ -306,6 +340,8 @@ public class AdminServiceImpl implements AdminService {
         ReasonDetails reasonDetails = new ReasonDetails();
         reasonDetails.setReason(requestDto.getReason().trim());
         reasonDetails.setReasonCode(requestDto.getReasonCode());
+        reasonDetails.setCreatedBy(adminUserId);
+        reasonDetails.setUpdatedBy(adminUserId);
         reasonDetailsRepository.save(reasonDetails);
     }
 
@@ -327,7 +363,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void updateReasonsForUserReasonDialogByReasonCode(ReasonUpdateRequestDto requestDto) {
+    public void updateReasonsForUserReasonDialogByReasonCode(ReasonUpdateRequestDto requestDto, Long adminUserId) {
         if(requestDto.getReason() == null || requestDto.getReason().isEmpty()){
             throw new ScenarioNotPossibleException("Please add details correctly");
         }
@@ -335,16 +371,18 @@ public class AdminServiceImpl implements AdminService {
                 .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + requestDto.getReasonId() + " is not found"));
         reasonDetails.setReason(requestDto.getReason());
         reasonDetails.setUpdatedTime(LocalDateTime.now());
+        reasonDetails.setUpdatedBy(adminUserId);
         reasonDetailsRepository.save(reasonDetails);
     }
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void deleteReasonByReasonId(int reasonId) {
+    public void deleteReasonByReasonId(int reasonId, Long adminUserId) {
         ReasonDetails reasonDetails = reasonDetailsRepository.findById(reasonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + reasonId + " is not found"));
         reasonDetails.setIsDeleted(true);
         reasonDetails.setUpdatedTime(LocalDateTime.now());
+        reasonDetails.setUpdatedBy(adminUserId);
         reasonDetailsRepository.save(reasonDetails);
     }
 
@@ -383,6 +421,7 @@ public class AdminServiceImpl implements AdminService {
         contactUsHist.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
         contactUsHist.setRequestStatus(RaiseRequestStatus.INITIATED.name());
         contactUsHist.setUpdatedTime(savedContactUs.getStartTime());
+        contactUsHist.setUpdatedBy(adminUserId);
         contactUsHistRepository.save(contactUsHist);
         methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT), reason, adminUserId, LocalDateTime.now());
         new Thread(
@@ -419,10 +458,13 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void scheduleNotification(ScheduleNotificationRequestDto requestDto) {
+    public void scheduleNotification(ScheduleNotificationRequestDto requestDto, Long adminUserId) {
         AdminValidations.validateScheduleNotificationRequestDetails(requestDto);
         ScheduleNotification scheduleNotification = new ScheduleNotification();
         BeanUtils.copyProperties(requestDto, scheduleNotification);
+        scheduleNotification.setScheduleBy(adminUserId);
+        scheduleNotification.setUpdatedBy(adminUserId);
+        scheduleNotification.setNotificationType(UserRequestType.ADMIN_SCHEDULING.name());
         ScheduleNotification response = scheduleNotificationRepository.save(scheduleNotification);
         functionToSaveNotificationToUsers(requestDto.getRecipients(), response.getId());
     }
@@ -444,7 +486,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void cancelTheUserScheduling(Long scheduleId) {
+    public void cancelTheUserScheduling(Long scheduleId, Long adminUserId) {
         ScheduleNotification notification = scheduleNotificationRepository.findById(scheduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + scheduleId));
         if (Boolean.TRUE.equals(notification.isCancelled())) {
@@ -452,12 +494,14 @@ public class AdminServiceImpl implements AdminService {
         }
         notification.setCancelled(true);
         notification.setUpdatedAt(LocalDateTime.now());
+        notification.setUpdatedBy(adminUserId);
         scheduleNotificationRepository.save(notification);
+        new Thread(() -> userNotificationRepository.deleteAllByScheduleId(scheduleId)).start();
     }
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void updateAdminPlacedSchedules(AdminScheduleRequestDto requestDto) {
+    public void updateAdminPlacedSchedules(AdminScheduleRequestDto requestDto, Long adminUserId) {
         ScheduleNotification notification = scheduleNotificationRepository.findById(requestDto.getScheduleId())
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + requestDto.getScheduleId()));
         AdminValidations.validateScheduleNotificationRequestDetails(new ScheduleNotificationRequestDto(requestDto.getSubject(), requestDto.getDescription(), requestDto.getScheduleFrom(), requestDto.getScheduleTo(), requestDto.getRecipients()));
@@ -469,6 +513,7 @@ public class AdminServiceImpl implements AdminService {
         notification.setRecipients(requestDto.getRecipients());
         notification.setDescription(notification.getDescription());
         notification.setUpdatedAt(LocalDateTime.now());
+        notification.setUpdatedBy(adminUserId);
         notification.setCancelled(false);
         notification.setActive(true);
         scheduleNotificationRepository.save(notification);
@@ -478,10 +523,11 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void deleteUserScheduling(Long scheduleId) {
+    public void deleteUserScheduling(Long scheduleId, Long adminUserId) {
         ScheduleNotification notification = scheduleNotificationRepository.findById(scheduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + scheduleId));
         notification.setActive(false);
+        notification.setUpdatedBy(adminUserId);
         notification.setUpdatedAt(LocalDateTime.now());
         scheduleNotificationRepository.save(notification);
         new Thread(() -> userNotificationRepository.deleteAllByScheduleId(scheduleId)).start();
@@ -566,39 +612,39 @@ public class AdminServiceImpl implements AdminService {
         return style;
     }
 
-    private void functionCallToChangeDetails(String email, ContactUs contactUs, String requestStatus, Long adminUserId){
-        UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
+    private void functionCallToChangeDetails(UserAuthModel user, ProfileModel userProfile, String email, ContactUs contactUs, String requestStatus, Long adminUserId, int gmailSyncRequestCount) throws JsonProcessingException {
         ContactUsHist requestUserHist = new ContactUsHist();
 
-        if(requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())){
+        if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())) {
             profileRepository.updateUserAuthTableWithBlockOrUnblockStatus(user.getId(), false);
             ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
                     .stream()
                     .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
                     .findFirst()
-                    .get();
+                    .orElseThrow(() -> new ResourceNotFoundException(REQUEST_NOT_FOUND));
             LocalDateTime completedTime = LocalDateTime.now();
             methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.UNBLOCK_ACCOUNT), requestDetailsHist.getMessage(), adminUserId, completedTime);
             requestUserHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
-            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
-        } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())){
+            requestUserHist.setMessage("Admin has been unblocked the Account");
+            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
+        } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())) {
             profileRepository.updateUserAuthTableWithDeleteOrUndeleteStatus(user.getId(), false);
             ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
                     .stream()
                     .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
                     .findFirst()
-                    .get();
+                    .orElseThrow(() -> new ResourceNotFoundException(REQUEST_NOT_FOUND));
             LocalDateTime completedTime = LocalDateTime.now();
             methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.ACCOUNT_RETRIEVAL), requestDetailsHist.getMessage(), adminUserId, completedTime);
             requestUserHist.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
-            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
-        } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())){
-            ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("User profile not found"));
+            requestUserHist.setMessage("Admin has been approved Account Retrieval");
+            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
+        } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())) {
             ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
                     .stream()
                     .findFirst()
-                    .get();
-            if(!userProfile.getName().toLowerCase().contains(requestDetailsHist.getMessage().toLowerCase().split(",")[0])){
+                    .orElseThrow(() -> new ResourceNotFoundException(REQUEST_NOT_FOUND));
+            if (!userProfile.getName().toLowerCase().contains(requestDetailsHist.getMessage().toLowerCase().split(",")[0])) {
                 throw new ScenarioNotPossibleException("Old name didn't match");
             }
             LocalDateTime completedTime = LocalDateTime.now();
@@ -606,11 +652,29 @@ public class AdminServiceImpl implements AdminService {
             profileRepository.save(userProfile);
             methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.NAME_CHANGE), requestDetailsHist.getMessage().split(",")[1], adminUserId, completedTime);
             requestUserHist.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
-            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime);
+            requestUserHist.setMessage("Admin has been approved Name change Request");
+            methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
+        } else if (requestStatus.equalsIgnoreCase(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name())) {
+            if (gmailSyncRequestCount <= 0 || gmailSyncRequestCount > 3) {
+                throw new ScenarioNotPossibleException("Please enter valid count between 0 to 3");
+            }
+
+            int rowsAffected = profileRepository.updateGmailSyncCountByUserRequest(user.getId(), 3 - gmailSyncRequestCount);
+            log.info("Rows Affected {}", rowsAffected);
+
+            requestUserHist.setRequestReason(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name());
+            requestUserHist.setMessage("Admin has been approved with " + gmailSyncRequestCount + " sync chance/chances");
+            methodToUpdateContactUsTable(contactUs, requestUserHist, LocalDateTime.now(), adminUserId);
+
+            ScheduleNotification scheduleNotification = new ScheduleNotification();
+            scheduleNotification.setSubject("Gmail Sync Count Increase Request Approved");
+            scheduleNotification.setDescription(StringConstants.objectMapper.writeValueAsString(new GmailSyncCountJsonDto(gmailSyncRequestCount, STATUS_APPROVED, contactUs.getId())));
+            functionToScheduleGmailSyncUpdateToUser(scheduleNotification, adminUserId, email, user, contactUs);
+            new Thread(() -> emailTemplates.sendUserGmailSyncApprovedMail(userProfile.getName(), email, gmailSyncRequestCount)).start();
         }
     }
 
-    private void methodToUpdateContactUsTable(ContactUs contactUs, ContactUsHist requestUserHist, LocalDateTime completedTime){
+    private void methodToUpdateContactUsTable(ContactUs contactUs, ContactUsHist requestUserHist, LocalDateTime completedTime, Long adminUserId){
         contactUs.setRequestActive(false);
         contactUs.setVerified(true);
         contactUs.setReferenceNumber("COM_" + contactUs.getReferenceNumber());
@@ -621,6 +685,7 @@ public class AdminServiceImpl implements AdminService {
         requestUserHist.setContactUsId(savedRequest.getId());
         requestUserHist.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
         requestUserHist.setUpdatedTime(completedTime);
+        requestUserHist.setUpdatedBy(adminUserId);
         contactUsHistRepository.save(requestUserHist);
     }
 
@@ -628,8 +693,8 @@ public class AdminServiceImpl implements AdminService {
         profileRepository.insertUserAuthHistory(userId, completedTime, reasonTypeId, comment, updatedUserId);
     }
 
-    private void functionCallToDeclineTheUserRequest(ContactUs contactUs, String declineReason){
-        if(declineReason == null || declineReason.trim().isEmpty()){
+    private void functionCallToDeclineTheUserRequest(UserAuthModel user, ProfileModel userProfile, ContactUs contactUs, String declineReason, String email, Long adminUserId, int gmailSyncRequestCount) throws JsonProcessingException {
+        if (StringUtils.isBlank(declineReason)) {
             throw new ScenarioNotPossibleException("Decline reason should not be empty");
         }
         contactUs.setCompletedTime(LocalDateTime.now());
@@ -645,7 +710,40 @@ public class AdminServiceImpl implements AdminService {
         contactUsHist.setRequestReason(response.getRequestReason());
         contactUsHist.setRequestStatus(response.getRequestStatus());
         contactUsHist.setUpdatedTime(response.getCompletedTime());
+        contactUsHist.setUpdatedBy(adminUserId);
         contactUsHistRepository.save(contactUsHist);
+
+        if (contactUs.getRequestReason().equalsIgnoreCase(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name())) {
+            ScheduleNotification scheduleNotification = new ScheduleNotification();
+            scheduleNotification.setSubject("Gmail Sync Count Increase Request Rejected");
+            scheduleNotification.setDescription(StringConstants.objectMapper.writeValueAsString(new GmailSyncCountJsonDto(0, STATUS_REJECTED + ". Reason: " + declineReason, contactUs.getId())));
+            functionToScheduleGmailSyncUpdateToUser(scheduleNotification, adminUserId, email, user, contactUs);
+            new Thread(() -> emailTemplates.sendUserGmailSyncCountIncreaseRequestRejection(userProfile.getName(), email)).start();
+        }
+    }
+
+    private ScheduleNotification getUserScheduledGmailSyncNotification(UserAuthModel user, ContactUs contactUs) {
+        return scheduleNotificationRepository.findByScheduleBy(user.getId()).stream()
+                .filter(schedule -> {
+                    try {
+                        return schedule.getNotificationType().equalsIgnoreCase(UserRequestType.GMAIL_SYNC_COUNT_INCREASE.name())
+                                && schedule.getCreatedDate().toLocalDate().equals(LocalDate.now())
+                                && Objects.equals(StringConstants.objectMapper.readValue(schedule.getDescription(), GmailSyncCountJsonDto.class).getContactUsId(), contactUs.getId());
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).findFirst().orElseThrow(() -> new ResourceNotFoundException("Schedule Gmail Sync request not found"));
+    }
+
+    private void functionToScheduleGmailSyncUpdateToUser(ScheduleNotification scheduleNotification, Long adminUserId, String email, UserAuthModel user, ContactUs contactUs) {
+        scheduleNotification.setUpdatedBy(adminUserId);
+        scheduleNotification.setScheduleFrom(LocalDateTime.now());
+        scheduleNotification.setScheduleTo(LocalDate.now().atTime(LocalTime.MAX));
+        scheduleNotification.setScheduleBy(adminUserId);
+        scheduleNotification.setParentKey(getUserScheduledGmailSyncNotification(user, contactUs).getId());
+        scheduleNotification.setRecipients(email);
+        scheduleNotification.setNotificationType(UserRequestType.GMAIL_SYNC_COUNT_INCREASE.name());
+        userCommonService.saveUserNotificationsForParticularUsers(user.getUsername(), scheduleNotificationRepository.save(scheduleNotification).getId());
     }
 
     private void addNameRequestDetailsToUserDetails(UserProfileAndRequestDetailsDto userDetails, List<ContactUs> allUserRequests, AdminUserRequestsCountDto saveCountDto){

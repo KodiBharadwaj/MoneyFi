@@ -56,16 +56,19 @@ public class AdminController {
     @Operation(summary = "Api to get defect/user raised report image")
     @GetMapping("/user-defects/image")
     public ResponseEntity<ByteArrayResource> fetchUserRaisedDefectImage(@RequestParam String username,
-                                                                        @RequestParam Long defectId) {
-        return userCommonService.getUserRaisedDefectImage(username, defectId);
+                                                                        @RequestParam String type,
+                                                                        @RequestParam Long id) {
+        return userCommonService.getUserRaisedDefectImage(username, type, id);
     }
 
     @Operation(summary = "Api to change the user defect status in contact us table")
     @PutMapping("/{defectId}/update-defect-status")
-    public void updateDefectStatus(@PathVariable("defectId") Long defectId,
+    public void updateDefectStatus(@RequestHeader("Authorization") String authHeader,
+                                   @PathVariable("defectId") Long defectId,
                                    @RequestBody Map<String, String> body,
                                    @RequestParam String reason) {
-        adminService.updateDefectStatus(defectId, body.get("status"), reason);
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.updateDefectStatus(defectId, body.get("status"), reason, adminUserId);
     }
 
     @Operation(summary = "Api to unblock/retrieve/name change of the user account with respective details")
@@ -73,7 +76,7 @@ public class AdminController {
     public boolean accountReactivationAndNameChangeRequest(@RequestHeader("Authorization") String authHeader,
                                                            @RequestBody UserRequestsApprovalDto requestDto){
         Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return adminService.accountReactivationAndNameChangeRequest(requestDto.getEmail(), requestDto.getReferenceNumber(), requestDto.getRequestStatus(), adminUserId, requestDto.getApproveStatus(), requestDto.getDeclineReason());
+        return adminService.accountReactivationAndNameChangeRequest(requestDto.getEmail(), requestDto.getReferenceNumber(), requestDto.getRequestStatus(), adminUserId, requestDto.getApproveStatus(), requestDto.getDeclineReason(), requestDto.getGmailSyncRequestCount());
     }
 
     @Operation(summary = "Api to block the user's account by admin")
@@ -110,8 +113,10 @@ public class AdminController {
 
     @Operation(summary = "Api to update the user feedback by admin")
     @PutMapping("/user-feedback/update")
-    public void updateUserFeedback(@RequestParam("id") Long feedbackId){
-        adminService.updateUserFeedback(feedbackId);
+    public void updateUserFeedback(@RequestHeader("Authorization") String authHeader,
+                                   @RequestParam("id") Long feedbackId){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.updateUserFeedback(feedbackId, adminUserId);
     }
 
     @Operation(summary = "Api to the user count in every month for chart")
@@ -145,8 +150,10 @@ public class AdminController {
 
     @Operation(summary = "Api to add the reason dropdown names")
     @PostMapping("/reasons/add")
-    public void addReasonsForUserReasonDialog(@RequestBody ReasonDetailsRequestDto requestDto){
-        adminService.addReasonsForUserReasonDialog(requestDto);
+    public void addReasonsForUserReasonDialog(@RequestHeader("Authorization") String authHeader,
+                                              @RequestBody ReasonDetailsRequestDto requestDto){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.addReasonsForUserReasonDialog(requestDto, adminUserId);
     }
 
     @Operation(summary = "Api to get the reason based on reason code")
@@ -162,14 +169,18 @@ public class AdminController {
 
     @Operation(summary = "Api to update the reason string")
     @PutMapping("/reasons/update")
-    public void updateReasonsForUserReasonDialogByReasonCode(@RequestBody ReasonUpdateRequestDto requestDto){
-        adminService.updateReasonsForUserReasonDialogByReasonCode(requestDto);
+    public void updateReasonsForUserReasonDialogByReasonCode(@RequestHeader("Authorization") String authHeader,
+                                                             @RequestBody ReasonUpdateRequestDto requestDto){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.updateReasonsForUserReasonDialogByReasonCode(requestDto, adminUserId);
     }
 
     @Operation(summary = "Api to delete the reason names by admin - soft delete")
     @DeleteMapping("/reasons/delete")
-    public void deleteReasonByReasonIdByAdmin(@RequestParam("id") int reasonId){
-        adminService.deleteReasonByReasonId(reasonId);
+    public void deleteReasonByReasonIdByAdmin(@RequestHeader("Authorization") String authHeader,
+                                              @RequestParam("id") int reasonId){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.deleteReasonByReasonId(reasonId, adminUserId);
     }
 
     @Operation(summary = "Api to get all the usernames of all the users for the admin")
@@ -181,8 +192,10 @@ public class AdminController {
 
     @Operation(summary = "Api to schedule a notification by admin")
     @PostMapping("/schedule-notification")
-    public void scheduleNotification(@RequestBody @Valid ScheduleNotificationRequestDto requestDto){
-        adminService.scheduleNotification(requestDto);
+    public void scheduleNotification(@RequestHeader("Authorization") String authHeader,
+                                     @RequestBody @Valid ScheduleNotificationRequestDto requestDto){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.scheduleNotification(requestDto, adminUserId);
     }
 
     @Operation(summary = "Api to get all the schedules for admin screen")
@@ -193,19 +206,25 @@ public class AdminController {
 
     @Operation(summary = "Api to cancel the user scheduling")
     @PutMapping("/schedule-notification/cancel")
-    public void cancelTheUserScheduling(@RequestParam("id") Long scheduleId){
-        adminService.cancelTheUserScheduling(scheduleId);
+    public void cancelTheUserScheduling(@RequestHeader("Authorization") String authHeader,
+                                        @RequestParam("id") Long scheduleId){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.cancelTheUserScheduling(scheduleId, adminUserId);
     }
 
     @Operation(summary = "Api to soft delete the user scheduling")
     @DeleteMapping("/schedule-notification/delete")
-    public void deleteUserScheduling(@RequestParam("id") Long scheduleId){
-        adminService.deleteUserScheduling(scheduleId);
+    public void deleteUserScheduling(@RequestHeader("Authorization") String authHeader,
+                                     @RequestParam("id") Long scheduleId){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.deleteUserScheduling(scheduleId, adminUserId);
     }
 
     @Operation(summary = "Api to update the already scheduled notification")
     @PutMapping("/schedule-notification/update")
-    public void updateAdminPlacedSchedules(@RequestBody @Valid AdminScheduleRequestDto requestDto){
-        adminService.updateAdminPlacedSchedules(requestDto);
+    public void updateAdminPlacedSchedules(@RequestHeader("Authorization") String authHeader,
+                                           @RequestBody @Valid AdminScheduleRequestDto requestDto){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.updateAdminPlacedSchedules(requestDto, adminUserId);
     }
 }

@@ -5,6 +5,7 @@ import com.moneyfi.user.service.common.dto.request.*;
 import com.moneyfi.user.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserRequestStatusDto;
+import jakarta.validation.Valid;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,7 +20,7 @@ public interface UserCommonService {
 
     ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username, Long userId);
 
-    ResponseEntity<ByteArrayResource> getUserRaisedDefectImage(String username, Long defectId);
+    ResponseEntity<ByteArrayResource> getUserRaisedDefectImage(String username, String type, Long defectId);
 
     ResponseEntity<String> deleteProfilePictureFromS3(String username, Long userId);
 
@@ -50,4 +51,6 @@ public interface UserCommonService {
     Boolean getUsernameByDetails(ForgotUsernameDto userDetails);
 
     QuoteResponseDto getTodayQuoteByExternalCall(String externalApiUrl) throws JsonProcessingException;
+
+    void userRequestToIncreaseGmailSyncDailyCount(@Valid GmailSyncCountIncreaseRequestDto request, MultipartFile image, String username) throws JsonProcessingException;
 }

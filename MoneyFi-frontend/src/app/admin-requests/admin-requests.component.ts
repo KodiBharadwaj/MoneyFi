@@ -56,10 +56,12 @@ export class AdminRequestsComponent implements OnInit {
     if(status === 'Rename') this.requestType = 'NAME_CHANGE_REQUEST';
     else if(status === 'Unblock') this.requestType = 'ACCOUNT_UNBLOCK_REQUEST';
     else if(status === 'Retrieve') this.requestType = 'ACCOUNT_NOT_DELETE_REQUEST';
+    else if(status === 'Other' && request.requestType === 'Gmail Sync Count Increase Request') this.requestType = 'GMAIL_SYNC_REQUEST_TYPE';
     else if(status === 'All'){
       if(request.requestType === 'Account Unblock') this.requestType = 'ACCOUNT_UNBLOCK_REQUEST';
       else if(request.requestType === 'Name Change') this.requestType = 'NAME_CHANGE_REQUEST';
       else if(request.requestType === 'Account Retrieval') this.requestType = 'ACCOUNT_NOT_DELETE_REQUEST';
+      else if(request.requestType === 'Gmail Sync Count Increase Request') this.requestType = 'GMAIL_SYNC_REQUEST_TYPE';
     }
 
     const dialogRef = this.dialog.open(AdminRequestDialogComponent, {
@@ -86,6 +88,7 @@ export class AdminRequestsComponent implements OnInit {
     if(status === 'Rename') this.requestType = 'NAME_CHANGE_REQUEST';
     else if(status === 'Unblock') this.requestType = 'ACCOUNT_UNBLOCK_REQUEST';
     else if(status === 'Retrieve') this.requestType = 'ACCOUNT_NOT_DELETE_REQUEST';
+    else if(status === 'Other' && request.requestType === 'Gmail Sync Count Increase Request') this.requestType = 'GMAIL_SYNC_REQUEST_TYPE';
 
     const dialogRef = this.dialog.open(AdminRequestDeclineDialogComponent, {
       width: '400px',
@@ -146,4 +149,37 @@ export class AdminRequestsComponent implements OnInit {
     });
   }
 
+  selectedImage: string | null = null;
+  viewImage(username: string, defectId: string): void {
+    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/user-defects/image?username=${username}&type=REQUEST&id=${defectId}`, { responseType: 'blob' })
+      .subscribe({
+        next: (blob) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            this.selectedImage = reader.result as string;
+          };
+          reader.readAsDataURL(blob);
+        },
+        error: (err) => {
+          if (err.error instanceof Blob) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              try {
+                const text = reader.result as string;
+                const errorObj = JSON.parse(text);
+                this.toastr.error(errorObj.message);
+              } catch (e) {
+                console.error('Failed to parse Blob error:', e);
+                this.toastr.error('Something went wrong');
+              }
+            };
+            reader.readAsText(err.error);
+          } else {
+            // fallback if it's not a Blob
+            const message = err.error?.message || 'Something went wrong';
+            this.toastr.error(message);
+          }
+        }
+      });
+  }
 }

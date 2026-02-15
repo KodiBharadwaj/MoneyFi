@@ -17,6 +17,7 @@ import com.moneyfi.transaction.service.income.dto.response.UserDetailsForStateme
 import com.moneyfi.transaction.service.transaction.TransactionService;
 import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction;
 import com.moneyfi.transaction.service.transaction.dto.response.GmailSyncTransactionsResponse;
+import com.moneyfi.transaction.utils.enums.ActiveStatus;
 import com.moneyfi.transaction.utils.enums.CreditOrDebit;
 import com.moneyfi.transaction.utils.GeneratePdfTemplate;
 import com.moneyfi.transaction.utils.StringConstants;
@@ -148,6 +149,7 @@ public class TransactionServiceImpl implements TransactionService {
                                 .category(incomeRepository.getCategoryNameById(income.getCategoryId()))
                                 .recurring(income.isRecurring())
                                 .description(income.getDescription())
+                                .activeStatus(income.isDeleted() ? ActiveStatus.DELETED.name() : ActiveStatus.ACTIVE.name())
                                 .build()
                         )
                         .toList(),
@@ -161,6 +163,7 @@ public class TransactionServiceImpl implements TransactionService {
                                 .category(incomeRepository.getCategoryNameById(expense.getCategoryId()))
                                 .recurring(expense.isRecurring())
                                 .description(expense.getDescription())
+                                .activeStatus(expense.isDeleted() ? ActiveStatus.DELETED.name() : ActiveStatus.ACTIVE.name())
                                 .build()
                         )
                         .toList()

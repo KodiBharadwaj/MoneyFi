@@ -25,4 +25,10 @@ public class UserNotificationResponseDto {
     private boolean isRead;
     @JsonIgnore
     private Long scheduleId;
+    @JsonIgnore
+    private String notificationType;
+    @JsonIgnore
+    private String role;
+    @JsonIgnore
+    private Long parentKey;
 }

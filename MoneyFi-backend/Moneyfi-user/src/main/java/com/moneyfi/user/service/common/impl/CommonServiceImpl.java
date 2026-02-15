@@ -1,11 +1,17 @@
 package com.moneyfi.user.service.common.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.model.UserNotification;
 import com.moneyfi.user.repository.ProfileRepository;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.service.common.CommonService;
+import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.util.EmailTemplates;
+import com.moneyfi.user.util.constants.StringConstants;
+import com.moneyfi.user.util.enums.RaiseRequestStatus;
+import com.moneyfi.user.util.enums.RequestReason;
+import com.moneyfi.user.util.enums.UserRequestType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -83,7 +89,16 @@ public class CommonServiceImpl implements CommonService {
                 .findFirst();
         log.info("checking username: {}", username);
         log.info("checking latest record: {}", latestNotification);
-        latestNotification.ifPresent(userNotificationResponseDto -> pushLatestNotification(username, userNotificationResponseDto));
+        latestNotification.ifPresent(userNotificationResponseDto -> {
+            if(userNotificationResponseDto.getNotificationType().equalsIgnoreCase(UserRequestType.GMAIL_SYNC_COUNT_INCREASE.name())) {
+                try {
+                    userNotificationResponseDto.setDescription(StringConstants.objectMapper.readValue(userNotificationResponseDto.getDescription(), GmailSyncCountJsonDto.class).getReason());
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            pushLatestNotification(username, userNotificationResponseDto);
+        });
     }
 
     private void sendNotificationCountSeamlessly(String username) {

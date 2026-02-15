@@ -20,4 +20,5 @@ public class ExpenseDetailsDto {
     private boolean recurring;
     private String description;
     private boolean isDeleted;
+    private String activeStatus;
 }

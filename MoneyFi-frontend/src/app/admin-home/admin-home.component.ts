@@ -38,6 +38,7 @@ export class AdminHomeComponent implements OnInit {
   accountUnblockRequests = 0;
   nameChangeRequests = 0;
   accountReactivateRequests = 0;
+  otherRequests = 0;
   userDefectRaises = 0;
   userFeedbacks = 0;
   isLogoutLoading = false;
@@ -116,7 +117,8 @@ export class AdminHomeComponent implements OnInit {
         this.deletedUsers = data.deletedUsers;
         this.accountUnblockRequests = data.accountUnblockRequests;
         this.nameChangeRequests = data.nameChangeRequests;
-        this.accountReactivateRequests = data.accountReactivateRequests
+        this.accountReactivateRequests = data.accountReactivateRequests;
+        this.otherRequests = data.otherRequests;
         this.userDefectRaises = data.userDefectRaises;
         this.userFeedbacks = data.userFeedbacks
     });

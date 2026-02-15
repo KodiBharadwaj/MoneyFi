@@ -146,6 +146,7 @@ public class ProfileServiceImpl implements ProfileService {
         userDefectHist.setRequestReason(savedDefect.getRequestReason());
         userDefectHist.setRequestStatus(savedDefect.getRequestStatus());
         userDefectHist.setUpdatedTime(savedDefect.getStartTime());
+        userDefectHist.setUpdatedBy(userId);
         contactUsHistRepository.save(userDefectHist);
 
         if (userDefectRequestDto.getFile() != null && !userDefectRequestDto.getFile().isEmpty()) {
@@ -163,7 +164,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void saveFeedback(UserFeedbackRequestDto feedback) {
+    public void saveFeedback(UserFeedbackRequestDto feedback, Long userId) {
         String rating = feedback.getMessage().substring(0, 1);
         String message = feedback.getMessage().substring(2);
 
@@ -183,6 +184,7 @@ public class ProfileServiceImpl implements ProfileService {
         userFeedbackHist.setRequestReason(savedFeedback.getRequestReason());
         userFeedbackHist.setRequestStatus(savedFeedback.getRequestStatus());
         userFeedbackHist.setUpdatedTime(savedFeedback.getStartTime());
+        userFeedbackHist.setUpdatedBy(userId);
         contactUsHistRepository.save(userFeedbackHist);
         new Thread(() ->
                 emailTemplates.sendUserFeedbackEmailToAdmin(rating, message)

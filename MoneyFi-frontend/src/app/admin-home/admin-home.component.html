@@ -51,7 +51,7 @@
       <br>
       <fieldset class="tile-group">
         <legend class="group-title">User Requests Summary</legend>
-        <div class="tiles tiles-3">
+        <div class="tiles tiles-4">
           <div class="tile" [routerLink]="['/admin/requests', 'Unblock']">
             <h3>Account Unblock Requests</h3>
             <h1>{{ accountUnblockRequests }}</h1>
@@ -63,6 +63,10 @@
           <div class="tile" [routerLink]="['/admin/requests', 'Retrieve']">
             <h3>Account Reactivate Requests</h3>
             <h1>{{ accountReactivateRequests }}</h1>
+          </div>
+          <div class="tile" [routerLink]="['/admin/requests', 'Other']">
+            <h3>Other Requests</h3>
+            <h1>{{ otherRequests }}</h1>
           </div>
         </div>
       </fieldset>

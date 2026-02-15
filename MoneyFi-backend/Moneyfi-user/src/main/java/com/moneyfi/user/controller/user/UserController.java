@@ -1,11 +1,13 @@
 package com.moneyfi.user.controller.user;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.config.JwtService;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.model.ProfileModel;
 import com.moneyfi.user.service.common.CommonService;
 import com.moneyfi.user.service.common.UserCommonService;
 import com.moneyfi.user.service.common.dto.request.AccountBlockOrDeleteRequestDto;
+import com.moneyfi.user.service.common.dto.request.GmailSyncCountIncreaseRequestDto;
 import com.moneyfi.user.service.common.dto.request.UserDefectRequestDto;
 import com.moneyfi.user.service.common.dto.request.UserFeedbackRequestDto;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
@@ -14,6 +16,7 @@ import com.moneyfi.user.service.profile.dto.ProfileDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -78,8 +81,10 @@ public class UserController {
 
     @Operation(summary = "Api to save the user feedback details")
     @PostMapping("/submit-feedback")
-    public void saveUserFeedback(@RequestBody @Valid UserFeedbackRequestDto feedback){
-        profileService.saveFeedback(feedback);
+    public void saveUserFeedback(@RequestHeader("Authorization") String authHeader,
+                                 @RequestBody @Valid UserFeedbackRequestDto feedback){
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        profileService.saveFeedback(feedback, userId);
     }
 
     @Operation(summary = "Api to send user's account statement as email")
@@ -169,5 +174,14 @@ public class UserController {
                                                                     @RequestBody AccountBlockOrDeleteRequestDto request) {
         String username = jwtService.extractUsernameFromToken(authHeader.substring(7));
         return userCommonService.blockOrDeleteAccountByUserRequest(username, request);
+    }
+
+    @Operation(summary = "Api to request Admin to increase the gmail sync count")
+    @PostMapping(value = "/user-request/gmail-sync-request", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public void userRequestToIncreaseGmailSyncDailyCount(@RequestHeader("Authorization") String authHeader,
+                                                         @RequestPart("data") @Valid GmailSyncCountIncreaseRequestDto request,
+                                                         @RequestPart(value = "image", required = false) MultipartFile image) throws JsonProcessingException {
+        String username = jwtService.extractUsernameFromToken(authHeader.substring(7));
+        userCommonService.userRequestToIncreaseGmailSyncDailyCount(request, image, username);
     }
 }

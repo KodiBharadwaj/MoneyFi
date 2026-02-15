@@ -13,4 +13,6 @@ public class UserRequestsApprovalDto {
     private String requestStatus;
     private String declineReason;
     private String approveStatus;
+
+    private int gmailSyncRequestCount;
 }

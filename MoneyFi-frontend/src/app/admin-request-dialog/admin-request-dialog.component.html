@@ -4,6 +4,15 @@
   <p><strong>Username:</strong> {{ data.username }}</p>
   <p><strong>Description:</strong> {{ data.description }}</p>
 
+  <!-- Extra input only when requestType is 'other' -->
+  <mat-form-field 
+    *ngIf="data.requestType === 'GMAIL_SYNC_REQUEST_TYPE'" 
+    appearance="outline" 
+    class="full-width">
+    <mat-label>Enter Count</mat-label>
+    <input matInput type="number" [(ngModel)]="adminCount" />
+  </mat-form-field>
+
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>Enter Reference Number</mat-label>
     <input matInput [(ngModel)]="enteredRefNumber" />

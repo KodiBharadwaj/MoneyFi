@@ -9,6 +9,7 @@ import { ToastrService } from 'ngx-toastr';
 import { GmailSyncCalendarComponent } from '../gmail-sync-calendar/gmail-sync-calendar.component';
 import { environment } from '../../environments/environment';
 import { GmailSyncDialogComponent } from '../gmail-sync-dialog/gmail-sync-dialog.component';
+import { FormsModule } from '@angular/forms';
 
 declare const google: any;
 
@@ -20,7 +21,7 @@ interface GmailSyncHistoryResponse {
 @Component({
   selector: 'app-gmail-sync-summary',
   standalone: true,
-  imports: [CommonModule, MatProgressSpinnerModule, GmailSyncCalendarComponent],
+  imports: [CommonModule, MatProgressSpinnerModule, GmailSyncCalendarComponent, FormsModule],
   templateUrl: './gmail-sync-summary.component.html',
   styleUrl: './gmail-sync-summary.component.css'
 })
@@ -43,6 +44,7 @@ export class GmailSyncSummaryComponent implements OnInit {
   
   gmailSyncEnabled = false;
   isGmailConnected = false;
+  reConsent = false;
 
   ngOnInit(): void {
     this.checkGmailSyncStatus();
@@ -119,7 +121,13 @@ export class GmailSyncSummaryComponent implements OnInit {
       this.startSync();
     } else {
       this.startGoogleConsent();
+      this.startSync();
     }
+  }
+
+  gmailSyncReConsent() {
+    this.startGoogleConsent();
+    this.reConsent = true;
   }
 
   startGoogleConsent() {
@@ -162,12 +170,105 @@ export class GmailSyncSummaryComponent implements OnInit {
         next: () => {
           console.log('Gmail sync enabled');
           this.isGmailConnected = true;
-          this.startSync();
+          if(this.reConsent) this.toastr.success('Reconsent Successful! Please sync now');
         },
         error: (err) => {
           console.error('Failed to enable Gmail sync', err);
-          this.toastr.error('Failed to enable Gmail sync');
+          try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            this.toastr.error(errorObj.message);
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+            this.toastr.error('Failed to sync Gmail Transactions');
+          }
         }
       });
   }
+
+  showGmailSyncRequestModal = false;
+  isSubmitting = false;
+
+  gmailSyncRequest = {
+    count: null,
+    reason: ''
+  };
+
+  selectedImage: File | null = null;
+
+  openGmailSyncRequestModal() {
+    this.showGmailSyncRequestModal = true;
+  }
+
+  closeGmailSyncRequestModal() {
+    this.showGmailSyncRequestModal = false;
+    this.gmailSyncRequest = { count: null, reason: '' };
+    this.selectedImage = null;
+  }
+
+  onImageSelected(event: any) {
+    if (event.target.files && event.target.files.length > 0) {
+      this.selectedImage = event.target.files[0];
+    }
+  }
+
+  submitGmailSyncRequest() {
+    if (!this.gmailSyncRequest.count || !this.gmailSyncRequest.reason) return;
+
+    this.isSubmitting = true;
+
+    const formData = new FormData();
+
+    const data = {
+      count: this.gmailSyncRequest.count,
+      reason: this.gmailSyncRequest.reason
+    };
+
+    formData.append(
+      'data',
+      new Blob([JSON.stringify(data)], { type: 'application/json' })
+    );
+
+    if (this.selectedImage) {
+      formData.append('image', this.selectedImage);
+    }
+
+    fetch(`${this.baseUrl}/api/v1/user-service/user/user-request/gmail-sync-request`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + sessionStorage.getItem('moneyfi.auth')
+      },
+      body: formData
+    })
+      .then(async (response) => {
+        this.isSubmitting = false;
+
+        if (!response.ok) {
+          // Handle backend error (400, 401, 500, etc.)
+          let errorMessage = 'Failed to submit request';
+
+          try {
+            const errorObj = await response.json();
+            errorMessage = errorObj.message || errorMessage;
+          } catch (e) {
+            // If backend didn't return JSON
+            errorMessage = `Error: ${response.status}`;
+          }
+
+          this.toastr.error(errorMessage);
+          return;
+        }
+
+        // Success
+        this.closeGmailSyncRequestModal();
+        this.toastr.success('Request sent to admin successfully!');
+      })
+      .catch((err) => {
+        this.isSubmitting = false;
+
+        // Only network-level errors come here
+        console.error('Network error:', err);
+        this.toastr.error('Network error. Please check your connection.');
+      });
+  }
+
 }

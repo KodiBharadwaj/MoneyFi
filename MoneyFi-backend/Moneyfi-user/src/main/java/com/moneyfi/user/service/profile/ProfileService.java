@@ -17,7 +17,7 @@ public interface ProfileService {
 
     void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username);
 
-    void saveFeedback(UserFeedbackRequestDto feedback);
+    void saveFeedback(UserFeedbackRequestDto feedback, Long userId);
 
     void parseUserProfileDataFromExcel(MultipartFile excel, Long userId);
 

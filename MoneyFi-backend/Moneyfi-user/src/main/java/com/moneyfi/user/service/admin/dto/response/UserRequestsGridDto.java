@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserRequestsGridDto {
+    private Long requestId;
     private String username;
     private String name;
     private String requestType;

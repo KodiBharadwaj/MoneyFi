@@ -43,7 +43,8 @@ export class AdminReasonsComponent implements OnInit {
     { code: 5, title: 'Delete Account Reasons' },
     { code: 6, title: 'Account Retrieval Reasons' },
     { code: 7, title: 'Phone Number Change Reasons' },
-    { code: 8, title: 'Decline User Request Reasons' }
+    { code: 8, title: 'Decline User Request Reasons' },
+    { code: 9, title: 'Gmail Sync Count Increase Request' }
   ];
 
   constructor(private http: HttpClient, private dialog: MatDialog, private toastr: ToastrService, private route: ActivatedRoute, private router:Router) {}
