@@ -2022,7 +2022,7 @@ BEGIN
 	INNER JOIN user_auth_table uat WITH (NOLOCK) ON	uat.username = cntUs.email
 	INNER JOIN user_profile_details_table updt WITH (NOLOCK) ON updt.user_id = uat.id
 	WHERE (
-			@requestReason = 'All' OR cntUs.request_reason IN (SELECT value FROM STRING_SPLIT(@requestReason, ','))
+			@requestReason = 'All' OR @requestReason = 'All' OR (',' + @requestReason + ',' LIKE '%,' + cntUs.request_reason + ',%')
 		)
 		AND cuth.request_reason IN ('NAME_CHANGE_REQUEST', 'ACCOUNT_UNBLOCK_REQUEST', 'ACCOUNT_NOT_DELETE_REQUEST', 'GMAIL_SYNC_REQUEST_TYPE')
 		AND cntUs.is_verified = 0
