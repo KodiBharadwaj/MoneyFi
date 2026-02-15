@@ -16,6 +16,7 @@ public class AdminOverviewPageDto {
     private Long accountUnblockRequests;
     private Long nameChangeRequests;
     private Long accountReactivateRequests;
+    private Long otherRequests;
 
     private Long userDefectRaises;
     private Long userFeedbacks;

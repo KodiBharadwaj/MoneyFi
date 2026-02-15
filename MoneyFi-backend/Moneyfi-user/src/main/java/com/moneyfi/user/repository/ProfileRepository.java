@@ -103,4 +103,7 @@ public interface ProfileRepository extends JpaRepository<ProfileModel, Long> {
     @Modifying
     @Query(nativeQuery = true, value = "UPDATE user_gmail_auth set count = :gmailSyncRequestCount WHERE user_id = :userId")
     int updateGmailSyncCountByUserRequest(@Param(value = "userId") Long userId, @Param(value = "gmailSyncRequestCount") int gmailSyncRequestCount);
+
+    @Query(nativeQuery = true, value = "SELECT count FROM user_gmail_auth WHERE user_id = :userId")
+    Integer getUserGmailAuthSyncCurrentCount(Long userId);
 }

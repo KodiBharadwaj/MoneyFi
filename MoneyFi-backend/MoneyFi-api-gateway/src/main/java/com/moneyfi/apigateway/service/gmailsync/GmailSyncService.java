@@ -47,7 +47,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional(rollbackOn = Exception.class)
 public class GmailSyncService {
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
@@ -62,6 +61,7 @@ public class GmailSyncService {
     private final CommonServiceRepository commonServiceRepository;
     private final GmailSyncHistoryRepository gmailSyncHistoryRepository;
 
+    @Transactional(rollbackOn = Exception.class)
     public void enableSync(String code, String username, Long userId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -144,6 +144,7 @@ public class GmailSyncService {
                 .toList();
     }
 
+    @Transactional(rollbackOn = Exception.class)
     public Map<Integer, List<ParsedTransaction>> startGmailSync(Long userId, LocalDate date) throws IOException, URISyntaxException {
         if (date.isAfter(LocalDate.now())) {
             throw new ScenarioNotPossibleException("Future date sync is not allowed");

@@ -37,9 +37,98 @@
           </svg>
           Email Sync Enabled
         </button>
+        <button
+          *ngIf="gmailSyncEnabled"
+          class="btn btn-sync-req"
+          (click)="openGmailSyncRequestModal()"
+        >
+          Request Sync Limit
+        </button>
       </div>
     </div>
   </div>
+
+
+  <!-- Gmail Sync Increase Request Modal -->
+  <div *ngIf="showGmailSyncRequestModal" class="modal-overlay">
+    <div class="modal-container">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h3 class="modal-title">
+          📩 Request Gmail Sync Limit Increase
+        </h3>
+        <button class="close-btn" (click)="closeGmailSyncRequestModal()">✕</button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+
+        <!-- Info Card -->
+        <div class="info-card">
+          <p>
+            Current daily sync limit: <strong>3 times/day</strong>.  
+            Request admin approval to increase your Gmail sync count only for today.
+          </p>
+        </div>
+
+        <!-- Count Input -->
+        <div class="form-group">
+          <label class="form-label">Requested Sync Count *</label>
+          <input
+            type="number"
+            min="1"
+            class="form-input"
+            [(ngModel)]="gmailSyncRequest.count"
+            placeholder="Enter desired daily sync count (e.g., 10)"
+          />
+        </div>
+
+        <!-- Reason Input -->
+        <div class="form-group">
+          <label class="form-label">Reason *</label>
+          <textarea
+            rows="4"
+            class="form-textarea"
+            [(ngModel)]="gmailSyncRequest.reason"
+            placeholder="Explain why you need higher Gmail sync limit..."
+          ></textarea>
+        </div>
+
+        <!-- Image Upload -->
+        <div class="form-group">
+          <label class="form-label">Supporting Screenshot (Optional)</label>
+          <input
+            type="file"
+            accept="image/*"
+            (change)="onImageSelected($event)"
+            class="form-input"
+          />
+          <small class="hint-text">
+            Upload proof if needed (usage screenshot, business requirement, etc.)
+          </small>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeGmailSyncRequestModal()">
+          Cancel
+        </button>
+
+        <button
+          class="btn-submit"
+          [disabled]="!gmailSyncRequest.count || !gmailSyncRequest.reason || isSubmitting"
+          (click)="submitGmailSyncRequest()"
+        >
+          {{ isSubmitting ? 'Submitting...' : 'Submit Request' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
 
   <!-- Main Content Section -->
   <div class="sync-body">

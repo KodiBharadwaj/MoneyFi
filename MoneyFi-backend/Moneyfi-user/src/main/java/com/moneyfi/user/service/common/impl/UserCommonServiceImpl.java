@@ -602,7 +602,8 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Override
     @Transactional(rollbackOn = Exception.class)
     public void userRequestToIncreaseGmailSyncDailyCount(GmailSyncCountIncreaseRequestDto request, MultipartFile image, String username) throws JsonProcessingException {
-        UserValidations.validateUserGmailSyncCountIncreaseRequest(request);
+        UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
+        UserValidations.validateUserGmailSyncCountIncreaseRequest(request, profileRepository, user.getId());
         ContactUs existingRequest = contactUsRepository.findByEmail(username).stream()
                 .filter(gmailSyncRequest -> gmailSyncRequest.getRequestReason().equalsIgnoreCase(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name()) && gmailSyncRequest.getStartTime().toLocalDate().equals(LocalDate.now()))
                 .findFirst().orElse(null);
@@ -610,7 +611,6 @@ public class UserCommonServiceImpl implements UserCommonService {
             throw new ScenarioNotPossibleException("Request already " + existingRequest.getRequestStatus().substring(0,1).toUpperCase() + existingRequest.getRequestStatus().substring(1).toLowerCase());
         }
 
-        UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
         ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
         String referenceNumber = StringConstants.generateReferenceNumberForUserToSendEmail("GS", userProfile, username);
 
