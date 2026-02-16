@@ -9,8 +9,6 @@ import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.util.EmailTemplates;
 import com.moneyfi.user.util.constants.StringConstants;
-import com.moneyfi.user.util.enums.RaiseRequestStatus;
-import com.moneyfi.user.util.enums.RequestReason;
 import com.moneyfi.user.util.enums.UserRequestType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

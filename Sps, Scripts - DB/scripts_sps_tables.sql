@@ -2093,12 +2093,17 @@ BEGIN
 		AND snt.is_active = 1
 		AND (
             (@status = 'ACTIVE'
-             AND CAST(snt.schedule_to AS DATE) >= CAST(GETDATE() AS DATE))
+             AND snt.schedule_to >= GETDATE())
          OR (@status = 'EXPIRED'
-             AND CAST(snt.schedule_to AS DATE) < CAST(GETDATE() AS DATE))
+             AND snt.schedule_to < GETDATE())
           )
-	ORDER BY unt.is_read
-		,snt.created_date DESC
+	ORDER BY 
+	-- Apply only for ACTIVE
+    CASE WHEN @status = 'ACTIVE' THEN unt.is_read END ASC,
+    CASE WHEN @status = 'ACTIVE' THEN snt.created_date END DESC,
+
+    -- Apply only for EXPIRED
+    CASE WHEN @status = 'EXPIRED' THEN snt.created_date END DESC;
 END
 GO
 /****** Object:  StoredProcedure [dbo].[updateGmailProcessedAsVerified]    Script Date: 15-02-2026 18:17:27 ******/

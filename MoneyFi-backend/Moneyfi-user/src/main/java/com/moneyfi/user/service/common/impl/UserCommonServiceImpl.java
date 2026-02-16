@@ -442,8 +442,10 @@ public class UserCommonServiceImpl implements UserCommonService {
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
                         }
+                        String referenceNumber = contactUsRepository.findById(gmailSyncCountJsonDto.getContactUsId()).get().getReferenceNumber();
+                        if(referenceNumber.startsWith("COM_")) referenceNumber = referenceNumber.substring(4);
                         if (notification.getRole().equalsIgnoreCase(UserRoles.USER.name())) {
-                            notification.setDescription("Requested count: " + gmailSyncCountJsonDto.getCount() + " | " + "Requested Reason: " + gmailSyncCountJsonDto.getReason());
+                            notification.setDescription("Requested count: " + gmailSyncCountJsonDto.getCount() + " | " + "Requested Reason: " + gmailSyncCountJsonDto.getReason() + " | " + "Reference Number: " + referenceNumber);
                         } else if (notification.getRole().equalsIgnoreCase(UserRoles.ADMIN.name())) {
                             GmailSyncCountJsonDto parentGmailSyncCountJsonDto = null;
                             try {
@@ -451,7 +453,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                             } catch (JsonProcessingException e) {
                                 throw new RuntimeException(e);
                             }
-                            notification.setDescription("Requested count: " + parentGmailSyncCountJsonDto.getCount() + " | " + "Approved Count: " + gmailSyncCountJsonDto.getCount() + " | " + "Remarks: " + gmailSyncCountJsonDto.getReason());
+                            notification.setDescription("Requested count: " + parentGmailSyncCountJsonDto.getCount() + " | " + "Approved Count: " + gmailSyncCountJsonDto.getCount() + " | " + "Remarks: " + gmailSyncCountJsonDto.getReason() + " | " + "Reference Number: " + referenceNumber);
                         }
                     }
                 }).toList();

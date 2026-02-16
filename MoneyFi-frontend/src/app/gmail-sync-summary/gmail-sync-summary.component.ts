@@ -1,10 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { NgZone } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { GmailSyncCalendarComponent } from '../gmail-sync-calendar/gmail-sync-calendar.component';
 import { environment } from '../../environments/environment';
@@ -44,11 +42,11 @@ export class GmailSyncSummaryComponent implements OnInit {
   
   gmailSyncEnabled = false;
   isGmailConnected = false;
-  reConsent = false;
 
   ngOnInit(): void {
     this.checkGmailSyncStatus();
     this.loadHistory();
+    this.fetchTransactions(new Date);
   }
 
   loadHistory() {
@@ -121,13 +119,11 @@ export class GmailSyncSummaryComponent implements OnInit {
       this.startSync();
     } else {
       this.startGoogleConsent();
-      this.startSync();
     }
   }
 
   gmailSyncReConsent() {
     this.startGoogleConsent();
-    this.reConsent = true;
   }
 
   startGoogleConsent() {
@@ -170,7 +166,7 @@ export class GmailSyncSummaryComponent implements OnInit {
         next: () => {
           console.log('Gmail sync enabled');
           this.isGmailConnected = true;
-          if(this.reConsent) this.toastr.success('Reconsent Successful! Please sync now');
+          this.startSync();
         },
         error: (err) => {
           console.error('Failed to enable Gmail sync', err);
