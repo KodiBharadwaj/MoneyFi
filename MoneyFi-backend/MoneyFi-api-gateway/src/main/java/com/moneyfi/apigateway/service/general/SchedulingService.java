@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.service.common;
+package com.moneyfi.apigateway.service.general;
 
 import com.moneyfi.apigateway.dto.ContactUs;
 import com.moneyfi.apigateway.dto.ContactUsHist;
