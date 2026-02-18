@@ -35,8 +35,9 @@ public class GmailProcessedMessageEntity {
 
     @PrePersist
     public void init() {
-        this.processedAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        LocalDateTime currentTime = LocalDateTime.now();
+        this.processedAt = currentTime;
+        this.updatedAt = currentTime;
         this.isVerified = false;
     }
 }

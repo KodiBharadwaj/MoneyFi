@@ -26,10 +26,11 @@ public class ReasonDetails {
 
     @PrePersist
     public void prePersist(){
+        LocalDateTime currentTime = LocalDateTime.now();
         if(this.isDeleted == null){
             isDeleted = false;
         }
-        this.createdTime = LocalDateTime.now();
-        this.updatedTime = LocalDateTime.now();
+        this.createdTime = currentTime;
+        this.updatedTime = currentTime;
     }
 }

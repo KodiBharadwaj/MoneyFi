@@ -316,7 +316,7 @@ public class IncomeServiceImpl implements IncomeService {
     public boolean deleteIncomeById(Long id, Long userId) {
         try {
             IncomeModel income = incomeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(INCOME_NOT_FOUND));
-            LocalDateTime currentTime = LocalDateTime.now();;
+            LocalDateTime currentTime = LocalDateTime.now();
             income.setUpdatedAt(currentTime);
             income.setDeleted(true);
             saveIncomeDeletedDetails(id, currentTime);

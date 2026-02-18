@@ -32,8 +32,9 @@ public class ScheduleNotification {
 
     @PrePersist
     public void init() {
-        this.createdDate = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        LocalDateTime currentTime = LocalDateTime.now();
+        this.createdDate = currentTime;
+        this.updatedAt = currentTime;
         this.setActive(true);
         this.setCancelled(false);
     }
