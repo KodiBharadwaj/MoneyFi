@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.moneyfi.user.util.constants.StringConstants.DAILY_QUOTE_EXTERNAL_API_URL;
+import static com.moneyfi.user.util.constants.StringUrls.DAILY_QUOTE_EXTERNAL_API_URL;
 
 @RestController
 @RequestMapping("/api/v1/user-service/external-api")

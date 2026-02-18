@@ -21,6 +21,7 @@ import com.moneyfi.apigateway.util.enums.TransactionServiceType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -61,14 +62,17 @@ public class GmailSyncService {
 
     @Transactional(rollbackOn = Exception.class)
     public void enableSync(String code, String username, Long userId) {
+        if (StringUtils.isBlank(code)) {
+            throw new ScenarioNotPossibleException(GOOGLE_AUTHORIZATION_CODE_NULL_MESSAGE);
+        }
         Map<String, Object> tokenResponse = googleOAuthEndPointDealerService.exchangeAuthorizationCodeAndGetAccessRefreshTokens(code);
         String accessToken = (String) tokenResponse.get(ACCESS_TOKEN);
         String refreshToken = (String) tokenResponse.get(REFRESH_TOKEN);
         Number expiresIn = (Number) tokenResponse.get(EXPIRES_IN);
 
-        googleOAuthEndPointDealerService.securityValidationCheckToVerifyToken("GMAIL_SYNC", accessToken);
-        Map<String, Object> userInfo = googleOAuthEndPointDealerService.getUserInformationFromAccessToken(accessToken);
+        googleOAuthEndPointDealerService.securityValidationCheckToVerifyToken(GMAIL_SYNC, accessToken);
 
+        Map<String, Object> userInfo = googleOAuthEndPointDealerService.getUserInformationFromAccessToken(accessToken);
         String gmailFromCode = ((String) userInfo.get(STRING_EMAIL)).trim();
 
         if (!username.trim().equalsIgnoreCase(gmailFromCode)) {

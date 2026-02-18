@@ -10,7 +10,6 @@ import com.moneyfi.apigateway.exceptions.CustomAuthenticationFailedException;
 import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.apigateway.model.gmailsync.GmailAuth;
 import com.moneyfi.apigateway.repository.gmailsync.GmailSyncRepository;
-import com.moneyfi.apigateway.util.CryptoUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -30,6 +29,7 @@ import java.util.Date;
 import java.util.Map;
 
 import static com.moneyfi.apigateway.util.constants.StringConstants.*;
+import static com.moneyfi.apigateway.util.constants.StringUrls.*;
 
 @Component
 @RequiredArgsConstructor
@@ -44,6 +44,10 @@ public class GoogleOAuthEndPointDealerService {
     private final CryptoUtil cryptoUtil;
 
     private static final String GMAIL_SYNC_NOT_ENABLED = "Gmail sync not enabled";
+    private static final String GMAIL_ACCESS_TOKEN_FAILED = "Failed to obtain access token from Google";
+    private static final String GMAIL_INVALID_SCOPE = "Invalid scope. Please try again";
+    private static final String GMAIL_PERMISSION_DENIED_MESSAGE = "Gmail permission not granted. Please re-consent again";
+    private static final String GOOGLE_USER_INFO_FETCH_FAILED = "Failed to fetch Google user info";
 
 
     public Map<String, Object> exchangeAuthorizationCodeAndGetAccessRefreshTokens(String code) {
@@ -61,33 +65,32 @@ public class GoogleOAuthEndPointDealerService {
         Map<String, Object> tokenResponse = externalRestTemplateForOAuth.postForObject(GOOGLE_TOKEN_END_POINT_URL, request, Map.class);
 
         if (tokenResponse == null || !tokenResponse.containsKey(ACCESS_TOKEN)) {
-            throw new CustomAuthenticationFailedException("Failed to obtain access token from Google");
+            throw new CustomAuthenticationFailedException(GMAIL_ACCESS_TOKEN_FAILED);
         }
         return tokenResponse;
     }
 
-    public Map<String, Object> securityValidationCheckToVerifyToken(String type, String accessToken) {
-        Map<String, Object> tokenInfo = externalRestTemplateForOAuth.getForObject("https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={token}", Map.class, accessToken);
+    public void securityValidationCheckToVerifyToken(String type, String accessToken) {
+        Map<String, Object> tokenInfo = externalRestTemplateForOAuth.getForObject(GOOGLE_TOKEN_EXTRA_SECURITY_CHECK_URL, Map.class, accessToken);
 
         String scope = tokenInfo != null ? (String) tokenInfo.get(SCOPE) : null;
         if (scope == null) {
-            throw new ScenarioNotPossibleException("Invalid scope. Please try again");
+            throw new ScenarioNotPossibleException(GMAIL_INVALID_SCOPE);
         } else {
-            if ("GMAIL_SYNC".equalsIgnoreCase(type) && !scope.contains("https://www.googleapis.com/auth/gmail.readonly")) {
-                throw new CustomAuthenticationFailedException("Gmail permission not granted. Please re-consent again");
+            if (GMAIL_SYNC.equalsIgnoreCase(type) && !scope.contains(GOOGLE_GMAIL_READONLY_CHECK_URL)) {
+                throw new CustomAuthenticationFailedException(GMAIL_PERMISSION_DENIED_MESSAGE);
             }
         }
-        return tokenInfo;
     }
 
     public Map<String, Object> getUserInformationFromAccessToken(String accessToken) {
         HttpHeaders authHeaders = new HttpHeaders();
         authHeaders.setBearerAuth(accessToken);
         HttpEntity<Void> authRequest = new HttpEntity<>(authHeaders);
-        Map<String, Object> userInfo = externalRestTemplateForOAuth.exchange("https://openidconnect.googleapis.com/v1/userinfo", HttpMethod.GET, authRequest, Map.class).getBody();
+        Map<String, Object> userInfo = externalRestTemplateForOAuth.exchange(GOOGLE_USER_INFO_GET_URL, HttpMethod.GET, authRequest, Map.class).getBody();
 
         if (userInfo == null || userInfo.get(STRING_EMAIL) == null) {
-            throw new CustomAuthenticationFailedException("Failed to fetch Google user info");
+            throw new CustomAuthenticationFailedException(GOOGLE_USER_INFO_FETCH_FAILED);
         }
         return userInfo;
     }

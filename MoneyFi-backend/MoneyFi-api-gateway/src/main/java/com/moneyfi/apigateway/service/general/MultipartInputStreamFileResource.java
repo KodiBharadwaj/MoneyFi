@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.util;
+package com.moneyfi.apigateway.service.general;
 
 import org.springframework.core.io.InputStreamResource;
 import java.io.InputStream;

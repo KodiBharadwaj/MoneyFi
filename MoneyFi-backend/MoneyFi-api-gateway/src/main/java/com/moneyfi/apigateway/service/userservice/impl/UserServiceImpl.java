@@ -14,13 +14,13 @@ import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.general.GoogleOAuthEndPointDealerService;
-import com.moneyfi.apigateway.util.MultipartInputStreamFileResource;
+import com.moneyfi.apigateway.service.general.MultipartInputStreamFileResource;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
 import com.moneyfi.apigateway.service.userservice.dto.request.*;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
-import com.moneyfi.apigateway.util.EmailTemplates;
+import com.moneyfi.apigateway.service.general.email.EmailTemplates;
 import com.moneyfi.apigateway.util.enums.*;
 import com.moneyfi.apigateway.validator.UserValidations;
 import jakarta.transaction.Transactional;
@@ -40,12 +40,12 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static com.moneyfi.apigateway.util.constants.StringConstants.*;
+import static com.moneyfi.apigateway.util.constants.StringUrls.USER_SERVICE_OPEN_URL;
 
 @Service
 @Slf4j
@@ -220,7 +220,7 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<Map<String, String>> loginViaGoogleOAuth(Map<String, String> googleAuthToken) {
         Map<String, String> userRoleToken = new HashMap<>();
         if (googleAuthToken == null || googleAuthToken.isEmpty()) {
-            userRoleToken.put(ERROR, "Google Authorization code cannot be null");
+            userRoleToken.put(ERROR, GOOGLE_AUTHORIZATION_CODE_NULL_MESSAGE);
             return ResponseEntity.badRequest().body(userRoleToken);
         }
         try {

@@ -21,7 +21,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static com.moneyfi.wealthcore.utils.StringConstants.*;
+import static com.moneyfi.wealthcore.utils.constants.StringConstants.*;
 
 @Service
 public class BudgetServiceImpl implements BudgetService {

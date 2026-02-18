@@ -15,7 +15,7 @@ import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.auth.SessionTokenRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
-import com.moneyfi.apigateway.util.EmailTemplates;
+import com.moneyfi.apigateway.service.general.email.EmailTemplates;
 import com.moneyfi.apigateway.util.constants.StringConstants;
 import com.moneyfi.apigateway.util.enums.ReasonEnum;
 import com.moneyfi.apigateway.util.enums.UserRoles;

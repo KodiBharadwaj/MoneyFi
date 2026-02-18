@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.moneyfi.wealthcore.utils.StringConstants.USER_ID;
+import static com.moneyfi.wealthcore.utils.constants.StringConstants.USER_ID;
 
 @Repository
 public class WealthCoreRepositoryImpl implements WealthCoreRepository {

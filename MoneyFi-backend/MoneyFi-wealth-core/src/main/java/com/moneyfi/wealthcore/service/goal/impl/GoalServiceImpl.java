@@ -10,7 +10,7 @@ import com.moneyfi.wealthcore.service.goal.GoalService;
 import com.moneyfi.wealthcore.service.goal.dto.response.ExpenseModelDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalDetailsDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalTileDetailsDto;
-import com.moneyfi.wealthcore.utils.StringConstants;
+import com.moneyfi.wealthcore.utils.constants.StringConstants;
 import com.moneyfi.wealthcore.utils.enums.CategoryType;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.moneyfi.wealthcore.utils.StringConstants.*;
+import static com.moneyfi.wealthcore.utils.constants.StringConstants.*;
+import static com.moneyfi.wealthcore.utils.constants.StringUrls.EUREKA_TRANSACTION_SERVICE_URL;
 
 
 @Service
@@ -172,7 +173,7 @@ public class GoalServiceImpl implements GoalService {
         headers.set("Authorization", "Bearer " + token);
         HttpEntity<ExpenseModelDto> requestEntity = new HttpEntity<>(expenseModelDto, headers);
         ResponseEntity<ExpenseModelDto> response = restTemplate.exchange(
-                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/expense/saveExpense",
+                EUREKA_TRANSACTION_SERVICE_URL + "/expense/saveExpense",
                 HttpMethod.POST,
                 requestEntity,
                 ExpenseModelDto.class
@@ -194,7 +195,7 @@ public class GoalServiceImpl implements GoalService {
                 .collect(Collectors.toList());
         HttpEntity<List<Long>> requestEntity = new HttpEntity<>(expenseIdsList, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
-                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/expense",
+                EUREKA_TRANSACTION_SERVICE_URL + "/expense",
                 HttpMethod.DELETE,
                 requestEntity,
                 Void.class

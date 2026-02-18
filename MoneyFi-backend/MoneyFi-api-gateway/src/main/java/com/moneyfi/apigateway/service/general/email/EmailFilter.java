@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.util;
+package com.moneyfi.apigateway.service.general.email;
 
 import com.moneyfi.apigateway.exceptions.CustomInternalServerErrorException;
 import com.moneyfi.apigateway.util.constants.StringConstants;

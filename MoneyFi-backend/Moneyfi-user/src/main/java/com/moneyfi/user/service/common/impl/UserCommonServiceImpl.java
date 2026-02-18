@@ -22,7 +22,6 @@ import com.moneyfi.user.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserRequestStatusDto;
 import com.moneyfi.user.util.EmailTemplates;
-import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.UserValidations;
 import jakarta.transaction.Transactional;
@@ -47,6 +46,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.moneyfi.user.util.constants.StringConstants.*;
+import static com.moneyfi.user.util.constants.StringUrls.DAILY_QUOTE_EXTERNAL_API_URL;
 
 @Service
 @Slf4j

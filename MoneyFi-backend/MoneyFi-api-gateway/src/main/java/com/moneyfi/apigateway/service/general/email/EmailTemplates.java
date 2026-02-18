@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.util;
+package com.moneyfi.apigateway.service.general.email;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
