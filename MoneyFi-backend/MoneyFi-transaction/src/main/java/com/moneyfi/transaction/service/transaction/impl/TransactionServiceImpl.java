@@ -149,7 +149,7 @@ public class TransactionServiceImpl implements TransactionService {
                                 .category(incomeRepository.getCategoryNameById(income.getCategoryId()))
                                 .recurring(income.isRecurring())
                                 .description(income.getDescription())
-                                .activeStatus(income.isDeleted() ? ActiveStatus.DELETED.name() : ActiveStatus.ACTIVE.name())
+                                .activeStatus(income.isDeleted() ? ActiveStatus.DELETED.name() : income.getCreatedAt().equals(income.getUpdatedAt()) ? ActiveStatus.ACTIVE.name() : ActiveStatus.EDITED.name())
                                 .build()
                         )
                         .toList(),
@@ -163,7 +163,7 @@ public class TransactionServiceImpl implements TransactionService {
                                 .category(incomeRepository.getCategoryNameById(expense.getCategoryId()))
                                 .recurring(expense.isRecurring())
                                 .description(expense.getDescription())
-                                .activeStatus(expense.isDeleted() ? ActiveStatus.DELETED.name() : ActiveStatus.ACTIVE.name())
+                                .activeStatus(expense.isDeleted() ? ActiveStatus.DELETED.name() : expense.getCreatedAt().equals(expense.getUpdatedAt()) ? ActiveStatus.ACTIVE.name() : ActiveStatus.EDITED.name())
                                 .build()
                         )
                         .toList()

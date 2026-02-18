@@ -33,8 +33,9 @@ public class IncomeModel {
 
     @PrePersist
     public void initFunction() {
+        LocalDateTime currentTime = LocalDateTime.now();
         this.isDeleted = false;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = currentTime;
+        this.updatedAt = currentTime;
     }
 }

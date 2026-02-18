@@ -85,19 +85,85 @@ export class GmailSyncSummaryComponent implements OnInit {
     const day = String(date.getDate()).padStart(2, '0');
     const formattedDate = `${year}-${month}-${day}`;
 
+    const dummyResponse = {
+      incomes: [
+        {
+          id: 1,
+          amount: 5000,
+          source: 'Salary',
+          date: new Date('2026-02-18'),
+          category: 'Monthly Salary',
+          recurring: true,
+          description: 'February Salary',
+          activeStatus: 'ACTIVE'
+        },
+        {
+          id: 2,
+          amount: 1200,
+          source: 'Freelance',
+          date: new Date('2026-02-18'),
+          category: 'Side Income',
+          recurring: false,
+          description: 'Freelance project payment',
+          activeStatus: 'EDITED'
+        }
+      ],
+      expenses: [
+        {
+          id: 101,
+          category: 'Food',
+          amount: 350,
+          date: new Date('2026-02-18'),
+          recurring: false,
+          description: 'Lunch expense',
+          isDeleted: false,
+          activeStatus: 'DELETED'
+        },
+        {
+          id: 102,
+          category: 'Transport',
+          amount: 120,
+          date: new Date('2026-02-18'),
+          recurring: false,
+          description: 'Cab fare',
+          isDeleted: false,
+          activeStatus: 'ACTIVE'
+        }
+      ]
+    };
+
     this.httpClient
       .get<any>(
         `${this.baseUrl}/api/v1/transaction/gmail-sync-transactions?date=${formattedDate}`
       )
       .subscribe({
         next: res => {
-          this.transactions = [
-            ...(res.incomes || []),
-            ...(res.expenses || [])
-          ];
+          const incomes = (dummyResponse.incomes || []).map((inc: any) => ({
+            ...inc,
+            type: 'income'
+          }));
+        
+          const expenses = (dummyResponse.expenses || []).map((exp: any) => ({
+            ...exp,
+            type: 'expense'
+          }));
+        
+          this.transactions = [...incomes, ...expenses];
           this.loadingTransactions = false;
         },
         error: () => {
+          const incomes = (dummyResponse.incomes || []).map((inc: any) => ({
+            ...inc,
+            type: 'income'
+          }));
+        
+          const expenses = (dummyResponse.expenses || []).map((exp: any) => ({
+            ...exp,
+            type: 'expense'
+          }));
+        
+          this.transactions = [...incomes, ...expenses];
+          this.loadingTransactions = false;
           this.loadingTransactions = false;
         }
       });

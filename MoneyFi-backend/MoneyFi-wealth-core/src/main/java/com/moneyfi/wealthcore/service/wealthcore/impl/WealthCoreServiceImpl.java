@@ -6,7 +6,7 @@ import com.moneyfi.wealthcore.service.budget.dto.response.SpendingAnalysisRespon
 import com.moneyfi.wealthcore.service.budget.dto.response.UserDetailsForSpendingAnalysisDto;
 import com.moneyfi.wealthcore.service.wealthcore.WealthCoreService;
 import com.moneyfi.wealthcore.utils.GeneratePdfTemplate;
-import com.moneyfi.wealthcore.utils.StringConstants;
+import com.moneyfi.wealthcore.utils.constants.StringConstants;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -19,8 +19,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.moneyfi.wealthcore.utils.StringConstants.*;
-import static com.moneyfi.wealthcore.utils.StringConstants.EMAIL_SENT_FAILURE_MESSAGE;
+import static com.moneyfi.wealthcore.utils.constants.StringConstants.*;
+import static com.moneyfi.wealthcore.utils.constants.StringConstants.EMAIL_SENT_FAILURE_MESSAGE;
+import static com.moneyfi.wealthcore.utils.constants.StringUrls.EUREKA_TRANSACTION_SERVICE_URL;
+import static com.moneyfi.wealthcore.utils.constants.StringUrls.USER_SERVICE_URL_CONTROLLER;
 
 @Service
 public class WealthCoreServiceImpl implements WealthCoreService {
@@ -45,25 +47,25 @@ public class WealthCoreServiceImpl implements WealthCoreService {
         headers.set("Authorization", authHeader);
         HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
         ResponseEntity<List<Object[]>> incomeResponse = restTemplate.exchange(
-                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/income/total-income/specified-range?fromDate=" + fromDate + "&toDate=" + toDate,
+                EUREKA_TRANSACTION_SERVICE_URL + "/income/total-income/specified-range?fromDate=" + fromDate + "&toDate=" + toDate,
                 HttpMethod.GET,
                 requestEntity,
                 new ParameterizedTypeReference<List<Object[]>>() {}
         );
         ResponseEntity<List<Object[]>> expenseResponse = restTemplate.exchange(
-                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/expense/total-expenses/specified-range?fromDate=" + fromDate + "&toDate=" + toDate,
+                EUREKA_TRANSACTION_SERVICE_URL + "/expense/total-expenses/specified-range?fromDate=" + fromDate + "&toDate=" + toDate,
                 HttpMethod.GET,
                 requestEntity,
                 new ParameterizedTypeReference<List<Object[]>>() {}
         );
         ResponseEntity<List<Object[]>> incomeResponseTillToDate = restTemplate.exchange(
-                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/income/total-income/specified-range?fromDate=" + LocalDate.of(1, 1, 1) + "&toDate=" + toDate,
+                EUREKA_TRANSACTION_SERVICE_URL + "/income/total-income/specified-range?fromDate=" + LocalDate.of(1, 1, 1) + "&toDate=" + toDate,
                 HttpMethod.GET,
                 requestEntity,
                 new ParameterizedTypeReference<List<Object[]>>() {}
         );
         ResponseEntity<List<Object[]>> expenseResponseTillToDate = restTemplate.exchange(
-                StringConstants.EUREKA_TRANSACTION_SERVICE_URL + "/expense/total-expenses/specified-range?fromDate=" + LocalDate.of(1, 1, 1) + "&toDate=" + toDate,
+                EUREKA_TRANSACTION_SERVICE_URL + "/expense/total-expenses/specified-range?fromDate=" + LocalDate.of(1, 1, 1) + "&toDate=" + toDate,
                 HttpMethod.GET,
                 requestEntity,
                 new ParameterizedTypeReference<List<Object[]>>() {}
@@ -129,7 +131,7 @@ public class WealthCoreServiceImpl implements WealthCoreService {
 
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(pdfBytes, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
-                StringConstants.USER_SERVICE_URL_CONTROLLER + "/spending-analysis/email",
+                USER_SERVICE_URL_CONTROLLER + "/spending-analysis/email",
                 HttpMethod.POST,
                 requestEntity,
                 Void.class

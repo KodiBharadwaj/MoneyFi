@@ -5,7 +5,7 @@ import com.moneyfi.wealthcore.model.common.CategoryListModel;
 import com.moneyfi.wealthcore.repository.common.CategoryListRepository;
 import com.moneyfi.wealthcore.service.admin.AdminService;
 import com.moneyfi.wealthcore.service.admin.dto.request.CategoryRequestDto;
-import com.moneyfi.wealthcore.utils.StringConstants;
+import com.moneyfi.wealthcore.utils.constants.StringConstants;
 import com.moneyfi.wealthcore.validator.AdminValidations;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;

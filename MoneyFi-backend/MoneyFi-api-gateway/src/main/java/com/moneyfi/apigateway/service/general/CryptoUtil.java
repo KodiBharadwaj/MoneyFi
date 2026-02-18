@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.util;
+package com.moneyfi.apigateway.service.general;
 
 import com.moneyfi.apigateway.exceptions.ScenarioNotPossibleException;
 import org.springframework.stereotype.Component;
@@ -12,11 +12,12 @@ import java.util.Base64;
 public class CryptoUtil {
     private static final String SECRET_KEY = "MoneyFiSecretKey";
     private static final String INIT_VECTOR = "RandomInitVector";
+    private static final String AES_ALGORITHM = "AES";
 
     public String encrypt(String value) {
         try {
             IvParameterSpec iv = new IvParameterSpec(INIT_VECTOR.getBytes());
-            SecretKeySpec skeySpec = new SecretKeySpec(SECRET_KEY.getBytes(), "AES");
+            SecretKeySpec skeySpec = new SecretKeySpec(SECRET_KEY.getBytes(), AES_ALGORITHM);
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
             byte[] encrypted = cipher.doFinal(value.getBytes());
@@ -29,7 +30,7 @@ public class CryptoUtil {
     public String decrypt(String encrypted) {
         try {
             IvParameterSpec iv = new IvParameterSpec(INIT_VECTOR.getBytes());
-            SecretKeySpec skeySpec = new SecretKeySpec(SECRET_KEY.getBytes(), "AES");
+            SecretKeySpec skeySpec = new SecretKeySpec(SECRET_KEY.getBytes(), AES_ALGORITHM);
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
             byte[] original = cipher.doFinal(Base64.getDecoder().decode(encrypted));

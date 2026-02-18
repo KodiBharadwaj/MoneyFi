@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
-import static com.moneyfi.wealthcore.utils.StringConstants.DATE_TIME_PATTERN;
+import static com.moneyfi.wealthcore.utils.constants.StringConstants.DATE_TIME_PATTERN;
 
 @Data
 @NoArgsConstructor

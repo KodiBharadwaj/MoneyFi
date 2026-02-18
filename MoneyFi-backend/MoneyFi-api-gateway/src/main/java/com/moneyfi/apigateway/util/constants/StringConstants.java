@@ -14,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.HttpURLConnection;
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Random;
 
@@ -24,6 +23,7 @@ public class StringConstants {
 
     private StringConstants() {}
 
+    public static final String MONEYFI_APPLICATION_NAME = "MoneyFi";
     public static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     public static final String MESSAGE = "message";
@@ -40,8 +40,6 @@ public class StringConstants {
     public static final String EMAIL_LIMIT_CROSSED = "Limit crossed for today!! Try tomorrow";
     public static final String SAME_PASSWORD_NOT_ALLOWED_MESSAGE = "New password cannot be same as old password";
     public static final String INVALID_OTP_MESSAGE = "Invalid or expired OTP";
-    public static final String PHONE_NUMBER_DIGITS_ONLY_MESSAGE = "Phone number must contain only digits";
-    public static final String PHONE_NUMBER_MAX_LENGTH_MESSAGE = "Phone number should be 10 digits";
     public static final String LOGOUT_SUCCESS_MESSAGE = "Logged out successfully";
     public static final String LOGOUT_FAILURE_MESSAGE = "Logout failed!";
     public static final String ERROR = "error";
@@ -53,6 +51,21 @@ public class StringConstants {
     public static final String LOGIN_ERROR = "An error occurred during login";
 
     public static final long SESSION_LOGIN_MINUTES = 60L;
+
+    public static final String CLIENT_ID = "client_id";
+    public static final String CLIENT_SECRET = "client_secret";
+    public static final String CODE = "code";
+    public static final String GRANT_TYPE = "grant_type";
+    public static final String REDIRECT_URI = "redirect_uri";
+    public static final String AUTHORIZATION_CODE = "authorization_code";
+    public static final String ACCESS_TOKEN = "access_token";
+    public static final String REFRESH_TOKEN = "refresh_token";
+    public static final String EXPIRES_IN = "expires_in";
+    public static final String SCOPE = "scope";
+    public static final String POST_MESSAGE = "postmessage";
+    public static final String STRING_EMAIL = "email";
+    public static final String GMAIL_SYNC = "GMAIL_SYNC";
+    public static final String GOOGLE_AUTHORIZATION_CODE_NULL_MESSAGE = "Google Authorization code cannot be null";
 
     public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name(), 3, UserRoles.DEVELOPER.name(), 4, UserRoles.MAINTAINER.name());
     public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation =
@@ -74,11 +87,6 @@ public class StringConstants {
                     Map.entry(ADMIN_DELETE, 15),
                     Map.entry(ADMIN_RETRIEVAL, 16)
             );
-    public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
-    public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-    public static final String USER_SERVICE_URL_FOR_ADMIN = "http://MONEYFI-USER/api/v1/user-service/admin";
-    public static final String USER_SERVICE_OPEN_URL = "http://MONEYFI-USER/api/v1/user-service/open";
 
     public static String generateVerificationCode() {
         Random random = new Random();

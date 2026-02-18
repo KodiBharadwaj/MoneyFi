@@ -23,9 +23,6 @@ public class StringConstants {
 
     public static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
-    public static final String MESSAGE = "message";
-    public static final String USER_ROLE = "USER";
-    public static final String ADMIN_ROLE = "ADMIN";
     public static final String ALL = "All";
     public static final String LOCAL_PROFILE = "local";
     public static final String USER_PROFILE_DETAILS_NOT_FOUND = "User profile details not found";
@@ -42,7 +39,6 @@ public class StringConstants {
     public static final String REQUEST_NOT_FOUND = "Request details not found";
 
     public static final String PROFILE_TEMPLATE_NAME = "profile-template";
-    public static final String PHONE_NUMBER_EMPTY_MESSAGE = "Phone number is empty";
     public static final String PHONE_NUMBER_DIGITS_ONLY_MESSAGE = "Phone number must contain only digits";
     public static final String PHONE_NUMBER_MAX_LENGTH_MESSAGE = "Phone number should be 10 digits";
     public static final String INVALID_EXCEL_FORMAT = "Invalid excel format";
@@ -77,7 +73,6 @@ public class StringConstants {
     public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
     public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-    public static final String DAILY_QUOTE_EXTERNAL_API_URL = "https://zenquotes.io/api/random";
 
     public static final ObjectMapper objectMapper = new ObjectMapper();
 

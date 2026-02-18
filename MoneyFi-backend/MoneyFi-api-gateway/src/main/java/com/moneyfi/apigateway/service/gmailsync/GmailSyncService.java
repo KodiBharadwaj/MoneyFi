@@ -1,14 +1,9 @@
 package com.moneyfi.apigateway.service.gmailsync;
 
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePart;
-import com.google.auth.http.HttpCredentialsAdapter;
-import com.google.auth.oauth2.AccessToken;
-import com.google.auth.oauth2.UserCredentials;
 import com.moneyfi.apigateway.dto.ParsedTransaction;
 import com.moneyfi.apigateway.exceptions.CustomAuthenticationFailedException;
 import com.moneyfi.apigateway.exceptions.ResourceNotFoundException;
@@ -20,22 +15,18 @@ import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
 import com.moneyfi.apigateway.repository.gmailsync.GmailSyncHistoryRepository;
 import com.moneyfi.apigateway.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.apigateway.repository.gmailsync.GmailProcessedMessageRepository;
+import com.moneyfi.apigateway.service.general.GoogleOAuthEndPointDealerService;
 import com.moneyfi.apigateway.service.gmailsync.dto.response.GmailSyncHistoryResponse;
-import com.moneyfi.apigateway.util.CryptoUtil;
 import com.moneyfi.apigateway.util.enums.TransactionServiceType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.*;
@@ -43,6 +34,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.moneyfi.apigateway.util.constants.StringConstants.*;
 
 @Service
 @RequiredArgsConstructor
@@ -54,68 +47,39 @@ public class GmailSyncService {
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String googleClientSecret;
 
-    private final RestTemplate externalRestTemplateForOAuth;
     private final GmailSyncRepository gmailSyncRepository;
-    private final CryptoUtil cryptoUtil;
     private final GmailProcessedMessageRepository processedRepository;
     private final CommonServiceRepository commonServiceRepository;
     private final GmailSyncHistoryRepository gmailSyncHistoryRepository;
+    private final GoogleOAuthEndPointDealerService googleOAuthEndPointDealerService;
+
+    private static final String FUTURE_SYNC_NOT_ALLOWED = "Future date sync is not allowed";
+    private static final String CONSENT_NOT_FOUND = "User consent not found";
+    private static final String USER_NOT_ALLOWED_TO_SYNC = "User not allowed to sync";
+    private static final String SYNC_LIMIT_CROSSED_TODAY_MESSAGE = "Sync limit crossed for today. Please try tomorrow";
+    private static final String UNAUTHORIZED_USER = "Unauthorized Gmail user";
+    private static final String STRING_ME = "me";
 
     @Transactional(rollbackOn = Exception.class)
     public void enableSync(String code, String username, Long userId) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-        form.add("client_id", googleClientId);
-        form.add("client_secret", googleClientSecret);
-        form.add("code", code);
-        form.add("grant_type", "authorization_code");
-        form.add("redirect_uri", "postmessage");
-
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
-        Map<String, Object> tokenResponse = externalRestTemplateForOAuth.postForObject("https://oauth2.googleapis.com/token", request, Map.class);
-
-        if (tokenResponse == null || !tokenResponse.containsKey("access_token")) {
-            throw new CustomAuthenticationFailedException("Failed to obtain access token from Google");
+        if (StringUtils.isBlank(code)) {
+            throw new ScenarioNotPossibleException(GOOGLE_AUTHORIZATION_CODE_NULL_MESSAGE);
         }
+        Map<String, Object> tokenResponse = googleOAuthEndPointDealerService.exchangeAuthorizationCodeAndGetAccessRefreshTokens(code);
+        String accessToken = (String) tokenResponse.get(ACCESS_TOKEN);
+        String refreshToken = (String) tokenResponse.get(REFRESH_TOKEN);
+        Number expiresIn = (Number) tokenResponse.get(EXPIRES_IN);
 
-        String accessToken = (String) tokenResponse.get("access_token");
-        String refreshToken = (String) tokenResponse.get("refresh_token");
-        Number expiresIn = (Number) tokenResponse.get("expires_in");
+        googleOAuthEndPointDealerService.securityValidationCheckToVerifyToken(GMAIL_SYNC, accessToken);
 
-        Map<String, Object> tokenInfo = externalRestTemplateForOAuth.getForObject("https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={token}", Map.class, accessToken);
-
-        String scope = tokenInfo != null ? (String) tokenInfo.get("scope") : null;
-
-        if (scope == null || !scope.contains("https://www.googleapis.com/auth/gmail.readonly")) {
-            throw new CustomAuthenticationFailedException("Gmail permission not granted. Please re-consent again");
-        }
-
-        HttpHeaders authHeaders = new HttpHeaders();
-        authHeaders.setBearerAuth(accessToken);
-        HttpEntity<Void> authRequest = new HttpEntity<>(authHeaders);
-        Map<String, Object> userInfo = externalRestTemplateForOAuth.exchange("https://openidconnect.googleapis.com/v1/userinfo", HttpMethod.GET, authRequest, Map.class).getBody();
-
-        if (userInfo == null || userInfo.get("email") == null) {
-            throw new CustomAuthenticationFailedException("Failed to fetch Google user info");
-        }
-
-        String gmailFromCode = ((String) userInfo.get("email")).trim();
+        Map<String, Object> userInfo = googleOAuthEndPointDealerService.getUserInformationFromAccessToken(accessToken);
+        String gmailFromCode = ((String) userInfo.get(STRING_EMAIL)).trim();
 
         if (!username.trim().equalsIgnoreCase(gmailFromCode)) {
-            throw new CustomAuthenticationFailedException("Unauthorized Gmail account");
+            throw new CustomAuthenticationFailedException(UNAUTHORIZED_USER);
         }
-
         GmailAuth auth = gmailSyncRepository.findByUserId(userId).orElseGet(GmailAuth::new);
-        auth.setUserId(userId);
-        auth.setAccessToken(cryptoUtil.encrypt(accessToken));
-
-        if (refreshToken != null) {
-            auth.setRefreshToken(cryptoUtil.encrypt(refreshToken));
-        }
-        auth.setExpiresAt(Instant.now().plusSeconds(expiresIn.longValue()));
-        auth.setIsActive(Boolean.TRUE);
+        googleOAuthEndPointDealerService.setGmailAuthDetails(auth, userId, accessToken, refreshToken, expiresIn);
         gmailSyncRepository.save(auth);
     }
 
@@ -147,11 +111,11 @@ public class GmailSyncService {
     @Transactional(rollbackOn = Exception.class)
     public Map<Integer, List<ParsedTransaction>> startGmailSync(Long userId, LocalDate date) throws IOException, URISyntaxException {
         if (date.isAfter(LocalDate.now())) {
-            throw new ScenarioNotPossibleException("Future date sync is not allowed");
+            throw new ScenarioNotPossibleException(FUTURE_SYNC_NOT_ALLOWED);
         }
-        GmailAuth gmailAuth = gmailSyncRepository.findByUserId(userId).filter(GmailAuth::getIsActive).orElseThrow(() -> new ResourceNotFoundException("User consent not found"));
-        if(gmailAuth != null && gmailAuth.getCount() >= 3) throw new ScenarioNotPossibleException("Sync limit crossed for today. Please try tomorrow");
-        else if(gmailAuth == null) throw new ScenarioNotPossibleException("User not allowed to sync");
+        GmailAuth gmailAuth = gmailSyncRepository.findByUserId(userId).filter(GmailAuth::getIsActive).orElseThrow(() -> new ResourceNotFoundException(CONSENT_NOT_FOUND));
+        if(gmailAuth != null && gmailAuth.getCount() >= 3) throw new ScenarioNotPossibleException(SYNC_LIMIT_CROSSED_TODAY_MESSAGE);
+        else if(gmailAuth == null) throw new ScenarioNotPossibleException(USER_NOT_ALLOWED_TO_SYNC);
 
         gmailAuth.setCount((gmailAuth.getCount() != null ? gmailAuth.getCount() : 0) + 1);
         gmailSyncRepository.save(gmailAuth);
@@ -160,7 +124,7 @@ public class GmailSyncService {
     }
 
     private List<ParsedTransaction> syncEmails(Long userId, LocalDate date) throws IOException, URISyntaxException {
-        Gmail gmail = gmailClientForUser(userId);
+        Gmail gmail = googleOAuthEndPointDealerService.gmailClientForUser(gmailSyncRepository, userId);
         /** String query =
                 "from:(@hdfcbank.net OR @icicibank.com OR @sbi.co.in OR @microsoftonline.com OR @gmail.com) " +
                         "subject:(debited OR credited OR UPI OR MoneyFi - user requests) newer_than:7d"; **/
@@ -173,7 +137,7 @@ public class GmailSyncService {
                 .toEpochSecond();
 
         String query = "after:" + start + " before:" + end;
-        ListMessagesResponse response = gmail.users().messages().list("me")
+        ListMessagesResponse response = gmail.users().messages().list(STRING_ME)
                         .setQ(query)
                         .setIncludeSpamTrash(false)
                         .setMaxResults(100L)
@@ -191,7 +155,7 @@ public class GmailSyncService {
         List<ParsedTransaction> responseList = new ArrayList<>();
         for (Message msg : response.getMessages()) {
             if (alreadyProcessed(msg.getId(), userId)) continue;
-            Message fullMessage = gmail.users().messages().get("me", msg.getId()).execute();
+            Message fullMessage = gmail.users().messages().get(STRING_ME, msg.getId()).execute();
             try {
                 ParsedTransaction parsedTransaction = parseTransaction(fullMessage, categoryNameIdMap);
                 if(parsedTransaction == null) continue;
@@ -209,29 +173,6 @@ public class GmailSyncService {
             }
         }
         return responseList;
-    }
-
-    private Gmail gmailClientForUser(Long userId) throws IOException, URISyntaxException {
-        GmailAuth auth = gmailSyncRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("Gmail sync not enabled"));
-
-        UserCredentials credentials = UserCredentials.newBuilder().setClientId(googleClientId)
-                        .setClientSecret(googleClientSecret)
-                        .setAccessToken(new AccessToken(cryptoUtil.decrypt(auth.getAccessToken()), Date.from(auth.getExpiresAt())))
-                        .setRefreshToken(cryptoUtil.decrypt(auth.getRefreshToken()))
-                        .setTokenServerUri(new URI("https://oauth2.googleapis.com/token"))
-                        .build();
-        if (credentials.getAccessToken().getExpirationTime().before(new Date())) {
-            credentials.refresh();
-            AccessToken refreshed = credentials.getAccessToken();
-            auth.setAccessToken(cryptoUtil.encrypt(refreshed.getTokenValue()));
-            auth.setExpiresAt(refreshed.getExpirationTime().toInstant());
-            gmailSyncRepository.save(auth);
-        }
-        return new Gmail.Builder(
-                new NetHttpTransport(),
-                JacksonFactory.getDefaultInstance(),
-                new HttpCredentialsAdapter(credentials)
-        ).setApplicationName("MoneyFi").build();
     }
 
     private boolean alreadyProcessed(String messageId, Long userId) {
@@ -377,7 +318,7 @@ public class GmailSyncService {
         }
     }
 
-    private String getTextFromPayload(MessagePart part) throws Exception {
+    private String getTextFromPayload(MessagePart part) {
         if (part.getBody() != null && part.getBody().getData() != null) {
             byte[] decodedBytes = Base64.getUrlDecoder().decode(part.getBody().getData());
             return new String(decodedBytes, StandardCharsets.UTF_8);

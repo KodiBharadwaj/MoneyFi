@@ -24,7 +24,8 @@ public class CategoryListModel {
 
     @PrePersist
     public void init() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        LocalDateTime currentTime = LocalDateTime.now();
+        this.createdAt = currentTime;
+        this.updatedAt = currentTime;
     }
 }

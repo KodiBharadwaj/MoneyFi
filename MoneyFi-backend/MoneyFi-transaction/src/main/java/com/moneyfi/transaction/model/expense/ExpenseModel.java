@@ -32,8 +32,9 @@ public class ExpenseModel {
 
     @PrePersist
     public void initFunction() {
+        LocalDateTime currentTime = LocalDateTime.now();
         this.isDeleted = false;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = currentTime;
+        this.updatedAt = currentTime;
     }
 }
