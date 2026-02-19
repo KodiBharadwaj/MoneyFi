@@ -9,11 +9,12 @@ import { AiService } from '../services/ai.service';
 import { ToastrService } from 'ngx-toastr';
 import { finalize } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-analysis',
   standalone: true,
-  imports: [CommonModule, NgChartsModule],
+  imports: [CommonModule, NgChartsModule, FormsModule],
   templateUrl: './analysis.component.html',
   styleUrl: './analysis.component.scss'
 })
@@ -33,6 +34,28 @@ export class AnalysisComponent {
   isMixedAnalysisLoading = false;
   isLineAnalysisLoading = false;
 
+  // Date selectors (DEFAULT = CURRENT)
+  selectedRadarMonth = new Date().getMonth() + 1;
+  selectedRadarYear = new Date().getFullYear();
+
+  selectedMixedYear = new Date().getFullYear();
+  selectedLineYear = new Date().getFullYear();
+
+  months = [
+    { name: 'January', value: 1 },
+    { name: 'February', value: 2 },
+    { name: 'March', value: 3 },
+    { name: 'April', value: 4 },
+    { name: 'May', value: 5 },
+    { name: 'June', value: 6 },
+    { name: 'July', value: 7 },
+    { name: 'August', value: 8 },
+    { name: 'September', value: 9 },
+    { name: 'October', value: 10 },
+    { name: 'November', value: 11 },
+    { name: 'December', value: 12 }
+  ];
+
   constructor(
     private httpClient: HttpClient,
     private router: Router,
@@ -46,15 +69,31 @@ export class AnalysisComponent {
     this.loadCumulativeData();
   }
 
-  loadChartData() {
-    
-    // Get current month and year
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth() + 1;
-    const currentYear = currentDate.getFullYear();
+  onRadarDateChange() {
+    this.loadChartData();
+  }
 
-    const expensesUrl = `${this.baseUrl}/api/v1/transaction/expense/getExpenses/${currentMonth}/${currentYear}/all/false`;
-    const budgetsUrl = `${this.baseUrl}/api/v1/wealth-core/budget/all/${currentMonth}/${currentYear}/get`;
+  onMixedYearChange() {
+    this.loadMixedChartData();
+  }
+
+  onLineYearChange() {
+    this.loadCumulativeData();
+  }
+
+  isRadarChartLoading = false;
+  isMixedChartLoading = false;
+  isLineChartLoading = false;
+
+
+  loadChartData() {
+    this.isRadarChartLoading = true;
+    if (this.selectedRadarYear.toString().length !== 4) {
+      this.toastr.error('Please enter valid year');
+      return;
+    }
+    const expensesUrl = `${this.baseUrl}/api/v1/transaction/expense/getExpenses/${this.selectedRadarMonth}/${this.selectedRadarYear}/all/false`;
+    const budgetsUrl = `${this.baseUrl}/api/v1/wealth-core/budget/all/${this.selectedRadarMonth}/${this.selectedRadarYear}/get`;
 
         // Use forkJoin to make parallel requests
     forkJoin({
@@ -62,6 +101,7 @@ export class AnalysisComponent {
       budgets: this.httpClient.get<any[]>(budgetsUrl)
     }).subscribe({
       next: ({ expenses, budgets }) => {
+        this.isRadarChartLoading = false;
         // Process category-wise expenses
         const categoryExpenses = new Map<string, number>();
         expenses.forEach(expense => {
@@ -147,19 +187,25 @@ export class AnalysisComponent {
       },
       error: (error) => {
         console.error('Failed to load data:', error);
+        this.isRadarChartLoading = false;
       }
     });
   }
 
   loadMixedChartData() {
-    const currentYear = new Date().getFullYear();
+    this.isMixedChartLoading = true;
+    if (this.selectedMixedYear.toString().length !== 4) {
+      this.toastr.error('Please enter valid year');
+      return;
+    }
     forkJoin({
-      incomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/income/monthlyTotalIncomesList/${currentYear}`),
-      expenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/expense/monthlyTotalExpensesList/${currentYear}`),
-      savings: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/expense/monthlySavingsInYear/${currentYear}`)
+      incomes: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/income/monthlyTotalIncomesList/${this.selectedMixedYear}`),
+      expenses: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/expense/monthlyTotalExpensesList/${this.selectedMixedYear}`),
+      savings: this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/expense/monthlySavingsInYear/${this.selectedMixedYear}`)
     }).subscribe({
       next: ({ incomes, expenses, savings }) => {
         // Update mixed chart data with real values including savings
+        this.isMixedChartLoading = false;
         this.mixedChartData = {
           labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
           datasets: [
@@ -219,6 +265,7 @@ export class AnalysisComponent {
         };
       },
       error: (error) => {
+        this.isMixedChartLoading = false;
         console.error('Failed to load mixed chart data:', error);
       }
     });
@@ -386,10 +433,14 @@ export class AnalysisComponent {
 
   // Add new method to load cumulative data
   loadCumulativeData() {
-    const currentYear = new Date().getFullYear();
-
-    this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/expense/monthlyCumulativeSavingsInYear/${currentYear}`).subscribe({
+    this.isLineChartLoading = true;
+    if (this.selectedLineYear.toString().length !== 4) {
+      this.toastr.error('Please enter valid year');
+      return;
+    }
+    this.httpClient.get<number[]>(`${this.baseUrl}/api/v1/transaction/expense/monthlyCumulativeSavingsInYear/${this.selectedLineYear}`).subscribe({
       next: (cumulativeData) => {
+        this.isLineChartLoading = false;
         this.lineChartData.datasets[0].data = cumulativeData;
         
         // Update chart options for better scale
@@ -409,6 +460,7 @@ export class AnalysisComponent {
         };
       },
       error: (error) => {
+        this.isLineChartLoading = false;
         console.error('Failed to load cumulative data:', error);
       }
     });

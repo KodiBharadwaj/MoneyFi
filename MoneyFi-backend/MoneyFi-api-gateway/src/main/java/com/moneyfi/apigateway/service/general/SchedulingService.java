@@ -80,8 +80,7 @@ public class SchedulingService {
     @Scheduled(cron = "0 0 0 * * *") // Runs at every 12 am of the day (starting of the day)
     public void dailyJobRunInBeginningOfTheDay(){
         /** Scheduling algorithm to remove the previous day otp count which are greater than three for user auth table for otp sending **/
-        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
-        List<UserAuthModel> userAuthModelList = userRepository.getUserListWhoseOtpCountGreaterThanThree(startOfToday);
+        List<UserAuthModel> userAuthModelList = userRepository.findAll().stream().filter(user -> !user.isBlocked() && !user.isDeleted() && userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.USER.name())).toList();
         List<UserAuthModel> listToUpdate = new ArrayList<>();
         for (UserAuthModel userAuthModel : userAuthModelList) {
             userAuthModel.setOtpCount(0);
@@ -91,7 +90,7 @@ public class SchedulingService {
 
         /** Scheduling algorithm to remove the previous day otp count which are greater than three in gmail auth table **/
         List<GmailAuth> gmailAuthListToBeUpdated = new ArrayList<>();
-        List<GmailAuth> gmailAuthList = gmailSyncRepository.getTransactionsListWhoseCountIsGreaterThanThree();
+        List<GmailAuth> gmailAuthList = gmailSyncRepository.findAll();
         for(GmailAuth gmailAuth : gmailAuthList) {
             gmailAuth.setCount(0);
             gmailAuth.setIsActive(Boolean.FALSE);

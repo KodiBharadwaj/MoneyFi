@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient, HttpHeaders } from '@angular/common/http';
@@ -13,7 +13,7 @@ import { ToastrService } from 'ngx-toastr';
   templateUrl: './session-warning.component.html',
   styleUrl: './session-warning.component.css'
 })
-export class SessionWarningComponent {
+export class SessionWarningComponent implements OnDestroy {
 
   show$;
   remaining$;
@@ -49,4 +49,8 @@ export class SessionWarningComponent {
   cancel() {
     this.sessionService.hideWarning();
   }  
+
+  ngOnDestroy(): void {
+    this.sessionService.hideWarning();
+  }
 }

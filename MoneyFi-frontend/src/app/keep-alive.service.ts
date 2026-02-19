@@ -27,7 +27,7 @@ export class KeepAliveService implements OnDestroy {
         return;
       }
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const expiry = payload.exp * 1000;
+      const expiry = payload.exp * 1000 - (2 * 60 * 1000);
       this.sessionTimerService.start(expiry);
     });
   }

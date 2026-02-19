@@ -9,10 +9,35 @@
   <section class="analytics-overview">
     <!-- Top Row - Radar Chart and Description -->
     <div class="chart-row">
-      <div class="chart-section">
-        <div class="chart-card">
-          <canvas baseChart [data]="radarChartData" [options]="radarChartOptions" [type]="'radar'"></canvas>
+      <div class="chart-section chart-wrapper">
+        <div class="chart-controls">
+          <select [(ngModel)]="selectedRadarMonth" (change)="onRadarDateChange()">
+            <option *ngFor="let m of months" [value]="m.value">
+              {{ m.name }}
+            </option>
+          </select>
+          <input 
+            type="number" 
+            [(ngModel)]="selectedRadarYear" 
+            (change)="onRadarDateChange()" 
+            min="2000" 
+            max="2100"
+          />
         </div>
+
+        <!-- Spinner Overlay -->
+        <div class="chart-spinner" *ngIf="isRadarChartLoading">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Loading chart...</p>
+        </div>
+
+        <!-- Chart -->
+        <canvas baseChart 
+          *ngIf="!isRadarChartLoading"
+          [data]="radarChartData" 
+          [options]="radarChartOptions" 
+          [type]="'radar'">
+        </canvas>
       </div>
       <div class="description-box-container">
         <div class="description-box" [class.is-flipped]="isRadarFlipped">
@@ -60,13 +85,32 @@
         </div>
       </div>
     </div>
+    <br> <br> <hr>
 
     <!-- Second Row - Mixed Chart and Description -->
     <div class="chart-row">
       <div class="chart-section">
-        <div class="chart-card">
-          <canvas baseChart [data]="mixedChartData" [options]="mixedChartOptions" [type]="'bar'"></canvas>
+        <div class="chart-controls">
+          <input 
+            type="number" 
+            [(ngModel)]="selectedMixedYear" 
+            (change)="onMixedYearChange()" 
+            min="2000" 
+            max="2100"
+          />
         </div>
+
+        <div class="chart-spinner" *ngIf="isMixedChartLoading">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Loading chart...</p>
+        </div>
+
+        <canvas baseChart 
+          *ngIf="!isMixedChartLoading"
+          [data]="mixedChartData" 
+          [options]="mixedChartOptions" 
+          [type]="'bar'">
+        </canvas>
       </div>
       <div class="description-box-container">
         <div class="description-box" [class.is-flipped]="isMixedFlipped">
@@ -116,13 +160,31 @@
         </div>
       </div>
     </div>
-
+<br> <br> <hr>
     <!-- Third Row - Line Chart and Description -->
     <div class="chart-row">
       <div class="chart-section">
-        <div class="chart-card">
-          <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" [type]="'line'"></canvas>
+        <div class="chart-controls">
+          <input 
+            type="number" 
+            [(ngModel)]="selectedLineYear" 
+            (change)="onLineYearChange()" 
+            min="2000" 
+            max="2100"
+          />
         </div>
+
+        <div class="chart-spinner" *ngIf="isLineChartLoading">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Loading chart...</p>
+        </div>
+
+        <canvas baseChart 
+          *ngIf="!isLineChartLoading"
+          [data]="lineChartData" 
+          [options]="lineChartOptions" 
+          [type]="'line'">
+        </canvas>
       </div>
       <div class="description-box-container">
         <div class="description-box" [class.is-flipped]="isLineFlipped">
