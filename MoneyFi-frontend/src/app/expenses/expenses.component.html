@@ -124,11 +124,31 @@
     <table *ngIf="!loading && expenses.length > 0">
       <thead>
         <tr>
-          <th>Description</th>
-          <th>Category</th>
-          <th>Amount</th>
-          <th>Date</th>
-          <th>Type</th>
+          <th (click)="onSort('description')" class="sortable">
+            Description
+            <span class="sort-icon" [ngClass]="getSortIcon('description')"></span>
+          </th>
+
+          <th (click)="onSort('category')" class="sortable">
+            Category
+            <span class="sort-icon" [ngClass]="getSortIcon('category')"></span>
+          </th>
+
+          <th (click)="onSort('amount')" class="sortable">
+            Amount
+            <span class="sort-icon" [ngClass]="getSortIcon('amount')"></span>
+          </th>
+
+          <th (click)="onSort('date')" class="sortable">
+            Date
+            <span class="sort-icon" [ngClass]="getSortIcon('date')"></span>
+          </th>
+
+          <th (click)="onSort('type')" class="sortable">
+            Type
+            <span class="sort-icon" [ngClass]="getSortIcon('type')"></span>
+          </th>
+
           <th>Actions</th>
         </tr>
       </thead>
@@ -156,6 +176,20 @@
         </tr>
       </tbody>
     </table>
+
+    <div class="pagination" *ngIf="expenses.length > 0">
+      <button mat-stroked-button (click)="previousPage()" [disabled]="currentPage === 0">
+        ← Previous
+      </button>
+
+      <span class="page-info">
+        Page {{ currentPage + 1 }}
+      </span>
+
+      <button mat-stroked-button (click)="nextPage()" [disabled]="expenses.length < pageSize">
+        Next →
+      </button>
+    </div>
 
     <div class="empty-state" *ngIf="!loading && expenses.length === 0">
       <i class="fas fa-wallet"></i>

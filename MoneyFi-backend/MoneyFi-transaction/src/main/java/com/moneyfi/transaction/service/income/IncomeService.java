@@ -2,6 +2,7 @@ package com.moneyfi.transaction.service.income;
 
 import com.moneyfi.transaction.service.income.dto.request.IncomeSaveRequest;
 import com.moneyfi.transaction.service.income.dto.request.IncomeUpdateRequest;
+import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.IncomeDeletedDto;
 import com.moneyfi.transaction.model.income.IncomeModel;
 import com.moneyfi.transaction.service.income.dto.response.IncomeDetailsDto;
@@ -16,15 +17,11 @@ public interface IncomeService {
 
     List<IncomeModel> getAllIncomes(Long userId);
 
-    List<IncomeDetailsDto> getAllIncomesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus);
+    List<IncomeDetailsDto> getAllIncomesByDate(Long userId, TransactionsListRequestDto requestDto);
 
-    byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category);
+    byte[] getIncomesReportExcel(Long userId, TransactionsListRequestDto requestDto);
 
     List<IncomeDeletedDto> getDeletedIncomesInAMonth(Long userId, int month, int year);
-
-    List<IncomeDetailsDto> getAllIncomesByYear(Long userId, int year, String category, boolean deleteStatus);
-
-    byte[] generateYearlyExcelReport(Long userId, int year, String category);
 
     List<BigDecimal> getMonthlyIncomes(Long userId, int year);
 

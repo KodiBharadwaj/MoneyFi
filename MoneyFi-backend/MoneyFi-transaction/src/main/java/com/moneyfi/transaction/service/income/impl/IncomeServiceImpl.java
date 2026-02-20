@@ -10,10 +10,12 @@ import com.moneyfi.transaction.model.income.IncomeDeleted;
 import com.moneyfi.transaction.model.income.IncomeModel;
 import com.moneyfi.transaction.repository.income.IncomeDeletedRepository;
 import com.moneyfi.transaction.repository.income.IncomeRepository;
+import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.*;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.utils.enums.TransactionServiceType;
 import com.moneyfi.transaction.validator.IncomeValidator;
+import com.moneyfi.transaction.validator.TransactionValidator;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -25,10 +27,10 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import static com.moneyfi.transaction.utils.StringConstants.*;
@@ -81,13 +83,46 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public List<IncomeDetailsDto> getAllIncomesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus) {
-        return transactionRepository.getAllIncomesByDate(userId, month, year, category, deleteStatus);
+    public List<IncomeDetailsDto> getAllIncomesByDate(Long userId, TransactionsListRequestDto requestDto) {
+        TransactionValidator.validateTransactionsListGetRequestDto(userId, requestDto);
+        List<IncomeDetailsDto> incomes = transactionRepository.getAllIncomesByDate(userId, requestDto);
+        if (requestDto.getSortBy() == null || requestDto.getSortOrder() == null) {
+            return incomes;
+        }
+
+        Comparator<IncomeDetailsDto> comparator;
+        switch (requestDto.getSortBy().toLowerCase()) {
+            case CATEGORY:
+                comparator = Comparator.comparing(IncomeDetailsDto::getCategory, Comparator.nullsLast(String::compareToIgnoreCase));
+                break;
+
+            case DATE:
+                comparator = Comparator.comparing(IncomeDetailsDto::getDate, Comparator.nullsLast(java.util.Date::compareTo));
+                break;
+
+            case AMOUNT:
+                comparator = Comparator.comparing(IncomeDetailsDto::getAmount, Comparator.nullsLast(BigDecimal::compareTo));
+                break;
+
+            case SOURCE:
+                comparator = Comparator.comparing(IncomeDetailsDto::getSource, Comparator.nullsLast(String::compareTo));
+                break;
+
+            case TYPE:
+                comparator = Comparator.comparing(IncomeDetailsDto::isRecurring, Comparator.nullsLast(Boolean::compareTo));
+                break;
+
+            default: return incomes;
+        }
+        if (DESC.equalsIgnoreCase(requestDto.getSortOrder())) {
+            comparator = comparator.reversed();
+        }
+        return incomes.stream().sorted(comparator).toList();
     }
 
     @Override
-    public byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category) {
-        List<IncomeDetailsDto> monthlyIncomeList = getAllIncomesByMonthYearAndCategory(userId, month, year, category, false);
+    public byte[] getIncomesReportExcel(Long userId, TransactionsListRequestDto requestDto) {
+        List<IncomeDetailsDto> monthlyIncomeList = getAllIncomesByDate(userId, requestDto);
         if (monthlyIncomeList.isEmpty()) {
             throw new ResourceNotFoundException(INCOME_NOT_FOUND);
         }
@@ -174,27 +209,13 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public List<IncomeDetailsDto> getAllIncomesByYear(Long userId, int year, String category, boolean deleteStatus) {
-        return transactionRepository.getAllIncomesByYear(userId, year, category, deleteStatus);
-    }
-
-    @Override
-    public byte[] generateYearlyExcelReport(Long userId, int year, String category) {
-        List<IncomeDetailsDto> yearlyIncomeList = getAllIncomesByYear(userId, year, category, false);
-        if(yearlyIncomeList.isEmpty()){
-            throw new ResourceNotFoundException(INCOME_NOT_FOUND);
-        }
-        return generateExcelReport(yearlyIncomeList);
-    }
-
-    @Override
     public List<BigDecimal> getMonthlyIncomes(Long userId, int year) {
         List<Object[]> rawIncomes = incomeRepository.findMonthlyIncomes(userId, year, false);
         BigDecimal[] monthlyTotals = new BigDecimal[12];
-        Arrays.fill(monthlyTotals, BigDecimal.ZERO); // Initialize all months to 0
+        Arrays.fill(monthlyTotals, BigDecimal.ZERO);
 
         for (Object[] raw : rawIncomes) {
-            int month = ((Integer) raw[0]) - 1; // Months are 1-based, array is 0-based
+            int month = ((Integer) raw[0]) - 1;
             BigDecimal total = (BigDecimal) raw[1];
             monthlyTotals[month] = total;
         }
@@ -303,7 +324,7 @@ public class IncomeServiceImpl implements IncomeService {
         incomeModel.setAmount(incomeUpdateRequest.getAmount());
         incomeModel.setSource(incomeUpdateRequest.getSource());
         incomeModel.setCategoryId(incomeUpdateRequest.getCategoryId());
-        if (!incomeModel.getDate().toLocalDate().equals(LocalDate.parse(incomeUpdateRequest.getDate())))
+        if (!incomeModel.getDate().toLocalDate().equals(LocalDateTime.parse(incomeUpdateRequest.getDate()).toLocalDate()))
             incomeModel.setDate(LocalDateTime.parse(incomeUpdateRequest.getDate()));
         incomeModel.setRecurring(incomeUpdateRequest.getRecurring());
         incomeModel.setUpdatedAt(LocalDateTime.now());

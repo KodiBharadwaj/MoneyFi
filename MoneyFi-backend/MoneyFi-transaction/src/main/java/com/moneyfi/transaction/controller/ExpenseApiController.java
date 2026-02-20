@@ -4,6 +4,7 @@ import com.moneyfi.transaction.config.JwtService;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.service.expense.ExpenseService;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
+import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -52,53 +53,24 @@ public class ExpenseApiController {
         return ResponseEntity.status(HttpStatus.OK).body(list); // 200
     }
 
-    @Operation(summary = "Method to get all the expense details in a particular month and in a particular year")
-    @GetMapping("/getExpenses/{month}/{year}/{category}/{deleteStatus}")
-    public ResponseEntity<List<ExpenseDetailsDto>> getAllExpensesByMonthYearAndCategory(@RequestHeader("Authorization") String authHeader,
-                                                                                        @PathVariable("month") int month,
-                                                                                        @PathVariable("year") int year,
-                                                                                        @PathVariable("category") String category,
-                                                                                        @PathVariable("deleteStatus") boolean deleteStatus){
+    @Operation(summary = "Api to get all the expense details")
+    @PostMapping("/get-expenses")
+    public ResponseEntity<List<ExpenseDetailsDto>> getAllExpensesByDate(@RequestHeader("Authorization") String authHeader,
+                                                                        @RequestBody TransactionsListRequestDto requestDto) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllExpensesByMonthYearAndCategory(userId, month, year, category, deleteStatus));
+        return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllExpensesByDate(userId, requestDto));
     }
 
-    @Operation(summary = "Method to generate the Excel report for the Monthly expenses of a user")
-    @GetMapping("/{month}/{year}/{category}/generateMonthlyReport")
-    public ResponseEntity<byte[]> getMonthlyExpenseReport(@RequestHeader("Authorization") String authHeader,
-                                                          @PathVariable("month") int month,
-                                                          @PathVariable("category") String category,
-                                                          @PathVariable("year") int year) {
+    @Operation(summary = "Api to generate Excel report for the expenses of a user")
+    @PostMapping("/get-expenses/excel-report")
+    public ResponseEntity<byte[]> getExpenseReportExcel(@RequestHeader("Authorization") String authHeader,
+                                                        @RequestBody TransactionsListRequestDto requestDto) {
 
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        byte[] excelData = expenseService.generateMonthlyExcelReport(userId, month, year, category);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Monthly expense report.xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(excelData);
-    }
-
-    @Operation(summary = "Method to get all the expense details in a particular year")
-    @GetMapping("/getExpenses/{year}/{category}/{deleteStatus}")
-    public ResponseEntity<List<ExpenseDetailsDto>> getAllExpensesByYearAndCategory(@RequestHeader("Authorization") String authHeader,
-                                                                              @PathVariable("year") int year,
-                                                                              @PathVariable("category") String category,
-                                                                              @PathVariable("deleteStatus") boolean deleteStatus){
-        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllExpensesByYearAndCategory(userId, year, category, deleteStatus));
-    }
-
-    @Operation(summary = "Method to generate the Excel report for the Yearly Expenses of a user")
-    @GetMapping("/{year}/{category}/generateYearlyReport")
-    public ResponseEntity<byte[]> getYearlyExpenseReport(@RequestHeader("Authorization") String authHeader,
-                                                         @PathVariable("year") int year,
-                                                         @PathVariable("category") String category) {
-        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        byte[] excelData = expenseService.generateYearlyExcelReport(userId, year, category);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Yearly expense report.xlsx")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(excelData);
+                .body(expenseService.getExpenseReportExcel(userId, requestDto));
     }
 
     @Operation(summary = "Method to get the total expense amount in a particular month and in a particular year")

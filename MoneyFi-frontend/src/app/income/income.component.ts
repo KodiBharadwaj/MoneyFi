@@ -50,11 +50,12 @@ interface IncomeSource {
 export class IncomeComponent {
   totalIncome: number = 0;
   incomeSources: any[] = [];
+  totalIncomesCount: number = 0;
   deletedIncomeSources: IncomeSource[] = [];
   loading: boolean = false;
   recurringPercentage: number = 0;
   selectedYear: number = new Date().getFullYear();
-  selectedMonth: number = 0; // 0 means all months
+  selectedMonth: number = 0; 
   selectedCategory: string = '';
   categories: Category[] = [];
   months: string[] = [
@@ -62,6 +63,11 @@ export class IncomeComponent {
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
   isLoading = false;
+
+  currentPage: number = 0;
+  pageSize: number = 5;
+  sortBy: string = '';
+  sortOrder: 'asc' | 'desc' | '' = '';
   
 
   availableYears: number[] = [];
@@ -123,25 +129,26 @@ export class IncomeComponent {
   loadIncomeData() {
     this.loading = true;
 
-    let url: string;
-    if(this.selectedCategory === '') this.selectedCategory = "all";
-    if (this.selectedMonth === 0) {
-      // Fetch all expenses for the selected year
-      url = `${this.baseUrl}/api/v1/transaction/income/${this.selectedYear}/${this.selectedCategory}/${this.deleted}/incomes-list/get`;
-    } else {
-      // Fetch expenses for the specific month and year
-      url = `${this.baseUrl}/api/v1/transaction/income/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/${this.deleted}/incomes-list/get`;
-    }
+    const payload = {
+      category: this.selectedCategory === '' ? 'ALL' : this.selectedCategory,
+      deleteStatus: false,
+      date: this.getSelectedDate(),
+      startIndex: this.currentPage * this.pageSize,
+      threshold: this.pageSize,
+      sortBy: this.sortBy,
+      sortOrder: this.sortOrder,
+      requestType: this.selectedMonth === 0 ? 'YEARLY' : 'MONTHLY'
+    };
 
-    this.httpClient.get<any[]>(url).subscribe({
+    this.httpClient.post<any[]>(`${this.baseUrl}/api/v1/transaction/income/get-incomes`, payload).subscribe({
       next: (data) => {
         if (data && data.length > 0) {
           this.incomeSources = data;
-          this.calculateTotalIncome();
+          this.totalIncome = data[0]?.totalAmount;
+          this.totalIncomesCount = data[0]?.totalCount;
           this.updateChartData();
         } else {
           this.incomeSources = [];
-          this.calculateTotalIncome();
           this.toastr.warning('No income data available. Try adding income', 'No Data');
         }
         this.loading = false;
@@ -154,6 +161,41 @@ export class IncomeComponent {
         this.loading = false;
       }
     });
+  }
+
+  onSort(column: string) {
+    if (this.sortBy === column) {
+      this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortBy = column;
+      this.sortOrder = 'asc';
+    }
+    this.currentPage = 0;
+    this.loadIncomeData();
+  }
+
+  getSortIcon(column: string): string {
+    if (this.sortBy !== column) return 'fas fa-sort';
+    return this.sortOrder === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+  }
+
+  nextPage() {
+    this.currentPage++;
+    this.loadIncomeData();
+  }
+
+  previousPage() {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.loadIncomeData();
+    }
+  }
+
+  getSelectedDate(): string {
+    if (this.selectedMonth === 0) {
+      return `${this.selectedYear}-01-01`;
+    }
+    return `${this.selectedYear}-${this.selectedMonth.toString().padStart(2, '0')}-01`;
   }
 
   loadDeletedIncomeData() {
@@ -183,7 +225,6 @@ export class IncomeComponent {
 
         } else {
           this.deletedIncomeSources = [];
-          this.calculateTotalIncome();
           this.toastr.warning('No deleted income data available in this range', 'No Data');
         }
         this.loading = false;
@@ -215,7 +256,6 @@ export class IncomeComponent {
       this.httpClient.post(`${this.baseUrl}/api/v1/transaction/income/save`, incomeData).subscribe({
         next: (response) => {
           this.loadIncomeData();
-          this.calculateTotalIncome();
           this.updateChartData();
           this.resetFilters();
           this.toastr.success("Income " + incomeData.source + " added succesfully");
@@ -232,11 +272,6 @@ export class IncomeComponent {
       }
       });
     });
-  }
-  
-
-  calculateTotalIncome() {
-    this.totalIncome = this.incomeSources.reduce((sum, source) => sum + source.amount, 0);
   }
 
 
@@ -311,7 +346,6 @@ export class IncomeComponent {
               if (index !== -1) {
                 this.incomeSources.splice(index, 1); // Remove the item at the found index
               }
-              this.calculateTotalIncome();
               this.updateChartData();
               this.httpClient.delete<void>(`${this.baseUrl}/api/v1/transaction/income/${incomeId}`)
                 .subscribe({
@@ -390,14 +424,18 @@ export class IncomeComponent {
   generateReport() {
     this.isLoading = true;
 
-    let url: string;
-    if (this.selectedMonth === 0) {
-      url = `${this.baseUrl}/api/v1/transaction/income/${this.selectedYear}/${this.selectedCategory}/incomes-list/report`;
-    } else {
-      url = `${this.baseUrl}/api/v1/transaction/income/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/incomes-list/report`;
-    }
+    const payload = {
+      category: this.selectedCategory === '' ? 'ALL' : this.selectedCategory,
+      deleteStatus: false,
+      date: this.getSelectedDate(),
+      startIndex: 0,
+      threshold: this.totalIncomesCount,
+      sortBy: "",
+      sortOrder: "",
+      requestType: this.selectedMonth === 0 ? 'YEARLY' : 'MONTHLY'
+    };
 
-    this.httpClient.get(url, { responseType: 'blob' }).subscribe({
+    this.httpClient.post(`${this.baseUrl}/api/v1/transaction/income/get-incomes/excel-report`, payload, { responseType: 'blob' }).subscribe({
       next: (response) => {
         // Trigger File Download
         const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

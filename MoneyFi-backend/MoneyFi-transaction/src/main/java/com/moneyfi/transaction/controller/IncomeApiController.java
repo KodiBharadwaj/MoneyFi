@@ -3,6 +3,7 @@ package com.moneyfi.transaction.controller;
 import com.moneyfi.transaction.config.JwtService;
 import com.moneyfi.transaction.service.income.dto.request.IncomeSaveRequest;
 import com.moneyfi.transaction.service.income.dto.request.IncomeUpdateRequest;
+import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.IncomeDeletedDto;
 import com.moneyfi.transaction.model.income.IncomeModel;
 import com.moneyfi.transaction.service.income.IncomeService;
@@ -48,28 +49,23 @@ public class IncomeApiController {
         return ResponseEntity.ok(incomeService.getAllIncomes(userId));
     }
 
-    @Operation(summary = "Api to get all the income details in a particular month and year")
-    @GetMapping("/{month}/{year}/{category}/{deleteStatus}/incomes-list/get")
-    public ResponseEntity<List<IncomeDetailsDto>> getAllIncomesByMonthYearAndCategory(@RequestHeader("Authorization") String authHeader,
-                                                                                      @PathVariable("month") int month,
-                                                                                      @PathVariable("year") int year,
-                                                                                      @PathVariable("category") String category,
-                                                                                      @PathVariable("deleteStatus") boolean deleteStatus){
+    @Operation(summary = "Api to get all the income details")
+    @PostMapping("/get-incomes")
+    public ResponseEntity<List<IncomeDetailsDto>> getAllIncomesByDate(@RequestHeader("Authorization") String authHeader,
+                                                                      @RequestBody TransactionsListRequestDto requestDto){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return ResponseEntity.ok(incomeService.getAllIncomesByMonthYearAndCategory(userId, month, year, category, deleteStatus));
+        return ResponseEntity.ok(incomeService.getAllIncomesByDate(userId, requestDto));
     }
 
     @Operation(summary = "Api to generate Excel report for monthly incomes of a user")
-    @GetMapping("/{month}/{year}/{category}/incomes-list/report")
-    public ResponseEntity<byte[]> getMonthlyIncomeReport(@RequestHeader("Authorization") String authHeader,
-                                                         @PathVariable("month") int month,
-                                                         @PathVariable("year") int year,
-                                                         @PathVariable("category") String category) {
+    @PostMapping("/get-incomes/excel-report")
+    public ResponseEntity<byte[]> getIncomesReportExcel(@RequestHeader("Authorization") String authHeader,
+                                                        @RequestBody TransactionsListRequestDto requestDto) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Monthly income report.xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(incomeService.generateMonthlyExcelReport(userId, month, year, category));
+                .body(incomeService.getIncomesReportExcel(userId, requestDto));
     }
 
     @Operation(summary = "Api to get monthly deleted incomes")
@@ -79,28 +75,6 @@ public class IncomeApiController {
                                                                             @PathVariable("year") int year) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return ResponseEntity.ok(incomeService.getDeletedIncomesInAMonth(userId, month, year));
-    }
-
-    @Operation(summary = "Api to get all income details in a particular year")
-    @GetMapping("/{year}/{category}/{deleteStatus}/incomes-list/get")
-    public ResponseEntity<List<IncomeDetailsDto>> getAllIncomesByYear(@RequestHeader("Authorization") String authHeader,
-                                                                      @PathVariable("year") int year,
-                                                                      @PathVariable("category") String category,
-                                                                      @PathVariable("deleteStatus") boolean deleteStatus){
-        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return ResponseEntity.ok(incomeService.getAllIncomesByYear(userId, year, category, deleteStatus));
-    }
-
-    @Operation(summary = "Api to generate Excel report for Yearly incomes of a user")
-    @GetMapping("/{year}/{category}/incomes-list/report")
-    public ResponseEntity<byte[]> getYearlyIncomeReport(@RequestHeader("Authorization") String authHeader,
-                                                        @PathVariable("year") int year,
-                                                        @PathVariable("category") String category) {
-        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Yearly income report.xlsx")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(incomeService.generateYearlyExcelReport(userId, year, category));
     }
 
     @Operation(summary = "Api to get the total income amount in a particular month and in a particular year")
