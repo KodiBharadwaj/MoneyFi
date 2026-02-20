@@ -23,7 +23,7 @@ export class CategoryService {
     }
 
     return this.http.post<Category[]>(
-        `/api/v1/user-service/common/category-list/get`,
+        `/api/v1/wealth-core/common/category-list/get`,
         ['ALL']
     ).pipe(
         map(res => {
@@ -52,7 +52,7 @@ export class CategoryService {
     }
 
     return this.http.post<Category[]>(
-        `/api/v1/user-service/common/category-list/get`,
+        `/api/v1/wealth-core/common/category-list/get`,
         ['ALL']
     ).pipe(
         map(res => {
@@ -82,7 +82,7 @@ export class CategoryService {
 
   return this.http
     .post<Category[]>(
-      `/api/v1/user-service/common/category-list/get`,
+      `/api/v1/wealth-core/common/category-list/get`,
       ['ALL']
     )
     .pipe(
@@ -111,7 +111,7 @@ getGoalCategories(): Observable<Category[]> {
     }
 
     return this.http.post<Category[]>(
-        `/api/v1/user-service/common/category-list/get`,
+        `/api/v1/wealth-core/common/category-list/get`,
         ['GOAL']
     ).pipe(
         map(res => {
