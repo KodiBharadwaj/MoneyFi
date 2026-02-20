@@ -7,11 +7,13 @@ import com.moneyfi.wealthcore.service.common.CommonService;
 import com.moneyfi.wealthcore.utils.constants.StringConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -24,18 +26,17 @@ public class CommonServiceImpl implements CommonService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Cacheable(value = "categoryList", key = "T(String).join('-', #type)")
     public List<CategoryResponseDto> getCategoryWiseList(List<String> type) {
+        List<String> resolvedType = type;
         if (ObjectUtils.isNotEmpty(type) && type.size() == 1 && type.get(0).equalsIgnoreCase("ALL")) {
-            type.clear();
-            type.addAll(StringConstants.getCategoryListEnum());
+            resolvedType = new ArrayList<>(StringConstants.getCategoryListEnum());
         }
-        List<CategoryListModel> resultList = new ArrayList<>();
-        type.forEach(categoryType -> resultList.addAll(categoryListRepository.findByType(categoryType)));
-        return resultList
-                .stream()
+        List<CategoryListModel> resultList = categoryListRepository.findByTypeIn(resolvedType);
+
+        return resultList.stream()
                 .map(category -> new CategoryResponseDto(category.getId(), category.getType(), category.getCategory()))
-                .sorted((a,b) -> a.getType().compareTo(b.getType()))
-                .toList();
+                .sorted(Comparator.comparing(CategoryResponseDto::getType))
+                .collect(Collectors.toList());
     }
 }
