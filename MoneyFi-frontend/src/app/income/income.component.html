@@ -171,6 +171,17 @@
       </tbody>
     </table>
 
+    <div class="empty-state" *ngIf="!loading && incomeSources.length === 0">
+      <i class="fas fa-money-bill-wave"></i>
+      <p>No income sources found</p>
+      <button class="add-income-btn" (click)="addIncome()">Add Your First Income</button>
+    </div>
+
+    <div class="loading" *ngIf="loading">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Loading income data...</p>
+    </div>
+
     <div class="pagination" *ngIf="incomeSources.length > 0">
       <button mat-stroked-button (click)="previousPage()" [disabled]="currentPage === 0">
         ← Previous
@@ -183,17 +194,6 @@
       <button mat-stroked-button (click)="nextPage()" [disabled]="incomeSources.length < pageSize">
         Next →
       </button>
-    </div>
-
-    <div class="empty-state" *ngIf="!loading && incomeSources.length === 0">
-      <i class="fas fa-money-bill-wave"></i>
-      <p>No income sources found</p>
-      <button class="add-income-btn" (click)="addIncome()">Add Your First Income</button>
-    </div>
-
-    <div class="loading" *ngIf="loading">
-      <i class="fas fa-spinner fa-spin"></i>
-      <p>Loading income data...</p>
     </div>
   </div>
 </div>
