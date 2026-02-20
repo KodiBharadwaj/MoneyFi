@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AddExpenseDialogComponent } from '../add-expense-dialog/add-expense-dialog.component';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
@@ -24,11 +24,8 @@ interface Expense {
   category: string;
   description: string;  
   recurring: boolean;
-}
-
-interface FinancialSummary {
-  income: number;
-  expenses: number;
+  totalAmount: number;
+  totalCount: number;
 }
 
 @Component({
@@ -50,11 +47,12 @@ interface FinancialSummary {
 })
 export class ExpensesComponent {
   totalExpenses: number = 0;
+  totalExpensesCount: number = 0;
   expenses: Expense[] = [];
   loading: boolean = false;
   recurringPercentage: number = 0;
   selectedYear: number = new Date().getFullYear();
-  selectedMonth: number = 0; // 0 means all months
+  selectedMonth: number = 0;
   selectedCategory: string = '';
   categories: Category[] = [];
   months: string[] = [
@@ -69,6 +67,11 @@ export class ExpensesComponent {
   thisMonthincomeLeft: number = 0;
   overallincomeLeft: number = 0;
   isLoading = false;
+
+  currentPage: number = 0;
+  pageSize: number = 5;
+  sortBy: string = '';
+  sortOrder: 'asc' | 'desc' | '' = '';
 
   public pieChartData: ChartData<'pie' | 'doughnut', number[], string> = {
     labels: [],
@@ -128,20 +131,23 @@ export class ExpensesComponent {
   loadExpensesData() {
     this.loading = true;
 
-    let url: string;
-    if(this.selectedCategory === '') this.selectedCategory = 'all';
-    if (this.selectedMonth === 0) {
-      // Fetch all expenses for the selected year
-      url = `${this.baseUrl}/api/v1/transaction/expense/getExpenses/${this.selectedYear}/${this.selectedCategory}/false`;
-    } else {
-      // Fetch expenses for the specific month and year
-      url = `${this.baseUrl}/api/v1/transaction/expense/getExpenses/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/false`;
-    }
+    const payload = {
+      category: this.selectedCategory === '' ? 'ALL' : this.selectedCategory,
+      deleteStatus: false,
+      date: this.getSelectedDate(),
+      startIndex: this.currentPage * this.pageSize,
+      threshold: this.pageSize,
+      sortBy: this.sortBy,
+      sortOrder: this.sortOrder,
+      requestType: this.selectedMonth === 0 ? 'YEARLY' : 'MONTHLY'
+    };
 
-    this.httpClient.get<Expense[]>(url).subscribe({
+    this.httpClient.post<Expense[]>(`${this.baseUrl}/api/v1/transaction/expense/get-expenses`, payload).subscribe({
       next: (data) => {
         if (data && data.length > 0) {
           this.expenses = data;
+          this.totalExpenses = data[0]?.totalAmount;
+          this.totalExpensesCount = data[0]?.totalCount;
           this.calculateTotalExpenses();
           this.updateChartData();
         } else {
@@ -168,9 +174,42 @@ export class ExpensesComponent {
     });
   }
   
+  onSort(column: string) {
+    if (this.sortBy === column) {
+      this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortBy = column;
+      this.sortOrder = 'asc';
+    }
+    this.currentPage = 0;
+    this.loadExpensesData();
+  }
+
+  getSortIcon(column: string): string {
+    if (this.sortBy !== column) return 'fas fa-sort';
+    return this.sortOrder === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+  }
+
+  nextPage() {
+    this.currentPage++;
+    this.loadExpensesData();
+  }
+
+  previousPage() {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.loadExpensesData();
+    }
+  }
+
+  getSelectedDate(): string {
+    if (this.selectedMonth === 0) {
+      return `${this.selectedYear}-01-01`;
+    }
+    return `${this.selectedYear}-${this.selectedMonth.toString().padStart(2, '0')}-01`;
+  }
 
   calculateTotalExpenses() {
-    this.totalExpenses = this.expenses.reduce((sum, expense) => sum + expense.amount, 0);
     this.calculateSpentPercentage();
   }
 
@@ -392,14 +431,18 @@ export class ExpensesComponent {
   generateReport() {
     this.isLoading = true;
 
-    let url: string;
-    if (this.selectedMonth === 0) {
-      url = `${this.baseUrl}/api/v1/transaction/expense/${this.selectedYear}/${this.selectedCategory}/generateYearlyReport`;
-    } else {
-      url = `${this.baseUrl}/api/v1/transaction/expense/${this.selectedMonth}/${this.selectedYear}/${this.selectedCategory}/generateMonthlyReport`;
-    }
+    const payload = {
+      category: this.selectedCategory === '' ? 'ALL' : this.selectedCategory,
+      deleteStatus: false,
+      date: this.getSelectedDate(),
+      startIndex: 0,
+      threshold: this.totalExpensesCount,
+      sortBy: "",
+      sortOrder: "",
+      requestType: this.selectedMonth === 0 ? 'YEARLY' : 'MONTHLY'
+    };
 
-    this.httpClient.get(url, { responseType: 'blob' })
+    this.httpClient.post(`${this.baseUrl}/api/v1/transaction/expense/get-expenses/excel-report`, payload, { responseType: 'blob' })
       .subscribe({
         next: (response) => {
           // Trigger File Download

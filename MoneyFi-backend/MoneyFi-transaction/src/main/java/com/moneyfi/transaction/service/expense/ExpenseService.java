@@ -2,6 +2,7 @@ package com.moneyfi.transaction.service.expense;
 
 import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
+import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
@@ -14,13 +15,9 @@ public interface ExpenseService {
 
     List<ExpenseModel> getAllExpenses(Long userId);
 
-    List<ExpenseDetailsDto> getAllExpensesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus);
+    List<ExpenseDetailsDto> getAllExpensesByDate(Long userId, TransactionsListRequestDto requestDto);
 
-    byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category);
-
-    List<ExpenseDetailsDto> getAllExpensesByYearAndCategory(Long userId, int year, String category, boolean deleteStatus);
-
-    byte[] generateYearlyExcelReport(Long userId, int year, String category);
+    byte[] getExpenseReportExcel(Long userId, TransactionsListRequestDto requestDto);
 
     List<BigDecimal> getMonthlyExpenses(Long userId, int year);
 

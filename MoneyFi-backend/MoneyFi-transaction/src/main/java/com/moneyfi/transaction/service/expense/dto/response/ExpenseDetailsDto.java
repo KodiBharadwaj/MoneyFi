@@ -21,4 +21,6 @@ public class ExpenseDetailsDto {
     private String description;
     private boolean isDeleted;
     private String activeStatus;
+    private Long totalCount;
+    private BigDecimal totalAmount;
 }

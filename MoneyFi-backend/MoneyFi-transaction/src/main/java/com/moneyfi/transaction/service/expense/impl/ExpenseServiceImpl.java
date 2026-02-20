@@ -7,8 +7,10 @@ import com.moneyfi.transaction.repository.expense.ExpenseRepository;
 import com.moneyfi.transaction.repository.transaction.TransactionRepository;
 import com.moneyfi.transaction.service.expense.ExpenseService;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
+import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.utils.enums.TransactionServiceType;
+import com.moneyfi.transaction.validator.TransactionValidator;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -26,9 +28,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
-import static com.moneyfi.transaction.utils.StringConstants.CATEGORY_ID_INVALID;
+import static com.moneyfi.transaction.utils.StringConstants.*;
 
 @Service
 public class ExpenseServiceImpl implements ExpenseService {
@@ -64,119 +67,61 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public List<ExpenseDetailsDto> getAllExpensesByMonthYearAndCategory(Long userId, int month, int year, String category, boolean deleteStatus) {
-        return transactionRepository.getAllExpensesByDate(userId, month, year, category, deleteStatus);
-    }
-
-    @Override
-    public byte[] generateMonthlyExcelReport(Long userId, int month, int year, String category) {
-        List<ExpenseDetailsDto> monthlyExpenseList = getAllExpensesByMonthYearAndCategory(userId, month, year, category,false);
-        return generateExcelReport(monthlyExpenseList);
-    }
-
-    private byte[] generateExcelReport(List<ExpenseDetailsDto> expenseList){
-        try(Workbook workbook = new XSSFWorkbook()){
-            Sheet sheet = workbook.createSheet("Monthly Expense Report");
-
-            // Create Header Row
-            Row headerRow = sheet.createRow(0);
-            String[] headers = {"Category", "Description", "Amount", "Date", "Recurring"};
-            for(int i=0; i< headers.length; i++){
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                cell.setCellStyle(createHeaderStyle(workbook));
-            }
-
-            // Create a Date Style
-            CellStyle dateStyle = createDateStyle(workbook);
-
-            // Populate Data Rows
-            int rowIndex = 1;
-            for (ExpenseDetailsDto data : expenseList) {
-                Row row = sheet.createRow(rowIndex++);
-                row.createCell(0).setCellValue(data.getCategory());
-                row.createCell(1).setCellValue(data.getDescription());
-                row.createCell(2).setCellValue(data.getAmount().doubleValue());
-                // Format Date Properly
-                Cell dateCell = row.createCell(3);
-                dateCell.setCellValue(data.getDate()); // Assuming data.getDate() is `java.util.Date`
-                dateCell.setCellStyle(dateStyle); // Apply formatting
-
-                row.createCell(4).setCellValue(data.isRecurring()?"Yes":"No");
-            }
-
-            // Auto-size columns
-            for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-
-            // Convert to byte array
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            workbook.write(outputStream);
-            return outputStream.toByteArray();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new ResourceNotFoundException("Error in creating the Excel Report");
+    public List<ExpenseDetailsDto> getAllExpensesByDate(Long userId, TransactionsListRequestDto requestDto) {
+        TransactionValidator.validateTransactionsListGetRequestDto(userId, requestDto);
+        List<ExpenseDetailsDto> expenses = transactionRepository.getAllExpensesByDate(userId, requestDto);
+        if (requestDto.getSortBy() == null || requestDto.getSortOrder() == null) {
+            return expenses;
         }
-    }
 
-    private CellStyle createDateStyle(Workbook workbook) {
-        CellStyle dateStyle = workbook.createCellStyle();
-        CreationHelper createHelper = workbook.getCreationHelper();
-        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy")); // Change format as needed
-        return dateStyle;
-    }
+        Comparator<ExpenseDetailsDto> comparator;
+        switch (requestDto.getSortBy().toLowerCase()) {
+            case CATEGORY:
+                comparator = Comparator.comparing(ExpenseDetailsDto::getCategory, Comparator.nullsLast(String::compareToIgnoreCase));
+                break;
 
-    private CellStyle createHeaderStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        Font font = workbook.createFont();
+            case DATE:
+                comparator = Comparator.comparing(ExpenseDetailsDto::getDate, Comparator.nullsLast(java.util.Date::compareTo));
+                break;
 
-        font.setBold(true);
-        style.setFont(font);
+            case AMOUNT:
+                comparator = Comparator.comparing(ExpenseDetailsDto::getAmount, Comparator.nullsLast(BigDecimal::compareTo));
+                break;
 
-        // Set Background Color
-        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex()); // Yellow background
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND); // Apply solid fill
+            case TYPE:
+                comparator = Comparator.comparing(ExpenseDetailsDto::isRecurring, Comparator.nullsLast(Boolean::compareTo));
+                break;
 
-        // Set Border (Optional)
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-
-        return style;
-    }
-
-    @Override
-    public List<ExpenseDetailsDto> getAllExpensesByYearAndCategory(Long userId, int year, String category, boolean deleteStatus) {
-        return transactionRepository.getAllExpensesByYear(userId, year, category, deleteStatus);
+            default: return expenses;
+        }
+        if (DESC.equalsIgnoreCase(requestDto.getSortOrder())) {
+            comparator = comparator.reversed();
+        }
+        return expenses.stream().sorted(comparator).toList();
     }
 
     @Override
-    public byte[] generateYearlyExcelReport(Long userId, int year, String category) {
-        List<ExpenseDetailsDto> yearlyIncomeList = getAllExpensesByYearAndCategory(userId, year, category,false);
-        return generateExcelReport(yearlyIncomeList);
+    public byte[] getExpenseReportExcel(Long userId, TransactionsListRequestDto requestDto) {
+        List<ExpenseDetailsDto> monthlyExpenseList = getAllExpensesByDate(userId, requestDto);
+        return generateExcelReport(monthlyExpenseList);
     }
 
     @Override
     public List<BigDecimal> getMonthlyExpenses(Long userId, int year) {
         List<Object[]> rawExpenses = expenseRepository.findMonthlyExpenses(userId, year, false);
         BigDecimal[] monthlyTotals = new BigDecimal[12];
-        Arrays.fill(monthlyTotals, BigDecimal.ZERO); // Initialize all months to 0
+        Arrays.fill(monthlyTotals, BigDecimal.ZERO);
 
         for (Object[] raw : rawExpenses) {
-            int month = ((Integer) raw[0]) - 1; // Months are 1-based, array is 0-based
+            int month = ((Integer) raw[0]) - 1;
             BigDecimal total = (BigDecimal) raw[1];
             monthlyTotals[month] = total;
         }
-
         return Arrays.asList(monthlyTotals);
     }
 
     @Override
     public List<BigDecimal> getMonthlySavingsList(Long userId, int year) {
-
         BigDecimal[] incomes = getMonthlyIncomesListInAYear(userId, year);
         List<BigDecimal> expenseList = getMonthlyExpenses(userId, year);
         BigDecimal[] expenses = expenseList.toArray(new BigDecimal[0]);
@@ -188,27 +133,12 @@ public class ExpenseServiceImpl implements ExpenseService {
         return savings;
     }
 
-    private BigDecimal[] getMonthlyIncomesListInAYear(Long userId, int year) {
-        List<Object[]> rawIncomes = expenseRepository.getMonthlyIncomesListInAYear(userId, year, false);
-        BigDecimal[] monthlyTotals = new BigDecimal[12];
-        Arrays.fill(monthlyTotals, BigDecimal.ZERO); // Initialize all months to 0
-
-        for (Object[] raw : rawIncomes) {
-            int month = ((Integer) raw[0]) - 1; // Months are 1-based, array is 0-based
-            BigDecimal total = (BigDecimal) raw[1];
-            monthlyTotals[month] = total;
-        }
-
-        return monthlyTotals;
-    }
-
     @Override
     public BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year) {
         BigDecimal totalExpense = expenseRepository.getTotalExpenseInMonthAndYear(userId, month, year);
         if(totalExpense == null){
             return BigDecimal.ZERO;
         }
-
         return totalExpense;
     }
 
@@ -220,17 +150,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         if(totalIncome.compareTo(totalExpenses) > 0){
             return totalIncome.subtract(totalExpenses);
         }
-
         return BigDecimal.ZERO;
-    }
-
-    private BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
-        BigDecimal totalIncome = expenseRepository.getTotalIncomeInMonthAndYear(userId, month, year);
-        if(totalIncome == null){
-            return BigDecimal.ZERO;
-        }
-
-        return totalIncome;
     }
 
     @Override
@@ -312,13 +232,6 @@ public class ExpenseServiceImpl implements ExpenseService {
         return ResponseEntity.status(HttpStatus.CREATED).body(updateExpenseDtoConversion(expenseRepository.save(expenseModel)));
     }
 
-    private ExpenseDetailsDto updateExpenseDtoConversion(ExpenseModel updatedExpense){
-        ExpenseDetailsDto expenseDetailsDto = new ExpenseDetailsDto();
-        BeanUtils.copyProperties(updatedExpense, expenseDetailsDto);
-        expenseDetailsDto.setDate(Date.valueOf(updatedExpense.getDate().toLocalDate()));
-        return expenseDetailsDto;
-    }
-
     @Override
     @Transactional(rollbackOn = Exception.class)
     public boolean deleteExpenseById(List<Long> ids) {
@@ -342,5 +255,107 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Override
     public List<Object[]> getTotalExpensesInSpecifiedRange(Long userId, LocalDateTime fromDate, LocalDateTime toDate) {
         return expenseRepository.getTotalIncomeInSpecifiedRange(userId, fromDate, toDate);
+    }
+
+    private BigDecimal[] getMonthlyIncomesListInAYear(Long userId, int year) {
+        List<Object[]> rawIncomes = expenseRepository.getMonthlyIncomesListInAYear(userId, year, false);
+        BigDecimal[] monthlyTotals = new BigDecimal[12];
+        Arrays.fill(monthlyTotals, BigDecimal.ZERO);
+
+        for (Object[] raw : rawIncomes) {
+            int month = ((Integer) raw[0]) - 1;
+            BigDecimal total = (BigDecimal) raw[1];
+            monthlyTotals[month] = total;
+        }
+        return monthlyTotals;
+    }
+
+    private BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
+        BigDecimal totalIncome = expenseRepository.getTotalIncomeInMonthAndYear(userId, month, year);
+        if(totalIncome == null){
+            return BigDecimal.ZERO;
+        }
+        return totalIncome;
+    }
+
+    private ExpenseDetailsDto updateExpenseDtoConversion(ExpenseModel updatedExpense){
+        ExpenseDetailsDto expenseDetailsDto = new ExpenseDetailsDto();
+        BeanUtils.copyProperties(updatedExpense, expenseDetailsDto);
+        expenseDetailsDto.setDate(Date.valueOf(updatedExpense.getDate().toLocalDate()));
+        return expenseDetailsDto;
+    }
+
+    private byte[] generateExcelReport(List<ExpenseDetailsDto> expenseList){
+        try(Workbook workbook = new XSSFWorkbook()){
+            Sheet sheet = workbook.createSheet("Monthly Expense Report");
+
+            // Create Header Row
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"Category", "Description", "Amount", "Date", "Recurring"};
+            for(int i=0; i< headers.length; i++){
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(createHeaderStyle(workbook));
+            }
+
+            // Create a Date Style
+            CellStyle dateStyle = createDateStyle(workbook);
+
+            // Populate Data Rows
+            int rowIndex = 1;
+            for (ExpenseDetailsDto data : expenseList) {
+                Row row = sheet.createRow(rowIndex++);
+                row.createCell(0).setCellValue(data.getCategory());
+                row.createCell(1).setCellValue(data.getDescription());
+                row.createCell(2).setCellValue(data.getAmount().doubleValue());
+                // Format Date Properly
+                Cell dateCell = row.createCell(3);
+                dateCell.setCellValue(data.getDate()); // Assuming data.getDate() is `java.util.Date`
+                dateCell.setCellStyle(dateStyle); // Apply formatting
+
+                row.createCell(4).setCellValue(data.isRecurring()?"Yes":"No");
+            }
+
+            // Auto-size columns
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            // Convert to byte array
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            return outputStream.toByteArray();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new ResourceNotFoundException("Error in creating the Excel Report");
+        }
+    }
+
+    private CellStyle createDateStyle(Workbook workbook) {
+        CellStyle dateStyle = workbook.createCellStyle();
+        CreationHelper createHelper = workbook.getCreationHelper();
+        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy")); // Change format as needed
+        return dateStyle;
+    }
+
+    private CellStyle createHeaderStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+
+        font.setBold(true);
+        style.setFont(font);
+
+        // Set Background Color
+        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex()); // Yellow background
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND); // Apply solid fill
+
+        // Set Border (Optional)
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+
+        return style;
     }
 }

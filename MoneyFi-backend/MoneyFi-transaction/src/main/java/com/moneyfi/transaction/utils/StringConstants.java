@@ -12,22 +12,27 @@ public class StringConstants {
     public static final String MONTH = "month";
     public static final String YEAR = "year";
     public static final String DELETE_STATUS = "deleteStatus";
-    public static final String START_DATE = "startDate";
-    public static final String END_DATE = "endDate";
+    public static final String DATE = "date";
+    public static final String AMOUNT = "amount";
+    public static final String TYPE = "type";
+    public static final String DESC = "desc";
+    public static final String SOURCE = "source";
+    public static final String REQUEST_TYPE = "requestType";
     public static final String CATEGORY = "category";
-    public static final String CATEGORY_ID = "categoryId";
     public static final String OFFSET = "offset";
     public static final String LIMIT = "limit";
+    public static final String ALL = "ALL";
 
     public static final String INCOME_NOT_FOUND = "Income Details not found";
     public static final String CATEGORY_ID_INVALID = "Please send valid category";
     public static final String CATEGORY_NOT_ALIGN_MESSAGE = "Category not aligns with transaction type";
     public static final String USER_ID_EMPTY = "User id is empty";
     public static final String INVALID_INPUT = "Invalid input";
-    public static final String NO_CHANGES_TO_UPDATE = "No changes to update";
     public static final String ERROR_GENERATION_EXCEL = "Error in generating excel report";
     public static final String YES = "Yes";
     public static final String NO = "No";
+
+    public static final String DATE_MONTH_YEAR_FORMAT = "yyyy-MM-dd";
 
     public static final String ACCOUNT_STATEMENT_USER_SERVICE_URL = "http://MONEYFI-USER/api/v1/user-service/user/account-statement/email";
 

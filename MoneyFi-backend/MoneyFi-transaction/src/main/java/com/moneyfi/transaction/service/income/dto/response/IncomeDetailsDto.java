@@ -21,4 +21,6 @@ public class IncomeDetailsDto {
     private boolean recurring;
     private String description;
     private String activeStatus;
+    private Long totalCount;
+    private BigDecimal totalAmount;
 }

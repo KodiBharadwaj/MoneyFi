@@ -472,3 +472,26 @@ button:disabled {
 button:disabled i {
   color: #aaa; /* faded icon color */
 }
+
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sort-icon {
+  margin-left: 6px;
+  font-size: 12px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.page-info {
+  font-weight: 600;
+}
