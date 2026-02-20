@@ -59,8 +59,6 @@ export class DashboardComponent implements OnInit{
       this.notificationCount = count;
     });
     this.notificationService.loadNotificationCount();
-
-    this.onTypeChange();
     this.subscribeToNotifications();
   }
 
@@ -95,33 +93,6 @@ export class DashboardComponent implements OnInit{
 
   ngOnDestroy() {
     this.eventSource?.close();
-  }
-
-  onTypeChange() {
-    const stored = sessionStorage.getItem('CATEGORIES');
-    if (stored) {
-      this.categories = JSON.parse(stored);
-      return;
-    }
-    
-    this.httpClient.post<any[]>(
-      `${this.baseUrl}/api/v1/wealth-core/common/category-list/get`,
-      ['ALL']
-    ).subscribe(res => {
-
-      const categoriesWithUiProps = res.map(item => ({
-        ...item,
-        editing: false
-      }));
-
-      this.categories = categoriesWithUiProps;
-
-      // ✅ store in sessionStorage
-      sessionStorage.setItem(
-        'CATEGORIES',
-        JSON.stringify(categoriesWithUiProps)
-      );
-    });
   }
 
 

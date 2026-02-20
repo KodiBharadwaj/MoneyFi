@@ -1,4 +1,4 @@
-import { Component, Inject, NgModule, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
@@ -48,7 +48,6 @@ export class GmailSyncDialogComponent implements OnInit {
   }
 
   loadCategories() {
-    // Gmail transactions can be CREDIT or DEBIT → load ALL
     this.categoryService.getIncomeAndExpenseCategories().subscribe({
       next: (categories) => {
         this.categories = categories;
