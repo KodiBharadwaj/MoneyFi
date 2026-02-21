@@ -12,4 +12,7 @@ public interface CategoryListRepository extends JpaRepository<CategoryListModel,
 
     @Query("SELECT c from CategoryListModel c WHERE c.type = :categoryType")
     List<CategoryListModel> findByType(String categoryType);
+
+    @Query("SELECT c FROM CategoryListModel c WHERE c.type IN :types")
+    List<CategoryListModel> findByTypeIn(List<String> types);
 }

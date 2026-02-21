@@ -16,10 +16,11 @@ import com.moneyfi.apigateway.util.enums.ReasonEnum;
 import com.moneyfi.apigateway.validator.UserValidations;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
 
 import static com.moneyfi.apigateway.util.constants.StringConstants.*;
 
@@ -102,13 +103,14 @@ public class UserCommonServiceImpl implements UserCommonService {
         return sessionTokenRepository.getSessionTokenModelByToken(token);
     }
 
+    @CacheEvict(value = "blackListToken",
+            key = "#blackListedToken.username + ':' + #blackListedToken.token")
     public BlackListedToken blacklistToken(BlackListedToken blackListedToken) {
-        tokenBlacklistRepository.save(blackListedToken);
-        return blackListedToken;
+        return tokenBlacklistRepository.save(blackListedToken);
     }
 
-    public boolean isTokenBlacklisted(String token) {
-        List<BlackListedToken> blackListedTokens = tokenBlacklistRepository.findByToken(token);
-        return !(blackListedTokens.isEmpty());
+    @Cacheable(value = "blackListToken", key = "#username + ':' + #token")
+    public boolean isTokenBlacklisted(String token, String username) {
+        return !(tokenBlacklistRepository.findByUsernameAndToken(username, token).isEmpty());
     }
 }

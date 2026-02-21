@@ -22,6 +22,9 @@ public class CommonController {
     @Operation(summary = "Api to logout/making the token blacklist")
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader("Authorization") String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
         return ResponseEntity.ok(userService.logout(token));
     }
 

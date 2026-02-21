@@ -417,13 +417,10 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackOn = Exception.class)
     public Map<String, String> logout(String token) {
         Map<String, String> response = new HashMap<>();
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
         String username = jwtService.extractUserName(token);
         userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         makeGmailAuthInactiveForUser(getUserIdByUsername(username));
-        if (makeUserTokenBlacklisted(token) != null && makeUserSessionInActive(token) != null) {
+        if (makeUserTokenBlacklisted(token, username) != null && makeUserSessionInActive(token) != null) {
             response.put(MESSAGE, LOGOUT_SUCCESS_MESSAGE);
         } else {
             response.put(MESSAGE, LOGOUT_FAILURE_MESSAGE);
@@ -467,7 +464,7 @@ public class UserServiceImpl implements UserService {
             throw new ScenarioNotPossibleException("Minutes cannot be zero");
         }
         UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
-        makeUserTokenBlacklisted(token);
+        makeUserTokenBlacklisted(token, user.getUsername());
         String newToken = jwtService.generateToken(user, minutes).getJwtToken();
         functionToPreventMultipleLogins(user, new JwtToken(newToken));
         return newToken;
@@ -491,30 +488,20 @@ public class UserServiceImpl implements UserService {
         gmailSyncRepository.save(gmailAuth);
     }
 
-    private void makeOldSessionInActiveOfUserForNewLogin(String username){
-        SessionTokenModel sessionTokenUser = userCommonService.getUserByUsername(username);
-        if(sessionTokenUser != null && sessionTokenUser.getIsActive()){
-            BlackListedToken blackListedToken = new BlackListedToken();
-            blackListedToken.setToken(sessionTokenUser.getToken());
-            blackListedToken.setExpiry(new Date(System.currentTimeMillis() + 3600000));
-            userCommonService.blacklistToken(blackListedToken);
-        }
-    }
-
     private void functionToPreventMultipleLogins(UserAuthModel userAuthModel, JwtToken token){
         if(userCommonService.getUserByUsername(userAuthModel.getUsername()) != null){
             SessionTokenModel sessionTokens = userCommonService.getUserByUsername(userAuthModel.getUsername());
             sessionTokens.setUsername(userAuthModel.getUsername());
             sessionTokens.setCreatedTime(LocalDateTime.now());
             sessionTokens.setToken(token.getJwtToken());
-            sessionTokens.setIsActive(true);
+            sessionTokens.setIsActive(Boolean.TRUE);
             userCommonService.save(sessionTokens);
         } else {
             SessionTokenModel sessionTokens = new SessionTokenModel();
             sessionTokens.setUsername(userAuthModel.getUsername());
             sessionTokens.setCreatedTime(LocalDateTime.now());
             sessionTokens.setToken(token.getJwtToken());
-            sessionTokens.setIsActive(true);
+            sessionTokens.setIsActive(Boolean.TRUE);
             userCommonService.save(sessionTokens);
         }
     }
@@ -531,13 +518,20 @@ public class UserServiceImpl implements UserService {
         restTemplate.postForEntity(url, requestEntity, String.class);
     }
 
-    private BlackListedToken makeUserTokenBlacklisted(String token){
-        return userCommonService.blacklistToken(new BlackListedToken(token, new Date(System.currentTimeMillis())));
+    private void makeOldSessionInActiveOfUserForNewLogin(String username){
+        SessionTokenModel sessionTokenUser = userCommonService.getUserByUsername(username);
+        if(sessionTokenUser != null && sessionTokenUser.getIsActive()){
+            makeUserTokenBlacklisted(sessionTokenUser.getToken(), username);
+        }
+    }
+
+    private BlackListedToken makeUserTokenBlacklisted(String token, String username){
+        return userCommonService.blacklistToken(new BlackListedToken(token, new Date(System.currentTimeMillis()), username));
     }
 
     private SessionTokenModel makeUserSessionInActive(String token){
         SessionTokenModel sessionTokens = userCommonService.getSessionDetailsByToken(token);
-        sessionTokens.setIsActive(false);
+        sessionTokens.setIsActive(Boolean.FALSE);
         return userCommonService.save(sessionTokens);
     }
 }

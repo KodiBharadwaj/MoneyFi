@@ -18,6 +18,15 @@ spring:
             client-secret: xxxxxxxxxxxxxxxxxxxxxxxxxx
             redirect-uri: "xxxxxxxxxxxxxxxxxxxxx"
 
+  data:
+    redis:
+      url: ${REDIS_URL}
+      timeout: 5s
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}

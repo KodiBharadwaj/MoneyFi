@@ -47,7 +47,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
             // Check if token is blacklisted
-            if (token != null && userCommonService.isTokenBlacklisted(token)) {
+            if (token != null && userCommonService.isTokenBlacklisted(token, username)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Token is blacklisted");
                 return;

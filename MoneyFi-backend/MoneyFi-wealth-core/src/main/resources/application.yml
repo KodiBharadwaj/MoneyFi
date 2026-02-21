@@ -16,6 +16,15 @@ spring:
             user.name: client
             user.password: client123
 
+  data:
+    redis:
+      url: ${REDIS_URL}
+      timeout: 5s
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000
+
   management:
     endpoints:
       web:
