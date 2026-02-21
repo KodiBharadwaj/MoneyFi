@@ -19,5 +19,5 @@ public interface UserCommonService {
 
     BlackListedToken blacklistToken(BlackListedToken blackListedToken);
 
-    boolean isTokenBlacklisted(String token);
+    boolean isTokenBlacklisted(String token, String username);
 }

@@ -18,9 +18,8 @@ spring:
 
   data:
     redis:
-      url: ${REDIS_URL:redis://localhost:6379}
+      url: ${REDIS_URL}
       timeout: 5s
-
   cache:
     type: redis
     redis:

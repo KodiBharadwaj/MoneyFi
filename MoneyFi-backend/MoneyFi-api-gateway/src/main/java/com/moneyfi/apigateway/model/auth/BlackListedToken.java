@@ -24,8 +24,12 @@ public class BlackListedToken {
     @Column(nullable = false)
     private Date expiry;
 
-    public BlackListedToken(String token, Date expiry) {
+    @Column(nullable = false)
+    private String username;
+
+    public BlackListedToken(String token, Date expiry, String username) {
         this.token = token;
         this.expiry = expiry;
+        this.username = username;
     }
 }

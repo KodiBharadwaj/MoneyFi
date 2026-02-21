@@ -1,4 +1,4 @@
-package com.moneyfi.wealthcore.config;
+package com.moneyfi.apigateway.config;
 
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
