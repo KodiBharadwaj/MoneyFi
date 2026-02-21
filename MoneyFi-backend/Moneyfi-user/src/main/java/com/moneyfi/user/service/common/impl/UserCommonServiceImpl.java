@@ -435,7 +435,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     public List<UserNotificationResponseDto> getUserNotifications(String username, String status) {
         return commonServiceRepository.getUserNotifications(username, status).stream()
                 .peek(notification -> {
-                    if (notification.getNotificationType().equalsIgnoreCase(UserRequestType.GMAIL_SYNC_COUNT_INCREASE.name())) {
+                    if (notification.getNotificationType().equalsIgnoreCase(SchedulingNotificationType.GMAIL_SYNC_COUNT_INCREASE.name())) {
                         GmailSyncCountJsonDto gmailSyncCountJsonDto = null;
                         try {
                             gmailSyncCountJsonDto = objectMapper.readValue(notification.getDescription(), GmailSyncCountJsonDto.class);
@@ -643,7 +643,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         scheduleNotification.setRecipients(username);
         scheduleNotification.setScheduleBy(user.getId());
         scheduleNotification.setUpdatedBy(user.getId());
-        scheduleNotification.setNotificationType(UserRequestType.GMAIL_SYNC_COUNT_INCREASE.name());
+        scheduleNotification.setNotificationType(SchedulingNotificationType.GMAIL_SYNC_COUNT_INCREASE.name());
         saveUserNotificationsForParticularUsers(username, scheduleNotificationRepository.save(scheduleNotification).getId());
 
         if (ObjectUtils.isNotEmpty(image)) {

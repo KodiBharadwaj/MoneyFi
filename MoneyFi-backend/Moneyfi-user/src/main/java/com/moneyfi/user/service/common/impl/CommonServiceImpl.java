@@ -9,7 +9,7 @@ import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.util.EmailTemplates;
 import com.moneyfi.user.util.constants.StringConstants;
-import com.moneyfi.user.util.enums.UserRequestType;
+import com.moneyfi.user.util.enums.SchedulingNotificationType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -88,7 +88,7 @@ public class CommonServiceImpl implements CommonService {
         log.info("checking username: {}", username);
         log.info("checking latest record: {}", latestNotification);
         latestNotification.ifPresent(userNotificationResponseDto -> {
-            if(userNotificationResponseDto.getNotificationType().equalsIgnoreCase(UserRequestType.GMAIL_SYNC_COUNT_INCREASE.name())) {
+            if (userNotificationResponseDto.getNotificationType().equalsIgnoreCase(SchedulingNotificationType.GMAIL_SYNC_COUNT_INCREASE.name())) {
                 try {
                     userNotificationResponseDto.setDescription(StringConstants.objectMapper.readValue(userNotificationResponseDto.getDescription(), GmailSyncCountJsonDto.class).getReason());
                 } catch (JsonProcessingException e) {

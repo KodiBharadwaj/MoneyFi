@@ -403,4 +403,72 @@ public class EmailTemplates {
                 + "</html>";
         emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
     }
+
+    public void sendNameChangeRequestApprovedMailToUser(String name, String email, String referenceNumber) {
+        String subject = "Name Change Request Approved - MoneyFi";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
+                + "<p style='font-size: 16px;'>Your Name Change Request has been approved by Admin" + "</p>"
+                + "<p style='font-size: 16px;'>Please login to your account and verify your name. Please use the reference number for tracking purpose: " + referenceNumber + "</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(email, subject, body);
+    }
+
+    public void sendNameChangeRequestRejectionMailToUser(String name, String email, String referenceNumber) {
+        String subject = "Name Change Request Declined - MoneyFi";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
+                + "<p style='font-size: 16px;'>Your Name change Request has been rejected by Admin. Please use the reference number for tracking purpose: " +  referenceNumber + "</p>"
+                + "<p style='font-size: 16px;'>Please login to your account and find the remarks by Admin.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(email, subject, body);
+    }
+
+    public void sendAccountUnblockOrRetrievalSuccessfulMailToUser(String name, String email, String referenceNumber, String mode) {
+        String subject = "Your Account " + mode +" - MoneyFi";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
+                + "<p style='font-size: 16px;'>Your account " + mode + "</p>"
+                + "<p style='font-size: 16px;'>Please login to your account and start reusing the services. Please use the reference number for tracking purpose: " + referenceNumber + "</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(email, subject, body);
+    }
+
+    public void sendAccountUnblockOrRetrievalFailureMailToUser(String name, String email, String referenceNumber, String mode, String declineReason) {
+        String subject = "Account " + mode + " Declined - MoneyFi";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
+                + "<p style='font-size: 16px;'>Your Request has been rejected by Admin. Reason: " + declineReason + "</p>"
+                + "<p style='font-size: 16px;'>Please use the reference number for tracking purpose: " +  referenceNumber + "</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(email, subject, body);
+    }
 }

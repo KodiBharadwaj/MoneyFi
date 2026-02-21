@@ -19,6 +19,6 @@ public class UserRequestStatusDto {
     private String requestType;
     private String isRequestActive;
     private String description;
-    @JsonFormat(pattern = DATE_TIME_PATTERN)
+    @JsonFormat(pattern = DATE_TIME_PATTERN, timezone = "Asia/Kolkata")
     private Timestamp requestedDate;
 }
