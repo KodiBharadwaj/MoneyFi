@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: MoneyFi-user
+  profiles:
+    active: ${PROFILE:local}
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+
+jwt:
+  secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
+
+server:
+  port: 8600

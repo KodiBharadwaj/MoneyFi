@@ -37,6 +37,17 @@ jwt:
 cors:
   allowed-origins: ${ALLOWED_ORIGINS}
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+rabbitmq:
+  exchange: notification.exchange
+  routing-key: password.changed
+  queue: password.changed.queue
+
 eureka:
   client:
     service-url:
