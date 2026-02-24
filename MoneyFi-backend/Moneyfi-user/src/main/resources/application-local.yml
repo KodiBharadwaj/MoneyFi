@@ -25,6 +25,17 @@ email:
       email : ${ADMIN_EMAIL}
       password : ${ADMIN_PASSWORD}
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+rabbitmq:
+  exchange: rabbit.mq.exchange
+  routing-key: rabbit.mq.routing.key
+  queue: rabbit.mq.queue
+
+
 cloud:
   aws:
     credentials:

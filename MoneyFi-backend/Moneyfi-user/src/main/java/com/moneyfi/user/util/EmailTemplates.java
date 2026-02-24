@@ -21,24 +21,6 @@ public class EmailTemplates {
         this.emailFilter = emailFilter;
     }
 
-    public void sendPasswordChangeAlertMail(String userName, String email){
-        String subject = "Password Change Alert!!";
-        String body = "<html>"
-                + "<body>"
-                + "<p style='font-size: 16px;'>Hello " + userName +",</p>"
-                + "<p style='font-size: 16px;'>You have changed the password for your account with username: " + email + "</p>"
-                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
-                + "<p style='font-size: 16px;'>Kindly Ignore if it by you. If not, reply to this mail immediately to secure account.</p>"
-                + "<hr>"
-                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
-                + "<br>"
-                + "<p style='font-size: 14px;'>Best regards,</p>"
-                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
-                + "</body>"
-                + "</html>";
-        emailFilter.sendEmail(email, subject, body);
-    }
-
     public void sendUserReportStatusMailToUser(String name, String referenceNumber, String description, String email){
         String subject = "Report Raised Status";
         String body = "<html>"
@@ -224,20 +206,6 @@ public class EmailTemplates {
         } else {
             emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
         }
-    }
-
-    public void sendUserFeedbackEmailToAdmin(String rating, String message){
-        String subject = "MoneyFi's User Feedback";
-
-        String body = "<html>"
-                + "<body>"
-                + "<p style='font-size: 16px;'>Hello Admin,</p>"
-                + "<br>"
-                + "<p style='font-size: 16px;'> You received feedback: " + rating + "/5 </p>"
-                + "<br>"
-                + "<p style='font-size: 16px;'>Comment: </p>"
-                + "<p style='font-size: 16px;'>" + message + "</p>";
-        emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
     }
 
     public boolean sendAccountStatementAsEmail(String name, String username, byte[] pdfBytes) {

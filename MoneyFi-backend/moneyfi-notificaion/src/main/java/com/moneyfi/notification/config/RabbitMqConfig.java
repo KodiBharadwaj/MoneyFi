@@ -1,4 +1,4 @@
-package com.moneyfi.user.config;
+package com.moneyfi.notification.config;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -9,29 +9,32 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class RabbitConfig {
-
-    @Value("${rabbitmq.exchange}")
-    private String exchange;
+public class RabbitMqConfig {
 
     @Value("${rabbitmq.queue}")
-    private String queue;
+    private String queueName;
+
+    @Value("${rabbitmq.exchange}")
+    private String exchangeName;
 
     @Value("${rabbitmq.routing-key}")
     private String routingKey;
 
     @Bean
     public Queue passwordChangedQueue() {
-        return new Queue(queue, true);
+        return new Queue(queueName, true);
     }
 
     @Bean
     public TopicExchange notificationExchange() {
-        return new TopicExchange(exchange);
+        return new TopicExchange(exchangeName);
     }
 
     @Bean
-    public Binding binding(Queue queue, TopicExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(routingKey);
+    public Binding binding(Queue passwordChangedQueue, TopicExchange notificationExchange) {
+        return BindingBuilder
+                .bind(passwordChangedQueue)
+                .to(notificationExchange)
+                .with(routingKey);
     }
 }

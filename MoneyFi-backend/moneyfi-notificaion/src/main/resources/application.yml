@@ -1,15 +1,14 @@
 spring:
   application:
-    name: MoneyFi-user
+    name: MoneyFi-notification
   profiles:
     active: ${PROFILE:local}
 
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-
+email:
+  filter:
+    from:
+      email : ${ADMIN_EMAIL}
+      password : ${ADMIN_PASSWORD}
 
 jwt:
   secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf

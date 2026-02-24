@@ -1,5 +1,6 @@
 package com.moneyfi.user.service.profile.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.ContactUs;
@@ -13,23 +14,30 @@ import com.moneyfi.user.repository.ProfileRepository;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.service.common.AwsServices;
 import com.moneyfi.user.service.common.CloudinaryService;
+import com.moneyfi.user.service.common.RabbitMqQueuePublisher;
+import com.moneyfi.user.service.common.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.common.dto.request.UserDefectRequestDto;
 import com.moneyfi.user.service.common.dto.request.UserFeedbackRequestDto;
 import com.moneyfi.user.service.profile.ProfileService;
 import com.moneyfi.user.service.profile.dto.ProfileDetailsDto;
 import com.moneyfi.user.util.EmailTemplates;
 import com.moneyfi.user.util.constants.StringConstants;
+import com.moneyfi.user.util.enums.NotificationQueueEnum;
 import com.moneyfi.user.util.enums.RaiseRequestStatus;
 import com.moneyfi.user.util.enums.RequestReason;
 import com.moneyfi.user.validator.UserValidations;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -45,10 +53,14 @@ import java.time.ZoneId;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 
 @Service
+@RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService {
 
     @Value("${spring.profiles.active:}")
     private String activeProfile;
+
+    @Autowired
+    private RabbitMqQueuePublisher rabbitMqQueuePublisher;
 
     private static final String EMAIL_MISMATCH_MESSAGE = "Email mismatch detected";
     private static final String TEMPLATE_NOT_FOUND_MESSAGE = "Template not found";
@@ -61,24 +73,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final EmailTemplates emailTemplates;
     private final AwsServices awsServices;
     private final CloudinaryService cloudinaryService;
-
-    public ProfileServiceImpl(ProfileRepository profileRepository,
-                              ContactUsRepository contactUsRepository,
-                              CommonServiceRepository commonServiceRepository,
-                              ContactUsHistRepository contactUsHistRepository,
-                              ExcelTemplateRepository excelTemplateRepository,
-                              EmailTemplates emailTemplates,
-                              AwsServices awsServices,
-                              CloudinaryService cloudinaryService){
-        this.profileRepository = profileRepository;
-        this.contactUsRepository = contactUsRepository;
-        this.commonServiceRepository = commonServiceRepository;
-        this.contactUsHistRepository = contactUsHistRepository;
-        this.excelTemplateRepository = excelTemplateRepository;
-        this.emailTemplates = emailTemplates;
-        this.awsServices = awsServices;
-        this.cloudinaryService = cloudinaryService;
-    }
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional(rollbackOn = Exception.class)
@@ -186,9 +181,7 @@ public class ProfileServiceImpl implements ProfileService {
         userFeedbackHist.setUpdatedTime(savedFeedback.getStartTime());
         userFeedbackHist.setUpdatedBy(userId);
         contactUsHistRepository.save(userFeedbackHist);
-        new Thread(() ->
-                emailTemplates.sendUserFeedbackEmailToAdmin(rating, message)
-        ).start();
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_FEEDBACK_MAIL.name(), rating + "<|>" + (StringUtils.isBlank(message) ? "NULL" : message)));
     }
 
     @Override

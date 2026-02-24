@@ -18,17 +18,20 @@ import com.moneyfi.user.service.admin.dto.request.ScheduleNotificationRequestDto
 import com.moneyfi.user.service.admin.dto.response.*;
 import com.moneyfi.user.service.common.UserCommonService;
 import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
+import com.moneyfi.user.service.common.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.user.util.EmailTemplates;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.AdminValidations;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -47,6 +50,7 @@ import static com.moneyfi.user.util.constants.StringConstants.USER_NOT_FOUND;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
 
     private static final String STATUS_REJECTED = "REJECTED";
@@ -62,28 +66,7 @@ public class AdminServiceImpl implements AdminService {
     private final ScheduleNotificationRepository scheduleNotificationRepository;
     private final UserCommonService userCommonService;
     private final UserNotificationRepository userNotificationRepository;
-
-    public AdminServiceImpl(AdminRepository adminRepository,
-                            ContactUsRepository contactUsRepository,
-                            ProfileRepository profileRepository,
-                            ContactUsHistRepository contactUsHistRepository,
-                            ReasonDetailsRepository reasonDetailsRepository,
-                            EmailTemplates emailTemplates,
-                            CommonServiceRepository commonServiceRepository,
-                            ScheduleNotificationRepository scheduleNotificationRepository,
-                            UserCommonService userCommonService,
-                            UserNotificationRepository userNotificationRepository){
-        this.adminRepository = adminRepository;
-        this.contactUsRepository = contactUsRepository;
-        this.profileRepository = profileRepository;
-        this.contactUsHistRepository = contactUsHistRepository;
-        this.reasonDetailsRepository = reasonDetailsRepository;
-        this.emailTemplates = emailTemplates;
-        this.commonServiceRepository = commonServiceRepository;
-        this.scheduleNotificationRepository = scheduleNotificationRepository;
-        this.userCommonService = userCommonService;
-        this.userNotificationRepository = userNotificationRepository;
-    }
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public AdminOverviewPageDto getAdminOverviewPageDetails() {
@@ -191,13 +174,13 @@ public class AdminServiceImpl implements AdminService {
     public void updateDefectStatus(Long defectId, String status, String reason, Long adminUserId) {
         ContactUs userDefect = contactUsRepository.findById(defectId).orElseThrow(() -> new ResourceNotFoundException("User defect details not found"));
         ProfileModel userProfile = profileRepository.findByUserEmail(userDefect.getEmail()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
-        if(userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) ||
+        if (userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) ||
                 userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.IGNORED.name()) ||
-                userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())){
+                userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())) {
             throw new ScenarioNotPossibleException("Action already done");
         }
         ContactUsHist userDefectHist = new ContactUsHist();
-        if(status.equalsIgnoreCase("Solved")){
+        if (status.equalsIgnoreCase("Solved")) {
             userDefect.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
             userDefect.setRequestActive(Boolean.FALSE);
             userDefect.setReferenceNumber("COM_" + userDefect.getReferenceNumber());
@@ -215,17 +198,16 @@ public class AdminServiceImpl implements AdminService {
             scheduleNotification.setSubject("Admin solved your concern");
             scheduleNotification.setDescription("Status: Completed" + " | " + "Reference Number: " + userDefect.getReferenceNumber().substring(4));
             functionCallForNotificationToUser(scheduleNotification, adminUserId, userDefect.getEmail());
-            new Thread(() -> emailTemplates.sendUserReportStatusMailToUser(userProfile.getName(), userDefect.getReferenceNumber().substring(4), userDefectHist.getMessage(), userDefect.getEmail().trim())).start();
-        } else if(status.equalsIgnoreCase("Pend")){
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_DEFECT_STATUS_MAIL.name(), userProfile.getName() + "<|>" + userDefect.getReferenceNumber().substring(4) + "<|>" + userDefectHist.getMessage() + "<|>" + userDefect.getEmail().trim()));
+        } else if (status.equalsIgnoreCase("Pend")) {
             userDefect.setRequestStatus(RaiseRequestStatus.PENDED.name());
-
             userDefectHist.setMessage("Admin kept in Pended state. Need some accuracy");
             userDefectHist.setContactUsId(userDefect.getId());
             userDefectHist.setRequestReason(RequestReason.USER_DEFECT_UPDATE.name());
             userDefectHist.setRequestStatus(RaiseRequestStatus.PENDED.name());
             userDefectHist.setUpdatedTime(LocalDateTime.now());
             userDefectHist.setUpdatedBy(adminUserId);
-        } else if (status.equalsIgnoreCase("Ignore")){
+        } else if (status.equalsIgnoreCase("Ignore")) {
             userDefect.setRequestStatus(RaiseRequestStatus.IGNORED.name());
             userDefect.setRequestActive(false);
             userDefect.setReferenceNumber("COM_" + userDefect.getReferenceNumber());
@@ -243,7 +225,7 @@ public class AdminServiceImpl implements AdminService {
             scheduleNotification.setSubject("Admin Ignored your concern");
             scheduleNotification.setDescription("Status: Ignored" + " | " + "Reference Number: " + userDefect.getReferenceNumber().substring(4) + " | " + "Reason: " + reason);
             functionCallForNotificationToUser(scheduleNotification, adminUserId, userDefect.getEmail());
-            new Thread(() -> emailTemplates.sendUserReportStatusMailToUser(userProfile.getName(), userDefect.getReferenceNumber().substring(4), userDefectHist.getMessage(), userDefect.getEmail().trim())).start();
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_DEFECT_STATUS_MAIL.name(), userProfile.getName() + "<|>" + userDefect.getReferenceNumber().substring(4) + "<|>" + userDefectHist.getMessage() + "<|>" + userDefect.getEmail().trim()));
         }
         contactUsRepository.save(userDefect);
         contactUsHistRepository.save(userDefectHist);
