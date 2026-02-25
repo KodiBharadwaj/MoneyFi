@@ -17,10 +17,10 @@ import com.moneyfi.user.service.admin.dto.request.ReasonUpdateRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.user.service.admin.dto.response.*;
 import com.moneyfi.user.service.common.UserCommonService;
+import com.moneyfi.user.service.common.dto.emaildto.AdminBlockUserDto;
 import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
 import com.moneyfi.user.service.common.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
-import com.moneyfi.user.util.EmailTemplates;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.AdminValidations;
@@ -61,7 +61,6 @@ public class AdminServiceImpl implements AdminService {
     private final ProfileRepository profileRepository;
     private final ContactUsHistRepository contactUsHistRepository;
     private final ReasonDetailsRepository reasonDetailsRepository;
-    private final EmailTemplates emailTemplates;
     private final CommonServiceRepository commonServiceRepository;
     private final ScheduleNotificationRepository scheduleNotificationRepository;
     private final UserCommonService userCommonService;
@@ -389,7 +388,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public String blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) {
+    public String blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) throws JsonProcessingException {
         if(email == null || email.trim().isEmpty() || reason == null || reason.trim().isEmpty()){
             throw new ScenarioNotPossibleException("Please provide all the details correctly");
         }
@@ -400,14 +399,14 @@ public class AdminServiceImpl implements AdminService {
         if(user.isDeleted()){
             throw new ScenarioNotPossibleException("User account is deleted, can't block the user");
         }
-        profileRepository.updateUserAuthTableWithBlockOrUnblockStatus(user.getId(), false);
+        profileRepository.updateUserAuthTableWithBlockOrUnblockStatus(user.getId(), Boolean.TRUE);
 
         ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
         ContactUs contactUs = new ContactUs();
         contactUs.setEmail(email);
         contactUs.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
-        contactUs.setRequestActive(true);
-        contactUs.setVerified(false);
+        contactUs.setRequestActive(Boolean.TRUE);
+        contactUs.setVerified(Boolean.FALSE);
         contactUs.setRequestStatus(RaiseRequestStatus.INITIATED.name());
         contactUs.setStartTime(LocalDateTime.now());
         String referenceNumber = "BL" + userProfile.getName().substring(0,2) + email.substring(0,2)
@@ -425,9 +424,7 @@ public class AdminServiceImpl implements AdminService {
         contactUsHist.setUpdatedBy(adminUserId);
         contactUsHistRepository.save(contactUsHist);
         methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT), reason, adminUserId, LocalDateTime.now());
-        new Thread(
-                () -> emailTemplates.sendBlockAlertMailToUser(email, reason, profileRepository.findByUserId(user.getId()).get().getName(), convertMultipartFileToPdfBytes(file))
-        ).start();
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.ADMIN_BLOCKED_USER_MAIL.name(), objectMapper.writeValueAsString(new AdminBlockUserDto(email, reason, profileRepository.findByUserId(user.getId()).get().getName(), convertMultipartFileToPdfBytes(file)))));
         return "User is successfully blocked";
     }
 
@@ -628,7 +625,7 @@ public class AdminServiceImpl implements AdminService {
             requestUserHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
             requestUserHist.setMessage("Admin has been unblocked the Account");
             methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
-            new Thread(() -> emailTemplates.sendAccountUnblockOrRetrievalSuccessfulMailToUser(userProfile.getName(), email, contactUs.getReferenceNumber().substring(4), "Unblocked successfully")).start();
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_SUCCESSFUL_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + contactUs.getReferenceNumber().substring(4) + "<|>" + "Unblocked successfully"));
         } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())) {
             profileRepository.updateUserAuthTableWithDeleteOrUndeleteStatus(user.getId(), false);
             ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
@@ -641,7 +638,7 @@ public class AdminServiceImpl implements AdminService {
             requestUserHist.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
             requestUserHist.setMessage("Admin has been approved Account Retrieval");
             methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
-            new Thread(() -> emailTemplates.sendAccountUnblockOrRetrievalSuccessfulMailToUser(userProfile.getName(), email, contactUs.getReferenceNumber().substring(4), "Retrieved successfully")).start();
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_ACCOUNT_RETRIEVAL_REQUEST_SUCCESSFUL_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + contactUs.getReferenceNumber().substring(4) + "<|>" + "Retrieved successfully"));
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())) {
             ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
                     .stream()
@@ -669,7 +666,7 @@ public class AdminServiceImpl implements AdminService {
             scheduleNotification.setRecipients(email);
             scheduleNotification.setNotificationType(SchedulingNotificationType.NAME_CHANGE_REQUEST.name());
             userCommonService.saveUserNotificationsForParticularUsers(user.getUsername(), scheduleNotificationRepository.save(scheduleNotification).getId());
-            new Thread(() -> emailTemplates.sendNameChangeRequestApprovedMailToUser(userProfile.getName(), email, contactUs.getReferenceNumber().substring(4))).start();
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.NAME_CHANGE_REQUEST_APPROVED_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + contactUs.getReferenceNumber().substring(4)));
         } else if (requestStatus.equalsIgnoreCase(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name())) {
             if (gmailSyncRequestCount <= 0 || gmailSyncRequestCount > 3) {
                 throw new ScenarioNotPossibleException("Please enter valid count between 0 to 3");
@@ -686,7 +683,7 @@ public class AdminServiceImpl implements AdminService {
             scheduleNotification.setSubject("Gmail Sync Count Increase Request Approved");
             scheduleNotification.setDescription(StringConstants.objectMapper.writeValueAsString(new GmailSyncCountJsonDto(gmailSyncRequestCount, STATUS_APPROVED, contactUs.getId())));
             functionToScheduleGmailSyncUpdateToUser(scheduleNotification, adminUserId, email, user, contactUs);
-            new Thread(() -> emailTemplates.sendUserGmailSyncApprovedMail(userProfile.getName(), email, gmailSyncRequestCount)).start();
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.GMAIL_SYNC_APPROVED_USER_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + gmailSyncRequestCount));
         }
     }
 
@@ -734,7 +731,7 @@ public class AdminServiceImpl implements AdminService {
             scheduleNotification.setSubject("Gmail Sync Count Increase Request Rejected");
             scheduleNotification.setDescription(StringConstants.objectMapper.writeValueAsString(new GmailSyncCountJsonDto(0, STATUS_REJECTED + ". Reason: " + declineReason, contactUs.getId())));
             functionToScheduleGmailSyncUpdateToUser(scheduleNotification, adminUserId, email, user, contactUs);
-            new Thread(() -> emailTemplates.sendUserGmailSyncCountIncreaseRequestRejection(userProfile.getName(), email)).start();
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.GMAIL_SYNC_REJECTED_USER_MAIL.name(), userProfile.getName() + "<|>" + email));
         } else if (contactUs.getRequestReason().equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())) {
             ScheduleNotification scheduleNotification = new ScheduleNotification();
             scheduleNotification.setSubject("Admin declined Name change Request");
@@ -746,11 +743,11 @@ public class AdminServiceImpl implements AdminService {
             scheduleNotification.setRecipients(email);
             scheduleNotification.setNotificationType(SchedulingNotificationType.NAME_CHANGE_REQUEST.name());
             userCommonService.saveUserNotificationsForParticularUsers(user.getUsername(), scheduleNotificationRepository.save(scheduleNotification).getId());
-            new Thread(() -> emailTemplates.sendNameChangeRequestRejectionMailToUser(userProfile.getName(), email, contactUs.getReferenceNumber().substring(4))).start();
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.NAME_CHANGE_REQUEST_REJECTED_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + contactUs.getReferenceNumber().substring(4)));
         } else if (contactUs.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())) {
-            new Thread(() -> emailTemplates.sendAccountUnblockOrRetrievalFailureMailToUser(userProfile.getName(), email, contactUs.getReferenceNumber().substring(4), "Unblock Request", declineReason)).start();
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_REJECTED_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + contactUs.getReferenceNumber().substring(4) + "<|>" + "Unblock Request" + "<|>" + declineReason));
         } else if (contactUs.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())) {
-            new Thread(() -> emailTemplates.sendAccountUnblockOrRetrievalFailureMailToUser(userProfile.getName(), email, contactUs.getReferenceNumber().substring(4), "Retrieval Request", declineReason)).start();
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_ACCOUNT_RETRIEVAL_REQUEST_REJECTED_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + contactUs.getReferenceNumber().substring(4) + "<|>" + "Retrieval Request" + "<|>" + declineReason));
         }
     }
 

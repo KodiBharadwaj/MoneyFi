@@ -74,7 +74,7 @@ public class UserController {
     @Operation(summary = "Api to save the user raised defect details")
     @PostMapping("/report-issue")
     public void saveUserRaisedReports(@RequestHeader("Authorization") String authHeader,
-                                      @Valid @ModelAttribute UserDefectRequestDto userDefectRequestDto){
+                                      @Valid @ModelAttribute UserDefectRequestDto userDefectRequestDto) throws JsonProcessingException {
         String username = jwtService.extractUsernameFromToken(authHeader.substring(7));
         profileService.saveContactUsDetails(userDefectRequestDto, jwtService.extractUserIdFromToken(authHeader.substring(7)), username);
     }

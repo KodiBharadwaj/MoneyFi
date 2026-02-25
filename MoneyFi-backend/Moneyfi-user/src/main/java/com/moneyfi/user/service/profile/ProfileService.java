@@ -1,5 +1,6 @@
 package com.moneyfi.user.service.profile;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.model.ProfileModel;
 import com.moneyfi.user.service.common.dto.request.UserDefectRequestDto;
 import com.moneyfi.user.service.common.dto.request.UserFeedbackRequestDto;
@@ -15,7 +16,7 @@ public interface ProfileService {
 
     String getUserDetailsByUserId(Long userId);
 
-    void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username);
+    void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) throws JsonProcessingException;
 
     void saveFeedback(UserFeedbackRequestDto feedback, Long userId);
 

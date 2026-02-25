@@ -15,12 +15,12 @@ import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.service.common.AwsServices;
 import com.moneyfi.user.service.common.CloudinaryService;
 import com.moneyfi.user.service.common.RabbitMqQueuePublisher;
+import com.moneyfi.user.service.common.dto.emaildto.UserRaisedDefectDto;
 import com.moneyfi.user.service.common.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.common.dto.request.UserDefectRequestDto;
 import com.moneyfi.user.service.common.dto.request.UserFeedbackRequestDto;
 import com.moneyfi.user.service.profile.ProfileService;
 import com.moneyfi.user.service.profile.dto.ProfileDetailsDto;
-import com.moneyfi.user.util.EmailTemplates;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.NotificationQueueEnum;
 import com.moneyfi.user.util.enums.RaiseRequestStatus;
@@ -70,7 +70,6 @@ public class ProfileServiceImpl implements ProfileService {
     private final CommonServiceRepository commonServiceRepository;
     private final ContactUsHistRepository contactUsHistRepository;
     private final ExcelTemplateRepository excelTemplateRepository;
-    private final EmailTemplates emailTemplates;
     private final AwsServices awsServices;
     private final CloudinaryService cloudinaryService;
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -118,7 +117,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) {
+    public void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) throws JsonProcessingException {
         if (!username.equals(userDefectRequestDto.getEmail().trim())) {
             throw new BadRequestException(EMAIL_MISMATCH_MESSAGE);
         }
@@ -151,10 +150,8 @@ public class ProfileServiceImpl implements ProfileService {
                 awsServices.uploadPictureToS3(savedDefect.getId(), userDefectRequestDto.getEmail().trim(), userDefectRequestDto.getFile(), UPLOAD_USER_RAISED_REPORT_PICTURE);
             }
         }
-        new Thread(() -> {
-            emailTemplates.sendUserRaiseDefectEmailToAdmin(userDefectRequestDto, userDefectRequestDto.getFile() != null && !userDefectRequestDto.getFile().isEmpty() ? userDefectRequestDto.getFile() : null);
-            emailTemplates.sendReferenceNumberEmailToUser(userDefectRequestDto.getName(), userDefect.getEmail(), "resolve issue", referenceNumber);
-        }).start();
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userDefectRequestDto.getName() + "<|>" + userDefect.getEmail() + "<|>" + "resolve issue" + "<|>" + referenceNumber));
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_RAISED_DEFECT_TO_ADMIN_MAIL.name(), objectMapper.writeValueAsString(new UserRaisedDefectDto(userDefectRequestDto.getMessage(), userDefectRequestDto.getName(), userDefectRequestDto.getEmail(), !userDefectRequestDto.getFile().isEmpty() ? userDefectRequestDto.getFile() : null))));
     }
 
     @Override
