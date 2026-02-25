@@ -10,6 +10,17 @@ spring:
             user.name: client
             user.password: client123
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+rabbitmq:
+  queue: rabbit.mq.queue
+  exchange: rabbit.mq.exchange
+  routing-key: rabbit.mq.routing.key
+
 management:
   endpoints:
     web:

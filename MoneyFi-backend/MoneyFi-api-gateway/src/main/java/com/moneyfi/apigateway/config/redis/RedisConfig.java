@@ -1,4 +1,4 @@
-package com.moneyfi.apigateway.config;
+package com.moneyfi.apigateway.config.redis;
 
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;

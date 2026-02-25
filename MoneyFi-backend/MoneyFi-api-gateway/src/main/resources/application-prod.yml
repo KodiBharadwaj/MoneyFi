@@ -10,6 +10,15 @@ cloud:
     stack:
       auto: false
 
+
+  rabbitmq:
+    uri: ${RABBITMQ_URI}
+
+rabbitmq:
+  queue: rabbit.mq.queue
+  exchange: rabbit.mq.exchange
+  routing-key: rabbit.mq.routing.key
+
 application:
   bucket:
     name: ${AWS_S3_BUCKET_NAME}

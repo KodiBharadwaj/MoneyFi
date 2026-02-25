@@ -8,6 +8,8 @@ import com.moneyfi.user.service.profile.dto.ProfileDetailsDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+
 public interface ProfileService {
 
     ProfileDetailsDto saveUserDetails(Long userId, ProfileModel profile);
@@ -16,7 +18,7 @@ public interface ProfileService {
 
     String getUserDetailsByUserId(Long userId);
 
-    void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) throws JsonProcessingException;
+    void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) throws IOException;
 
     void saveFeedback(UserFeedbackRequestDto feedback, Long userId);
 

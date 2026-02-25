@@ -15,13 +15,16 @@ import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.auth.SessionTokenRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
-import com.moneyfi.apigateway.service.general.email.EmailTemplates;
+import com.moneyfi.apigateway.service.general.dto.NotificationQueueDto;
 import com.moneyfi.apigateway.util.constants.StringConstants;
+import com.moneyfi.apigateway.util.enums.NotificationQueueEnum;
 import com.moneyfi.apigateway.util.enums.ReasonEnum;
 import com.moneyfi.apigateway.util.enums.UserRoles;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -35,34 +38,17 @@ import static com.moneyfi.apigateway.util.constants.StringConstants.userRoleAsso
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class SchedulingService {
 
     private final TokenBlackListRepository tokenBlacklistRepository;
     private final UserRepository userRepository;
     private final CommonServiceRepository commonServiceRepository;
-    private final EmailTemplates emailTemplates;
     private final UserAuthHistRepository userAuthHistRepository;
     private final SessionTokenRepository sessionTokenRepository;
     private final OtpTempRepository otpTempRepository;
     private final GmailSyncRepository gmailSyncRepository;
-
-    public SchedulingService(TokenBlackListRepository tokenBlacklistRepository,
-                             UserRepository userRepository,
-                             CommonServiceRepository commonServiceRepository,
-                             EmailTemplates emailTemplates,
-                             UserAuthHistRepository userAuthHistRepository,
-                             SessionTokenRepository sessionTokenRepository,
-                             OtpTempRepository otpTempRepository,
-                             GmailSyncRepository gmailSyncRepository){
-        this.tokenBlacklistRepository = tokenBlacklistRepository;
-        this.userRepository = userRepository;
-        this.commonServiceRepository = commonServiceRepository;
-        this.emailTemplates = emailTemplates;
-        this.userAuthHistRepository = userAuthHistRepository;
-        this.sessionTokenRepository = sessionTokenRepository;
-        this.otpTempRepository = otpTempRepository;
-        this.gmailSyncRepository = gmailSyncRepository;
-    }
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @PostConstruct
     public void initializeScheduledMethodsInCaseOfServiceRunningDelay(){
@@ -100,23 +86,23 @@ public class SchedulingService {
 
         /** Scheduling algorithm to find the users who completed more than 1 year in MoneyFi **/
         List<String> anniversaryUsersList = commonServiceRepository.getBirthdayAndAnniversaryUsersList(LocalDate.now().getMonthValue(), LocalDate.now().getDayOfMonth(), "Birthday");
-        new Thread(() -> anniversaryUsersList.forEach(user -> {
+        anniversaryUsersList.forEach(user -> {
             String[] parts = user.split("-");
             int numberOfYears = LocalDate.now().getYear() - Integer.parseInt(parts[2]);
-            if(numberOfYears != 0){
-                emailTemplates.sendAnniversaryCongratulationsMailToUser(parts[0].trim(), parts[1], numberOfYears);
+            if (numberOfYears != 0) {
+                applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_ANNIVERSARY_MAIL.name(), parts[0].trim() + "<|>" + parts[1] + "<|>" + numberOfYears));
             }
-        })).start();
+        });
 
         /** Scheduling algorithm to find the birthday users **/
         List<String> birthdayList = commonServiceRepository.getBirthdayAndAnniversaryUsersList(LocalDate.now().getMonthValue(), LocalDate.now().getDayOfMonth(), "Anniversary");
-        new Thread(() -> birthdayList.forEach(user -> {
+        birthdayList.forEach(user -> {
             String[] parts = user.split("-");
             int numberOfYears = LocalDate.now().getYear() - Integer.parseInt(parts[2]);
-            if(numberOfYears > 0){
-                emailTemplates.sendBirthdayWishEmailToUsers(parts[0].trim(), parts[1]);
+            if (numberOfYears > 0) {
+                applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_BIRTHDAY_MAIL.name(), parts[0].trim() + "<|>" + parts[1]));
             }
-        })).start();
+        });
 
         /** Scheduling algorithm to delete the users who deleted their account 30 days before **/
         int roleId = 0;

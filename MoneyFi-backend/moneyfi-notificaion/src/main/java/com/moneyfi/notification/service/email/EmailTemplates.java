@@ -3,14 +3,15 @@ package com.moneyfi.notification.service.email;
 import com.moneyfi.notification.service.dto.emaildto.StatementAnalysisDto;
 import com.moneyfi.notification.service.dto.emaildto.GmailSyncIncreaseRequestDto;
 import com.moneyfi.notification.service.dto.emaildto.UserRaisedDefectDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import java.util.Base64;
 
 @Component
+@Slf4j
 public class EmailTemplates {
 
     @Value("${email.filter.from.email}")
@@ -60,7 +61,7 @@ public class EmailTemplates {
         emailFilter.sendEmail(username, subject, body);
     }
 
-    public void sendUserRaiseDefectEmailToAdmin(UserRaisedDefectDto userRaisedDefectDto){
+    public void sendUserRaiseDefectEmailToAdmin(UserRaisedDefectDto userRaisedDefectDto) {
         String subject = "MoneyFi's User Report Alert!!";
         String body = "<html>"
                 + "<body>"
@@ -75,13 +76,14 @@ public class EmailTemplates {
                 + "<p style='font-size: 16px;'>Please login for more details</p>"
                 + "</body>"
                 + "</html>";
-        MultipartFile image = userRaisedDefectDto.getImage();
-        if (image != null && !image.isEmpty()) {
+        if (userRaisedDefectDto.getImageBase64() != null && !userRaisedDefectDto.getImageBase64().isBlank()) {
             try {
-                byte[] imageBytes = image.getBytes();
-                emailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, image.getOriginalFilename() != null ? image.getOriginalFilename() : "attachment.jpg");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                byte[] imageBytes = Base64.getDecoder().decode(userRaisedDefectDto.getImageBase64());
+                String fileName = userRaisedDefectDto.getFileName() != null ? userRaisedDefectDto.getFileName() : "attachment.jpg";
+                emailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, fileName);
+            } catch (Exception e) {
+                log.error("Failed to decode image attachment", e);
+                emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
             }
         } else {
             emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
@@ -104,13 +106,14 @@ public class EmailTemplates {
                 + "<p style='font-size: 16px;'>Please login for more details</p>"
                 + "</body>"
                 + "</html>";
-        MultipartFile image = gmailSyncIncreaseRequestDto.getImage();
-        if (image != null && !image.isEmpty()) {
+        if (gmailSyncIncreaseRequestDto.getImageBase64() != null && !gmailSyncIncreaseRequestDto.getImageBase64().isBlank()) {
             try {
-                byte[] imageBytes = image.getBytes();
-                emailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, image.getOriginalFilename() != null ? image.getOriginalFilename() : "attachment.jpg");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                byte[] imageBytes = Base64.getDecoder().decode(gmailSyncIncreaseRequestDto.getImageBase64());
+                String fileName = gmailSyncIncreaseRequestDto.getFileName() != null ? gmailSyncIncreaseRequestDto.getFileName() : "attachment.jpg";
+                emailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, fileName);
+            } catch (Exception e) {
+                log.error("Failed to decode image attachment", e);
+                emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
             }
         } else {
             emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
@@ -333,6 +336,118 @@ public class EmailTemplates {
                 + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
                 + "<p style='font-size: 16px;'>Your Request has been rejected by Admin. Reason: " + declineReason + "</p>"
                 + "<p style='font-size: 16px;'>Please use the reference number for tracking purpose: " +  referenceNumber + "</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(email, subject, body);
+    }
+
+    public void sendPasswordChangeAlertMail(String name, String email){
+        String subject = "Password Change Alert!!";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name +",</p>"
+                + "<p style='font-size: 16px;'>You have changed the password for your account with username: " + email + "</p>"
+                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
+                + "<p style='font-size: 16px;'>Kindly Ignore if it by you. If not, reply to this mail immediately to secure account.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(email, subject, body);
+    }
+
+    public void sendOtpEmailToUserForSignup(String email, String name, String verificationCode){
+        String subject = "OTP for MoneyFi's account creation";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
+                + "<p style='font-size: 16px;'>You have requested for account creation. Please use the following verification code:</p>"
+                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'>" + verificationCode + "</p>"
+                + "<p style='font-size: 16px;'>This code is valid for 5 minutes only. If you did not raise, please ignore this email.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(email, subject, body);
+    }
+
+    public void sendOtpToUserForAccountBlock(String username, String name, String verificationCode, String type){
+        String message = null;
+        if (type.equalsIgnoreCase("BLOCK")) {
+            message = "Block";
+        } else if (type.equalsIgnoreCase("DELETE")) {
+            message = "Delete";
+        }
+        String subject = "OTP to " + message + " account";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
+                + "<p style='font-size: 16px;'>You have requested otp for account " + message + ". Please use the following verification code:</p>"
+                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'>" + verificationCode + "</p>"
+                + "<p style='font-size: 16px;'>This code is valid for 5 minutes only. If you did not raise, please ignore this email.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(username, subject, body);
+    }
+
+    public void sendOtpForForgotPassword(String userName, String email, String verificationCode){
+        String subject = "MoneyFi's Password Reset Verification Code";
+        String body = "<html>"
+                + "<body>"
+                + "<h2 style='color: #333;'>Password Reset Verification</h2>"
+                + "<p style='font-size: 16px;'>Hello " + userName + ",</p>"
+                + "<p style='font-size: 16px;'>You have requested to reset your password. Please use the following verification code:</p>"
+                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'>" + verificationCode + "</p>"
+                + "<p style='font-size: 16px;'>This code is valid for 5 minutes only. If you did not raise, please ignore this email.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(email, subject, body);
+    }
+
+    public void sendAnniversaryCongratulationsMailToUser(String email, String name, int numberOfYears){
+        String subject = "Happy Anniversary - MoneyFi";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
+                + "<p style='font-size: 16px;'>We wish you a very happy anniversary in our moneyfi. May god bless you on this auspicious day.</p>"
+                + "<p style='font-size: 16px;'>You have completed " + numberOfYears + (numberOfYears == 1?" year" : " years") + " in our platform. Hope you are enjoying the services.</p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        emailFilter.sendEmail(email, subject, body);
+    }
+
+    public void sendBirthdayWishEmailToUsers(String email, String name){
+        String subject = "Happy Birthday";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
+                + "<p style='font-size: 16px;'>We wish you a very happy birthday to you. May god bless you on this auspicious day.</p>"
                 + "<hr>"
                 + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
                 + "<br>"

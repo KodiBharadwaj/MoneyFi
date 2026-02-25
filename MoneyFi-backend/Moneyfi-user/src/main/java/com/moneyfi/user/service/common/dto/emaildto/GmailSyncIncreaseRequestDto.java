@@ -3,7 +3,6 @@ package com.moneyfi.user.service.common.dto.emaildto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @NoArgsConstructor
@@ -13,5 +12,7 @@ public class GmailSyncIncreaseRequestDto {
     private String reason;
     private String name;
     private String email;
-    private MultipartFile image;
+    private String imageBase64;
+    private String fileName;
+    private String contentType;
 }

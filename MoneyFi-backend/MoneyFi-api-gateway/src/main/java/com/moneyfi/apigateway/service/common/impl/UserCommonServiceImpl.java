@@ -11,13 +11,16 @@ import com.moneyfi.apigateway.repository.user.auth.SessionTokenRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.common.UserCommonService;
-import com.moneyfi.apigateway.service.general.email.EmailTemplates;
+import com.moneyfi.apigateway.service.general.dto.NotificationQueueDto;
+import com.moneyfi.apigateway.util.enums.NotificationQueueEnum;
 import com.moneyfi.apigateway.util.enums.ReasonEnum;
 import com.moneyfi.apigateway.validator.UserValidations;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,25 +29,14 @@ import static com.moneyfi.apigateway.util.constants.StringConstants.*;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserCommonServiceImpl implements UserCommonService {
 
     private final UserRepository userRepository;
     private final SessionTokenRepository sessionTokenRepository;
     private final TokenBlackListRepository tokenBlacklistRepository;
-    private final EmailTemplates emailTemplates;
     private final UserAuthHistRepository userAuthHistRepository;
-
-    public UserCommonServiceImpl(UserRepository userRepository,
-                                 SessionTokenRepository sessionTokenRepository,
-                                 TokenBlackListRepository tokenBlacklistRepository,
-                                 EmailTemplates emailTemplates,
-                                 UserAuthHistRepository userAuthHistRepository){
-        this.userRepository = userRepository;
-        this.sessionTokenRepository = sessionTokenRepository;
-        this.tokenBlacklistRepository = tokenBlacklistRepository;
-        this.emailTemplates = emailTemplates;
-        this.userAuthHistRepository = userAuthHistRepository;
-    }
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional(rollbackOn = Exception.class)
@@ -61,7 +53,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             user.setOtpCount(user.getOtpCount() + 1);
             userRepository.save(user);
         }
-        emailTemplates.sendOtpForForgotPassword(userRepository.getUserNameByUsername(email.trim()), email, verificationCode);
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name(), userRepository.getUserNameByUsername(email.trim()) + "<|>" + email + "<|>" + verificationCode));
         return VERIFICATION_CODE_SENT_MESSAGE;
     }
 

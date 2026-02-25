@@ -44,11 +44,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Base64;
 
 import static com.moneyfi.user.util.constants.StringConstants.*;
 
@@ -117,7 +119,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) throws JsonProcessingException {
+    public void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) throws IOException {
         if (!username.equals(userDefectRequestDto.getEmail().trim())) {
             throw new BadRequestException(EMAIL_MISMATCH_MESSAGE);
         }
@@ -151,7 +153,16 @@ public class ProfileServiceImpl implements ProfileService {
             }
         }
         applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userDefectRequestDto.getName() + "<|>" + userDefect.getEmail() + "<|>" + "resolve issue" + "<|>" + referenceNumber));
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_RAISED_DEFECT_TO_ADMIN_MAIL.name(), objectMapper.writeValueAsString(new UserRaisedDefectDto(userDefectRequestDto.getMessage(), userDefectRequestDto.getName(), userDefectRequestDto.getEmail(), !userDefectRequestDto.getFile().isEmpty() ? userDefectRequestDto.getFile() : null))));
+        String base64Image = null;
+        String fileName = null;
+        String contentType = null;
+        if (userDefectRequestDto.getFile() != null && !userDefectRequestDto.getFile().isEmpty()) {
+            MultipartFile file = userDefectRequestDto.getFile();
+            base64Image = Base64.getEncoder().encodeToString(file.getBytes());
+            fileName = file.getOriginalFilename();
+            contentType = file.getContentType();
+        }
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_RAISED_DEFECT_TO_ADMIN_MAIL.name(), objectMapper.writeValueAsString(new UserRaisedDefectDto(userDefectRequestDto.getMessage(), userDefectRequestDto.getName(), userDefectRequestDto.getEmail(), base64Image, fileName, contentType))));
     }
 
     @Override

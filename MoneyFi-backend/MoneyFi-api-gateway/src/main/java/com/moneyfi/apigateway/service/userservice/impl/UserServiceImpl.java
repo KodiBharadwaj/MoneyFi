@@ -15,12 +15,12 @@ import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.general.GoogleOAuthEndPointDealerService;
 import com.moneyfi.apigateway.service.general.MultipartInputStreamFileResource;
+import com.moneyfi.apigateway.service.general.dto.NotificationQueueDto;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.jwtservice.JwtService;
 import com.moneyfi.apigateway.service.jwtservice.dto.JwtToken;
 import com.moneyfi.apigateway.service.userservice.dto.request.*;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
-import com.moneyfi.apigateway.service.general.email.EmailTemplates;
 import com.moneyfi.apigateway.util.enums.*;
 import com.moneyfi.apigateway.validator.UserValidations;
 import jakarta.transaction.Transactional;
@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -78,33 +79,33 @@ public class UserServiceImpl implements UserService {
     private final OtpTempRepository otpTempRepository;
     private final JwtService jwtService;
     private final UserCommonService userCommonService;
-    private final EmailTemplates emailTemplates;
     private final UserAuthHistRepository userAuthHistRepository;
     private final AuthenticationManager authenticationManager;
     private final RestTemplate restTemplate;
     private final GmailSyncRepository gmailSyncRepository;
     private final GoogleOAuthEndPointDealerService googleOAuthEndPointDealerService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public UserServiceImpl(UserRepository userRepository,
                            OtpTempRepository otpTempRepository,
                            JwtService jwtService,
                            UserCommonService userCommonService,
                            AuthenticationManager authenticationManager,
-                           EmailTemplates emailTemplates,
                            UserAuthHistRepository userAuthHistRepository,
                            @Qualifier("getRestTemplate") RestTemplate restTemplate,
                            GmailSyncRepository gmailSyncRepository,
-                           GoogleOAuthEndPointDealerService googleOAuthEndPointDealerService){
+                           GoogleOAuthEndPointDealerService googleOAuthEndPointDealerService,
+                           ApplicationEventPublisher applicationEventPublisher){
         this.userRepository = userRepository;
         this.otpTempRepository = otpTempRepository;
         this.jwtService = jwtService;
         this.userCommonService = userCommonService;
         this.authenticationManager = authenticationManager;
-        this.emailTemplates = emailTemplates;
         this.userAuthHistRepository = userAuthHistRepository;
         this.restTemplate = restTemplate;
         this.gmailSyncRepository = gmailSyncRepository;
         this.googleOAuthEndPointDealerService = googleOAuthEndPointDealerService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override
@@ -364,9 +365,7 @@ public class UserServiceImpl implements UserService {
         user.setVerificationCodeExpiration(LocalDateTime.now());
         userRepository.save(user);
         userAuthHistRepository.save(new UserAuthHist(changePasswordDto.getUserId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE), changePasswordDto.getDescription(), changePasswordDto.getUserId()));
-        new Thread(() ->
-                emailTemplates.sendPasswordChangeAlertMail(userRepository.getUserNameByUsername(user.getUsername()), user.getUsername())
-        ).start();
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_PASSWORD_CHANGE_ALERT_MAIL. name(), userRepository.getUserNameByUsername(user.getUsername()) + "<|>" + user.getUsername()));
     }
 
     @Override
@@ -384,7 +383,7 @@ public class UserServiceImpl implements UserService {
     public String sendOtpForSignup(String email, String name) {
         UserValidations.checkForUserAlreadyExistenceValidation(userRepository.getUserDetailsByUsername(email).orElse(null));
         String verificationCode = generateVerificationCode();
-        emailTemplates.sendOtpEmailToUserForSignup(email, name, verificationCode);
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_MAIL_FOR_USER_SIGNUP.name(), email + "<|>" + name + "<|>" + verificationCode));
         Optional<OtpTempModel> tempModel = otpTempRepository.findByEmail(email)
                 .stream()
                 .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.USER_CREATION.name()))
@@ -453,7 +452,7 @@ public class UserServiceImpl implements UserService {
                     otpTempRepository.save(new OtpTempModel(username, newOtp, LocalDateTime.now().plusMinutes(5), otpType));
                     return newOtp;
                 });
-        emailTemplates.sendOtpToUserForAccountBlock(username, userRepository.getUserNameByUsername(username.trim()), verificationCode, type);
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_FOR_USER_BLOCK.name(), username + "<|>" + userRepository.getUserNameByUsername(username.trim()) + "<|>" + verificationCode + "<|>" + type));
         return ResponseEntity.ok(EMAIL_SENT_SUCCESS_MESSAGE);
     }
 

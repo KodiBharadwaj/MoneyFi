@@ -17,6 +17,7 @@ import com.moneyfi.user.service.common.CloudinaryService;
 import com.moneyfi.user.service.common.CommonService;
 import com.moneyfi.user.service.common.UserCommonService;
 import com.moneyfi.user.service.common.dto.emaildto.GmailSyncIncreaseRequestDto;
+import com.moneyfi.user.service.common.dto.emaildto.UserRaisedDefectDto;
 import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
 import com.moneyfi.user.service.common.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.common.dto.request.*;
@@ -40,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -609,7 +611,7 @@ public class UserCommonServiceImpl implements UserCommonService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void userRequestToIncreaseGmailSyncDailyCount(GmailSyncCountIncreaseRequestDto request, MultipartFile image, String username) throws JsonProcessingException {
+    public void userRequestToIncreaseGmailSyncDailyCount(GmailSyncCountIncreaseRequestDto request, MultipartFile image, String username) throws IOException {
         UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
         UserValidations.validateUserGmailSyncCountIncreaseRequest(request, profileRepository, user.getId());
         ContactUs existingRequest = contactUsRepository.findByEmail(username).stream()
@@ -656,7 +658,15 @@ public class UserCommonServiceImpl implements UserCommonService {
             }
         }
         applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userProfile.getName() + "<|>" + username + "<|>" + "request Gmail Sync Count Increase" + "<|>" + referenceNumber));
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_USER_REQUEST_TO_INCREASE_GMAIL_SYNC_COUNT_TO_ADMIN_MAIL.name(), objectMapper.writeValueAsString(new GmailSyncIncreaseRequestDto(request.getCount(), request.getReason(), userProfile.getName(), username, image != null && !image.isEmpty() ? image : null))));
+        String base64Image = null;
+        String fileName = null;
+        String contentType = null;
+        if (image != null && !image.isEmpty()) {
+            base64Image = Base64.getEncoder().encodeToString(image.getBytes());
+            fileName = image.getOriginalFilename();
+            contentType = image.getContentType();
+        }
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_USER_REQUEST_TO_INCREASE_GMAIL_SYNC_COUNT_TO_ADMIN_MAIL.name(), objectMapper.writeValueAsString(new GmailSyncIncreaseRequestDto(request.getCount(), request.getReason(), userProfile.getName(), username, base64Image, fileName, contentType))));
     }
 
     private String functionCallToRetrieveUsername(ForgotUsernameDto userDetails) {

@@ -13,5 +13,7 @@ public class GmailSyncIncreaseRequestDto {
     private String reason;
     private String name;
     private String email;
-    private MultipartFile image;
+    private String imageBase64;
+    private String fileName;
+    private String contentType;
 }

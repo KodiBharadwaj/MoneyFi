@@ -9,7 +9,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class MoneyFiNotificationApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(MoneyFiNotificationApplication.class, args);
-		System.out.println("RABBIT URI: " + System.getenv("RABBITMQ_URI"));
 		log.info("Notification Service Started");
 	}
 }

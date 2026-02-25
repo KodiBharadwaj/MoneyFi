@@ -52,5 +52,5 @@ public interface UserCommonService {
 
     QuoteResponseDto getTodayQuoteByExternalCall(String externalApiUrl) throws JsonProcessingException;
 
-    void userRequestToIncreaseGmailSyncDailyCount(@Valid GmailSyncCountIncreaseRequestDto request, MultipartFile image, String username) throws JsonProcessingException;
+    void userRequestToIncreaseGmailSyncDailyCount(@Valid GmailSyncCountIncreaseRequestDto request, MultipartFile image, String username) throws IOException;
 }
