@@ -159,7 +159,7 @@
             <span class="category-badge">{{ expense.category }}</span>
           </td>
           <td>₹{{ expense.amount.toLocaleString() }}</td>
-          <td>{{ expense.date | date:'mediumDate' }}</td>
+          <td>{{ expense.date | date:'mediumDate':'UTC' }}</td>
           <td>
             <span class="type-badge" [class.recurring]="expense.recurring">
               {{ expense.recurring ? 'Recurring' : 'One-time' }}
