@@ -74,7 +74,7 @@ public class UserController {
     @Operation(summary = "Api to save the user raised defect details")
     @PostMapping("/report-issue")
     public void saveUserRaisedReports(@RequestHeader("Authorization") String authHeader,
-                                      @Valid @ModelAttribute UserDefectRequestDto userDefectRequestDto){
+                                      @Valid @ModelAttribute UserDefectRequestDto userDefectRequestDto) throws IOException {
         String username = jwtService.extractUsernameFromToken(authHeader.substring(7));
         profileService.saveContactUsDetails(userDefectRequestDto, jwtService.extractUserIdFromToken(authHeader.substring(7)), username);
     }
@@ -180,7 +180,7 @@ public class UserController {
     @PostMapping(value = "/user-request/gmail-sync-request", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void userRequestToIncreaseGmailSyncDailyCount(@RequestHeader("Authorization") String authHeader,
                                                          @RequestPart("data") @Valid GmailSyncCountIncreaseRequestDto request,
-                                                         @RequestPart(value = "image", required = false) MultipartFile image) throws JsonProcessingException {
+                                                         @RequestPart(value = "image", required = false) MultipartFile image) throws IOException {
         String username = jwtService.extractUsernameFromToken(authHeader.substring(7));
         userCommonService.userRequestToIncreaseGmailSyncDailyCount(request, image, username);
     }

@@ -5,12 +5,16 @@ import com.moneyfi.user.model.UserNotification;
 import com.moneyfi.user.repository.ProfileRepository;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.service.common.CommonService;
+import com.moneyfi.user.service.common.dto.emaildto.StatementAnalysisDto;
 import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
+import com.moneyfi.user.service.common.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
-import com.moneyfi.user.util.EmailTemplates;
 import com.moneyfi.user.util.constants.StringConstants;
+import com.moneyfi.user.util.enums.NotificationQueueEnum;
 import com.moneyfi.user.util.enums.SchedulingNotificationType;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -21,30 +25,25 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.moneyfi.user.util.constants.StringConstants.functionToGetNameOfUserWithUserId;
+import static com.moneyfi.user.util.constants.StringConstants.objectMapper;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class CommonServiceImpl implements CommonService {
 
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     private final ProfileRepository profileRepository;
     private final CommonServiceRepository commonServiceRepository;
-    private final EmailTemplates emailTemplates;
-
-    public CommonServiceImpl(ProfileRepository profileRepository,
-                             CommonServiceRepository commonServiceRepository,
-                             EmailTemplates emailTemplates) {
-        this.profileRepository = profileRepository;
-        this.commonServiceRepository = commonServiceRepository;
-        this.emailTemplates = emailTemplates;
-    }
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public boolean sendAccountStatementEmail(String username, Long userId, byte[] pdfBytes) {
         String name = functionToGetNameOfUserWithUserId(profileRepository, userId);
         try {
-            return emailTemplates.sendAccountStatementAsEmail(!name.trim().isEmpty() ? name : "User", username, pdfBytes);
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.ACCOUNT_STATEMENT_EMAIL.name(), objectMapper.writeValueAsString(new StatementAnalysisDto(!name.trim().isEmpty() ? name : "User", username, pdfBytes))));
+            return true;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -54,7 +53,8 @@ public class CommonServiceImpl implements CommonService {
     public boolean sendSpendingAnalysisEmail(String username, Long userId, byte[] pdfBytes) {
         String name = functionToGetNameOfUserWithUserId(profileRepository, userId);
         try {
-            return emailTemplates.sendSpendingAnalysisEmail(!name.trim().isEmpty() ? name : "User", username, pdfBytes);
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SPENDING_ANALYSIS_EMAIL.name(), objectMapper.writeValueAsString(new StatementAnalysisDto(!name.trim().isEmpty() ? name : "User", username, pdfBytes))));
+            return true;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

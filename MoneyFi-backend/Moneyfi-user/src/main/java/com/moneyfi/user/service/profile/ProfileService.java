@@ -1,11 +1,14 @@
 package com.moneyfi.user.service.profile;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.model.ProfileModel;
 import com.moneyfi.user.service.common.dto.request.UserDefectRequestDto;
 import com.moneyfi.user.service.common.dto.request.UserFeedbackRequestDto;
 import com.moneyfi.user.service.profile.dto.ProfileDetailsDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 public interface ProfileService {
 
@@ -15,7 +18,7 @@ public interface ProfileService {
 
     String getUserDetailsByUserId(Long userId);
 
-    void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username);
+    void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) throws IOException;
 
     void saveFeedback(UserFeedbackRequestDto feedback, Long userId);
 

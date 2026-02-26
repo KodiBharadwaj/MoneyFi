@@ -1,5 +1,6 @@
 package com.moneyfi.user.service.admin;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.service.admin.dto.request.AdminScheduleRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonDetailsRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonUpdateRequestDto;
@@ -24,7 +25,7 @@ public interface AdminService {
 
     boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId, String approveStatus, String declineReason, int gmailSyncRequestCount);
 
-    String blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId);
+    String blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) throws JsonProcessingException;
 
     List<UserGridDto> getUserDetailsGridForAdmin(String status);
 

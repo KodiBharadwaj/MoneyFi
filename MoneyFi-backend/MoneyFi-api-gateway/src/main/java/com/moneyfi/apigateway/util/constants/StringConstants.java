@@ -1,5 +1,6 @@
 package com.moneyfi.apigateway.util.constants;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneyfi.apigateway.dto.ContactUs;
 import com.moneyfi.apigateway.dto.ContactUsHist;
 import com.moneyfi.apigateway.dto.ProfileModel;
@@ -51,6 +52,8 @@ public class StringConstants {
     public static final String LOGIN_ERROR = "An error occurred during login";
 
     public static final long SESSION_LOGIN_MINUTES = 60L;
+
+    public static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static final String CLIENT_ID = "client_id";
     public static final String CLIENT_SECRET = "client_secret";

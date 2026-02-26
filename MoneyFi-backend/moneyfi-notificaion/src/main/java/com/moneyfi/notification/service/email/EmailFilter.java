@@ -1,7 +1,7 @@
-package com.moneyfi.apigateway.service.general.email;
+package com.moneyfi.notification.service.email;
 
-import com.moneyfi.apigateway.exceptions.CustomInternalServerErrorException;
-import com.moneyfi.apigateway.util.constants.StringConstants;
+import com.moneyfi.notification.exceptions.CustomInternalServerErrorException;
+import com.moneyfi.notification.util.constants.StringConstants;
 import jakarta.activation.DataHandler;
 import jakarta.activation.DataSource;
 import jakarta.mail.*;
@@ -9,15 +9,14 @@ import jakarta.mail.internet.*;
 import jakarta.mail.util.ByteArrayDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Properties;
 
 @Component
 @Slf4j
-@Profile("local")
 public class EmailFilter {
+
     @Value("${email.filter.from.email}")
     private String fromEmail;
     @Value("${email.filter.from.password}")
@@ -26,15 +25,20 @@ public class EmailFilter {
     private static final String EMAIL_SENT_FAILURE_MESSAGE = "Can't send email, server error occurred";
 
     public boolean sendEmail(String toEmail, String subject, String body) {
-        String host = "smtp.gmail.com";
-        String port = "587";
-
+        String host = "smtp.gmail.com";  // Gmail SMTP server
+        String port = "587";  // SMTP port for Gmail
+        // Set up properties for the SMTP server
         Properties properties = new Properties();
         properties.put("mail.smtp.host", host);
         properties.put("mail.smtp.port", port);
         properties.put("mail.smtp.auth", "true");
+        // Enable STARTTLS (Port 587), fallback to SSL (Port 465)
         properties.put("mail.smtp.starttls.enable", "true");
         properties.put("mail.smtp.ssl.enable", "false");
+        // Fallback to SSL if STARTTLS fails (for port 465)
+        properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        properties.put("mail.smtp.socketFactory.fallback", "true");
+        // Get the Session object for authentication
         Session session = Session.getInstance(properties, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -105,4 +109,5 @@ public class EmailFilter {
             return false;
         }
     }
+
 }

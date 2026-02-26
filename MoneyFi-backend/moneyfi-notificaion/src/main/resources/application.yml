@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: MoneyFi-notification
+  profiles:
+    active: ${PROFILE:artemis}
+
+email:
+  filter:
+    from:
+      email : ${ADMIN_EMAIL}
+      password : ${ADMIN_PASSWORD}
+
+server:
+  port: 8600

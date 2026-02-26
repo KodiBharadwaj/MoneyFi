@@ -1,5 +1,6 @@
 package com.moneyfi.user.controller.admin;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.config.JwtService;
 import com.moneyfi.user.service.admin.AdminService;
 import com.moneyfi.user.service.admin.dto.request.*;
@@ -84,7 +85,7 @@ public class AdminController {
     public ResponseEntity<String> blockTheUserAccountByAdmin(@RequestHeader("Authorization") String authHeader,
                                                              @RequestParam String email,
                                                              @RequestParam String reason,
-                                                             @RequestParam MultipartFile file){
+                                                             @RequestParam MultipartFile file) throws JsonProcessingException {
         Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return ResponseEntity.ok(adminService.blockTheUserAccountByAdmin(email, reason, file, adminUserId));
     }

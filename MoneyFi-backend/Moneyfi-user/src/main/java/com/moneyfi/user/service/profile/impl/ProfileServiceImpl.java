@@ -1,5 +1,6 @@
 package com.moneyfi.user.service.profile.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.ContactUs;
@@ -13,42 +14,55 @@ import com.moneyfi.user.repository.ProfileRepository;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.service.common.AwsServices;
 import com.moneyfi.user.service.common.CloudinaryService;
+import com.moneyfi.user.service.common.RabbitMqQueuePublisher;
+import com.moneyfi.user.service.common.dto.emaildto.UserRaisedDefectDto;
+import com.moneyfi.user.service.common.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.common.dto.request.UserDefectRequestDto;
 import com.moneyfi.user.service.common.dto.request.UserFeedbackRequestDto;
 import com.moneyfi.user.service.profile.ProfileService;
 import com.moneyfi.user.service.profile.dto.ProfileDetailsDto;
-import com.moneyfi.user.util.EmailTemplates;
 import com.moneyfi.user.util.constants.StringConstants;
+import com.moneyfi.user.util.enums.NotificationQueueEnum;
 import com.moneyfi.user.util.enums.RaiseRequestStatus;
 import com.moneyfi.user.util.enums.RequestReason;
 import com.moneyfi.user.validator.UserValidations;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Base64;
 
 import static com.moneyfi.user.util.constants.StringConstants.*;
 
 @Service
+@RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService {
 
     @Value("${spring.profiles.active:}")
     private String activeProfile;
+
+    @Autowired
+    private RabbitMqQueuePublisher rabbitMqQueuePublisher;
 
     private static final String EMAIL_MISMATCH_MESSAGE = "Email mismatch detected";
     private static final String TEMPLATE_NOT_FOUND_MESSAGE = "Template not found";
@@ -58,27 +72,9 @@ public class ProfileServiceImpl implements ProfileService {
     private final CommonServiceRepository commonServiceRepository;
     private final ContactUsHistRepository contactUsHistRepository;
     private final ExcelTemplateRepository excelTemplateRepository;
-    private final EmailTemplates emailTemplates;
     private final AwsServices awsServices;
     private final CloudinaryService cloudinaryService;
-
-    public ProfileServiceImpl(ProfileRepository profileRepository,
-                              ContactUsRepository contactUsRepository,
-                              CommonServiceRepository commonServiceRepository,
-                              ContactUsHistRepository contactUsHistRepository,
-                              ExcelTemplateRepository excelTemplateRepository,
-                              EmailTemplates emailTemplates,
-                              AwsServices awsServices,
-                              CloudinaryService cloudinaryService){
-        this.profileRepository = profileRepository;
-        this.contactUsRepository = contactUsRepository;
-        this.commonServiceRepository = commonServiceRepository;
-        this.contactUsHistRepository = contactUsHistRepository;
-        this.excelTemplateRepository = excelTemplateRepository;
-        this.emailTemplates = emailTemplates;
-        this.awsServices = awsServices;
-        this.cloudinaryService = cloudinaryService;
-    }
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional(rollbackOn = Exception.class)
@@ -123,7 +119,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) {
+    public void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) throws IOException {
         if (!username.equals(userDefectRequestDto.getEmail().trim())) {
             throw new BadRequestException(EMAIL_MISMATCH_MESSAGE);
         }
@@ -156,10 +152,17 @@ public class ProfileServiceImpl implements ProfileService {
                 awsServices.uploadPictureToS3(savedDefect.getId(), userDefectRequestDto.getEmail().trim(), userDefectRequestDto.getFile(), UPLOAD_USER_RAISED_REPORT_PICTURE);
             }
         }
-        new Thread(() -> {
-            emailTemplates.sendUserRaiseDefectEmailToAdmin(userDefectRequestDto, userDefectRequestDto.getFile() != null && !userDefectRequestDto.getFile().isEmpty() ? userDefectRequestDto.getFile() : null);
-            emailTemplates.sendReferenceNumberEmailToUser(userDefectRequestDto.getName(), userDefect.getEmail(), "resolve issue", referenceNumber);
-        }).start();
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userDefectRequestDto.getName() + "<|>" + userDefect.getEmail() + "<|>" + "resolve issue" + "<|>" + referenceNumber));
+        String base64Image = null;
+        String fileName = null;
+        String contentType = null;
+        if (userDefectRequestDto.getFile() != null && !userDefectRequestDto.getFile().isEmpty()) {
+            MultipartFile file = userDefectRequestDto.getFile();
+            base64Image = Base64.getEncoder().encodeToString(file.getBytes());
+            fileName = file.getOriginalFilename();
+            contentType = file.getContentType();
+        }
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_RAISED_DEFECT_TO_ADMIN_MAIL.name(), objectMapper.writeValueAsString(new UserRaisedDefectDto(userDefectRequestDto.getMessage(), userDefectRequestDto.getName(), userDefectRequestDto.getEmail(), base64Image, fileName, contentType))));
     }
 
     @Override
@@ -186,9 +189,7 @@ public class ProfileServiceImpl implements ProfileService {
         userFeedbackHist.setUpdatedTime(savedFeedback.getStartTime());
         userFeedbackHist.setUpdatedBy(userId);
         contactUsHistRepository.save(userFeedbackHist);
-        new Thread(() ->
-                emailTemplates.sendUserFeedbackEmailToAdmin(rating, message)
-        ).start();
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_FEEDBACK_MAIL.name(), rating + "<|>" + (StringUtils.isBlank(message) ? "NULL" : message)));
     }
 
     @Override

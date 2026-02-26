@@ -16,12 +16,14 @@ import com.moneyfi.user.service.common.AwsServices;
 import com.moneyfi.user.service.common.CloudinaryService;
 import com.moneyfi.user.service.common.CommonService;
 import com.moneyfi.user.service.common.UserCommonService;
+import com.moneyfi.user.service.common.dto.emaildto.GmailSyncIncreaseRequestDto;
+import com.moneyfi.user.service.common.dto.emaildto.UserRaisedDefectDto;
 import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
+import com.moneyfi.user.service.common.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.common.dto.request.*;
 import com.moneyfi.user.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserRequestStatusDto;
-import com.moneyfi.user.util.EmailTemplates;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.UserValidations;
 import jakarta.transaction.Transactional;
@@ -30,6 +32,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -62,11 +66,11 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final ContactUsHistRepository contactUsHistRepository;
     private final CommonServiceRepository commonServiceRepository;
     private final UserNotificationRepository userNotificationRepository;
-    private final EmailTemplates emailTemplates;
     private final ReasonDetailsRepository reasonDetailsRepository;
     private final CommonService commonService;
     private final RestTemplate externalRestTemplate;
     private final ScheduleNotificationRepository scheduleNotificationRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public UserCommonServiceImpl(CloudinaryService cloudinaryService,
                                  AwsServices awsServices,
@@ -75,11 +79,11 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  ContactUsHistRepository contactUsHistRepository,
                                  CommonServiceRepository commonServiceRepository,
                                  UserNotificationRepository userNotificationRepository,
-                                 EmailTemplates emailTemplates,
                                  ReasonDetailsRepository reasonDetailsRepository,
                                  CommonService commonService,
                                  @Qualifier("externalRestTemplate") RestTemplate externalRestTemplate,
-                                 ScheduleNotificationRepository scheduleNotificationRepository){
+                                 ScheduleNotificationRepository scheduleNotificationRepository,
+                                 ApplicationEventPublisher applicationEventPublisher){
         this.cloudinaryService = cloudinaryService;
         this.awsServices = awsServices;
         this.profileRepository = profileRepository;
@@ -87,11 +91,11 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.contactUsHistRepository = contactUsHistRepository;
         this.commonServiceRepository = commonServiceRepository;
         this.userNotificationRepository = userNotificationRepository;
-        this.emailTemplates = emailTemplates;
         this.reasonDetailsRepository = reasonDetailsRepository;
         this.commonService = commonService;
         this.externalRestTemplate = externalRestTemplate;
         this.scheduleNotificationRepository = scheduleNotificationRepository;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     private static final String REFERENCE_NUMBER_SENT = "Reference already sent, Please submit your details";
@@ -143,7 +147,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 saveRequest.setStartTime(LocalDateTime.now());
                 savedRequest = contactUsRepository.save(saveRequest);
             }
-            emailTemplates.sendReferenceNumberEmailToUser(userProfile.getName(), email, "account unblock", referenceNumber);
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + "account unblock" + "<|>" + referenceNumber));
             contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), null, "Reference number requested to unblock the account", savedRequest.getStartTime(),
                     RequestReason.ACCOUNT_UNBLOCK_REQUEST.name(), RaiseRequestStatus.INITIATED.name(), user.getId()));
             response.put(true, REFERENCE_NUMBER_SENT_MESSAGE);
@@ -186,7 +190,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 saveRequest.setStartTime(LocalDateTime.now());
                 savedRequest = contactUsRepository.save(saveRequest);
             }
-            emailTemplates.sendReferenceNumberEmailToUser(userProfile.getName(), email, "account retrieval", referenceNumber);
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + "account retrieval" + "<|>" + referenceNumber));
             contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), null, "Reference number requested to retrieve the account", savedRequest.getStartTime(),
                     RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name(), RaiseRequestStatus.INITIATED.name(), user.getId()));
             response.put(true, REFERENCE_NUMBER_SENT_MESSAGE);
@@ -207,7 +211,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                         DETAILS_ALREADY_SUBMITTED);
             }
             String referenceNumber = generateReferenceNumberForUserToSendEmail("NA", userProfile, email.trim());
-            emailTemplates.sendReferenceNumberEmailToUser(userProfile.getName(), email, "change name", referenceNumber);
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + "change name" + "<|>" + referenceNumber));
             ContactUs saveRequest = new ContactUs();
             saveRequest.setEmail(email);
             saveRequest.setReferenceNumber(referenceNumber);
@@ -346,7 +350,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
             throw new ScenarioNotPossibleException("Please enter a valid email address");
         }
-        emailTemplates.sendContactUsDetailsEmailToAdmin(email, requestDto.getPhoneNumber(), requestDto.getName(), requestDto.getDescription());
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.CONTACT_US_HELP_CENTER_MAIL.name(), email + "<|>" + requestDto.getPhoneNumber() + "<|>" + requestDto.getName() + "<|>" + requestDto.getDescription()));
     }
 
     @Override
@@ -577,11 +581,11 @@ public class UserCommonServiceImpl implements UserCommonService {
             return false;
         }
         log.info("Username fetched: {}", username);
-        if(StringUtils.isNotBlank(username)) {
+        if (StringUtils.isNotBlank(username)) {
             UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
             profileRepository.insertUserAuthHistory(user.getId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.FORGOT_USERNAME), "Forgot my username, fetched with my known personal values", user.getId());
         }
-        emailTemplates.sendUserNameToUser(username);
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.FORGOT_USERNAME_REQUEST_MAIL.name(), username));
         return true;
     }
 
@@ -607,7 +611,7 @@ public class UserCommonServiceImpl implements UserCommonService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public void userRequestToIncreaseGmailSyncDailyCount(GmailSyncCountIncreaseRequestDto request, MultipartFile image, String username) throws JsonProcessingException {
+    public void userRequestToIncreaseGmailSyncDailyCount(GmailSyncCountIncreaseRequestDto request, MultipartFile image, String username) throws IOException {
         UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
         UserValidations.validateUserGmailSyncCountIncreaseRequest(request, profileRepository, user.getId());
         ContactUs existingRequest = contactUsRepository.findByEmail(username).stream()
@@ -653,10 +657,16 @@ public class UserCommonServiceImpl implements UserCommonService {
                 awsServices.uploadPictureToS3(savedRequest.getId(), username, image, GMAIL_SYNC_COUNT_INCREASE_REQUEST);
             }
         }
-        new Thread(() -> {
-            emailTemplates.sendUserRaisedGmailSyncRequestEmailToAdmin(request, userProfile.getName(), username, image != null && !image.isEmpty() ? image : null);
-            emailTemplates.sendReferenceNumberEmailToUser(userProfile.getName(), username, "request Gmail Sync Count Increase", referenceNumber);
-        }).start();
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userProfile.getName() + "<|>" + username + "<|>" + "request Gmail Sync Count Increase" + "<|>" + referenceNumber));
+        String base64Image = null;
+        String fileName = null;
+        String contentType = null;
+        if (image != null && !image.isEmpty()) {
+            base64Image = Base64.getEncoder().encodeToString(image.getBytes());
+            fileName = image.getOriginalFilename();
+            contentType = image.getContentType();
+        }
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_USER_REQUEST_TO_INCREASE_GMAIL_SYNC_COUNT_TO_ADMIN_MAIL.name(), objectMapper.writeValueAsString(new GmailSyncIncreaseRequestDto(request.getCount(), request.getReason(), userProfile.getName(), username, base64Image, fileName, contentType))));
     }
 
     private String functionCallToRetrieveUsername(ForgotUsernameDto userDetails) {
