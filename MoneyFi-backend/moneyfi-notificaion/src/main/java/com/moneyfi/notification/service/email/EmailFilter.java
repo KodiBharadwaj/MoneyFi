@@ -9,14 +9,12 @@ import jakarta.mail.internet.*;
 import jakarta.mail.util.ByteArrayDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Properties;
 
 @Component
 @Slf4j
-@Profile("local")
 public class EmailFilter {
 
     @Value("${email.filter.from.email}")

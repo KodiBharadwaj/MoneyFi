@@ -27,16 +27,8 @@ import org.springframework.web.filter.CorsFilter;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${cloud.aws.credentials.access-key}")
-    private String accessKey;
-    @Value("${cloud.aws.credentials.secret-key}")
-    private String secretKey;
-    @Value("${cloud.aws.region.static}")
-    private String region;
-
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
-
 
     private final UserDetailsService userDetailsService;
     private final JwtFilter jwtFilter;

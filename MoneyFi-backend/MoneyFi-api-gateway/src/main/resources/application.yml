@@ -18,15 +18,6 @@ spring:
             client-secret: xxxxxxxxxxxxxxxxxxxxxxxxxx
             redirect-uri: "xxxxxxxxxxxxxxxxxxxxx"
 
-  data:
-    redis:
-      url: ${REDIS_URL}
-      timeout: 5s
-  cache:
-    type: redis
-    redis:
-      time-to-live: 3600000
-
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}
@@ -39,6 +30,24 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  #Redis Configuration
+  data:
+    redis:
+      url: ${REDIS_URL}
+      timeout: 5s
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000
+
+  #Artemis Configuration
+  artemis:
+    mode: native
+    host: localhost
+    port: 8161
+    user: artemis
+    password: artemis
 
   cloud:
     gateway:
@@ -71,6 +80,15 @@ eureka:
 
 cors:
   allowed-origins: ${ALLOWED_ORIGINS}
+
+  #Rabbit MQ Configuration
+  rabbitmq:
+    uri: ${RABBITMQ_URI}
+
+rabbitmq:
+  queue: rabbit.mq.queue
+  exchange: rabbit.mq.exchange
+  routing-key: rabbit.mq.routing.key
 
 
   jackson:

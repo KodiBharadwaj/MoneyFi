@@ -1,14 +1,17 @@
-package com.moneyfi.notification.service;
+package com.moneyfi.notification.service.rabbitmq;
 
+import com.moneyfi.notification.service.EmailTemplateInjector;
 import com.moneyfi.notification.service.dto.NotificationQueueDto;
 import com.moneyfi.notification.service.email.EmailTemplates;
 import com.moneyfi.notification.util.constants.StringConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Profile("rabbitmq")
 public class RabbitMqQueueListener {
 
     private final EmailTemplates emailTemplates;

@@ -1,0 +1,7 @@
+spring:
+  artemis:
+    mode: native
+    host: localhost
+    port: 8161
+    user: artemis
+    password: artemis
