@@ -19,12 +19,6 @@ management:
     health:
       show-details: always
 
-email:
-  filter:
-    from:
-      email : ${ADMIN_EMAIL}
-      password : ${ADMIN_PASSWORD}
-
   rabbitmq:
     host: localhost
     port: 5672
