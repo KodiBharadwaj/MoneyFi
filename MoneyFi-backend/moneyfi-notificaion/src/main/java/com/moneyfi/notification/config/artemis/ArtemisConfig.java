@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.jms.core.JmsTemplate;
 
 @Configuration
-@Profile("artemis")
+@Profile("local-artemis")
 public class ArtemisConfig {
 
     @Bean

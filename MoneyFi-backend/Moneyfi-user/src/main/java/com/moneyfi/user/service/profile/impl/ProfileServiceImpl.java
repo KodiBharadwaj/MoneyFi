@@ -1,6 +1,5 @@
 package com.moneyfi.user.service.profile.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.ContactUs;

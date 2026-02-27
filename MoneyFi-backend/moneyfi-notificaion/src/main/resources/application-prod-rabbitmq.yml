@@ -1,0 +1,23 @@
+spring:
+  rabbitmq:
+#    uri: ${RABBITMQ_URI}
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+rabbitmq:
+  queue: rabbit.mq.queue
+  exchange: rabbit.mq.exchange
+  routing-key: rabbit.mq.routing.key
+
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+    region:
+      static: ${AWS_REGION}
+    stack:
+      auto: false

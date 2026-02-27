@@ -2,13 +2,23 @@ spring:
   application:
     name: MoneyFi-notification
   profiles:
-    active: ${PROFILE:artemis}
+    active: ${PROFILE:local-artemis}
 
 email:
   filter:
     from:
       email : ${ADMIN_EMAIL}
       password : ${ADMIN_PASSWORD}
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+    region:
+      static: ${AWS_REGION}
+    stack:
+      auto: false
 
 server:
   port: 8600

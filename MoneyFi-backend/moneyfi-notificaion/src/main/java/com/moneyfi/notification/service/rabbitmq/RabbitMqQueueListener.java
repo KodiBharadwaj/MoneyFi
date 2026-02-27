@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-@Profile("rabbitmq")
+@Profile("local-rabbitmq")
 public class RabbitMqQueueListener {
 
     private final EmailTemplates emailTemplates;

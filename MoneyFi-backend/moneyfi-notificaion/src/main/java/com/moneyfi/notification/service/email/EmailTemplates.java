@@ -6,9 +6,13 @@ import com.moneyfi.notification.service.dto.emaildto.UserRaisedDefectDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
+
+import static com.moneyfi.notification.util.constants.StringConstants.LOCAL_PROFILE_ARTEMIS;
+import static com.moneyfi.notification.util.constants.StringConstants.LOCAL_PROFILE_RABBIT_MQ;
 
 @Component
 @Slf4j
@@ -17,10 +21,16 @@ public class EmailTemplates {
     @Value("${email.filter.from.email}")
     private String ADMIN_EMAIL;
 
-    private final EmailFilter emailFilter;
+    @Value("${spring.profiles.active:}")
+    private String activeProfile;
 
-    public EmailTemplates(@Autowired(required = false) EmailFilter emailFilter){
+    private final EmailFilter emailFilter;
+    private final AwsSesService awsSesService;
+
+    public EmailTemplates(@Autowired(required = false) EmailFilter emailFilter,
+                          @Autowired(required = false) AwsSesService awsSesService){
         this.emailFilter = emailFilter;
+        this.awsSesService = awsSesService;
     }
 
     public void sendUserReportStatusMailToUser(String name, String referenceNumber, String description, String email){
@@ -40,15 +50,19 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
-    public void sendUserNameToUser(String username){
+    public void sendUserNameToUser(String email){
         String subject = "MoneyFi - Username request";
         String body = "<html>"
                 + "<body>"
                 + "<p style='font-size: 16px;'>Hello User,</p>"
-                + "<p style='font-size: 16px;'>You have requested for username with your details. Here is you username: " + username + "</p>"
+                + "<p style='font-size: 16px;'>You have requested for username with your details. Here is you username: " + email + "</p>"
                 + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
                 + "<p style='font-size: 16px;'>Kindly Ignore if it by you. If not, reply to this mail immediately to secure account.</p>"
                 + "<hr>"
@@ -58,7 +72,11 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(username, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
     public void sendUserRaiseDefectEmailToAdmin(UserRaisedDefectDto userRaisedDefectDto) {
@@ -131,7 +149,11 @@ public class EmailTemplates {
                 + "<br>"
                 + "<p style='font-size: 16px;'>Comment: </p>"
                 + "<p style='font-size: 16px;'>" + message + "</p>";
-        emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(ADMIN_EMAIL, subject, body));
+        }
     }
 
     public void sendAccountStatementAsEmail(StatementAnalysisDto statementAnalysisDto) {
@@ -205,7 +227,11 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
     public void sendBlockAlertMailToUser(String email, String reason, String name, byte[] file) {
@@ -239,7 +265,11 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
     public void sendUserGmailSyncCountIncreaseRequestRejection(String name, String email) {
@@ -256,7 +286,11 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
     public void sendContactUsDetailsEmailToAdmin(String email, String phoneNumber, String name, String description) {
@@ -275,7 +309,11 @@ public class EmailTemplates {
                 + "<br>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
     public void sendNameChangeRequestApprovedMailToUser(String name, String email, String referenceNumber) {
@@ -292,7 +330,11 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
     public void sendNameChangeRequestRejectionMailToUser(String name, String email, String referenceNumber) {
@@ -309,7 +351,11 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
     public void sendAccountUnblockOrRetrievalSuccessfulMailToUser(String name, String email, String referenceNumber, String mode) {
@@ -326,7 +372,11 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
     public void sendAccountUnblockOrRetrievalFailureMailToUser(String name, String email, String referenceNumber, String mode, String declineReason) {
@@ -343,7 +393,11 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
     public void sendPasswordChangeAlertMail(String name, String email){
@@ -361,7 +415,11 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
     public void sendOtpEmailToUserForSignup(String email, String name, String verificationCode){
@@ -379,10 +437,14 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
-    public void sendOtpToUserForAccountBlock(String username, String name, String verificationCode, String type){
+    public void sendOtpToUserForAccountBlock(String email, String name, String verificationCode, String type){
         String message = null;
         if (type.equalsIgnoreCase("BLOCK")) {
             message = "Block";
@@ -403,7 +465,11 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(username, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
     public void sendOtpForForgotPassword(String userName, String email, String verificationCode){
@@ -422,7 +488,11 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
     public void sendAnniversaryCongratulationsMailToUser(String email, String name, int numberOfYears){
@@ -439,7 +509,11 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
     public void sendBirthdayWishEmailToUsers(String email, String name){
@@ -455,6 +529,42 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
+    }
+
+    /**
+    public void sendEmailForSuccessfulUserCreation(String name, String email){
+        String subject = "Welcome to MoneyFi";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + name +",</p>"
+                + "<p style='font-size: 16px;'>You have successfully created account in MoneyFi. Kindly Login to use our services. </p>"
+                + "<p style='font-size: 20px; font-weight: bold; color: #007BFF;'> </p>"
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
+    }
+    **/
+
+    private SimpleMailMessage functionToSetAwsSesObjectValues(String email, String subject, String body) {
+        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+        simpleMailMessage.setFrom(ADMIN_EMAIL);
+        simpleMailMessage.setTo(email);
+        simpleMailMessage.setSubject(subject);
+        simpleMailMessage.setText(body);
+        return simpleMailMessage;
     }
 }

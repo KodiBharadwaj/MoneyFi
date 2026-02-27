@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile("rabbitmq")
+@Profile("local-rabbitmq")
 public class RabbitMqConfig {
 
     @Value("${rabbitmq.queue}")

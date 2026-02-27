@@ -10,7 +10,7 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("artemis")
+@Profile("local-artemis")
 @RequiredArgsConstructor
 public class ArtemisQueueConsumer {
 

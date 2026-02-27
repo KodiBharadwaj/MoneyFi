@@ -1,0 +1,17 @@
+spring:
+  artemis:
+    mode: native
+    host: localhost
+    port: 8161
+    user: artemis
+    password: artemis
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+    region:
+      static: ${AWS_REGION}
+    stack:
+      auto: false
