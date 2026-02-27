@@ -1,4 +1,4 @@
-package com.moneyfi.user.service.common;
+package com.moneyfi.user.service.common.rabbitmq;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.service.common.dto.internal.NotificationQueueDto;

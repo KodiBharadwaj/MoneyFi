@@ -21,3 +21,11 @@ rabbitmq:
   exchange: rabbit.mq.exchange
   routing-key: rabbit.mq.routing.key
   queue: rabbit.mq.queue
+
+  #Artemis Configuration
+  artemis:
+    mode: native
+    host: localhost
+    port: 8161
+    user: artemis
+    password: artemis

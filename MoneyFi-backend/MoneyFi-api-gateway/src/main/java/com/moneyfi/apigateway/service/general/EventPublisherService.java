@@ -1,6 +1,8 @@
 package com.moneyfi.apigateway.service.general;
 
+import com.moneyfi.apigateway.service.general.artemis.ArtemisQueueProducer;
 import com.moneyfi.apigateway.service.general.dto.NotificationQueueDto;
+import com.moneyfi.apigateway.service.general.rabbitmq.RabbitMqQueuePublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

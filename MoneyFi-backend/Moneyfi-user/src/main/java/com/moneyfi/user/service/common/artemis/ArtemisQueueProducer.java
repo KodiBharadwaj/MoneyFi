@@ -1,8 +1,8 @@
-package com.moneyfi.apigateway.service.general;
+package com.moneyfi.user.service.common.artemis;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.moneyfi.apigateway.service.general.dto.NotificationQueueDto;
-import com.moneyfi.apigateway.util.constants.StringConstants;
+import com.moneyfi.user.service.common.dto.internal.NotificationQueueDto;
+import com.moneyfi.user.util.constants.StringConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;

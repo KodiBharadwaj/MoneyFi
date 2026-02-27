@@ -13,7 +13,7 @@ import com.moneyfi.user.repository.ProfileRepository;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.service.common.AwsServices;
 import com.moneyfi.user.service.common.CloudinaryService;
-import com.moneyfi.user.service.common.RabbitMqQueuePublisher;
+import com.moneyfi.user.service.common.rabbitmq.RabbitMqQueuePublisher;
 import com.moneyfi.user.service.common.dto.emaildto.UserRaisedDefectDto;
 import com.moneyfi.user.service.common.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.common.dto.request.UserDefectRequestDto;

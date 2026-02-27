@@ -11,11 +11,8 @@ import com.moneyfi.user.service.common.AwsServices;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.model.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,12 +29,9 @@ public class AwsServicesImpl implements AwsServices {
     private String bucketName;
 
     private final AmazonS3 s3Client;
-    private final SesClient sesClient;
 
-    public AwsServicesImpl(AmazonS3 s3Client,
-                           SesClient sesClient){
+    public AwsServicesImpl(AmazonS3 s3Client){
         this.s3Client = s3Client;
-        this.sesClient = sesClient;
     }
 
     @Override
@@ -97,28 +91,6 @@ public class AwsServicesImpl implements AwsServices {
         }
     }
 
-    @Override
-    public String uploadDefectPictureByUser(String fileName, MultipartFile file) {
-        File fileObj = null;
-
-        try {
-            fileObj = convertMultiPartFileToFile(file);
-            s3Client.putObject(new PutObjectRequest(bucketName, fileName, fileObj));
-            return "Profile Picture Uploaded!";
-        } catch (AmazonServiceException e) {
-            e.printStackTrace();
-            throw new S3AwsErrorThrowException("Exception occurred while uploading defect image");
-        } finally {
-            if (fileObj != null && fileObj.exists()) {
-                try {
-                    Files.delete(fileObj.toPath());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
     private File convertMultiPartFileToFile(MultipartFile file){
         File convertedFile = new File(file.getOriginalFilename());
 
@@ -128,31 +100,5 @@ public class AwsServicesImpl implements AwsServices {
             e.printStackTrace();
         }
         return convertedFile;
-    }
-
-    private String generateFileNameForUserDefectRequest(String imageId, String username){
-        return "user_request_" + (imageId) +
-                username.substring(0,username.indexOf('@'));
-    }
-
-    @Override
-    public void sendEmailToUserUsingAwsSes(SimpleMailMessage simpleMailMessage) {
-        Destination destination = Destination.builder().toAddresses(simpleMailMessage.getTo()).build();
-        Content subjectContent = Content.builder().data(simpleMailMessage.getSubject()).build();
-        Content bodyContent = Content.builder().data(simpleMailMessage.getText()).build();
-        Body messageBody = Body.builder().html(bodyContent).build();
-
-        software.amazon.awssdk.services.ses.model.Message message =
-                software.amazon.awssdk.services.ses.model.Message.builder()
-                        .subject(subjectContent)
-                        .body(messageBody)
-                        .build();
-
-        SendEmailRequest emailRequest = SendEmailRequest.builder()
-                .source(simpleMailMessage.getFrom())  // Must be verified in SES sandbox
-                .destination(destination)
-                .message(message)
-                .build();
-        SendEmailResponse response = sesClient.sendEmail(emailRequest);
     }
 }
