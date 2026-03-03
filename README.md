@@ -11,11 +11,17 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 - 🎯 Set monthly budgets and savings goals
 - 📊 Visual indicators and insights for better decisions
 - 🔐 OTP-based signup, secure authentication, jwt authorization
+- 🔑 Google Login & GitHub Login (OAuth 2.0 integration)
 - 📥 Export/download reports and email them securely
+- 📧 Google Email transaction sync (automatic transaction detection from emails)
+- 📨 Smart email alerts for transactions, budgets & important activities
+- 📄 Account statement generation with password-protected PDF delivery via email
+- 🔔 Real-time notifications (in-app) and email notifications
 - 🗑️ Soft-delete and recovery of incomes up to 30 days
 - 📅 Period-based statements with pagination
 - 🔐 Forgot password/username with OTP verification
 - 👥 Role-based system: User & Admin
+- 🧩 Dynamic email template uploading & management system
 ---
 
 ## 🛠️ Tech Stack
