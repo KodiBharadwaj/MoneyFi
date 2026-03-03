@@ -104,6 +104,10 @@ export class LoginComponent implements OnInit {
   }
 
   private handleGoogleResponse(response: any) {
+    if (!response || !response.code) {
+      this.toastr.error('Google consent Failed')
+      return;
+    }
     this.isLoading = true;
     this.http.post(`${this.baseUrl}/api/v1/Oauth/google/callback`, { code: response.code })
       .subscribe({

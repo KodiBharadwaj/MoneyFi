@@ -87,9 +87,32 @@
       </div>
 
       <!-- Actions -->
-      <div class="dialog-actions">
+      <!-- <div class="dialog-actions">
         <button type="button" class="btn cancel" (click)="close()">Cancel</button>
         <button type="submit" class="btn submit">Submit</button>
+      </div> -->
+      <div class="dialog-actions">
+        <button 
+          type="button" 
+          class="btn cancel" 
+          (click)="close()" 
+          [disabled]="isSubmitting">
+          Cancel
+        </button>
+
+        <button 
+          type="submit" 
+          class="btn submit" 
+          [disabled]="isSubmitting">
+
+          <span *ngIf="!isSubmitting">Submit</span>
+
+          <span *ngIf="isSubmitting" style="display:flex; align-items:center; gap:6px;">
+            <span class="spinner"></span>
+            Submitting...
+          </span>
+
+        </button>
       </div>
     </form>
   </div>

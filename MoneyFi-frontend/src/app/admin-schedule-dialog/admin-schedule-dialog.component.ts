@@ -172,6 +172,7 @@ export class AdminScheduleDialogComponent implements OnInit {
       recipients
     } = this.scheduleForm.value;
 
+    this.isSubmitting = true;
     // format datetime helper
     const formatLocalDateTime = (dateStr: string, timeStr: string): string => {
       const [hour, minute] = timeStr.split(':').map(Number);
