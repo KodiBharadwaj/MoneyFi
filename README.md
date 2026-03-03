@@ -20,7 +20,7 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 - 🗑️ Soft-delete and recovery of incomes up to 30 days
 - 📅 Period-based statements with pagination
 - 🔐 Forgot password/username with OTP verification
-- 👥 Role-based system: User & Admin
+- 👥 Role-based system: User, Admin & Maintainer
 - 🧩 Dynamic email template uploading & management system
 ---
 
@@ -31,11 +31,17 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 | Frontend      | Angular                        |
 | Backend       | Java + Spring Boot (Microservices) |
 | Database      | Microsoft SQL Server (Stored Procedures, Triggers) |
+| DB Backend Interaction | JPA, JDBC, Java Persistance Context |
 | Email Service | AWS SES + Spring Mail          |
-| File Storage  | AWS S3                         |
-| Service Communications  | Kafka, Rest Template   |
+| File Storage  | AWS S3, Cloudinary             |
+| Service Communications  | Kafka, Rest Template |
+| Queue Communication | Rabbit MQ, Artemis       |
+| Caching | Redis, UI Caching                    |
+| Realtime Notifications | Java SSE (Server Side Emitter |
 | Reporting     | Apache POI (Excel), iText (PDF) |
-| Other Used   | Eureka, Postman, SonarQube, Feign, Git, Github, Postgres, Docker |
+| Cloud         | AWS, GCP                        |
+| Free Sources Used | Render(Backend), Netlify(UI), Free Hosting(DB) |
+| Other Used   | Docker, Gemini Api, Eureka, Postman, SonarQube, Feign, Git, Github, Postgres |
 
 ---
 
