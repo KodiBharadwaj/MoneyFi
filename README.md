@@ -101,6 +101,13 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 
 <img width="1849" height="891" alt="Screenshot 2025-07-27 180841" src="https://github.com/user-attachments/assets/21b8a889-47ee-4028-8b0c-a5d59070c145" />
 
+### Detect Email Transactions
+- Automatic email transactions detection and history with calender
+
+<img width="1893" height="898" alt="image" src="https://github.com/user-attachments/assets/c2bbc71c-83c6-4853-88b0-deb02acc7b88" />
+
+### Real Time Notifications
+<img width="1884" height="900" alt="image" src="https://github.com/user-attachments/assets/d4026b9c-426e-47ed-a833-7d470cae7bcb" />
 
 ### 👤 Profile Section
 - Update profile details
@@ -108,6 +115,17 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 
 <img width="1523" height="903" alt="Screenshot 2025-07-27 181025" src="https://github.com/user-attachments/assets/4995e1a2-c439-49ad-93df-c5fe10e11084" />
 
+
+### Account Block, Unblock, retrieval, Name change Request and Tracking 
+<img width="1879" height="919" alt="image" src="https://github.com/user-attachments/assets/dbb65481-f0c7-438b-af55-c58da3b398b8" />
+<img width="1887" height="897" alt="image" src="https://github.com/user-attachments/assets/b7a341a3-65a1-450e-a042-134093c097d5" />
+
+### Admin Page  
+<img width="1897" height="905" alt="image" src="https://github.com/user-attachments/assets/fcd375c7-8257-4f9e-931c-33a9b0478b9b" />
+
+
+### Maintainer Page  
+<img width="1915" height="894" alt="image" src="https://github.com/user-attachments/assets/c1388792-85c7-49a3-bc5a-2e2ec54ebf7d" />
 
 ### 🔐 Forgot Username 
 - Provide your any relevant details and try fetching
