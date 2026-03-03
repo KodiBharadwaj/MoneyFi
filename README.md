@@ -48,13 +48,13 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 ## 📸 Screenshots
 
 ### 🔐 Landing Page
-<img width="1889" height="883" alt="Screenshot (6)" src="https://github.com/user-attachments/assets/73c5ef04-9eae-4282-8e23-a0f6ed69ccaa" />
+<img width="1893" height="896" alt="image" src="https://github.com/user-attachments/assets/15af93e1-ac24-4b81-8501-aaf64e2cff4b" />
 
 ### Signup
 <img width="1891" height="891" alt="Screenshot (7)" src="https://github.com/user-attachments/assets/5b916ae2-4045-4b82-acf7-d27242f1ce23" />
 
 ### Login
-<img width="1881" height="888" alt="Screenshot (8)" src="https://github.com/user-attachments/assets/00197486-af84-4bd3-9da6-b732a6ba1ad6" />
+<img width="1884" height="898" alt="image" src="https://github.com/user-attachments/assets/cdca8d83-ecd4-49ee-bbbf-ecbca723cd6f" />
 
 ### 🔑 OTP Verification (Signup & Forgot Password)
 <table> <tr> <td align="center"> <img width="300" alt="Screenshot (12)" src="https://github.com/user-attachments/assets/79b21135-b3f6-4538-8fb4-ebf4606ffd49" /> </td> <td align="center"> <img width="300" alt="Screenshot (14)" src="https://github.com/user-attachments/assets/e49e6608-8250-439f-afa5-9f8ee3c3d7e7" /> </td> </tr> <tr> <td align="center"> <img width="300" alt="Screenshot (17)" src="https://github.com/user-attachments/assets/e9413645-0a93-42de-888a-24a5d5a6e381" /> </td> <td align="center"> <img width="300" alt="Screenshot 2025-07-27 175733" src="https://github.com/user-attachments/assets/506d0597-0b2a-4e46-a41d-a14022822087" /> </td> </tr> </table>
