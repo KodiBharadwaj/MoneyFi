@@ -53,14 +53,14 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 ### Signup
 <img width="1891" height="891" alt="Screenshot (7)" src="https://github.com/user-attachments/assets/5b916ae2-4045-4b82-acf7-d27242f1ce23" />
 
-### Login
+### Login (Email Login, Google Login, Github Login)
 <img width="1884" height="898" alt="image" src="https://github.com/user-attachments/assets/cdca8d83-ecd4-49ee-bbbf-ecbca723cd6f" />
 
 ### 🔑 OTP Verification (Signup & Forgot Password)
 <table> <tr> <td align="center"> <img width="300" alt="Screenshot (12)" src="https://github.com/user-attachments/assets/79b21135-b3f6-4538-8fb4-ebf4606ffd49" /> </td> <td align="center"> <img width="300" alt="Screenshot (14)" src="https://github.com/user-attachments/assets/e49e6608-8250-439f-afa5-9f8ee3c3d7e7" /> </td> </tr> <tr> <td align="center"> <img width="300" alt="Screenshot (17)" src="https://github.com/user-attachments/assets/e9413645-0a93-42de-888a-24a5d5a6e381" /> </td> <td align="center"> <img width="300" alt="Screenshot 2025-07-27 175733" src="https://github.com/user-attachments/assets/506d0597-0b2a-4e46-a41d-a14022822087" /> </td> </tr> </table>
 
 ### 🏠 User Dashboard
-<img width="1843" height="903" alt="Screenshot (18)" src="https://github.com/user-attachments/assets/b2d831d2-bd12-4fa2-b1b4-b1cc00f02d3d" />
+<img width="1911" height="904" alt="image" src="https://github.com/user-attachments/assets/7a4e8598-785d-43a1-b374-627f9058eb06" />
 
 ### 💼 Income Management
 - Add, Edit, Delete, Restore (soft delete up to 30 days)
