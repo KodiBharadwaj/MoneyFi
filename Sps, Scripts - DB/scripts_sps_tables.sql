@@ -1441,6 +1441,7 @@ BEGIN
 		,updt.address AS address
 		,updt.income_range AS incomeRange
 		,CAST(updt.created_date AS DATE) AS createdDate
+		,updt.user_id AS userId
 	FROM user_profile_details_table updt WITH (NOLOCK)
 	INNER JOIN user_auth_table uat WITH (NOLOCK) ON uat.id = updt.user_id
 	WHERE uat.username = @username

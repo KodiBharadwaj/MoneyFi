@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AdminService } from '../services/AdminService';
 import { CommonModule } from '@angular/common';
@@ -16,7 +16,7 @@ import { ConfirmLogoutDialogComponent } from '../confirm-logout-dialog/confirm-l
   imports : [CommonModule, FormsModule, RouterModule],
   standalone : true
 })
-export class AdminUsersComponent implements OnInit {
+export class AdminUsersComponent implements OnInit, OnDestroy {
   status: string = '';
   users: any[] = [];
 
@@ -72,6 +72,149 @@ export class AdminUsersComponent implements OnInit {
   // Toggle order
   toggleOrder() {
     this.isAscending = !this.isAscending;
+  }
+
+  showUserDialog=false;
+  userProfile:any;
+  profileImageUrl:any;
+
+  openUserProfile(username:string){
+
+    this.showUserDialog=true;
+
+    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/user-profile-details?username=${username}`)
+    .subscribe((data:any)=>{
+        this.userProfile=data;
+    });
+
+    this.loadProfileImage(username);
+  }
+
+  profileImage = '';
+  isImageLoading: boolean = false;
+  loadProfileImage(username:string): void {
+    this.isImageLoading = true;
+
+    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/profile-picture/get?username=${username}`, { responseType: 'blob' })
+      .subscribe({
+        next: (blob) => {
+          if (blob.size > 0) {
+            const reader = new FileReader();
+            reader.onload = (e: any) => {
+              this.profileImage = e.target.result; // base64 string
+              sessionStorage.setItem('moneyfi.user.profile.image', this.profileImage);
+              this.isImageLoading = false;
+            };
+            reader.readAsDataURL(blob);
+          } else {
+            console.warn('No profile picture found.');
+          }
+        },
+        error: (err) => {
+          this.isImageLoading = false;
+          console.error('Error fetching profile picture:', err);
+        }
+      });
+  }
+
+  closeUserDialog(){
+    this.showUserDialog=false;
+    this.profileImage = '';
+  }
+
+  getHistory(history: any) {
+    return Object.entries(history).map(([key, value]: any) => ({
+      status: key,
+      time: value.requestUpdateTime
+    }));
+  }
+
+  selectedImage: string | null = null;
+  viewImage(username: string, defectId: number): void {
+    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/user-defects/image?username=${username}&type=DEFECT&id=${defectId}`, { responseType: 'blob' })
+      .subscribe({
+        next: (blob) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            this.selectedImage = reader.result as string;
+          };
+          reader.readAsDataURL(blob);
+        },
+        error: (err) => {
+          if (err.error instanceof Blob) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              try {
+                const text = reader.result as string;
+                const errorObj = JSON.parse(text);
+                this.toastr.error(errorObj.message);
+              } catch (e) {
+                console.error('Failed to parse Blob error:', e);
+                this.toastr.error('Something went wrong');
+              }
+            };
+            reader.readAsText(err.error);
+          } else {
+            // fallback if it's not a Blob
+            const message = err.error?.message || 'Something went wrong';
+            this.toastr.error(message);
+          }
+        }
+      });
+  }
+
+
+  showBlockDialog = false;
+  blockReason = '';
+
+  openBlockDialog(){
+    this.showBlockDialog = true;
+  }
+
+  closeBlockDialog(){
+    this.showBlockDialog = false;
+  }
+
+
+  selectedFile!: File;
+  fileError = false;
+  onFileSelected(event:any){
+    const file = event.target.files[0];
+
+    if(file){
+      this.selectedFile = file;
+      this.fileError = false;
+    }
+  }
+
+  blockUser(){
+    if(!this.blockReason || !this.selectedFile){
+      this.fileError = !this.selectedFile;
+      alert("Please provide reason and upload evidence file");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("email", this.userProfile.username);
+    formData.append("reason", this.blockReason);
+
+    if(this.selectedFile){
+      formData.append("file", this.selectedFile);
+    }
+
+    this.httpClient.post(`${this.baseUrl}/api/v1/user-service/admin/user-account/block`, formData ).subscribe({
+        next: (res)=>{
+          this.toastr.success('User Blocked Successfully');
+          this.closeBlockDialog();
+        },
+        error: (err)=>{
+          try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            this.toastr.error(errorObj.message);
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+          }
+        }
+    });
   }
 
   generateReport() {
@@ -152,4 +295,7 @@ export class AdminUsersComponent implements OnInit {
         });
       }
 
+  ngOnDestroy(): void {
+    this.closeUserDialog();
+  }
 }

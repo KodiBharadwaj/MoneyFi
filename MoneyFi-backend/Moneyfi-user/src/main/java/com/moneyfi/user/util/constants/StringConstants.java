@@ -10,7 +10,6 @@ import com.moneyfi.user.repository.ProfileRepository;
 import com.moneyfi.user.util.enums.ReasonEnum;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -31,7 +30,6 @@ public class StringConstants {
     public static final String GMAIL_SYNC_COUNT_INCREASE_REQUEST = "gmail_sync_count_request_";
     public static final String USER_NOT_FOUND = "User not found";
     public static final String USER_PROFILE_NOT_FOUND = "User profile not found";
-    public static final String EMAIL_SENT_SUCCESS_MESSAGE = "Email sent successfully!";
     public static final String REFERENCE_NUMBER_SENT_MESSAGE = "Reference Number sent to your email";
     public static final String INVALID_REQUEST_MESSAGE = "Invalid request details";
     public static final String ACCOUNT_DELETED_MESSAGE = "Account is deleted. Raise retrieval request";

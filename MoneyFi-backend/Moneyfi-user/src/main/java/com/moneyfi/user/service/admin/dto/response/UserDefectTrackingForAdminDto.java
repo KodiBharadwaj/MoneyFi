@@ -15,6 +15,8 @@ public class UserDefectTrackingForAdminDto {
     private LocalDateTime endTime;
     private String referenceNumber;
     private String status;
+    private String description;
+    private String adminRemarks;
     private Long defectId;
 
     @PrePersist

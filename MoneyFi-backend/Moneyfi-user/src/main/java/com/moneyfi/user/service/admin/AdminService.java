@@ -25,7 +25,7 @@ public interface AdminService {
 
     boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId, String approveStatus, String declineReason, int gmailSyncRequestCount);
 
-    String blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) throws JsonProcessingException;
+    void blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) throws JsonProcessingException;
 
     List<UserGridDto> getUserDetailsGridForAdmin(String status);
 

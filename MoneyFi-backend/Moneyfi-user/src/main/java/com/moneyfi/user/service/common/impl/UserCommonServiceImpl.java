@@ -17,7 +17,6 @@ import com.moneyfi.user.service.common.CloudinaryService;
 import com.moneyfi.user.service.common.CommonService;
 import com.moneyfi.user.service.common.UserCommonService;
 import com.moneyfi.user.service.common.dto.emaildto.GmailSyncIncreaseRequestDto;
-import com.moneyfi.user.service.common.dto.emaildto.UserRaisedDefectDto;
 import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
 import com.moneyfi.user.service.common.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.common.dto.request.*;

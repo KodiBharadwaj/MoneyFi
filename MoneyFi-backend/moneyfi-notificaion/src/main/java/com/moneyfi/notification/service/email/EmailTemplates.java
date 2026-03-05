@@ -248,7 +248,11 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        emailFilter.sendEmailWithAttachment(email, subject, body, file, "reason-attachment.pdf");
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmailWithAttachment(email, subject, body, file, "reason-attachment.jpg");
+        } else {
+            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+        }
     }
 
     public void sendUserGmailSyncApprovedMail(String name, String email, int gmailSyncRequestCount) {
