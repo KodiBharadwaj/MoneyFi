@@ -12,10 +12,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class UserDefectTrackingForAdminDto {
     private LocalDateTime startTime;
+    private LocalDateTime pendTime;
     private LocalDateTime endTime;
     private String referenceNumber;
     private String status;
+    private String description;
+    private StringBuilder adminRemarks = new StringBuilder();
     private Long defectId;
+    private StringBuilder requestDoneBy = new StringBuilder();
 
     @PrePersist
     public void setTimeFunction() {

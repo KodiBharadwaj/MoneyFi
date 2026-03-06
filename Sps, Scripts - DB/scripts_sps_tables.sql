@@ -1215,6 +1215,8 @@ BEGIN
 		,updt.address AS address
 		,uat.id as userId
 		,uat.login_code_value as loginCodeValue
+		,uat.is_blocked as isBlocked
+		,uat.is_deleted as isDeleted
 	FROM user_auth_table uat WITH (NOLOCK)
 	INNER JOIN user_profile_details_table updt WITH (NOLOCK) ON updt.user_id = uat.id
 	WHERE uat.username = @username
@@ -1441,6 +1443,7 @@ BEGIN
 		,updt.address AS address
 		,updt.income_range AS incomeRange
 		,CAST(updt.created_date AS DATE) AS createdDate
+		,updt.user_id AS userId
 	FROM user_profile_details_table updt WITH (NOLOCK)
 	INNER JOIN user_auth_table uat WITH (NOLOCK) ON uat.id = updt.user_id
 	WHERE uat.username = @username

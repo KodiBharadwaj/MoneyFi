@@ -27,6 +27,7 @@ import com.moneyfi.user.validator.AdminValidations;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -38,6 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -246,45 +248,25 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username) {
+    public UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username, Long adminUserId) {
         UserProfileAndRequestDetailsDto userDetails = adminRepository.getCompleteUserDetailsForAdmin(username);
         List<ContactUs> allUserRequests = contactUsRepository.findByEmail(username);
+
         AdminUserRequestsCountDto saveCountDto = new AdminUserRequestsCountDto();
 
-//        new Thread(
-//                () -> userDetails.setImageFromS3(awsServices.fetchUserProfilePictureFromS3(userDetails.getUserId(), username))
-//        ).start();
-//        userDetails.setProfileImage(userService.fetchUserProfilePictureFromS3(username))
+        if (userDetails.getIsBlocked().equals(Boolean.TRUE)) userDetails.setUserStatus(UserStatus.BLOCKED.name());
+        else if (userDetails.getIsDeleted().equals(Boolean.TRUE)) userDetails.setUserStatus(UserStatus.DELETED.name());
+        else userDetails.setUserStatus(UserStatus.ACTIVE.name());
 
-        addNameRequestDetailsToUserDetails(userDetails, allUserRequests, saveCountDto);
-        addUnblockRequestDetailsToUserDetails(userDetails, allUserRequests, saveCountDto);
-        addAccRetrievalRequestDetailsToUserDetails(userDetails, allUserRequests, saveCountDto);
 
-        userDetails.getPasswordChangeHistoryTrackDtoList()
-                .addAll(
-                        convertUserAuthHistInterfaceToDto(profileRepository.findTopByUserIdAndReasonTypeId(userDetails.getUserId(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE)))
-                                .stream()
-                                .map(responseHistory -> new PasswordChangeHistoryTrackDto(responseHistory.getComment(), responseHistory.getUpdatedTime()))
-                                .toList()
-                );
-        userDetails.getForgotPasswordHistoryTrackDtoList()
-                .addAll(
-                        convertUserAuthHistInterfaceToDto(profileRepository.findTopByUserIdAndReasonTypeId(userDetails.getUserId(), reasonCodeIdAssociation.get(ReasonEnum.FORGOT_PASSWORD)))
-                                .stream()
-                                .map(responseHistory -> new ForgotPasswordHistoryTrackDto(responseHistory.getComment(), responseHistory.getUpdatedTime()))
-                                .toList()
-                );
+        functionCallToAddNameChangeRequestDetailsHistory(userDetails, allUserRequests, saveCountDto, adminUserId);
+        functionCallToAddUnblockRequestDetailsHistory(userDetails, allUserRequests, saveCountDto, adminUserId);
+        functionCallToAddAccRetrievalRequestDetailsHistory(userDetails, allUserRequests, saveCountDto, adminUserId);
+        functionCallToAddUserPasswordChangeHistory(userDetails);
+        functionCallToAddUserForgotPasswordHistory(userDetails);
+        functionCallToAddUserRaisedRequestsHistory(allUserRequests, userDetails, adminUserId);
+        functionCallToAddGmailSyncCountIncreaseHistory(allUserRequests, adminUserId, userDetails);
 
-        allUserRequests
-                .stream()
-                .filter(nameChangeRequest -> nameChangeRequest.getRequestReason().equalsIgnoreCase(RequestReason.USER_DEFECT_UPDATE.name()))
-                .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
-                .forEach(userDefect -> {
-                    userDetails.getUserDefectTrackingForAdminDtoList().add(
-                            new UserDefectTrackingForAdminDto(userDefect.getStartTime(), userDefect.getCompletedTime(),
-                                    (userDefect.getReferenceNumber().startsWith("COM_") ? userDefect.getReferenceNumber().substring(4) : userDefect.getReferenceNumber()),
-                                            userDefect.getRequestStatus(), userDefect.getId()));
-                });
         userDetails.setUserRequestCount(saveCountDto);
         userDetails.setAccountCreationSource(Objects.requireNonNull(LoginMode.fromCode(userDetails.getLoginCodeValue())).name());
         return userDetails;
@@ -388,44 +370,44 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public String blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) throws JsonProcessingException {
-        if(email == null || email.trim().isEmpty() || reason == null || reason.trim().isEmpty()){
+    public void blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) throws JsonProcessingException {
+        if (email == null || email.trim().isEmpty() || reason == null || reason.trim().isEmpty()) {
             throw new ScenarioNotPossibleException("Please provide all the details correctly");
         }
         UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
         if (user.isBlocked()) {
             throw new ScenarioNotPossibleException("User account is already blocked");
         }
-        if(user.isDeleted()){
+        if (user.isDeleted()) {
             throw new ScenarioNotPossibleException("User account is deleted, can't block the user");
         }
         profileRepository.updateUserAuthTableWithBlockOrUnblockStatus(user.getId(), Boolean.TRUE);
 
         ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
+        LocalDateTime currentTime = LocalDateTime.now();
         ContactUs contactUs = new ContactUs();
         contactUs.setEmail(email);
         contactUs.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
         contactUs.setRequestActive(Boolean.TRUE);
         contactUs.setVerified(Boolean.FALSE);
-        contactUs.setRequestStatus(RaiseRequestStatus.INITIATED.name());
-        contactUs.setStartTime(LocalDateTime.now());
-        String referenceNumber = "BL" + userProfile.getName().substring(0,2) + email.substring(0,2)
-                + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0,2) + generateVerificationCode().substring(0,3) : generateVerificationCode());
-        contactUs.setReferenceNumber(referenceNumber);
+        contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+        contactUs.setStartTime(currentTime);
+        contactUs.setCompletedTime(currentTime);
+        contactUs.setReferenceNumber(StringConstants.generateAlphabetCode() + generateVerificationCode());
         ContactUs savedContactUs = contactUsRepository.save(contactUs);
 
         ContactUsHist contactUsHist = new ContactUsHist();
         contactUsHist.setContactUsId(savedContactUs.getId());
         contactUsHist.setName(userProfile.getName());
         contactUsHist.setMessage(BLOCKED_BY_ADMIN + ", " + reason);
-        contactUsHist.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
-        contactUsHist.setRequestStatus(RaiseRequestStatus.INITIATED.name());
-        contactUsHist.setUpdatedTime(savedContactUs.getStartTime());
+        contactUsHist.setRequestReason(savedContactUs.getRequestReason());
+        contactUsHist.setRequestStatus(savedContactUs.getRequestStatus());
+        contactUsHist.setUpdatedTime(currentTime);
         contactUsHist.setUpdatedBy(adminUserId);
         contactUsHistRepository.save(contactUsHist);
         methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT), reason, adminUserId, LocalDateTime.now());
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.ADMIN_BLOCKED_USER_MAIL.name(), objectMapper.writeValueAsString(new AdminBlockUserDto(email, reason, profileRepository.findByUserId(user.getId()).get().getName(), convertMultipartFileToPdfBytes(file)))));
-        return "User is successfully blocked";
+        if (ObjectUtils.isNotEmpty(file))
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.ADMIN_BLOCKED_USER_MAIL.name(), objectMapper.writeValueAsString(new AdminBlockUserDto(email, reason, userProfile.getName(), convertMultipartFileToPdfBytes(file)))));
     }
 
     @Override
@@ -681,7 +663,7 @@ public class AdminServiceImpl implements AdminService {
 
             ScheduleNotification scheduleNotification = new ScheduleNotification();
             scheduleNotification.setSubject("Gmail Sync Count Increase Request Approved");
-            scheduleNotification.setDescription(StringConstants.objectMapper.writeValueAsString(new GmailSyncCountJsonDto(gmailSyncRequestCount, STATUS_APPROVED, contactUs.getId())));
+            scheduleNotification.setDescription(objectMapper.writeValueAsString(new GmailSyncCountJsonDto(gmailSyncRequestCount, STATUS_APPROVED, contactUs.getId())));
             functionToScheduleGmailSyncUpdateToUser(scheduleNotification, adminUserId, email, user, contactUs);
             applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.GMAIL_SYNC_APPROVED_USER_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + gmailSyncRequestCount));
         }
@@ -729,7 +711,7 @@ public class AdminServiceImpl implements AdminService {
         if (contactUs.getRequestReason().equalsIgnoreCase(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name())) {
             ScheduleNotification scheduleNotification = new ScheduleNotification();
             scheduleNotification.setSubject("Gmail Sync Count Increase Request Rejected");
-            scheduleNotification.setDescription(StringConstants.objectMapper.writeValueAsString(new GmailSyncCountJsonDto(0, STATUS_REJECTED + ". Reason: " + declineReason, contactUs.getId())));
+            scheduleNotification.setDescription(objectMapper.writeValueAsString(new GmailSyncCountJsonDto(0, STATUS_REJECTED + ". Reason: " + declineReason, contactUs.getId())));
             functionToScheduleGmailSyncUpdateToUser(scheduleNotification, adminUserId, email, user, contactUs);
             applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.GMAIL_SYNC_REJECTED_USER_MAIL.name(), userProfile.getName() + "<|>" + email));
         } else if (contactUs.getRequestReason().equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())) {
@@ -757,7 +739,7 @@ public class AdminServiceImpl implements AdminService {
                     try {
                         return schedule.getNotificationType().equalsIgnoreCase(SchedulingNotificationType.GMAIL_SYNC_COUNT_INCREASE.name())
                                 && schedule.getCreatedDate().toLocalDate().equals(LocalDate.now())
-                                && Objects.equals(StringConstants.objectMapper.readValue(schedule.getDescription(), GmailSyncCountJsonDto.class).getContactUsId(), contactUs.getId());
+                                && Objects.equals(objectMapper.readValue(schedule.getDescription(), GmailSyncCountJsonDto.class).getContactUsId(), contactUs.getId());
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }
@@ -775,20 +757,19 @@ public class AdminServiceImpl implements AdminService {
         userCommonService.saveUserNotificationsForParticularUsers(user.getUsername(), scheduleNotificationRepository.save(scheduleNotification).getId());
     }
 
-    private void addNameRequestDetailsToUserDetails(UserProfileAndRequestDetailsDto userDetails, List<ContactUs> allUserRequests, AdminUserRequestsCountDto saveCountDto){
+    private void functionCallToAddNameChangeRequestDetailsHistory(UserProfileAndRequestDetailsDto userDetails, List<ContactUs> allUserRequests, AdminUserRequestsCountDto saveCountDto, Long adminUserId) {
         AtomicInteger nameChangeActiveRequestsCount = new AtomicInteger(0);
         AtomicInteger nameChangeCompletedRequestsCount = new AtomicInteger(0);
         AtomicInteger nameChangeDeclinedRequestsCount = new AtomicInteger(0);
-        allUserRequests
-                .stream()
+        allUserRequests.stream()
                 .filter(nameChangeRequest -> nameChangeRequest.getRequestReason().equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name()))
                 .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
                 .forEach(request -> {
-                    if(request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name()) || request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
+                    if (request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name()) || request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())) {
                         nameChangeActiveRequestsCount.getAndIncrement();
-                    } else if (request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name())){
+                    } else if (request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name())) {
                         nameChangeCompletedRequestsCount.getAndIncrement();
-                    } else if(request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())){
+                    } else if (request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())) {
                         nameChangeDeclinedRequestsCount.getAndIncrement();
                     }
                     AdminUserNameChangeDetailsDto dto = new AdminUserNameChangeDetailsDto();
@@ -805,12 +786,15 @@ public class AdminServiceImpl implements AdminService {
                             dto.setReasonForNameChange(nameChangeRequestHist.getMessage().split(",")[1]);
                             requestTimeStatusHistoryMap.put(RaiseRequestStatus.SUBMITTED, new UserRequestsUpdatedHistDto(Timestamp.valueOf(nameChangeRequestHist.getUpdatedTime())));
                         }
-                        if (nameChangeRequestHist.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) ||
-                                nameChangeRequestHist.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())) {
+                        if (nameChangeRequestHist.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) || nameChangeRequestHist.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())) {
                             requestTimeStatusHistoryMap.put(RaiseRequestStatus.COMPLETED, new UserRequestsUpdatedHistDto(Timestamp.valueOf(nameChangeRequestHist.getUpdatedTime())));
                             if (nameChangeRequestHist.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name()))
                                 approvedOrRejectedMap.put(STATUS_REJECTED, nameChangeRequestHist.getMessage());
                             else approvedOrRejectedMap.put(STATUS_APPROVED, nameChangeRequestHist.getMessage());
+
+                            String username = Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(nameChangeRequestHist.getUpdatedBy()).orElse(null)).getUsername();
+                            if (!Objects.equals(nameChangeRequestHist.getUpdatedBy(), adminUserId)) dto.getRequestDoneBy().append(nameChangeRequestHist.getRequestStatus().substring(0, 1).toUpperCase()).append(nameChangeRequestHist.getRequestStatus().substring(1).toLowerCase()).append(" By: ").append(username);
+                            else dto.getRequestDoneBy().append(nameChangeRequestHist.getRequestStatus().substring(0,1).toUpperCase()).append(nameChangeRequestHist.getRequestStatus().substring(1).toLowerCase()).append(" By: You" + "(").append(username).append(")");
                         }
                         dto.setApprovedOrRejected(approvedOrRejectedMap);
                         dto.setRequestTimeStatusHistory(requestTimeStatusHistoryMap);
@@ -820,7 +804,7 @@ public class AdminServiceImpl implements AdminService {
                         dto.setRequestStatus(RaiseRequestStatus.valueOf(request.getRequestStatus()));
                         dto.setDaysTakenForCompletion(null);
                     } else {
-                        dto.setDaysTakenForCompletion((int) ChronoUnit.DAYS.between(request.getStartTime(), request.getCompletedTime()));
+                        dto.setDaysTakenForCompletion(Math.max(1, (int) ChronoUnit.DAYS.between(request.getStartTime(), request.getCompletedTime())));
                         dto.setRequestStatus(RaiseRequestStatus.valueOf(request.getRequestStatus()));
                     }
                     userDetails.getNameChangeRequests().add(dto);
@@ -830,20 +814,19 @@ public class AdminServiceImpl implements AdminService {
         saveCountDto.setNameChangeDeclinedRequests(nameChangeDeclinedRequestsCount);
     }
 
-    private void addUnblockRequestDetailsToUserDetails(UserProfileAndRequestDetailsDto userDetails, List<ContactUs> allUserRequests, AdminUserRequestsCountDto saveCountDto){
+    private void functionCallToAddUnblockRequestDetailsHistory(UserProfileAndRequestDetailsDto userDetails, List<ContactUs> allUserRequests, AdminUserRequestsCountDto saveCountDto, Long adminUserId) {
         AtomicInteger accBlockActiveRequestsCount = new AtomicInteger(0);
         AtomicInteger accBlockCompletedRequestsCount = new AtomicInteger(0);
         AtomicInteger accBlockDeclinedRequestsCount = new AtomicInteger(0);
-        allUserRequests
-                .stream()
+        allUserRequests.stream()
                 .filter(accUnblockRequest -> accUnblockRequest.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
                 .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
                 .forEach(request -> {
-                    if(request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name()) || request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
+                    if (request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name()) || request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())) {
                         accBlockActiveRequestsCount.getAndIncrement();
-                    } else if (request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name())){
+                    } else if (request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name())) {
                         accBlockCompletedRequestsCount.getAndIncrement();
-                    } else if(request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())){
+                    } else if (request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())) {
                         accBlockDeclinedRequestsCount.getAndIncrement();
                     }
                     AdminUserUnblockRequestDetailsDto dto = new AdminUserUnblockRequestDetailsDto();
@@ -851,10 +834,11 @@ public class AdminServiceImpl implements AdminService {
                     Map<String, String> approvedOrRejectedMap = new HashMap<>();
                     List<ContactUsHist> unblockAccHistList = contactUsHistRepository.findByContactUsId(request.getId());
                     unblockAccHistList.forEach(accUnblockHistRequest -> {
-                        if(accUnblockHistRequest.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_BLOCK_REQUEST.name())){
-                            if(accUnblockHistRequest.getMessage().split(",")[0].equalsIgnoreCase(BLOCKED_BY_USER))
+                        if (accUnblockHistRequest.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_BLOCK_REQUEST.name())) {
+                            String adminUsername = Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(accUnblockHistRequest.getUpdatedBy()).orElse(null)).getUsername();
+                            if (accUnblockHistRequest.getMessage().split(",")[0].equalsIgnoreCase(BLOCKED_BY_USER))
                                 dto.setBlockedBy("USER");
-                            else dto.setBlockedBy("ADMIN");
+                            else dto.setBlockedBy(adminUsername);
                         } else {
                             if (accUnblockHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())) {
                                 requestTimeStatusHistoryMap.put(RaiseRequestStatus.INITIATED, new UserRequestsUpdatedHistDto(Timestamp.valueOf(accUnblockHistRequest.getUpdatedTime())));
@@ -863,12 +847,15 @@ public class AdminServiceImpl implements AdminService {
                                 dto.setUnblockRequestReason(accUnblockHistRequest.getMessage());
                                 requestTimeStatusHistoryMap.put(RaiseRequestStatus.SUBMITTED, new UserRequestsUpdatedHistDto(Timestamp.valueOf(accUnblockHistRequest.getUpdatedTime())));
                             }
-                            if (accUnblockHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) ||
-                                    accUnblockHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())) {
+                            if (accUnblockHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) || accUnblockHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())) {
                                 requestTimeStatusHistoryMap.put(RaiseRequestStatus.COMPLETED, new UserRequestsUpdatedHistDto(Timestamp.valueOf(accUnblockHistRequest.getUpdatedTime())));
                                 if (accUnblockHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name()))
                                     approvedOrRejectedMap.put(STATUS_REJECTED, accUnblockHistRequest.getMessage());
                                 else approvedOrRejectedMap.put(STATUS_APPROVED, accUnblockHistRequest.getMessage());
+
+                                String username = Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(accUnblockHistRequest.getUpdatedBy()).orElse(null)).getUsername();
+                                if (!Objects.equals(accUnblockHistRequest.getUpdatedBy(), adminUserId)) dto.getRequestDoneBy().append(accUnblockHistRequest.getRequestStatus().substring(0, 1).toUpperCase()).append(accUnblockHistRequest.getRequestStatus().substring(1).toLowerCase()).append(" By: ").append(username);
+                                else dto.getRequestDoneBy().append(accUnblockHistRequest.getRequestStatus().substring(0,1).toUpperCase()).append(accUnblockHistRequest.getRequestStatus().substring(1).toLowerCase()).append(" By: You" + "(").append(username).append(")");
                             }
                             dto.setApprovedOrRejected(approvedOrRejectedMap);
                             dto.setRequestTimeStatusHistory(requestTimeStatusHistoryMap);
@@ -879,7 +866,7 @@ public class AdminServiceImpl implements AdminService {
                         dto.setRequestStatus(RaiseRequestStatus.valueOf(request.getRequestStatus()));
                         dto.setDaysTakenForCompletion(null);
                     } else {
-                        dto.setDaysTakenForCompletion((int) ChronoUnit.DAYS.between(request.getStartTime(), request.getCompletedTime()));
+                        dto.setDaysTakenForCompletion(Math.max(1, (int) ChronoUnit.DAYS.between(request.getStartTime(), request.getCompletedTime())));
                         dto.setRequestStatus(RaiseRequestStatus.valueOf(request.getRequestStatus()));
                     }
                     userDetails.getUnblockAccountRequests().add(dto);
@@ -889,20 +876,19 @@ public class AdminServiceImpl implements AdminService {
         saveCountDto.setAccBlockChangeDeclinedRequests(accBlockDeclinedRequestsCount);
     }
 
-    private void addAccRetrievalRequestDetailsToUserDetails(UserProfileAndRequestDetailsDto userDetails, List<ContactUs> allUserRequests, AdminUserRequestsCountDto saveCountDto){
+    private void functionCallToAddAccRetrievalRequestDetailsHistory(UserProfileAndRequestDetailsDto userDetails, List<ContactUs> allUserRequests, AdminUserRequestsCountDto saveCountDto, Long adminUserId) {
         AtomicInteger accRetrievalActiveRequestsCount = new AtomicInteger(0);
         AtomicInteger accRetrievalCompletedRequestsCount = new AtomicInteger(0);
         AtomicInteger accRetrievalDeclinedRequestsCount = new AtomicInteger(0);
-        allUserRequests
-                .stream()
+        allUserRequests.stream()
                 .filter(accUnblockRequest -> accUnblockRequest.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
                 .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
                 .forEach(request -> {
-                    if(request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name()) || request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())){
+                    if (request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name()) || request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())) {
                         accRetrievalActiveRequestsCount.getAndIncrement();
-                    } else if (request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name())){
+                    } else if (request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name())) {
                         accRetrievalCompletedRequestsCount.getAndIncrement();
-                    } else if(request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())){
+                    } else if (request.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())) {
                         accRetrievalDeclinedRequestsCount.getAndIncrement();
                     }
                     AdminUserAccRetrievalRequestDetailsDto dto = new AdminUserAccRetrievalRequestDetailsDto();
@@ -917,12 +903,15 @@ public class AdminServiceImpl implements AdminService {
                             dto.setAccountRetrievalRequestReason(accRetrievalHistRequest.getMessage());
                             requestTimeStatusHistoryMap.put(RaiseRequestStatus.SUBMITTED, new UserRequestsUpdatedHistDto(Timestamp.valueOf(accRetrievalHistRequest.getUpdatedTime())));
                         }
-                        if (accRetrievalHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) ||
-                                accRetrievalHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())) {
+                        if (accRetrievalHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) || accRetrievalHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())) {
                             requestTimeStatusHistoryMap.put(RaiseRequestStatus.COMPLETED, new UserRequestsUpdatedHistDto(Timestamp.valueOf(accRetrievalHistRequest.getUpdatedTime())));
                             if (accRetrievalHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name()))
                                 approvedOrRejectedMap.put(STATUS_REJECTED, accRetrievalHistRequest.getMessage());
                             else approvedOrRejectedMap.put(STATUS_APPROVED, accRetrievalHistRequest.getMessage());
+
+                            String username = Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(accRetrievalHistRequest.getUpdatedBy()).orElse(null)).getUsername();
+                            if (!Objects.equals(accRetrievalHistRequest.getUpdatedBy(), adminUserId)) dto.getRequestDoneBy().append(accRetrievalHistRequest.getRequestStatus().substring(0, 1).toUpperCase()).append(accRetrievalHistRequest.getRequestStatus().substring(1).toLowerCase()).append(" By: ").append(username);
+                            else dto.getRequestDoneBy().append(accRetrievalHistRequest.getRequestStatus().substring(0,1).toUpperCase()).append(accRetrievalHistRequest.getRequestStatus().substring(1).toLowerCase()).append(" By: You" + "(").append(username).append(")");
                         }
                         dto.setApprovedOrRejected(approvedOrRejectedMap);
                         dto.setRequestTimeStatusHistory(requestTimeStatusHistoryMap);
@@ -932,7 +921,7 @@ public class AdminServiceImpl implements AdminService {
                         dto.setRequestStatus(RaiseRequestStatus.valueOf(request.getRequestStatus()));
                         dto.setDaysTakenForCompletion(null);
                     } else {
-                        dto.setDaysTakenForCompletion((int) ChronoUnit.DAYS.between(request.getStartTime(), request.getCompletedTime()));
+                        dto.setDaysTakenForCompletion(Math.max(1, (int) ChronoUnit.DAYS.between(request.getStartTime(), request.getCompletedTime())));
                         dto.setRequestStatus(RaiseRequestStatus.valueOf(request.getRequestStatus()));
                     }
                     userDetails.getAccountRetrievalRequests().add(dto);
@@ -940,6 +929,111 @@ public class AdminServiceImpl implements AdminService {
         saveCountDto.setAccRetrieveChangeActiveRequests(accRetrievalActiveRequestsCount);
         saveCountDto.setAccRetrieveChangeCompletedRequests(accRetrievalCompletedRequestsCount);
         saveCountDto.setAccRetrieveChangeDeclinedRequests(accRetrievalDeclinedRequestsCount);
+    }
+
+    private void functionCallToAddUserPasswordChangeHistory(UserProfileAndRequestDetailsDto userDetails) {
+        userDetails.getPasswordChangeHistoryTrackDtoList()
+                .addAll(
+                        convertUserAuthHistInterfaceToDto(profileRepository.findTopByUserIdAndReasonTypeId(userDetails.getUserId(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE)))
+                                .stream()
+                                .map(responseHistory -> new PasswordChangeHistoryTrackDto(responseHistory.getComment(), responseHistory.getUpdatedTime()))
+                                .toList()
+                );
+    }
+
+    private void functionCallToAddUserForgotPasswordHistory(UserProfileAndRequestDetailsDto userDetails) {
+        userDetails.getForgotPasswordHistoryTrackDtoList()
+                .addAll(
+                        convertUserAuthHistInterfaceToDto(profileRepository.findTopByUserIdAndReasonTypeId(userDetails.getUserId(), reasonCodeIdAssociation.get(ReasonEnum.FORGOT_PASSWORD)))
+                                .stream()
+                                .map(responseHistory -> new ForgotPasswordHistoryTrackDto(responseHistory.getComment(), responseHistory.getUpdatedTime()))
+                                .toList()
+                );
+    }
+
+    private void functionCallToAddUserRaisedRequestsHistory(List<ContactUs> allUserRequests, UserProfileAndRequestDetailsDto userDetails, Long adminUserId) {
+        allUserRequests.stream()
+                .filter(userRaisedDefect -> userRaisedDefect.getRequestReason().equalsIgnoreCase(RequestReason.USER_DEFECT_UPDATE.name()))
+                .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
+                .forEach(userDefect -> {
+                    UserDefectTrackingForAdminDto userDefectTrackingForAdminDto = new UserDefectTrackingForAdminDto();
+                    userDefectTrackingForAdminDto.setStartTime(userDefect.getStartTime());
+                    userDefectTrackingForAdminDto.setEndTime(userDefect.getCompletedTime());
+                    userDefectTrackingForAdminDto.setReferenceNumber(userDefect.getReferenceNumber().startsWith("COM_") ? userDefect.getReferenceNumber().substring(4) : userDefect.getReferenceNumber());
+                    userDefectTrackingForAdminDto.setStatus(userDefect.getRequestStatus());
+                    userDefectTrackingForAdminDto.setDefectId(userDefect.getId());
+                    List<ContactUsHist> userDefectHistoryDetails = contactUsHistRepository.findByContactUsId(userDefect.getId());
+                    userDefectHistoryDetails.forEach(historyRecord -> {
+                        if (historyRecord.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name()))
+                            userDefectTrackingForAdminDto.setDescription(historyRecord.getMessage());
+                        if (historyRecord.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.PENDED.name())) {
+                            userDefectTrackingForAdminDto.setPendTime(historyRecord.getUpdatedTime());
+                            userDefectTrackingForAdminDto.setAdminRemarks(new StringBuilder("Pended For: " + historyRecord.getMessage() + " | "));
+                            String username = Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(historyRecord.getUpdatedBy()).orElse(null)).getUsername();
+                            if (!Objects.equals(historyRecord.getUpdatedBy(), adminUserId)) userDefectTrackingForAdminDto.setRequestDoneBy(new StringBuilder("Pended By: " + username + " | "));
+                            else userDefectTrackingForAdminDto.setRequestDoneBy(new StringBuilder("Pended By: You" + "(" + username + ") | "));
+                        }
+                        if (historyRecord.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.IGNORED.name()) || historyRecord.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name())) {
+                            String username = Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(historyRecord.getUpdatedBy()).orElse(null)).getUsername();
+                            userDefectTrackingForAdminDto.getAdminRemarks().append(historyRecord.getRequestStatus()).append(" For: ").append(historyRecord.getMessage());
+                            if (!Objects.equals(historyRecord.getUpdatedBy(), adminUserId)) userDefectTrackingForAdminDto.getRequestDoneBy().append(historyRecord.getRequestStatus().substring(0, 1).toUpperCase()).append(historyRecord.getRequestStatus().substring(1).toLowerCase()).append(" By: ").append(username);
+                            else userDefectTrackingForAdminDto.getRequestDoneBy().append(historyRecord.getRequestStatus().substring(0,1).toUpperCase()).append(historyRecord.getRequestStatus().substring(1).toLowerCase()).append(" By: You" + "(").append(username).append(")");
+                        }
+                    });
+                    userDetails.getUserDefectTrackingForAdminDtoList().add(userDefectTrackingForAdminDto);
+                });
+    }
+
+    private void functionCallToAddGmailSyncCountIncreaseHistory( List<ContactUs> allUserRequests, Long adminUserId, UserProfileAndRequestDetailsDto userDetails) {
+        allUserRequests.stream()
+                .filter(gmailSyncRequest -> gmailSyncRequest.getRequestReason().equalsIgnoreCase(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name()))
+                .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
+                .forEach(gmailSyncRequest -> {
+                    GmailSyncHistoryTrackDto gmailSyncHistoryTrackDto = new GmailSyncHistoryTrackDto();
+
+                    LocalDateTime startTime = gmailSyncRequest.getStartTime();
+                    LocalDateTime completedTime = gmailSyncRequest.getCompletedTime();
+                    String requestStatus = gmailSyncRequest.getRequestStatus();
+
+                    boolean isToday = startTime.toLocalDate().equals(LocalDate.now());
+
+                    if (completedTime == null) {
+                        if (isToday) gmailSyncHistoryTrackDto.setStatus("ACTIVE");
+                        else if (RaiseRequestStatus.SUBMITTED.name().equalsIgnoreCase(requestStatus)) gmailSyncHistoryTrackDto.setStatus("EXPIRED");
+                    } else {
+                        if (RaiseRequestStatus.COMPLETED.name().equalsIgnoreCase(requestStatus)) gmailSyncHistoryTrackDto.setStatus("APPROVED");
+                        else if (RaiseRequestStatus.CANCELLED.name().equalsIgnoreCase(requestStatus)) gmailSyncHistoryTrackDto.setStatus("REJECTED");
+
+                        Duration duration = Duration.between(startTime, completedTime);
+                        long hours = duration.toHours();
+                        long minutes = duration.toMinutes() % 60;
+                        long seconds = duration.getSeconds() % 60;
+
+                        String totalTime = hours + " hrs " + minutes + " mins " + seconds + " secs";
+                        gmailSyncHistoryTrackDto.setTotalTimeTaken(totalTime);
+                    }
+                    gmailSyncHistoryTrackDto.setStartDate(startTime);
+                    gmailSyncHistoryTrackDto.setReferenceNumber(gmailSyncRequest.getReferenceNumber().startsWith("COM_") ? gmailSyncRequest.getReferenceNumber().substring(4) : gmailSyncRequest.getReferenceNumber());
+
+                    List<ContactUsHist> userDefectHistoryDetails = contactUsHistRepository.findByContactUsId(gmailSyncRequest.getId());
+                    userDefectHistoryDetails.forEach(historyRecord -> {
+                        if (historyRecord.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name())) {
+                            try {
+                                GmailSyncCountJsonDto jsonDataDto = objectMapper.readValue(historyRecord.getMessage(), GmailSyncCountJsonDto.class);
+                                gmailSyncHistoryTrackDto.setRequestedReasonAndCount("Requested Count: " + jsonDataDto.getCount() + " | " + "Reason: " + jsonDataDto.getReason());
+                            } catch (JsonProcessingException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                        if (historyRecord.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name()) || historyRecord.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name())) {
+                            gmailSyncHistoryTrackDto.setAdminRemarks(historyRecord.getMessage());
+                            if (!Objects.equals(historyRecord.getUpdatedBy(), adminUserId)) gmailSyncHistoryTrackDto.setRequestDoneBy(Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(historyRecord.getUpdatedBy()).orElse(null)).getUsername());
+                            else gmailSyncHistoryTrackDto.setRequestDoneBy("You" + " (" + Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(historyRecord.getUpdatedBy()).orElse(null)).getUsername() + ")");
+                        }
+                    });
+                    gmailSyncHistoryTrackDto.setRequestId(gmailSyncRequest.getId());
+                    userDetails.getUserGmailSyncCountIncreaseRequestHistoryTractDtoLit().add(gmailSyncHistoryTrackDto);
+                });
     }
 
     private byte[] convertMultipartFileToPdfBytes(MultipartFile file){

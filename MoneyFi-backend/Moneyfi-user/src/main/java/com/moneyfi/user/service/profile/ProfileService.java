@@ -1,6 +1,5 @@
 package com.moneyfi.user.service.profile;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.model.ProfileModel;
 import com.moneyfi.user.service.common.dto.request.UserDefectRequestDto;
 import com.moneyfi.user.service.common.dto.request.UserFeedbackRequestDto;

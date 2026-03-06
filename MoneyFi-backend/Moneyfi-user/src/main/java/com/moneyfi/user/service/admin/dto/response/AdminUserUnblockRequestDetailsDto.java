@@ -18,5 +18,6 @@ public class AdminUserUnblockRequestDetailsDto {
     private Map<String, String> approvedOrRejected = new HashMap<>();
     private RaiseRequestStatus requestStatus;
     private String blockedBy;
+    private StringBuilder requestDoneBy = new StringBuilder();
     private Map<RaiseRequestStatus, UserRequestsUpdatedHistDto> requestTimeStatusHistory = new HashMap<>();
 }

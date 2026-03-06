@@ -1,6 +1,5 @@
 package com.moneyfi.user.controller.user;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.config.JwtService;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.model.ProfileModel;
