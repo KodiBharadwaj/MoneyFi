@@ -33,7 +33,7 @@ public interface AdminService {
 
     Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status);
 
-    UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username);
+    UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username, Long adminUserId);
 
     List<UserFeedbackResponseDto> getUserFeedbackListForAdmin();
 

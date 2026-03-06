@@ -8,6 +8,7 @@ import com.moneyfi.user.model.dto.interfaces.OtpTempProjection;
 import com.moneyfi.user.model.dto.interfaces.UserAuthProjection;
 import com.moneyfi.user.repository.ProfileRepository;
 import com.moneyfi.user.util.enums.ReasonEnum;
+import com.moneyfi.user.util.enums.UserRoles;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Map;
@@ -49,6 +50,7 @@ public class StringConstants {
     public static final String BLOCKED_BY_USER = "Blocked by User";
 
     public static final Map<String, Integer> templateIdAssociation = Map.of("profile-template", 1);
+    public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name(), 3, UserRoles.DEVELOPER.name(), 4, UserRoles.MAINTAINER.name());
     public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation =
             Map.ofEntries(
                     Map.entry(BLOCK_ACCOUNT, 1),
@@ -104,11 +106,6 @@ public class StringConstants {
             name = userProfile.get().getName();
         }
         return name;
-    }
-
-    public static String generateReferenceNumberForUserToSendEmail(String referencePrefix, ProfileModel userProfile, String username) {
-        return referencePrefix + userProfile.getName().substring(0, 2) + username.substring(0, 2)
-                + (userProfile.getPhone() != null ? userProfile.getPhone().substring(0, 2) + generateVerificationCode().substring(0, 3) : generateVerificationCode());
     }
 
     public static UserAuthModel convertUserAuthInterfaceToDto(UserAuthProjection userAuthProjection) {

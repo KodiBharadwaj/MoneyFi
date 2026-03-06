@@ -23,6 +23,7 @@ import com.moneyfi.user.service.common.dto.request.*;
 import com.moneyfi.user.service.common.dto.response.QuoteResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.service.common.dto.response.UserRequestStatusDto;
+import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.UserValidations;
 import jakarta.transaction.Transactional;
@@ -135,7 +136,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 requestDetails.get().setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
                 savedRequest = contactUsRepository.save(requestDetails.get());
             } else {
-                referenceNumber = generateReferenceNumberForUserToSendEmail("BL", userProfile, email.trim());
+                referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
                 ContactUs saveRequest = new ContactUs();
                 saveRequest.setEmail(email);
                 saveRequest.setReferenceNumber(referenceNumber);
@@ -178,7 +179,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 requestDetails.get().setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
                 savedRequest = contactUsRepository.save(requestDetails.get());
             } else {
-                referenceNumber = generateReferenceNumberForUserToSendEmail("DL", userProfile, email.trim());
+                referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
                 ContactUs saveRequest = new ContactUs();
                 saveRequest.setEmail(email);
                 saveRequest.setReferenceNumber(referenceNumber);
@@ -209,7 +210,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size() == 1 ? REFERENCE_NUMBER_SENT :
                         DETAILS_ALREADY_SUBMITTED);
             }
-            String referenceNumber = generateReferenceNumberForUserToSendEmail("NA", userProfile, email.trim());
+            String referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
             applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + "change name" + "<|>" + referenceNumber));
             ContactUs saveRequest = new ContactUs();
             saveRequest.setEmail(email);
@@ -506,13 +507,10 @@ public class UserCommonServiceImpl implements UserCommonService {
         UserValidations.userAlreadyDeactivatedCheckValidation(user);
 
         String deactivationType;
-        String referencePrefix;
         if (request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.BLOCK.name())) {
             deactivationType = OtpType.ACCOUNT_BLOCK.name();
-            referencePrefix = "BL";
         } else if (request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.DELETE.name())) {
             deactivationType = OtpType.ACCOUNT_DELETE.name();
-            referencePrefix = "DL";
         } else {
             throw new ScenarioNotPossibleException(INVALID_REQUEST_MESSAGE);
         }
@@ -523,7 +521,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             UserValidations.otpCheckDuringAccountDeactivationValidations(request, response, user);
 
             ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
-            String referenceNumber = generateReferenceNumberForUserToSendEmail(referencePrefix, userProfile, username);
+            String referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
 
             ContactUs accountDeactivationRequest = new ContactUs();
             UserAuthHist userAuthHist = new UserAuthHist();
@@ -621,7 +619,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         }
 
         ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
-        String referenceNumber = generateReferenceNumberForUserToSendEmail("GS", userProfile, username);
+        String referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
 
         ContactUs contactUs = new ContactUs();
         contactUs.setEmail(username);

@@ -216,10 +216,10 @@ h2 {
 
 .profile-dialog{
   background:white;
-  width:1200px;
+  width:1400px;
   max-height:90vh;
   overflow-y:auto;
-  border-radius:10px;
+  border-radius:5px;
   padding:25px;
   box-shadow:0 10px 35px rgba(0,0,0,0.25);
 }
@@ -253,6 +253,34 @@ h2 {
 
 .profile-basic h2{
   margin:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.status-badge{
+  font-size:12px;
+  padding:3px 10px;
+  border-radius:12px;
+  font-weight:600;
+}
+
+/* ACTIVE */
+.status-badge.active{
+  background:#e6f7ed;
+  color:#1e8e3e;
+}
+
+/* BLOCKED */
+.status-badge.blocked{
+  background:#fff4e5;
+  color:#f29900;
+}
+
+/* DELETED */
+.status-badge.deleted{
+  background:#fdecea;
+  color:#d93025;
 }
 
 .profile-section{
@@ -501,4 +529,19 @@ h2 {
   color:#d32f2f;
   font-size:12px;
   margin-bottom:8px;
+}
+
+.no-data{
+  padding:15px;
+  text-align:center;
+  color:#777;
+  font-style:italic;
+  background:#f8f9fc;
+  border-radius:6px;
+}
+
+.block-btn:disabled{
+  background:#ccc;
+  cursor:not-allowed;
+  opacity:0.7;
 }

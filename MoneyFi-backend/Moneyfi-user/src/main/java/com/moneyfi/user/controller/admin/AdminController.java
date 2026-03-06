@@ -125,8 +125,10 @@ public class AdminController {
 
     @Operation(summary = "Api to get the user profile details for admin")
     @GetMapping("/user-profile-details")
-    public ResponseEntity<UserProfileAndRequestDetailsDto> getCompleteUserDetailsForAdmin(@RequestParam("username") String username){
-        return ResponseEntity.ok(adminService.getCompleteUserDetailsForAdmin(username));
+    public ResponseEntity<UserProfileAndRequestDetailsDto> getCompleteUserDetailsForAdmin(@RequestHeader("Authorization") String authHeader,
+                                                                                          @RequestParam("username") String username){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return ResponseEntity.ok(adminService.getCompleteUserDetailsForAdmin(username, adminUserId));
     }
 
     @Operation(summary = "Api to fetch the user profile picture from aws s3")

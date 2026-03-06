@@ -112,10 +112,22 @@
       </div>
 
       <div class="profile-basic">
-        <h2>{{userProfile?.name}}</h2>
+        <h2>{{userProfile?.name}} 
+          <span class="status-badge"
+              [ngClass]="{
+                'active': userProfile?.userStatus === 'ACTIVE',
+                'blocked': userProfile?.userStatus === 'BLOCKED',
+                'deleted': userProfile?.userStatus === 'DELETED'
+              }">
+          {{userProfile?.userStatus}}
+        </span>
+      </h2> 
         <p>{{userProfile?.username}}</p>
       </div>
-      <button class="block-btn" (click)="openBlockDialog()">
+      <button
+        class="block-btn"
+        (click)="openBlockDialog()"
+        [disabled]="userProfile?.userStatus !== 'ACTIVE'">
         Block User
       </button>
 
@@ -144,6 +156,7 @@
     <div class="profile-section">
 
       <h3>Name Change Requests (Active: {{userProfile?.userRequestCount.nameChangeActiveRequests}}, Completed: {{userProfile?.userRequestCount.nameChangeCompletedRequests}}, Declined: {{userProfile?.userRequestCount.nameChangeDeclinedRequests}})</h3>
+      <ng-container *ngIf="userProfile?.nameChangeRequests?.length > 0; else noNameChangeRequestData">
 
       <table class="dialog-table">
         <tr>
@@ -153,6 +166,7 @@
           <th>Reference</th>
           <th>Time taken (days)</th>
           <th>Reason</th>
+          <th>Admin Involved</th>
           <th>History</th>
         </tr>
 
@@ -163,6 +177,7 @@
           <td>{{req.referenceNumber}}</td>
           <td>{{req.daysTakenForCompletion}}</td>
           <td>{{req.reasonForNameChange}}</td>
+          <td>{{req.requestDoneBy}}</td>
           <td> 
             <div class="timeline-item" *ngFor="let item of getHistory(req.requestTimeStatusHistory)">
               <div class="timeline-dot"></div>
@@ -180,6 +195,12 @@
           </td>
         </tr>
       </table>
+      </ng-container>
+      <ng-template #noNameChangeRequestData>
+        <div class="no-data">
+          No Name Change Requests found
+        </div>
+      </ng-template>
     </div>
 
 
@@ -187,23 +208,27 @@
     <div class="profile-section">
 
       <h3>Account Unblock Requests (Active: {{userProfile?.userRequestCount.accBlockActiveRequests}}, Completed: {{userProfile?.userRequestCount.accBlockChangeCompletedRequests}}, Declined: {{userProfile?.userRequestCount.accBlockChangeDeclinedRequests}})</h3>
-
+      <ng-container *ngIf="userProfile?.unblockAccountRequests?.length > 0; else noUnblockRequestData">
       <table class="dialog-table">
 
         <tr>
           <th>Reason</th>
+          <th>Blocked By</th>
           <th>Status</th>
           <th>Reference</th>
           <th>Time taken (days)</th>
+          <th>Admin Involved</th>
           <th>History</th>
         </tr>
 
         <tr *ngFor="let req of userProfile?.unblockAccountRequests">
 
           <td>{{req.unblockRequestReason}}</td>
+          <td>{{req.blockedBy}}</td>
           <td>{{req.requestStatus}}</td>
           <td>{{req.referenceNumber}}</td>
           <td>{{req.daysTakenForCompletion}}</td>
+          <td>{{req.requestDoneBy}}</td>
           <td> 
             <div class="timeline-item" *ngFor="let item of getHistory(req.requestTimeStatusHistory)">
               <div class="timeline-dot"></div>
@@ -221,29 +246,34 @@
           </td>
         </tr>
       </table>
+      </ng-container>
+      <ng-template #noUnblockRequestData>
+        <div class="no-data">
+          No User Unblock Requests found
+        </div>
+      </ng-template>
     </div>
 
     <!-- Account Retrieval -->
     <div class="profile-section">
-
       <h3>Account Retrieval Requests (Active: {{userProfile?.userRequestCount.accRetrieveChangeActiveRequests}}, Completed: {{userProfile?.userRequestCount.accRetrieveChangeCompletedRequests}}, Declined: {{userProfile?.userRequestCount.accRetrieveChangeDeclinedRequests}})</h3>
-
+      <ng-container *ngIf="userProfile?.accountRetrievalRequests?.length > 0; else noRetrievalRequestData">
       <table class="dialog-table">
-
         <tr>
           <th>Reason</th>
           <th>Status</th>
           <th>Reference</th>
           <th>Time taken (days)</th>
+          <th>Admin Involved</th>
           <th>History</th>
         </tr>
 
         <tr *ngFor="let req of userProfile?.accountRetrievalRequests">
-
           <td>{{req.accountRetrievalRequestReason}}</td>
           <td>{{req.requestStatus}}</td>
           <td>{{req.referenceNumber}}</td>
           <td>{{req.daysTakenForCompletion}}</td>
+          <td>{{req.requestDoneBy}}</td>
           <td> 
             <div class="timeline-item" *ngFor="let item of getHistory(req.requestTimeStatusHistory)">
               <div class="timeline-dot"></div>
@@ -261,12 +291,19 @@
           </td>
         </tr>
       </table>
+      </ng-container>
+      <ng-template #noRetrievalRequestData>
+        <div class="no-data">
+          No Account Retrieval requests found
+        </div>
+      </ng-template>
     </div>
 
 
     <!-- Password Change History -->
     <div class="profile-section">
       <h3>Password Change History </h3>
+      <ng-container *ngIf="userProfile?.passwordChangeHistoryTrackDtoList?.length > 0; else noPasswordChangeHistoryData">
       <table class="dialog-table">
         <tr>
           <th>Date & Time</th>
@@ -277,11 +314,18 @@
           <td>{{req.reasonForChange}}</td>
         </tr>
       </table>
+      </ng-container>
+      <ng-template #noPasswordChangeHistoryData>
+        <div class="no-data">
+          No password change history found
+        </div>
+      </ng-template>
     </div>
 
     <!-- Forgot Password History -->
     <div class="profile-section">
       <h3>Forgot Password Service History </h3>
+      <ng-container *ngIf="userProfile?.forgotPasswordHistoryTrackDtoList?.length > 0; else noForgotPasswordHistoryData">
       <table class="dialog-table">
         <tr>
           <th>Date & Time</th>
@@ -292,40 +336,103 @@
           <td>{{req.reasonForChange}}</td>
         </tr>
       </table>
+      </ng-container>
+      <ng-template #noForgotPasswordHistoryData>
+        <div class="no-data">
+          No forgot password history found
+        </div>
+      </ng-template>
     </div>
 
 
     <!-- User Raised Requests History -->
     <div class="profile-section">
       <h3>User Raised Requests History</h3>
+      <ng-container *ngIf="userProfile?.userDefectTrackingForAdminDtoList?.length > 0; else noUserRaisedRequestData">
       <table class="dialog-table">
         <tr>
           <th>Start Date</th>
+          <th>Pend Time</th>
           <th>End Date</th>
           <th>Reference Number</th>
           <th>Status</th>
           <th>Description</th>
           <th>Admin Remarks</th>
+          <th>Admin Involved</th>
           <th>Image</th>
         </tr>
         <tr *ngFor="let req of userProfile?.userDefectTrackingForAdminDtoList">
           <td>{{ req.startTime | date:'dd MMM yyyy, hh:mm a' }}</td>
+          <td>{{ req.pendTime | date:'dd MMM yyyy, hh:mm a' }}</td>
           <td>{{ req.endTime | date:'dd MMM yyyy, hh:mm a' }}</td>
           <td>{{req.referenceNumber}}</td>
           <td>{{req.status}}</td>
           <td>{{req.description}}</td>
           <td>{{req.adminRemarks}}</td>
+          <td>{{req.requestDoneBy}}</td>
           <td> 
             <!-- Image -->
-            <div class="image-preview" (click)="viewImage(userProfile?.username, req.defectId)">
+            <div class="image-preview" (click)="viewImage(userProfile?.username, req.defectId, 'DEFECT')">
               <img src="assets/image-placeholder.png" alt="View" />
               <p class="click-text">Click to view image</p>
             </div>
           </td>
         </tr>
       </table>
+      </ng-container>
+      <ng-template #noUserRaisedRequestData>
+        <div class="no-data">
+          No User Raised Requests found
+        </div>
+      </ng-template>
     </div>
+
+
+
+    <!-- Gmail Sync Count Increase Requests History -->
+    <div class="profile-section">
+      <h3>Gmail Sync Count Increase Requests History</h3>
+      <ng-container *ngIf="userProfile?.userGmailSyncCountIncreaseRequestHistoryTractDtoLit?.length > 0; else noUserRaisedGmailSyncCountIncreaseRequestData">
+      <table class="dialog-table">
+        <tr>
+          <th>Start Date</th>
+          <th>Total Time taken</th>
+          <th>Reference Number</th>
+          <th>Status</th>
+          <th>User Description</th>
+          <th>Admin Remarks</th>
+          <th>Admin Involved</th>
+          <th>Image</th>
+        </tr>
+        <tr *ngFor="let req of userProfile?.userGmailSyncCountIncreaseRequestHistoryTractDtoLit">
+          <td>{{ req.startDate | date:'dd MMM yyyy, hh:mm a' }}</td>
+          <td>{{ req.totalTimeTaken }}</td>
+          <td>{{req.referenceNumber}}</td>
+          <td>{{req.status}}</td>
+          <td>{{req.requestedReasonAndCount}}</td>
+          <td>{{req.adminRemarks}}</td>
+          <td>{{req.requestDoneBy}}</td>
+          <td> 
+            <div class="image-preview" (click)="viewImage(userProfile?.username, req.requestId, 'REQUEST')">
+              <img src="assets/image-placeholder.png" alt="View" />
+              <p class="click-text">Click to view image</p>
+            </div>
+          </td>
+        </tr>
+      </table>
+      </ng-container>
+      <ng-template #noUserRaisedGmailSyncCountIncreaseRequestData>
+        <div class="no-data">
+          No gmail sync countincrease Requests found
+        </div>
+      </ng-template>
+    </div>
+
+
+
+
   </div>
+
 
   <div class="block-dialog-backdrop" *ngIf="showBlockDialog">
     <div class="block-dialog">

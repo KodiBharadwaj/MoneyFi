@@ -130,8 +130,8 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
   }
 
   selectedImage: string | null = null;
-  viewImage(username: string, defectId: number): void {
-    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/user-defects/image?username=${username}&type=DEFECT&id=${defectId}`, { responseType: 'blob' })
+  viewImage(username: string, defectId: number, type:string): void {
+    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/user-defects/image?username=${username}&type=${type}&id=${defectId}`, { responseType: 'blob' })
       .subscribe({
         next: (blob) => {
           const reader = new FileReader();
