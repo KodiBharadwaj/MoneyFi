@@ -14,6 +14,7 @@ public class StringConstants {
     public static final String EMAIL_SENT_FAILURE_MESSAGE = "Failed to send email";
     public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
     public static final String CATEGORY_ID_INVALID = "Category is invalid";
+    public static final String BUDGET_ALREADY_EXIST_MESSAGE = "Budget already exists! Please update if required";
 
     public static final String USER_ID = "userId";
     public static final String TOTAL_GOAL_AMOUNT = "totalGoalAmount";

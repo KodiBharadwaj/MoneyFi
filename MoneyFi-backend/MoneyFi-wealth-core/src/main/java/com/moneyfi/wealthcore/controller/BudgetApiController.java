@@ -27,8 +27,8 @@ public class BudgetApiController {
 
     @Operation(summary = "Api to add the budget")
     @PostMapping("/save")
-    public void saveBudget(@RequestBody List<AddBudgetDto> budgetList,
-                           @RequestHeader("Authorization") String authHeader) {
+    public void saveBudget(@RequestHeader("Authorization") String authHeader,
+                           @RequestBody List<AddBudgetDto> budgetList) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         budgetService.saveBudget(budgetList, userId);
     }

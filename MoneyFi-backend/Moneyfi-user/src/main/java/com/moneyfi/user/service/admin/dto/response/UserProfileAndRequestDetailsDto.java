@@ -19,6 +19,7 @@ import static com.moneyfi.user.util.constants.StringConstants.DATE_TIME_PATTERN;
 public class UserProfileAndRequestDetailsDto {
     private String name;
     private String username;
+    private String userStatus;
     private String phoneNumber;
     @JsonFormat(pattern = DATE_TIME_PATTERN)
     private Timestamp createdTime;
@@ -30,10 +31,14 @@ public class UserProfileAndRequestDetailsDto {
     private Long userId;
     @JsonIgnore
     private Integer loginCodeValue;
+    @JsonIgnore
+    private Boolean isBlocked;
+    @JsonIgnore
+    private Boolean isDeleted;
     private String accountCreationSource;
-//    private ResponseEntity<ByteArrayResource> profileImage;
 
     private AdminUserRequestsCountDto userRequestCount;
+
     private List<AdminUserNameChangeDetailsDto> nameChangeRequests = new ArrayList<>();
     private List<AdminUserUnblockRequestDetailsDto> unblockAccountRequests = new ArrayList<>();
     private List<AdminUserAccRetrievalRequestDetailsDto> accountRetrievalRequests = new ArrayList<>();
@@ -42,4 +47,6 @@ public class UserProfileAndRequestDetailsDto {
     private List<ForgotPasswordHistoryTrackDto> forgotPasswordHistoryTrackDtoList = new ArrayList<>();
 
     private List<UserDefectTrackingForAdminDto> userDefectTrackingForAdminDtoList = new ArrayList<>();
+
+    private List<GmailSyncHistoryTrackDto> userGmailSyncCountIncreaseRequestHistoryTractDtoLit = new ArrayList<>();
 }

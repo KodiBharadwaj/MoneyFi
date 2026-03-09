@@ -7,8 +7,10 @@ import com.moneyfi.user.service.admin.dto.request.*;
 import com.moneyfi.user.service.admin.dto.response.*;
 import com.moneyfi.user.service.common.UserCommonService;
 import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
+import com.moneyfi.user.service.profile.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,19 +24,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/user-service/admin")
+@RequiredArgsConstructor
 public class AdminController {
 
     private final AdminService adminService;
     private final UserCommonService userCommonService;
     private final JwtService jwtService;
-
-    public AdminController(AdminService adminService,
-                           UserCommonService userCommonService,
-                           JwtService jwtService){
-        this.adminService = adminService;
-        this.userCommonService = userCommonService;
-        this.jwtService = jwtService;
-    }
+    private final ProfileService profileService;
 
     @Operation(summary = "Api to get the user count home page of admin")
     @GetMapping("/overview-user-details")
@@ -81,13 +77,13 @@ public class AdminController {
     }
 
     @Operation(summary = "Api to block the user's account by admin")
-    @PostMapping("/user-account/block")
-    public ResponseEntity<String> blockTheUserAccountByAdmin(@RequestHeader("Authorization") String authHeader,
+    @PostMapping(value = "/user-account/block", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public void blockTheUserAccountByAdmin(@RequestHeader("Authorization") String authHeader,
                                                              @RequestParam String email,
                                                              @RequestParam String reason,
-                                                             @RequestParam MultipartFile file) throws JsonProcessingException {
+                                                             @RequestParam(required = true) MultipartFile file) throws JsonProcessingException {
         Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return ResponseEntity.ok(adminService.blockTheUserAccountByAdmin(email, reason, file, adminUserId));
+        adminService.blockTheUserAccountByAdmin(email, reason, file, adminUserId);
     }
 
     @Operation(summary = "Api to get user grid details as excel report")
@@ -129,13 +125,16 @@ public class AdminController {
 
     @Operation(summary = "Api to get the user profile details for admin")
     @GetMapping("/user-profile-details")
-    public UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(@RequestParam("username") String username){
-        try {
-            return adminService.getCompleteUserDetailsForAdmin(username);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        return null;
+    public ResponseEntity<UserProfileAndRequestDetailsDto> getCompleteUserDetailsForAdmin(@RequestHeader("Authorization") String authHeader,
+                                                                                          @RequestParam("username") String username){
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        return ResponseEntity.ok(adminService.getCompleteUserDetailsForAdmin(username, adminUserId));
+    }
+
+    @Operation(summary = "Api to fetch the user profile picture from aws s3")
+    @GetMapping("/profile-picture/get")
+    public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(@RequestParam("username") String username) {
+        return userCommonService.fetchUserProfilePictureFromS3(username, profileService.getProfileDetailsOfUser(username).getUserId());
     }
 
     @Operation(summary = "Api to get the user defect history details for admin")

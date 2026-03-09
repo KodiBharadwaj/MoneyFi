@@ -1,5 +1,6 @@
 package com.moneyfi.user.service.profile.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,4 +20,6 @@ public class ProfileDetailsDto {
     private String address;
     private double incomeRange;
     private Date createdDate;
+    @JsonIgnore
+    private Long userId;
 }
