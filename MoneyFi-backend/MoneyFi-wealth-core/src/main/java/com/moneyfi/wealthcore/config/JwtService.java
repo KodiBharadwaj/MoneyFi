@@ -1,6 +1,7 @@
 package com.moneyfi.wealthcore.config;
 
 import com.moneyfi.wealthcore.exceptions.ResourceNotFoundException;
+import com.moneyfi.wealthcore.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.wealthcore.repository.budget.BudgetRepository;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +16,7 @@ public class JwtService {
 
     private final BudgetRepository budgetRepository;
 
-    public JwtService(BudgetRepository budgetRepository){
+    public JwtService(BudgetRepository budgetRepository) {
         this.budgetRepository = budgetRepository;
     }
 
@@ -28,7 +29,9 @@ public class JwtService {
                 .getSubject(); // Assuming username is stored as the subject
 
         try {
-            return budgetRepository.getUserIdFromUsernameAndToken(username, token);
+            Long userId = budgetRepository.getUserIdFromUsernameAndToken(username, token);
+            if (userId == null) throw new ScenarioNotPossibleException("Not Authorized to perform");
+            return userId;
         } catch (DataAccessException ex) {
             throw new IllegalArgumentException("Token is blacklisted");
         } catch (Exception e) {
