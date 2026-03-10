@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.moneyfi.wealthcore.utils.constants.StringConstants.ALL;
 import static com.moneyfi.wealthcore.utils.constants.StringConstants.USER_ID;
 
 @Repository
@@ -26,7 +27,7 @@ public class WealthCoreRepositoryImpl implements WealthCoreRepository {
     public List<BudgetDetailsDto> getBudgetsByUserId(Long userId, int month, int year, String category) {
         try {
             List<BudgetDetailsDto> budgetList = new ArrayList<>();
-            if(category.equalsIgnoreCase("all")){
+            if(category.equalsIgnoreCase(ALL)){
                 Query query = entityManager.createNativeQuery(
                                 "exec [getAllBudgetsByUserId] " +
                                         "@userId = :userId, " +

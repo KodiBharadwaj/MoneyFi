@@ -10,11 +10,13 @@ public class StringConstants {
     private StringConstants() {}
 
     public static final String BUDGET_NOT_FOUND = "Budget details not found";
+    public static final String GOAL_NOT_FOUND = "Goal details not found";
     public static final String EMAIL_SENT_SUCCESS_MESSAGE = "Email sent successfully";
     public static final String EMAIL_SENT_FAILURE_MESSAGE = "Failed to send email";
     public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
     public static final String CATEGORY_ID_INVALID = "Category is invalid";
     public static final String BUDGET_ALREADY_EXIST_MESSAGE = "Budget already exists! Please update if required";
+    public static final String ALL = "ALL";
 
     public static final String USER_ID = "userId";
     public static final String TOTAL_GOAL_AMOUNT = "totalGoalAmount";

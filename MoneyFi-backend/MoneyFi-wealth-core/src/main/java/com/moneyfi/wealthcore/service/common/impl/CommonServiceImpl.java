@@ -29,7 +29,7 @@ public class CommonServiceImpl implements CommonService {
     @Cacheable(value = "categoryList", key = "T(String).join('-', #type)")
     public List<CategoryResponseDto> getCategoryWiseList(List<String> type) {
         List<String> resolvedType = type;
-        if (ObjectUtils.isNotEmpty(type) && type.size() == 1 && type.get(0).equalsIgnoreCase("ALL")) {
+        if (ObjectUtils.isNotEmpty(type) && type.size() == 1 && type.get(0).equalsIgnoreCase(StringConstants.ALL)) {
             resolvedType = new ArrayList<>(StringConstants.getCategoryListEnum());
         }
         List<CategoryListModel> resultList = categoryListRepository.findByTypeIn(resolvedType);

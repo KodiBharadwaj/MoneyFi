@@ -13,6 +13,7 @@ import com.moneyfi.wealthcore.service.budget.dto.response.BudgetDetailsDto;
 import com.moneyfi.wealthcore.utils.enums.TransactionServiceType;
 import com.moneyfi.wealthcore.validator.BudgetValidator;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -24,19 +25,12 @@ import java.util.*;
 import static com.moneyfi.wealthcore.utils.constants.StringConstants.*;
 
 @Service
+@RequiredArgsConstructor
 public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetRepository budgetRepository;
     private final WealthCoreRepository wealthCoreRepository;
     private final CategoryListRepository categoryListRepository;
-
-    public BudgetServiceImpl(BudgetRepository budgetRepository,
-                             WealthCoreRepository wealthCoreRepository,
-                             CategoryListRepository categoryListRepository) {
-        this.budgetRepository = budgetRepository;
-        this.wealthCoreRepository = wealthCoreRepository;
-        this.categoryListRepository = categoryListRepository;
-    }
 
     @Override
     @Transactional(rollbackOn = Exception.class)
@@ -67,8 +61,7 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     public BigDecimal budgetProgress(Long userId, int month, int year) {
-        return getTotalExpenseInMonthAndYear(userId, month, year).divide(getAllBudgetsByUserIdAndCategory(userId, month, year, "all")
-                .stream()
+        return getTotalExpenseInMonthAndYear(userId, month, year).divide(getAllBudgetsByUserIdAndCategory(userId, month, year, ALL).stream()
                 .map(BudgetDetailsDto::getMoneyLimit)
                 .reduce(BigDecimal.ZERO, BigDecimal::add), 5, RoundingMode.HALF_UP);
     }
@@ -93,12 +86,9 @@ public class BudgetServiceImpl implements BudgetService {
     @Override
     @Transactional(rollbackOn = Exception.class)
     public void deleteBudget(Long userId) {
-        Optional<List<BudgetModel>> budgetList = budgetRepository.findByUserId(userId);
-        if (budgetList.isPresent() && !budgetList.get().isEmpty()) {
-            budgetRepository.deleteAll(budgetList.get());
-        } else {
-            throw new ResourceNotFoundException(BUDGET_NOT_FOUND);
-        }
+        budgetRepository.deleteAll(
+                budgetRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(BUDGET_NOT_FOUND))
+        );
     }
 
     private BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year) {
