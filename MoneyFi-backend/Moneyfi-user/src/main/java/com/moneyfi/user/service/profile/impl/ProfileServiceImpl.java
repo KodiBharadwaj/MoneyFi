@@ -234,7 +234,7 @@ public class ProfileServiceImpl implements ProfileService {
             } else {
                 return awsServices.fetchExcelTemplateFromS3(fileName);
             }
-        } catch (CloudinaryImageException | S3AwsErrorThrowException e) {
+        } catch (Exception e) {
             ExcelTemplate template = excelTemplateRepository.findByName(fileName).orElseThrow(() -> new ResourceNotFoundException(TEMPLATE_NOT_FOUND_MESSAGE));
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + template.getName() + "\"")

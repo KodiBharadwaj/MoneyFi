@@ -1,9 +1,6 @@
 package com.moneyfi.user.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.PrePersist;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,8 +13,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Data
 @Builder(toBuilder = true)
+@Table(name = "excel_template")
 public class ExcelTemplate {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String name;

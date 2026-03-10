@@ -238,4 +238,10 @@ public class AdminController {
         Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         adminService.uploadExcelTemplate(adminUserId, type, operation, file);
     }
+
+    @Operation(summary = "Api to get the list of excel templates")
+    @GetMapping("/get-excel-templates")
+    public ResponseEntity<List<ExcelTemplateList>> getExcelTemplates() {
+        return ResponseEntity.ok(adminService.getAllExcelTemplates());
+    }
 }

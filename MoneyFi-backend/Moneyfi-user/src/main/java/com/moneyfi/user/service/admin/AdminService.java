@@ -63,4 +63,6 @@ public interface AdminService {
     void deleteUserScheduling(Long scheduleId, Long adminUserId);
 
     void uploadExcelTemplate(Long adminUserId, String type,String operation, MultipartFile file) throws IOException;
+
+    List<ExcelTemplateList> getAllExcelTemplates();
 }

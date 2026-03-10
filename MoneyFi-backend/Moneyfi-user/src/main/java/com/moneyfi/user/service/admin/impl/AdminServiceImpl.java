@@ -7,6 +7,7 @@ import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.*;
 import com.moneyfi.user.model.dto.UserAuthHist;
 import com.moneyfi.user.model.dto.UserAuthModel;
+import com.moneyfi.user.model.dto.interfaces.ExcelTemplateListProjection;
 import com.moneyfi.user.model.dto.interfaces.UserAuthHistProjection;
 import com.moneyfi.user.repository.*;
 import com.moneyfi.user.repository.admin.AdminRepository;
@@ -534,6 +535,22 @@ public class AdminServiceImpl implements AdminService {
         } else if ("Upload".equalsIgnoreCase(operation)) {
             functionCallToUploadExcelTemplate(adminUserId, fileName, file);
         } else throw new ScenarioNotPossibleException("Operation type is invalid");
+    }
+
+    @Override
+    public List<ExcelTemplateList> getAllExcelTemplates() {
+        List<ExcelTemplateListProjection> templatesList = excelTemplateRepository.getAllExcelTemplateList();
+        return templatesList.stream()
+                .map(template ->
+                        ExcelTemplateList.builder()
+                            .excelFile(template.getExcelFile())
+                            .excelType(template.getExcelType())
+                            .createdBy(template.getCreatedBy())
+                            .createdAt(template.getCreatedAt())
+                            .updatedBy(template.getUpdatedBy())
+                            .updatedAt(template.getUpdatedAt())
+                            .build()
+                ).toList();
     }
 
     private void functionCallToUpdateExcelTemplate(Long adminUserId, String fileName, MultipartFile file) throws IOException {
