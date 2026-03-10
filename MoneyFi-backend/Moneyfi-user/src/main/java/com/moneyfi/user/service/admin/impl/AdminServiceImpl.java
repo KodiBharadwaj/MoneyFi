@@ -1,6 +1,7 @@
 package com.moneyfi.user.service.admin.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.moneyfi.user.exceptions.FileUploadException;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.*;
@@ -16,6 +17,8 @@ import com.moneyfi.user.service.admin.dto.request.ReasonDetailsRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonUpdateRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.user.service.admin.dto.response.*;
+import com.moneyfi.user.service.common.AwsServices;
+import com.moneyfi.user.service.common.CloudinaryService;
 import com.moneyfi.user.service.common.UserCommonService;
 import com.moneyfi.user.service.common.dto.emaildto.AdminBlockUserDto;
 import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
@@ -32,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,6 +59,9 @@ import static com.moneyfi.user.util.constants.StringConstants.USER_NOT_FOUND;
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
 
+    @Value("${spring.profiles.active:}")
+    private String activeProfile;
+
     private static final String STATUS_REJECTED = "REJECTED";
     private static final String STATUS_APPROVED = "APPROVED";
 
@@ -68,6 +75,9 @@ public class AdminServiceImpl implements AdminService {
     private final UserCommonService userCommonService;
     private final UserNotificationRepository userNotificationRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final ExcelTemplateRepository excelTemplateRepository;
+    private final CloudinaryService cloudinaryService;
+    private final AwsServices awsServices;
 
     @Override
     public AdminOverviewPageDto getAdminOverviewPageDetails() {
@@ -513,6 +523,61 @@ public class AdminServiceImpl implements AdminService {
         new Thread(() -> userNotificationRepository.deleteAllByScheduleId(scheduleId)).start();
     }
 
+    @Override
+    @Transactional
+    public void uploadExcelTemplate(Long adminUserId, String type, String operation, MultipartFile file) throws IOException {
+        String fileName = "";
+        if ("profile-template".equalsIgnoreCase(type)) fileName = StringConstants.PROFILE_TEMPLATE_EXCEL_NAME;
+
+        if ("Update".equalsIgnoreCase(operation)) {
+            functionCallToUpdateExcelTemplate(adminUserId, fileName, file);
+        } else if ("Upload".equalsIgnoreCase(operation)) {
+            functionCallToUploadExcelTemplate(adminUserId, fileName, file);
+        } else throw new ScenarioNotPossibleException("Operation type is invalid");
+    }
+
+    private void functionCallToUpdateExcelTemplate(Long adminUserId, String fileName, MultipartFile file) throws IOException {
+        functionCallToUploadExelTemplateToCloud(file, fileName);
+        excelTemplateRepository.save(excelTemplateRepository.findByName(fileName).orElseThrow(() -> new ResourceNotFoundException(TEMPLATE_NOT_FOUND)).toBuilder()
+                .name(fileName)
+                .content(file.getBytes())
+                .contentType(file.getContentType())
+                .updatedBy(adminUserId)
+                .updatedTime(LocalDateTime.now())
+                .build()
+        );
+    }
+
+    private void functionCallToUploadExcelTemplate(Long adminUserId, String fileName, MultipartFile file) {
+        Optional<ExcelTemplate> excelTemplate = excelTemplateRepository.findByName(fileName);
+        if (excelTemplate.isPresent()) {
+            throw new ScenarioNotPossibleException(EXCEL_TEMPLATE_EXIST_MESSAGE);
+        }
+
+        try {
+            functionCallToUploadExelTemplateToCloud(file, fileName);
+            excelTemplateRepository.save(ExcelTemplate.builder()
+                    .name(fileName)
+                    .content(file.getBytes())
+                    .contentType(file.getContentType())
+                    .createdBy(adminUserId)
+                    .updatedBy(adminUserId)
+                    .build()
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new FileUploadException("Failed to Upload");
+        }
+    }
+
+    private void functionCallToUploadExelTemplateToCloud(MultipartFile file, String fileName) {
+        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
+            cloudinaryService.uploadExcelTemplateToCloudinary(file, fileName);
+        } else {
+            awsServices.uploadExcelTemplateToS3(file, fileName);
+        }
+    }
+
     private void functionToSaveNotificationToUsers(String recipients, Long scheduleId) {
         if (!recipients.equalsIgnoreCase(ALL)) {
             userCommonService.saveUserNotificationsForParticularUsers(recipients, scheduleId);
@@ -528,7 +593,7 @@ public class AdminServiceImpl implements AdminService {
     private byte[] generateExcelReport(List<UserGridDto> userGridDtoList){
         try(Workbook workbook = new XSSFWorkbook()){
             Sheet sheet = workbook.createSheet("User Details Report");
-            // Create Header Row
+
             Row headerRow = sheet.createRow(0);
             String[] headers = {"S No", "Name", "Username", "Phone", "Created Time", "Date of Birth"};
             for(int i=0; i< headers.length; i++){
@@ -536,9 +601,7 @@ public class AdminServiceImpl implements AdminService {
                 cell.setCellValue(headers[i]);
                 cell.setCellStyle(createHeaderStyle(workbook));
             }
-            // Create a Date Style
             CellStyle dateStyle = createDateStyle(workbook);
-            // Populate Data Rows
             int rowIndex = 1;
             for (UserGridDto data : userGridDtoList) {
                 Row row = sheet.createRow(rowIndex++);
@@ -546,20 +609,18 @@ public class AdminServiceImpl implements AdminService {
                 row.createCell(1).setCellValue(data.getName());
                 row.createCell(2).setCellValue(data.getUsername());
                 row.createCell(3).setCellValue(data.getPhone()!=null?data.getPhone():"-");
-                // Format Date Properly
+
                 Cell dateCell = row.createCell(4);
-                dateCell.setCellValue(data.getCreatedDateTime()); // Assuming data.getDate() is `java.util.Date`
-                dateCell.setCellStyle(dateStyle); // Apply formatting
+                dateCell.setCellValue(data.getCreatedDateTime());
+                dateCell.setCellStyle(dateStyle);
 
                 Cell dateCell2 = row.createCell(5);
-                dateCell2.setCellValue(data.getDateOfBirth()); // Assuming data.getDate() is `java.util.Date`
-                dateCell2.setCellStyle(dateStyle); // Apply formatting
+                dateCell2.setCellValue(data.getDateOfBirth());
+                dateCell2.setCellStyle(dateStyle);
             }
-            // Auto-size columns
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
             }
-            // Convert to byte array
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             workbook.write(outputStream);
             return outputStream.toByteArray();
@@ -581,10 +642,8 @@ public class AdminServiceImpl implements AdminService {
         Font font = workbook.createFont();
         font.setBold(true);
         style.setFont(font);
-        // Set Background Color
-        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex()); // Yellow background
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND); // Apply solid fill
-        // Set Border (Optional)
+        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         style.setBorderTop(BorderStyle.THIN);
         style.setBorderBottom(BorderStyle.THIN);
         style.setBorderLeft(BorderStyle.THIN);

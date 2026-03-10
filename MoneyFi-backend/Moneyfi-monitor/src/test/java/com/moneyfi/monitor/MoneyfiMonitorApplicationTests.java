@@ -1,13 +1,15 @@
-//package com.moneyfi.monitor;
-//
-//import org.junit.jupiter.api.Test;
-//import org.springframework.boot.test.context.SpringBootTest;
-//
-//@SpringBootTest
-//class MoneyfiMonitorApplicationTests {
-//
-//	@Test
-//	void contextLoads() {
-//	}
-//
-//}
+package com.moneyfi.monitor;
+
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@Disabled
+@SpringBootTest
+class MoneyfiMonitorApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}

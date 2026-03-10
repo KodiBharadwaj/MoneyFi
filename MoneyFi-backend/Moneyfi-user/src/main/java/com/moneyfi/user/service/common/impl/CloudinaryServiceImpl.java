@@ -7,10 +7,13 @@ import com.moneyfi.user.service.common.CloudinaryService;
 import com.moneyfi.user.util.constants.StringConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URL;
@@ -35,6 +38,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
     private static final String IMAGE_DELETED_SUCCESS_MESSAGE = "Profile picture deleted successfully from Cloudinary";
     private static final String IMAGE_DELETED_FAILURE_MESSAGE = "Error deleting profile picture from Cloudinary";
     private static final String PUBLIC_ID = "public_id";
+    private static final String RESOURCE_TYPE = "resource_type";
     private static final String OK = "ok";
     private static final String RESULT = "result";
 
@@ -77,6 +81,38 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body(IMAGE_DELETED_FAILURE_MESSAGE);
+        }
+    }
+
+    @Override
+    public void uploadExcelTemplateToCloudinary(MultipartFile file, String fileName) {
+        try {
+            this.cloudinary.uploader().upload(
+                    file.getBytes(),
+                    Map.of(
+                            PUBLIC_ID, fileName,
+                            RESOURCE_TYPE, "raw"
+                    )
+            );
+        } catch (Exception e) {
+            throw new CloudinaryImageException(IMAGE_UPLOAD_FAILED_MESSAGE + e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<byte[]> getExcelTemplateFromCloudinary(String fileName) {
+        try {
+            String fileUrl = cloudinary.url().resourceType("raw").secure(true).generate(fileName);
+            try (InputStream inputStream = new BufferedInputStream(new URL(fileUrl).openStream())) {
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                        .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                        .body(inputStream.readAllBytes());
+            }
+        } catch (FileNotFoundException ex) {
+            throw new ResourceNotFoundException(IMAGE_NOT_FOUND_MESSAGE);
+        } catch (Exception e) {
+            throw new CloudinaryImageException(IMAGE_GET_FAILED_MESSAGE, e);
         }
     }
 }

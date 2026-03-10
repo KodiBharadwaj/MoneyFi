@@ -4,4 +4,7 @@ public class S3AwsErrorThrowException extends RuntimeException {
     public S3AwsErrorThrowException(String message) {
         super(message);
     }
+    public S3AwsErrorThrowException(String message, Throwable error) {
+        super(message, error);
+    }
 }

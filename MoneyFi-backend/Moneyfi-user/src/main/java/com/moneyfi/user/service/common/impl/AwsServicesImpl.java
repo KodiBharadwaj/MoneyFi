@@ -2,6 +2,7 @@ package com.moneyfi.user.service.common.impl;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
@@ -10,6 +11,7 @@ import com.moneyfi.user.exceptions.S3AwsErrorThrowException;
 import com.moneyfi.user.service.common.AwsServices;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -88,6 +90,37 @@ public class AwsServicesImpl implements AwsServices {
         } catch (AmazonServiceException e) {
             e.printStackTrace();
             throw new S3AwsErrorThrowException("Exception occurred while deleting the profile picture");
+        }
+    }
+
+    @Override
+    public void uploadExcelTemplateToS3(MultipartFile file, String fileName) {
+        try {
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(file.getSize());
+            metadata.setContentType(file.getContentType());
+            s3Client.putObject(bucketName, fileName, file.getInputStream(), metadata);
+        } catch (IOException | AmazonServiceException e) {
+            throw new S3AwsErrorThrowException("Exception occurred while uploading Excel template", e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<byte[]> fetchExcelTemplateFromS3(String fileName) {
+        try {
+            S3Object s3Object = s3Client.getObject(bucketName, fileName);
+            try (S3ObjectInputStream inputStream = s3Object.getObjectContent()) {
+                byte[] data = IOUtils.toByteArray(inputStream);
+                return ResponseEntity.ok()
+                        .contentLength(data.length)
+                        .header(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                        .body(data);
+            }
+        } catch (AmazonServiceException e) {
+            throw new S3AwsErrorThrowException("Exception occurred while fetching Excel template", e);
+        } catch (IOException e) {
+            throw new S3AwsErrorThrowException("Error reading Excel template from S3", e);
         }
     }
 

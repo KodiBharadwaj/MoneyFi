@@ -11,4 +11,8 @@ public interface CloudinaryService {
     byte[] getImageFromCloudinary(Long id, String username, String imageType);
 
     ResponseEntity<String> deleteProfilePictureFromCloudinary(Long userIdByUsername, String username);
+
+    void uploadExcelTemplateToCloudinary(MultipartFile file, String fileName);
+
+    ResponseEntity<byte[]> getExcelTemplateFromCloudinary(String fileName);
 }

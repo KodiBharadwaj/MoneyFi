@@ -10,4 +10,8 @@ public interface AwsServices {
     ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(Long id, String username);
 
     ResponseEntity<String> deleteProfilePictureFromS3(Long id, String username);
+
+    void uploadExcelTemplateToS3(MultipartFile file, String fileName);
+
+    ResponseEntity<byte[]> fetchExcelTemplateFromS3(String fileName);
 }
