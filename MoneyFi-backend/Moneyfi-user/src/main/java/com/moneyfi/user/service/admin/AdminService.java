@@ -54,7 +54,7 @@ public interface AdminService {
 
     void scheduleNotification(@Valid ScheduleNotificationRequestDto requestDto, Long adminUserId);
 
-    List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status);
+    List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status, String operationMode);
 
     void cancelTheUserScheduling(Long scheduleId, Long adminUserId);
 

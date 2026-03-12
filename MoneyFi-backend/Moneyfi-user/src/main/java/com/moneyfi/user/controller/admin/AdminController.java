@@ -201,8 +201,9 @@ public class AdminController {
 
     @Operation(summary = "Api to get all the schedules for admin screen")
     @GetMapping("/schedule-notifications/get")
-    public ResponseEntity<List<AdminSchedulesResponseDto>> getAllActiveSchedulesOfAdmin(@RequestParam("status") String status){
-        return ResponseEntity.ok(adminService.getAllActiveSchedulesOfAdmin(status));
+    public ResponseEntity<List<AdminSchedulesResponseDto>> getAllActiveSchedulesOfAdmin(@RequestParam(value = "status") String status,
+                                                                                        @RequestParam(value = "mode") String operationMode){
+        return ResponseEntity.ok(adminService.getAllActiveSchedulesOfAdmin(status, operationMode));
     }
 
     @Operation(summary = "Api to cancel the user scheduling")

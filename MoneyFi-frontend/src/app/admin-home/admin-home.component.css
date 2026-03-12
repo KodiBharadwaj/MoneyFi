@@ -260,3 +260,15 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+
+.toggle-container {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.toggle-container label {
+  font-weight: 600;
+  cursor: pointer;
+}

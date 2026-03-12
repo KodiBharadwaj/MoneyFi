@@ -54,6 +54,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.moneyfi.user.util.constants.StringConstants.*;
 import static com.moneyfi.user.util.constants.StringConstants.USER_NOT_FOUND;
+import static com.moneyfi.user.util.enums.SchedulingNotificationType.ADMIN_SCHEDULING;
 
 @Service
 @Slf4j
@@ -455,14 +456,14 @@ public class AdminServiceImpl implements AdminService {
         BeanUtils.copyProperties(requestDto, scheduleNotification);
         scheduleNotification.setScheduleBy(adminUserId);
         scheduleNotification.setUpdatedBy(adminUserId);
-        scheduleNotification.setNotificationType(SchedulingNotificationType.ADMIN_SCHEDULING.name());
+        scheduleNotification.setNotificationType(ADMIN_SCHEDULING.name());
         ScheduleNotification response = scheduleNotificationRepository.save(scheduleNotification);
         functionToSaveNotificationToUsers(requestDto.getRecipients(), response.getId());
     }
 
     @Override
-    public List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status) {
-        return adminRepository.getAllActiveSchedulesOfAdmin(status)
+    public List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status, String operationMode) {
+        return adminRepository.getAllActiveSchedulesOfAdmin(status, operationMode.toUpperCase())
                 .stream()
                 .map(schedule -> {
                     if (schedule.getRecipients().equalsIgnoreCase(TargetUsersForScheduleNotification.ALL.name())) {
@@ -478,8 +479,9 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional(rollbackOn = Exception.class)
     public void cancelTheUserScheduling(Long scheduleId, Long adminUserId) {
-        ScheduleNotification notification = scheduleNotificationRepository.findById(scheduleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + scheduleId));
+        ScheduleNotification notification = scheduleNotificationRepository.findById(scheduleId).orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + scheduleId));
+        if (!notification.getNotificationType().equalsIgnoreCase(ADMIN_SCHEDULING.name())) throw new ScenarioNotPossibleException("Automated schedules can't be cancelled");
+
         if (Boolean.TRUE.equals(notification.isCancelled())) {
             throw new IllegalStateException("Schedule with id " + scheduleId + " is already cancelled.");
         }
@@ -493,8 +495,9 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional(rollbackOn = Exception.class)
     public void updateAdminPlacedSchedules(AdminScheduleRequestDto requestDto, Long adminUserId) {
-        ScheduleNotification notification = scheduleNotificationRepository.findById(requestDto.getScheduleId())
-                .orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + requestDto.getScheduleId()));
+        ScheduleNotification notification = scheduleNotificationRepository.findById(requestDto.getScheduleId()).orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + requestDto.getScheduleId()));
+        if (!notification.getNotificationType().equalsIgnoreCase(ADMIN_SCHEDULING.name())) throw new ScenarioNotPossibleException("Automated schedules can't be updated");
+
         AdminValidations.validateScheduleNotificationRequestDetails(new ScheduleNotificationRequestDto(requestDto.getSubject(), requestDto.getDescription(), requestDto.getScheduleFrom(), requestDto.getScheduleTo(), requestDto.getRecipients()));
 
         notification.setSubject(requestDto.getSubject());
@@ -515,8 +518,9 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional(rollbackOn = Exception.class)
     public void deleteUserScheduling(Long scheduleId, Long adminUserId) {
-        ScheduleNotification notification = scheduleNotificationRepository.findById(scheduleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + scheduleId));
+        ScheduleNotification notification = scheduleNotificationRepository.findById(scheduleId).orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + scheduleId));
+        if (!notification.getNotificationType().equalsIgnoreCase(ADMIN_SCHEDULING.name())) throw new ScenarioNotPossibleException("Automated schedules can't be deleted");
+
         notification.setActive(false);
         notification.setUpdatedBy(adminUserId);
         notification.setUpdatedAt(LocalDateTime.now());

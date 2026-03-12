@@ -90,6 +90,19 @@
       <fieldset class="tile-group">
         <legend class="group-title">Scheduled Notifications</legend>
 
+        <!-- Toggle -->
+        <div class="toggle-container">
+          <label>
+            <input type="radio" name="mode" value="MANUAL" [(ngModel)]="mode" (change)="onModeChange()" />
+            Manual
+          </label>
+
+          <label>
+            <input type="radio" name="mode" value="AUTOMATIC" [(ngModel)]="mode" (change)="onModeChange()" />
+            Automatic
+          </label>
+        </div>
+
         <div class="schedule-container" *ngIf="schedules.length > 0; else noSchedules">
           <div class="schedule-item" *ngFor="let s of schedules">
             <div class="schedule-row">
@@ -106,7 +119,19 @@
                 <strong>Description:</strong> {{ s.description }}
               </div>
               <div class="schedule-col">
-                <strong>Target Users:</strong> {{ s.recipients }}
+                <strong>Target Users:</strong>
+
+                <!-- Manual Mode -->
+                <span *ngIf="mode === 'MANUAL'">
+                  {{ s.recipients }}
+                </span>
+
+                <!-- Automatic Mode -->
+                <span *ngIf="mode === 'AUTOMATIC'">
+                  <span *ngFor="let user of s.recipentList; let last = last">
+                    {{ user }}<span *ngIf="!last">, </span>
+                  </span>
+                </span>
               </div>
             </div>
 
@@ -120,11 +145,21 @@
             </div>
 
             <div class="schedule-actions">
-              <button (click)="editSchedule(s)">Edit</button>
-              <button (click)="cancelSchedule(s.scheduleId)" [disabled]="s.cancelled">
+              <button (click)="editSchedule(s)" [disabled]="mode === 'AUTOMATIC'">
+                Edit
+              </button>
+
+              <button 
+                (click)="cancelSchedule(s.scheduleId)" 
+                [disabled]="s.cancelled || mode === 'AUTOMATIC'">
                 {{ s.cancelled ? 'Cancelled' : 'Cancel' }}
               </button>
-              <button (click)="deleteSchedule(s.scheduleId)">Delete</button>
+
+              <button 
+                (click)="deleteSchedule(s.scheduleId)" 
+                [disabled]="mode === 'AUTOMATIC'">
+                Delete
+              </button>
             </div>
           </div>
         </div>
