@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ChartConfiguration, ChartData } from 'chart.js';
 import { AuthApiService } from '../auth-api.service';
 import { ToastrService } from 'ngx-toastr';
 import { Router, RouterModule } from '@angular/router';
@@ -20,58 +19,6 @@ export class AdminLoginComponent {
     showPassword = false;
     isLoading = false;
   
-  
-    public radarChartData: ChartData<'radar'> = {
-      labels: ['Budgeting', 'Saving', 'Investing', 'Planning', 'Spending', 'Goals'],
-      datasets: [
-        {
-          label: 'Target Status',
-          data: [65, 59, 80, 42, 56, 55],
-          fill: true,
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          borderColor: 'rgb(255, 99, 132)',
-          pointBackgroundColor: 'rgb(255, 99, 132)',
-          pointBorderColor: '#fff',
-        },
-        {
-          label: 'Current Status',
-          data: [28, 48, 40, 19, 65, 27],
-          fill: true,
-          backgroundColor: 'rgba(54, 162, 235, 0.2)',
-          borderColor: 'rgb(54, 162, 235)',
-          pointBackgroundColor: 'rgb(54, 162, 235)',
-          pointBorderColor: '#fff',
-        }
-      ]
-    };
-  
-    public radarChartOptions: ChartConfiguration['options'] = {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'top',
-        },
-        title: {
-          display: true,
-          text: 'Financial Health Analysis',
-          font: {
-            size: 18,
-            family: 'Roboto',
-          },
-          color: '#1e3c72',
-        }
-      },
-      scales: {
-        r: {
-          ticks: {
-            display: false, // Hide the numbers on the scale
-          },
-          angleLines: {
-            display: true, // Keep the radial axis lines
-          },
-        }
-      }
-    };
   
     constructor(private fb: FormBuilder, private router: Router, private authApiService:AuthApiService, private toastr:ToastrService) {
       this.loginForm = this.fb.group({
