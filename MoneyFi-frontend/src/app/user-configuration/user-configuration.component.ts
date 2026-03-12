@@ -155,19 +155,39 @@ export class UserConfigurationComponent implements AfterViewInit{
 
   downloadProfileTemplate() {
     this.isDownloading = true;
-    this.http.get(`${this.baseUrl}/api/v1/user-service/user/profile-details-template/download`, {
+    this.http.get(`${this.baseUrl}/api/v1/user-service/user/excel-template/download?type=profile-template`, {
       responseType: 'blob'
-    }).subscribe(blob => {
-      const a = document.createElement('a');
-      const objectUrl = URL.createObjectURL(blob);
-      a.href = objectUrl;
-      a.download = 'profile-template.xlsx'; // Filename for downloaded file
-      a.click();
-      URL.revokeObjectURL(objectUrl);
-      this.isDownloading = false;
-    }, error => {
-      console.error('Download failed:', error);
-      this.isDownloading = false;
+    }).subscribe({
+      next: (blob) => {
+        const a = document.createElement('a');
+        const objectUrl = URL.createObjectURL(blob);
+        a.href = objectUrl;
+        a.download = 'profile-template.xlsx';
+        a.click();
+        URL.revokeObjectURL(objectUrl);
+        this.isDownloading = false;
+      },
+      error: (err) => {
+        this.isDownloading = false;
+          if (err.error instanceof Blob) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              try {
+                const text = reader.result as string;
+                const errorObj = JSON.parse(text);
+                this.toastr.error(errorObj.message);
+              } catch (e) {
+                console.error('Failed to parse Blob error:', e);
+                this.toastr.error('Something went wrong');
+              }
+            };
+            reader.readAsText(err.error);
+          } else {
+            // fallback if it's not a Blob
+            const message = err.error?.message || 'Something went wrong';
+            this.toastr.error(message);
+          }
+        }
     });
   }
 

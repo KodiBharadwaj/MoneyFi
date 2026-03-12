@@ -23,5 +23,5 @@ public interface ProfileService {
 
     void parseUserProfileDataFromExcel(MultipartFile excel, Long userId);
 
-    ResponseEntity<byte[]> downloadTemplateForUserProfile();
+    ResponseEntity<byte[]> downloadTemplateForUserProfile(String fileType);
 }

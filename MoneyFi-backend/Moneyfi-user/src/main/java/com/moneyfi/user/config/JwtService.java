@@ -1,5 +1,6 @@
 package com.moneyfi.user.config;
 
+import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.repository.ProfileRepository;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +28,9 @@ public class JwtService {
     }
     public Long extractUserIdFromToken(String token) {
         try {
-            return profileRepository.getUserIdFromUsernameAndToken(extractUsernameFromToken(token), token);
+            Long userId = profileRepository.getUserIdFromUsernameAndToken(extractUsernameFromToken(token), token);
+            if (userId == null) throw new ScenarioNotPossibleException("Not Authorized to perform");
+            return userId;
         } catch (DataAccessException ex) {
             throw new IllegalArgumentException("Token is blacklisted");
         }

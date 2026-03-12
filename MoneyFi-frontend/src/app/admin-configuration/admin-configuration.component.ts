@@ -68,7 +68,7 @@ export class AdminConfigurationComponent {
 
     this.httpClient
       .get<any[]>(
-        `${this.baseUrl}/api/v1/user-service/admin/schedule-notifications/get?status=EXPIRED`
+        `${this.baseUrl}/api/v1/user-service/admin/schedule-notifications/get?status=EXPIRED&mode=MANUAL`
       )
       .subscribe({
         next: (data) => {

@@ -1,6 +1,8 @@
 package com.moneyfi.user.service.profile.impl;
 
+import com.moneyfi.user.exceptions.CloudinaryImageException;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
+import com.moneyfi.user.exceptions.S3AwsErrorThrowException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.ContactUs;
 import com.moneyfi.user.model.ContactUsHist;
@@ -222,14 +224,23 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public ResponseEntity<byte[]> downloadTemplateForUserProfile() {
-        ExcelTemplate template = excelTemplateRepository.findById(templateIdAssociation.get(PROFILE_TEMPLATE_NAME))
-                .orElseThrow(() -> new RuntimeException(TEMPLATE_NOT_FOUND_MESSAGE));
+    public ResponseEntity<byte[]> downloadTemplateForUserProfile(String fileType) {
+        String fileName = "";
+        if ("profile-template".equalsIgnoreCase(fileType)) fileName = StringConstants.PROFILE_TEMPLATE_EXCEL_NAME;
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + template.getName())
-                .contentType(MediaType.parseMediaType(template.getContentType()))
-                .body(template.getContent());
+        try {
+            if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
+                return cloudinaryService.getExcelTemplateFromCloudinary(fileName);
+            } else {
+                return awsServices.fetchExcelTemplateFromS3(fileName);
+            }
+        } catch (Exception e) {
+            ExcelTemplate template = excelTemplateRepository.findByName(fileName).orElseThrow(() -> new ResourceNotFoundException(TEMPLATE_NOT_FOUND_MESSAGE));
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + template.getName() + "\"")
+                    .contentType(MediaType.parseMediaType(template.getContentType()))
+                    .body(template.getContent());
+        }
     }
 
     private ProfileDetailsDto convertProfileModelToProfileDetailsDto(ProfileModel savedProfile) {

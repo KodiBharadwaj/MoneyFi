@@ -234,7 +234,14 @@ export class AdminScheduleDialogComponent implements OnInit {
           this.toastr.success('Schedule updated');
           this.dialogRef.close({ success: true });
         },
-        error: () => this.toastr.error('Failed to update schedule')
+        error: (err) => {
+          try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            this.toastr.error(errorObj.message);
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+          }
+        }
       });
 
       return;

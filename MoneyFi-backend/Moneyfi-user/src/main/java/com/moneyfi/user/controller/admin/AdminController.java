@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -200,8 +201,9 @@ public class AdminController {
 
     @Operation(summary = "Api to get all the schedules for admin screen")
     @GetMapping("/schedule-notifications/get")
-    public ResponseEntity<List<AdminSchedulesResponseDto>> getAllActiveSchedulesOfAdmin(@RequestParam("status") String status){
-        return ResponseEntity.ok(adminService.getAllActiveSchedulesOfAdmin(status));
+    public ResponseEntity<List<AdminSchedulesResponseDto>> getAllActiveSchedulesOfAdmin(@RequestParam(value = "status") String status,
+                                                                                        @RequestParam(value = "mode") String operationMode){
+        return ResponseEntity.ok(adminService.getAllActiveSchedulesOfAdmin(status, operationMode));
     }
 
     @Operation(summary = "Api to cancel the user scheduling")
@@ -226,5 +228,21 @@ public class AdminController {
                                            @RequestBody @Valid AdminScheduleRequestDto requestDto){
         Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         adminService.updateAdminPlacedSchedules(requestDto, adminUserId);
+    }
+
+    @Operation(summary = "Api to upload excel templates into cloud and database(only when fallback occurs)")
+    @PostMapping("/excel-template/upload")
+    public void uploadTemplateExcel(@RequestHeader("Authorization") String authHeader,
+                                    @RequestParam("type") String type,
+                                    @RequestParam("operation") String operation,
+                                    @RequestParam("file") MultipartFile file) throws IOException {
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        adminService.uploadExcelTemplate(adminUserId, type, operation, file);
+    }
+
+    @Operation(summary = "Api to get the list of excel templates")
+    @GetMapping("/get-excel-templates")
+    public ResponseEntity<List<ExcelTemplateList>> getExcelTemplates() {
+        return ResponseEntity.ok(adminService.getAllExcelTemplates());
     }
 }

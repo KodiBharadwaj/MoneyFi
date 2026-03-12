@@ -41,6 +41,9 @@ public class StringConstants {
     public static final String PHONE_NUMBER_DIGITS_ONLY_MESSAGE = "Phone number must contain only digits";
     public static final String PHONE_NUMBER_MAX_LENGTH_MESSAGE = "Phone number should be 10 digits";
     public static final String INVALID_EXCEL_FORMAT = "Invalid excel format";
+    public static final String PROFILE_TEMPLATE_EXCEL_NAME = "profile-template.xlsx";
+    public static final String EXCEL_TEMPLATE_EXIST_MESSAGE = "Excel template already exists";
+    public static final String TEMPLATE_NOT_FOUND = "Excel template not found";
 
     public static final String CLOUDINARY_CLOUD_NAME = "cloud_name";
     public static final String CLOUDINARY_API_KEY = "api_key";
