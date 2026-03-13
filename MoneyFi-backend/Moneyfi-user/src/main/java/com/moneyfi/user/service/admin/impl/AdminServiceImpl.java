@@ -28,7 +28,7 @@ import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.AdminValidations;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -91,9 +91,9 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<UserGridDto> getUserDetailsGridForAdmin(String status) {
         AtomicInteger i = new AtomicInteger(1);
-        return adminRepository.getUserDetailsGridForAdmin(status)
-                .stream()
-                .peek(user -> user.setSlNo(i.getAndIncrement())).toList();
+        return adminRepository.getUserDetailsGridForAdmin(status).stream()
+                .peek(user -> user.setSlNo(i.getAndIncrement()))
+                .toList();
     }
 
     @Override
@@ -106,12 +106,10 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId, String approveStatus, String declineReason, int gmailSyncRequestCount) {
-        return contactUsRepository.findByEmail(email)
-                .stream()
-                .filter(ContactUs::isRequestActive)
-                .filter(i -> i.getReferenceNumber() != null &&
+        return contactUsRepository.findByEmail(email).stream()
+                .filter(i -> i.isRequestActive() && i.getReferenceNumber() != null &&
                         i.getReferenceNumber().trim().equalsIgnoreCase(referenceNumber.trim()))
                 .findFirst()
                 .map(request -> {
@@ -171,19 +169,17 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status) {
-        return adminRepository.getUserRaisedDefectsForAdmin()
-                .stream()
+        return adminRepository.getUserRaisedDefectsForAdmin().stream()
                 .peek(defect -> {
                     if (defect.getDefectStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) ||
                                 defect.getDefectStatus().equalsIgnoreCase(RaiseRequestStatus.IGNORED.name())) {
                         defect.setReferenceNumber(defect.getReferenceNumber().substring(4));
                     }
-                })
-                .toList();
+                }).toList();
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void updateDefectStatus(Long defectId, String status, String reason, Long adminUserId) {
         ContactUs userDefect = contactUsRepository.findById(defectId).orElseThrow(() -> new ResourceNotFoundException("User defect details not found"));
         ProfileModel userProfile = profileRepository.findByUserEmail(userDefect.getEmail()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
@@ -270,7 +266,6 @@ public class AdminServiceImpl implements AdminService {
         else if (userDetails.getIsDeleted().equals(Boolean.TRUE)) userDetails.setUserStatus(UserStatus.DELETED.name());
         else userDetails.setUserStatus(UserStatus.ACTIVE.name());
 
-
         functionCallToAddNameChangeRequestDetailsHistory(userDetails, allUserRequests, saveCountDto, adminUserId);
         functionCallToAddUnblockRequestDetailsHistory(userDetails, allUserRequests, saveCountDto, adminUserId);
         functionCallToAddAccRetrievalRequestDetailsHistory(userDetails, allUserRequests, saveCountDto, adminUserId);
@@ -287,8 +282,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<UserFeedbackResponseDto> getUserFeedbackListForAdmin() {
         AtomicInteger i = new AtomicInteger(1);
-        return adminRepository.getUserFeedbackListForAdmin()
-                .stream()
+        return adminRepository.getUserFeedbackListForAdmin().stream()
                 .peek(feedback -> {
                     feedback.setRating(Integer.parseInt(feedback.getDescription().substring(0,1)));
                     feedback.setMessage(feedback.getDescription().substring(2));
@@ -298,7 +292,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void updateUserFeedback(Long feedbackId, Long adminUserId) {
         Optional<ContactUs> userFeedback = contactUsRepository.findById(feedbackId);
         if(userFeedback.isEmpty()){
@@ -321,7 +315,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void addReasonsForUserReasonDialog(ReasonDetailsRequestDto requestDto, Long adminUserId) {
         if(requestDto.getReasonCode() == null || requestDto.getReason() == null || requestDto.getReason().isEmpty()){
             throw new ScenarioNotPossibleException("Please add details correctly");
@@ -342,8 +336,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<ReasonListResponseDto> getAllReasonsBasedOnReasonCode(int reasonCode) {
         AtomicInteger i = new AtomicInteger(1);
-        return reasonDetailsRepository.findAll()
-                .stream()
+        return reasonDetailsRepository.findAll().stream()
                 .filter(reasonDetails -> reasonDetails.getReasonCode() == reasonCode)
                 .filter(reasonDetails ->  !reasonDetails.getIsDeleted())
                 .map(reasonDetails -> new ReasonListResponseDto(
@@ -351,12 +344,11 @@ public class AdminServiceImpl implements AdminService {
                         reasonDetails.getId(),
                         reasonDetails.getReason(),
                         reasonDetails.getUpdatedTime() == null ? reasonDetails.getCreatedTime() : reasonDetails.getUpdatedTime()
-                ))
-                .toList();
+                )).toList();
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void updateReasonsForUserReasonDialogByReasonCode(ReasonUpdateRequestDto requestDto, Long adminUserId) {
         if(requestDto.getReason() == null || requestDto.getReason().isEmpty()){
             throw new ScenarioNotPossibleException("Please add details correctly");
@@ -370,7 +362,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void deleteReasonByReasonId(int reasonId, Long adminUserId) {
         ReasonDetails reasonDetails = reasonDetailsRepository.findById(reasonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + reasonId + " is not found"));
@@ -381,7 +373,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) throws JsonProcessingException {
         if (email == null || email.trim().isEmpty() || reason == null || reason.trim().isEmpty()) {
             throw new ScenarioNotPossibleException("Please provide all the details correctly");
@@ -418,29 +410,7 @@ public class AdminServiceImpl implements AdminService {
         contactUsHist.setUpdatedBy(adminUserId);
         contactUsHistRepository.save(contactUsHist);
         methodToUpdateUserAuthHistTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT), reason, adminUserId, LocalDateTime.now());
-        if (ObjectUtils.isNotEmpty(file))
-            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.ADMIN_BLOCKED_USER_MAIL.name(), objectMapper.writeValueAsString(new AdminBlockUserDto(email, reason, userProfile.getName(), convertMultipartFileToPdfBytes(file)))));
-    }
-
-    @Override
-    public Map<String, List<UserDefectHistDetailsResponseDto>> getUserDefectHistDetails(List<Long> defectIds) {
-        if(defectIds.isEmpty()){
-            throw new ScenarioNotPossibleException("Defect Ids list can't be empty");
-        }
-        Map<String, List<UserDefectHistDetailsResponseDto>> responseMap = new HashMap<>();
-        defectIds.forEach(defectId -> {
-            ContactUs defect = contactUsRepository.findById(defectId).orElseThrow(() -> new ResourceNotFoundException("Defect with id " + defectId + " is not found"));
-            List<ContactUsHist> defectHistList = contactUsHistRepository.findByContactUsId(defectId);
-            if(defectHistList.isEmpty()){
-                throw new ResourceNotFoundException("Defect history with defect id " + defectId + " is not found");
-            }
-            List<UserDefectHistDetailsResponseDto> responseList = new ArrayList<>();
-            defectHistList.forEach(defectHistData -> {
-                responseList.add(new UserDefectHistDetailsResponseDto(defectHistData.getRequestStatus(), defectHistData.getMessage(), defectHistData.getUpdatedTime()));
-            });
-            responseMap.put(defectId + "+" + (defect.getReferenceNumber().startsWith("COM_") ? defect.getReferenceNumber().substring(4) : defect.getReferenceNumber()), responseList);
-        });
-        return responseMap;
+        if (ObjectUtils.isNotEmpty(file)) applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.ADMIN_BLOCKED_USER_MAIL.name(), objectMapper.writeValueAsString(new AdminBlockUserDto(email, reason, userProfile.getName(), convertMultipartFileToPdfBytes(file)))));
     }
 
     @Override
@@ -449,7 +419,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void scheduleNotification(ScheduleNotificationRequestDto requestDto, Long adminUserId) {
         AdminValidations.validateScheduleNotificationRequestDetails(requestDto);
         ScheduleNotification scheduleNotification = new ScheduleNotification();
@@ -463,8 +433,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status, String operationMode) {
-        return adminRepository.getAllActiveSchedulesOfAdmin(status, operationMode.toUpperCase())
-                .stream()
+        return adminRepository.getAllActiveSchedulesOfAdmin(status, operationMode.toUpperCase()).stream()
                 .map(schedule -> {
                     if (schedule.getRecipients().equalsIgnoreCase(TargetUsersForScheduleNotification.ALL.name())) {
                         schedule.setRecipients(TargetUsersForScheduleNotification.ALL.getTargetUser());
@@ -477,7 +446,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void cancelTheUserScheduling(Long scheduleId, Long adminUserId) {
         ScheduleNotification notification = scheduleNotificationRepository.findById(scheduleId).orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + scheduleId));
         if (!notification.getNotificationType().equalsIgnoreCase(ADMIN_SCHEDULING.name())) throw new ScenarioNotPossibleException("Automated schedules can't be cancelled");
@@ -493,7 +462,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void updateAdminPlacedSchedules(AdminScheduleRequestDto requestDto, Long adminUserId) {
         ScheduleNotification notification = scheduleNotificationRepository.findById(requestDto.getScheduleId()).orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + requestDto.getScheduleId()));
         if (!notification.getNotificationType().equalsIgnoreCase(ADMIN_SCHEDULING.name())) throw new ScenarioNotPossibleException("Automated schedules can't be updated");
@@ -516,7 +485,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void deleteUserScheduling(Long scheduleId, Long adminUserId) {
         ScheduleNotification notification = scheduleNotificationRepository.findById(scheduleId).orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + scheduleId));
         if (!notification.getNotificationType().equalsIgnoreCase(ADMIN_SCHEDULING.name())) throw new ScenarioNotPossibleException("Automated schedules can't be deleted");
@@ -533,6 +502,7 @@ public class AdminServiceImpl implements AdminService {
     public void uploadExcelTemplate(Long adminUserId, String type, String operation, MultipartFile file) throws IOException {
         String fileName = "";
         if ("profile-template".equalsIgnoreCase(type)) fileName = StringConstants.PROFILE_TEMPLATE_EXCEL_NAME;
+        else throw new ScenarioNotPossibleException("File name not accepted");
 
         if ("Update".equalsIgnoreCase(operation)) {
             functionCallToUpdateExcelTemplate(adminUserId, fileName, file);
@@ -677,8 +647,7 @@ public class AdminServiceImpl implements AdminService {
 
         if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())) {
             profileRepository.updateUserAuthTableWithBlockOrUnblockStatus(user.getId(), false);
-            ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
-                    .stream()
+            ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId()).stream()
                     .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
                     .findFirst()
                     .orElseThrow(() -> new ResourceNotFoundException(REQUEST_NOT_FOUND));
@@ -690,8 +659,7 @@ public class AdminServiceImpl implements AdminService {
             applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_SUCCESSFUL_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + contactUs.getReferenceNumber().substring(4) + "<|>" + "Unblocked successfully"));
         } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())) {
             profileRepository.updateUserAuthTableWithDeleteOrUndeleteStatus(user.getId(), false);
-            ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
-                    .stream()
+            ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId()).stream()
                     .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
                     .findFirst()
                     .orElseThrow(() -> new ResourceNotFoundException(REQUEST_NOT_FOUND));
@@ -702,8 +670,7 @@ public class AdminServiceImpl implements AdminService {
             methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
             applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_ACCOUNT_RETRIEVAL_REQUEST_SUCCESSFUL_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + contactUs.getReferenceNumber().substring(4) + "<|>" + "Retrieved successfully"));
         } else if (requestStatus.equalsIgnoreCase(RequestReason.NAME_CHANGE_REQUEST.name())) {
-            ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId())
-                    .stream()
+            ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId()).stream()
                     .findFirst()
                     .orElseThrow(() -> new ResourceNotFoundException(REQUEST_NOT_FOUND));
             if (!userProfile.getName().toLowerCase().contains(requestDetailsHist.getMessage().toLowerCase().split(",")[0])) {

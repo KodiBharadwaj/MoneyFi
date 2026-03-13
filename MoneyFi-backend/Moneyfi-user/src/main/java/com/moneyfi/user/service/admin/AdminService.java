@@ -48,8 +48,6 @@ public interface AdminService {
 
     void deleteReasonByReasonId(int reasonId, Long adminUserId);
 
-    Map<String, List<UserDefectHistDetailsResponseDto>> getUserDefectHistDetails(List<Long> defectIds);
-
     List<String> getUsernamesOfAllUsers();
 
     void scheduleNotification(@Valid ScheduleNotificationRequestDto requestDto, Long adminUserId);

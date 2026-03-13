@@ -138,17 +138,6 @@ public class AdminController {
         return userCommonService.fetchUserProfilePictureFromS3(username, profileService.getProfileDetailsOfUser(username).getUserId());
     }
 
-    @Operation(summary = "Api to get the user defect history details for admin")
-    @PostMapping("/user-defects/history-details")
-    public ResponseEntity<Map<String, List<UserDefectHistDetailsResponseDto>>> getUserDefectHistDetails(@RequestBody List<Long> defectIds){
-        Map<String, List<UserDefectHistDetailsResponseDto>> response = adminService.getUserDefectHistDetails(defectIds);
-        if(!response.isEmpty()){
-            return ResponseEntity.status(HttpStatus.OK).body(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-    }
-
     @Operation(summary = "Api to add the reason dropdown names")
     @PostMapping("/reasons/add")
     public void addReasonsForUserReasonDialog(@RequestHeader("Authorization") String authHeader,

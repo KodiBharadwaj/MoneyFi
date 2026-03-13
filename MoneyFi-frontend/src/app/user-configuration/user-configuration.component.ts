@@ -39,6 +39,7 @@ export class UserConfigurationComponent implements AfterViewInit{
   deleteReasons: string[] = [];
   isDownloading = false;
   isUploading = false;
+  loadingResendOtp = false;
 
   ngAfterViewInit() {
     this.route.fragment.subscribe(fragment => {
@@ -149,6 +150,38 @@ export class UserConfigurationComponent implements AfterViewInit{
       },
       error: () => {
         this.deleteReasons = ['Other']; // fallback
+      }
+    });
+  }
+
+  email: string = '';
+  resendOtp(type: string) {
+    this.loadingResendOtp = true;
+    this.http.get(`${this.baseUrl}/api/v1/user/get-username`, { responseType: 'text' }).subscribe({
+      next: (data: string) => {
+        this.email = data;
+
+        this.http.get(`${this.baseUrl}/api/auth/otp-resend?username=${this.email}&type=${type}`).subscribe({
+          next: response => {
+            this.toastr.success('OTP sent to your email');
+            this.loadingResendOtp = false;
+          },
+          error: err => {
+            this.loadingResendOtp = false;
+            try {
+              const errorObj =
+                typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+              this.toastr.error(errorObj.message);
+            } catch (e) {
+              console.error('Failed to parse error:', err.error);
+            }
+          }
+        });
+
+      },
+      error: (err) => {
+        this.loadingResendOtp = false;
+        console.error('Error fetching username', err);
       }
     });
   }

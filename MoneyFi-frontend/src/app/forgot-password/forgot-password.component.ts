@@ -247,6 +247,27 @@ export class ForgotPasswordComponent {
     return true;
   }
 
+  loadingResendOtp = false;
+  resendOtp(type:string) {
+    this.loadingResendOtp = true;
+    this.http.get(`${this.baseUrl}/api/auth/otp-resend?username=${this.email}&type=${type}`).subscribe({
+      next: response => {
+        this.toastr.success('OTP sent to your email');
+        this.loadingResendOtp = false;
+      },
+      error: err => {
+        this.loadingResendOtp = false;
+        try {
+          const errorObj =
+            typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+          console.error('Failed to parse error:', err.error);
+        }
+      }
+    });
+  }
+
   // Email validation
   private isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

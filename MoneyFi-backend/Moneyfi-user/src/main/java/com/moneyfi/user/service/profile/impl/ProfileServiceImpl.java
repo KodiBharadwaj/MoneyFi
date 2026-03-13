@@ -1,8 +1,6 @@
 package com.moneyfi.user.service.profile.impl;
 
-import com.moneyfi.user.exceptions.CloudinaryImageException;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
-import com.moneyfi.user.exceptions.S3AwsErrorThrowException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.ContactUs;
 import com.moneyfi.user.model.ContactUsHist;
@@ -27,7 +25,7 @@ import com.moneyfi.user.util.enums.NotificationQueueEnum;
 import com.moneyfi.user.util.enums.RaiseRequestStatus;
 import com.moneyfi.user.util.enums.RequestReason;
 import com.moneyfi.user.validator.UserValidations;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -78,7 +76,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public ProfileDetailsDto saveUserDetails(Long userId, ProfileModel profile) {
         ProfileModel fetchProfile = profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_DETAILS_NOT_FOUND));
 
@@ -119,7 +117,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) throws IOException {
         if (!username.equals(userDefectRequestDto.getEmail().trim())) {
             throw new BadRequestException(EMAIL_MISMATCH_MESSAGE);
@@ -167,7 +165,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void saveFeedback(UserFeedbackRequestDto feedback, Long userId) {
         String rating = feedback.getMessage().substring(0, 1);
         String message = feedback.getMessage().substring(2);
@@ -194,7 +192,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void parseUserProfileDataFromExcel(MultipartFile excel, Long userId) {
         try (InputStream is = excel.getInputStream()) {
             Workbook workbook = new XSSFWorkbook(is);

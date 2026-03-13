@@ -24,7 +24,7 @@ import com.moneyfi.transaction.utils.StringConstants;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.utils.enums.TransactionServiceType;
 import com.moneyfi.transaction.validator.IncomeValidator;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -104,7 +104,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void addGmailSyncTransactions(Long userId, LocalDate syncDate, List<ParsedTransaction> transactions) {
         List<IncomeModel> incomesToBeSaved = new ArrayList<>();
         List<ExpenseModel> expensesToBeSaved = new ArrayList<>();
