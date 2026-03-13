@@ -5,7 +5,11 @@ export interface ParsedTransaction {
   transactionType: 'CREDIT' | 'DEBIT' | 'CREDIT OR DEBIT';
   transactionDate: string;
   accepted?: boolean;
-  gmailProcessedId:number;
+  gmailProcessedId: number;
 
   categoryName?: string;
+
+  validationErrors?: {
+    [key: string]: string[];
+  };
 }

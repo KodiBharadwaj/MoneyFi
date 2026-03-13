@@ -90,4 +90,11 @@ public class OpenController {
     public ResponseEntity<RemainingTimeCountDto> checkOtpActiveMethod(@PathVariable("email") String email){
         return ResponseEntity.ok(userService.checkOtpActiveMethod(email));
     }
+
+    @Operation(summary = "Api to resend otp")
+    @GetMapping("/otp-resend")
+    public void resendOtp(@RequestParam(value = "username") String username,
+                          @RequestParam(value = "type") String otpType) {
+        userService.resendOtp(username, otpType);
+    }
 }

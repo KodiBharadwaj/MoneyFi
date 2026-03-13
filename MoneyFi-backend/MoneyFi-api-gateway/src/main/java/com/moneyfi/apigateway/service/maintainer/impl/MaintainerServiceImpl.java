@@ -13,10 +13,10 @@ import com.moneyfi.apigateway.util.constants.StringConstants;
 import com.moneyfi.apigateway.util.enums.LoginMode;
 import com.moneyfi.apigateway.util.enums.UserRoles;
 import com.moneyfi.apigateway.validator.UserValidations;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,7 +41,7 @@ public class MaintainerServiceImpl implements MaintainerService {
     private static final String UNDELETE = "UNDELETE";
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void addAdminUser(CreateOrUpdateAdminRequestDto requestDto, Long maintainerUserId) {
         UserValidations.validateAdminCreationRequestByMaintainer(requestDto);
         UserValidations.validateExistingUserCheck(requestDto, userRepository);
@@ -72,7 +72,7 @@ public class MaintainerServiceImpl implements MaintainerService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void updateAdminUser(CreateOrUpdateAdminRequestDto requestDto, Long adminUserId, Long maintainerUserId) {
         UserAuthModel user = userRepository.findById(adminUserId).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         if (!Objects.equals(user.getUsername(), requestDto.getUsername().trim()))
@@ -84,7 +84,7 @@ public class MaintainerServiceImpl implements MaintainerService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void deleteAdminUser(Long adminUserId, Long maintainerUserId, String type) {
         UserAuthModel user = userRepository.findById(adminUserId).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         if (BLOCK.equalsIgnoreCase(type))
@@ -96,7 +96,7 @@ public class MaintainerServiceImpl implements MaintainerService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void unblockOrRetrieveAdmin(Long adminUserId, Long maintainerUserId, String type) {
         UserAuthModel user = userRepository.findById(adminUserId).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         if (UNBLOCK.equalsIgnoreCase(type))

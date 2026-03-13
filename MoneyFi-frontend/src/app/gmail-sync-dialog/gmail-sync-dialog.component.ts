@@ -126,12 +126,7 @@ export class GmailSyncDialogComponent implements OnInit {
 
   submit() {
     const accepted = this.transactions.filter(t => t.accepted);
-
     const syncDate = this.data.syncDate || new Date().toISOString().split('T')[0];
-
-    if (accepted.length === 0) {
-      return;
-    }
 
     this.submitting = true;
 
@@ -144,18 +139,25 @@ export class GmailSyncDialogComponent implements OnInit {
         },
         error: (err) => {
           this.submitting = false;
-          try {
-            const errorObj =
-              typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-            this.toastr.error(errorObj.message);
-          } catch {
-            console.error('Failed to parse error:', err.error);
-          }
-        },
-        complete: () => {
-          this.submitting = false;
-        },
+
+          const errors = typeof err.error === 'string'
+            ? JSON.parse(err.error)
+            : err.error;
+
+          this.applyValidationErrors(errors);
+        }
       });
   }
 
+  applyValidationErrors(errors: any[]) {
+    this.transactions.forEach(t => t.validationErrors = undefined);
+
+    errors.forEach(err => {
+      const tx = this.transactions.find(
+        t => t.gmailProcessedId === err.gmailProcessedId
+      );
+      if (!tx) return;
+      tx.validationErrors = err.errorColumns[0];
+    });
+  }
 }

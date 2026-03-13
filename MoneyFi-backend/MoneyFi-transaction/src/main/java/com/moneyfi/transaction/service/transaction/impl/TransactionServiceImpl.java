@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.service.transaction.impl;
 
+import com.moneyfi.transaction.exceptions.GenericException;
 import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
 import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
@@ -9,7 +10,6 @@ import com.moneyfi.transaction.repository.income.IncomeRepository;
 import com.moneyfi.transaction.repository.transaction.TransactionRepository;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
-import com.moneyfi.transaction.service.income.dto.request.IncomeSaveRequest;
 import com.moneyfi.transaction.service.income.dto.response.AccountStatementResponseDto;
 import com.moneyfi.transaction.service.income.dto.response.IncomeDetailsDto;
 import com.moneyfi.transaction.service.income.dto.response.OverviewPageDetailsDto;
@@ -23,8 +23,8 @@ import com.moneyfi.transaction.utils.GeneratePdfTemplate;
 import com.moneyfi.transaction.utils.StringConstants;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.utils.enums.TransactionServiceType;
-import com.moneyfi.transaction.validator.IncomeValidator;
-import jakarta.transaction.Transactional;
+import com.moneyfi.transaction.validator.TransactionValidator;
+import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -104,27 +104,22 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
-    public void addGmailSyncTransactions(Long userId, LocalDate syncDate, List<ParsedTransaction> transactions) {
+    @Transactional(rollbackFor = Exception.class)
+    public void addGmailSyncTransactions(Long userId, LocalDate syncDate, List<ParsedTransaction> transactions) throws GenericException {
         List<IncomeModel> incomesToBeSaved = new ArrayList<>();
         List<ExpenseModel> expensesToBeSaved = new ArrayList<>();
+        if (ObjectUtils.isEmpty(userId)) {
+            throw new ScenarioNotPossibleException(USER_ID_EMPTY);
+        }
+
+        List<Integer> incomeCategoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
+        List<Integer> expenseCategoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
+        TransactionValidator.validateGmailSyncTransactionsBulkUpload(transactions, incomeCategoryIds, expenseCategoryIds);
 
         for (ParsedTransaction transaction : transactions) {
             if (transaction.getTransactionType().equalsIgnoreCase(CreditOrDebit.CREDIT.name())) {
-                IncomeValidator.validateIncomeSaveRequest(new IncomeSaveRequest(transaction.getAmount(), transaction.getDescription(), transaction.getTransactionDate().toString(), transaction.getCategoryId(), false, transaction.getDescription()), userId);
-                List<Integer> incomeCategoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
-                if (!incomeCategoryIds.contains(transaction.getCategoryId())) {
-                    throw new ScenarioNotPossibleException(CATEGORY_NOT_ALIGN_MESSAGE);
-                }
                 incomesToBeSaved.add(getSaveIncomeModel(transaction, syncDate, userId));
             } else if (transaction.getTransactionType().equalsIgnoreCase(CreditOrDebit.DEBIT.name())) {
-                List<Integer> expenseCategoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
-                if (!expenseCategoryIds.contains(transaction.getCategoryId())) {
-                    throw new ScenarioNotPossibleException(CATEGORY_NOT_ALIGN_MESSAGE);
-                }
-                if (ObjectUtils.isEmpty(userId)) {
-                    throw new ScenarioNotPossibleException(USER_ID_EMPTY);
-                }
                 expensesToBeSaved.add(getSaveExpenseModel(transaction, syncDate, userId));
             } else {
                 throw new ScenarioNotPossibleException(INVALID_INPUT);

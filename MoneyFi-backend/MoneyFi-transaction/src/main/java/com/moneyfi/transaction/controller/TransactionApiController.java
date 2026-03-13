@@ -1,6 +1,7 @@
 package com.moneyfi.transaction.controller;
 
 import com.moneyfi.transaction.config.JwtService;
+import com.moneyfi.transaction.exceptions.GenericException;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.AccountStatementResponseDto;
 import com.moneyfi.transaction.service.income.dto.response.OverviewPageDetailsDto;
@@ -71,7 +72,7 @@ public class TransactionApiController {
     @PostMapping("/gmail-sync/bulk-save/{syncDate}")
     public ResponseEntity<Void> saveBulk(@RequestHeader("Authorization") String authHeader,
                                          @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate syncDate,
-                                         @RequestBody List<ParsedTransaction> transactions) {
+                                         @RequestBody List<ParsedTransaction> transactions) throws GenericException {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         transactionService.addGmailSyncTransactions(userId, syncDate, transactions);
         return ResponseEntity.ok().build();

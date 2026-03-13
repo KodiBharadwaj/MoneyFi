@@ -12,7 +12,7 @@ import com.moneyfi.wealthcore.service.budget.dto.request.AddBudgetDto;
 import com.moneyfi.wealthcore.service.budget.dto.response.BudgetDetailsDto;
 import com.moneyfi.wealthcore.utils.enums.TransactionServiceType;
 import com.moneyfi.wealthcore.validator.BudgetValidator;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,7 @@ public class BudgetServiceImpl implements BudgetService {
     private final CategoryListRepository categoryListRepository;
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void saveBudget(List<AddBudgetDto> budgetList, Long userId) {
         Optional<List<BudgetModel>> existingBudget = budgetRepository.findByUserId(userId);
         if (existingBudget.isPresent() && !existingBudget.get().isEmpty()) {
@@ -67,7 +67,7 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void updateBudget(Long userId, List<BudgetModel> budgetList) {
         BudgetValidator.validateBudgetUpdateRequestDto(budgetList);
         List<BudgetModel> budgetListToUpdate = new ArrayList<>();
@@ -84,7 +84,7 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void deleteBudget(Long userId) {
         budgetRepository.deleteAll(
                 budgetRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(BUDGET_NOT_FOUND))

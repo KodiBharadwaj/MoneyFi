@@ -7,7 +7,7 @@ import com.moneyfi.wealthcore.service.admin.AdminService;
 import com.moneyfi.wealthcore.service.admin.dto.request.CategoryRequestDto;
 import com.moneyfi.wealthcore.utils.constants.StringConstants;
 import com.moneyfi.wealthcore.validator.AdminValidations;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
@@ -27,7 +27,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "categoryList", allEntries = true)
     public void saveCategoryWiseList(Long adminUserId, CategoryRequestDto requestDto) {
         AdminValidations.validateInputCategoryList(adminUserId, requestDto);
@@ -43,7 +43,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "categoryList", allEntries = true)
     public void updateCategoryWiseList(Long adminUserId, Integer categoryId, CategoryRequestDto requestDto) {
         CategoryListModel categoryModel = categoryListRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
@@ -55,7 +55,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "categoryList", allEntries = true)
     public void deleteCategoryWiseList(Long adminUserId, Integer categoryId) {
         categoryListRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
