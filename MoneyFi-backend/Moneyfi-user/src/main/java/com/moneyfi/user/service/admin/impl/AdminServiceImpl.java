@@ -136,25 +136,25 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<UserRequestsGridDto> getUserRequestsGridForAdmin(String status) {
         String requestReason = null;
-        if(status.equalsIgnoreCase("Rename")){
+        if (status.equalsIgnoreCase("Rename")) {
             requestReason = RequestReason.NAME_CHANGE_REQUEST.name();
-        } else if(status.equalsIgnoreCase("Unblock")){
+        } else if (status.equalsIgnoreCase("Unblock")) {
             requestReason = RequestReason.ACCOUNT_UNBLOCK_REQUEST.name();
-        } else if(status.equalsIgnoreCase("Retrieve")){
+        } else if (status.equalsIgnoreCase("Retrieve")) {
             requestReason = RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name();
-        } else if(status.equalsIgnoreCase("Other")){
+        } else if (status.equalsIgnoreCase("Other")) {
             requestReason = RequestReason.GMAIL_SYNC_REQUEST_TYPE.name();
         } else {
             requestReason = ALL;
         }
         List<UserRequestsGridDto> userRequestsGridDtoList = adminRepository.getUserRequestsGridForAdmin(requestReason);
         userRequestsGridDtoList.forEach(userGrid -> {
-            if((status.equalsIgnoreCase("Rename") || status.equalsIgnoreCase(ALL))
-                    && userGrid.getRequestType().equalsIgnoreCase("Name Change")){
+            if ((status.equalsIgnoreCase("Rename") || status.equalsIgnoreCase(ALL))
+                    && userGrid.getRequestType().equalsIgnoreCase("Name Change")) {
                 userGrid.setDescription("My old name: " + userGrid.getDescription());
                 userGrid.setName("New Name: " + userGrid.getName());
             }
-            if(userGrid.getRequestType().equalsIgnoreCase("Gmail Sync Count Increase Request")) {
+            if (userGrid.getRequestType().equalsIgnoreCase("Gmail Sync Count Increase Request")) {
                 GmailSyncCountJsonDto gmailSyncCountJsonDto = null;
                 try {
                     gmailSyncCountJsonDto = objectMapper.readValue(userGrid.getDescription(), GmailSyncCountJsonDto.class);
@@ -163,6 +163,7 @@ public class AdminServiceImpl implements AdminService {
                 }
                 userGrid.setDescription("Requested Count: " + gmailSyncCountJsonDto.getCount() + " | " + "Reason: " + gmailSyncCountJsonDto.getReason());
             }
+            if (userGrid.getRequestType().equalsIgnoreCase("Account Retrieval")) userGrid.setDaysLeft(30 - ((int) ChronoUnit.DAYS.between(userGrid.getRequestedOn().toLocalDateTime(), LocalDateTime.now())));
         });
         return userRequestsGridDtoList;
     }
@@ -946,7 +947,7 @@ public class AdminServiceImpl implements AdminService {
                         if (accRetrievalHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name())) {
                             requestTimeStatusHistoryMap.put(RaiseRequestStatus.INITIATED, new UserRequestsUpdatedHistDto(Timestamp.valueOf(accRetrievalHistRequest.getUpdatedTime())));
                         }
-                        if (accRetrievalHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name())) {
+                        if (accRetrievalHistRequest.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name()) && accRetrievalHistRequest.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())) {
                             dto.setAccountRetrievalRequestReason(accRetrievalHistRequest.getMessage());
                             requestTimeStatusHistoryMap.put(RaiseRequestStatus.SUBMITTED, new UserRequestsUpdatedHistDto(Timestamp.valueOf(accRetrievalHistRequest.getUpdatedTime())));
                         }
