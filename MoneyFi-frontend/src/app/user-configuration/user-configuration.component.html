@@ -93,6 +93,15 @@
       <span *ngIf="loadingAccountDeactivationRequest" class="spinner"></span>
     </button>
 
+    <button
+      class="config-btn resend-btn"
+      (click)="resendOtp('BLOCK')"
+      [disabled]="loadingResendOtp"
+    >
+      <span *ngIf="!loadingResendOtp">Resend OTP</span>
+      <span *ngIf="loadingResendOtp" class="spinner"></span>
+    </button>
+    
     <div *ngIf="blockRequestSent" class="block-inputs">
       <input
         type="text"
@@ -137,6 +146,15 @@
     >
       <span *ngIf="!loadingAccountDeleteRequest">Delete Account</span>
       <span *ngIf="loadingAccountDeleteRequest" class="spinner"></span>
+    </button>
+
+    <button
+      class="config-btn resend-btn"
+      (click)="resendOtp('DELETE')"
+      [disabled]="loadingResendOtp"
+    >
+      <span *ngIf="!loadingResendOtp">Resend OTP</span>
+      <span *ngIf="loadingResendOtp" class="spinner"></span>
     </button>
 
     <div *ngIf="deleteRequestSent" class="block-inputs">

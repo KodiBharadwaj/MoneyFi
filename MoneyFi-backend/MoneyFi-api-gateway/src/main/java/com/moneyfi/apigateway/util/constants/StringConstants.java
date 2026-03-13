@@ -50,6 +50,7 @@ public class StringConstants {
     public static final String ACCOUNT_DELETED = "Account Deleted! Please contact admin";
     public static final String INVALID_CREDENTIALS = "Invalid Credentials Entered";
     public static final String LOGIN_ERROR = "An error occurred during login";
+    public static final String OTP_RESEND_FAILURE_MESSAGE = "Otp not found or expired. Get a new otp";
 
     public static final long SESSION_LOGIN_MINUTES = 60L;
 

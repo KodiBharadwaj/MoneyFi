@@ -11,7 +11,7 @@ import com.moneyfi.wealthcore.service.goal.dto.response.ExpenseModelDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalDetailsDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalTileDetailsDto;
 import com.moneyfi.wealthcore.utils.enums.CategoryType;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -44,7 +44,7 @@ public class GoalServiceImpl implements GoalService {
     private final CategoryListRepository categoryListRepository;
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public GoalDetailsDto save(GoalModel goal, BigDecimal amountToBeAdded, String authHeader) {
         String token = authHeader.substring(7);
         Long userId = jwtService.extractUserIdFromToken(token);
@@ -59,7 +59,7 @@ public class GoalServiceImpl implements GoalService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public GoalDetailsDto addAmount(Long id, BigDecimal amount, String authHeader) {
         GoalModel goalModel = goalRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(GOAL_NOT_FOUND));
         goalModel.setCurrentAmount(goalModel.getCurrentAmount().add(amount));
@@ -97,7 +97,7 @@ public class GoalServiceImpl implements GoalService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<GoalDetailsDto> updateByGoalName(Long id, GoalModel goal, String authHeader) {
         String token = authHeader.substring(7);
         Long userId = jwtService.extractUserIdFromToken(token);
@@ -125,7 +125,7 @@ public class GoalServiceImpl implements GoalService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteGoalById(Long id, String authHeader) {
         try {
             GoalModel goalModel = goalRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(GOAL_NOT_FOUND));

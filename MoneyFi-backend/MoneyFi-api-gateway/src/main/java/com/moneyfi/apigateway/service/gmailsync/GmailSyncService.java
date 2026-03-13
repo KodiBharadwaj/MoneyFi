@@ -18,12 +18,12 @@ import com.moneyfi.apigateway.repository.gmailsync.GmailProcessedMessageReposito
 import com.moneyfi.apigateway.service.general.GoogleOAuthEndPointDealerService;
 import com.moneyfi.apigateway.service.gmailsync.dto.response.GmailSyncHistoryResponse;
 import com.moneyfi.apigateway.util.enums.TransactionServiceType;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -60,7 +60,7 @@ public class GmailSyncService {
     private static final String UNAUTHORIZED_USER = "Unauthorized Gmail user";
     private static final String STRING_ME = "me";
 
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void enableSync(String code, String username, Long userId) {
         if (StringUtils.isBlank(code)) {
             throw new ScenarioNotPossibleException(GOOGLE_AUTHORIZATION_CODE_NULL_MESSAGE);
@@ -108,7 +108,7 @@ public class GmailSyncService {
                 .toList();
     }
 
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public Map<Integer, List<ParsedTransaction>> startGmailSync(Long userId, LocalDate date) throws IOException, URISyntaxException {
         if (date.isAfter(LocalDate.now())) {
             throw new ScenarioNotPossibleException(FUTURE_SYNC_NOT_ALLOWED);

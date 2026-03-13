@@ -15,13 +15,13 @@ import com.moneyfi.apigateway.service.general.dto.NotificationQueueDto;
 import com.moneyfi.apigateway.util.enums.NotificationQueueEnum;
 import com.moneyfi.apigateway.util.enums.ReasonEnum;
 import com.moneyfi.apigateway.validator.UserValidations;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -39,7 +39,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public String forgotPassword(String email) {
         UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         UserValidations.userAlreadyDeactivatedCheckValidation(user);
@@ -66,7 +66,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public String updatePasswordOnUserForgotMode(String email, String password){
         UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(()-> new ResourceNotFoundException(USER_NOT_FOUND));
         if(encoder.matches(password, user.getPassword())) {

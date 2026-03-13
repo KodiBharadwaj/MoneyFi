@@ -28,7 +28,7 @@ import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.AdminValidations;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -106,7 +106,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId, String approveStatus, String declineReason, int gmailSyncRequestCount) {
         return contactUsRepository.findByEmail(email).stream()
                 .filter(i -> i.isRequestActive() && i.getReferenceNumber() != null &&
@@ -179,7 +179,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void updateDefectStatus(Long defectId, String status, String reason, Long adminUserId) {
         ContactUs userDefect = contactUsRepository.findById(defectId).orElseThrow(() -> new ResourceNotFoundException("User defect details not found"));
         ProfileModel userProfile = profileRepository.findByUserEmail(userDefect.getEmail()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
@@ -292,7 +292,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void updateUserFeedback(Long feedbackId, Long adminUserId) {
         Optional<ContactUs> userFeedback = contactUsRepository.findById(feedbackId);
         if(userFeedback.isEmpty()){
@@ -315,7 +315,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void addReasonsForUserReasonDialog(ReasonDetailsRequestDto requestDto, Long adminUserId) {
         if(requestDto.getReasonCode() == null || requestDto.getReason() == null || requestDto.getReason().isEmpty()){
             throw new ScenarioNotPossibleException("Please add details correctly");
@@ -348,7 +348,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void updateReasonsForUserReasonDialogByReasonCode(ReasonUpdateRequestDto requestDto, Long adminUserId) {
         if(requestDto.getReason() == null || requestDto.getReason().isEmpty()){
             throw new ScenarioNotPossibleException("Please add details correctly");
@@ -362,7 +362,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void deleteReasonByReasonId(int reasonId, Long adminUserId) {
         ReasonDetails reasonDetails = reasonDetailsRepository.findById(reasonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reason with id " + reasonId + " is not found"));
@@ -373,7 +373,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) throws JsonProcessingException {
         if (email == null || email.trim().isEmpty() || reason == null || reason.trim().isEmpty()) {
             throw new ScenarioNotPossibleException("Please provide all the details correctly");
@@ -419,7 +419,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void scheduleNotification(ScheduleNotificationRequestDto requestDto, Long adminUserId) {
         AdminValidations.validateScheduleNotificationRequestDetails(requestDto);
         ScheduleNotification scheduleNotification = new ScheduleNotification();
@@ -446,7 +446,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void cancelTheUserScheduling(Long scheduleId, Long adminUserId) {
         ScheduleNotification notification = scheduleNotificationRepository.findById(scheduleId).orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + scheduleId));
         if (!notification.getNotificationType().equalsIgnoreCase(ADMIN_SCHEDULING.name())) throw new ScenarioNotPossibleException("Automated schedules can't be cancelled");
@@ -462,7 +462,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void updateAdminPlacedSchedules(AdminScheduleRequestDto requestDto, Long adminUserId) {
         ScheduleNotification notification = scheduleNotificationRepository.findById(requestDto.getScheduleId()).orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + requestDto.getScheduleId()));
         if (!notification.getNotificationType().equalsIgnoreCase(ADMIN_SCHEDULING.name())) throw new ScenarioNotPossibleException("Automated schedules can't be updated");
@@ -485,7 +485,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void deleteUserScheduling(Long scheduleId, Long adminUserId) {
         ScheduleNotification notification = scheduleNotificationRepository.findById(scheduleId).orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + scheduleId));
         if (!notification.getNotificationType().equalsIgnoreCase(ADMIN_SCHEDULING.name())) throw new ScenarioNotPossibleException("Automated schedules can't be deleted");

@@ -26,7 +26,7 @@ import com.moneyfi.user.service.common.dto.response.UserRequestStatusDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.UserValidations;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -103,7 +103,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private static final String USER_IS_NOT_BLOCKED_TODO_THIS = "User is not blocked to perform this operation";
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email) {
         UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
         Map<Boolean, String> response = new HashMap<>();
@@ -238,7 +238,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void accountReactivateRequestByUser(AccountRetrieveRequestDto requestDto) {
         String requestReason;
         ContactUsHist userRequestHist = new ContactUsHist();
@@ -277,7 +277,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void nameChangeRequestByUser(NameChangeRequestDto requestDto) {
         if (requestDto.getDescription() == null || requestDto.getDescription().trim().isEmpty()) {
             throw new ScenarioNotPossibleException("Description can't be empty");
@@ -354,7 +354,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void saveUserNotificationsForParticularUsers(String recipients, Long scheduleId) {
         List<UserNotification> userNotificationListForSpecifiedUsers = new ArrayList<>();
         Arrays.stream(recipients.split(","))
@@ -472,7 +472,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void updateUserNotificationSeenStatus(String username, String notificationIds) {
         List<UserNotification> userNotificationListToUpdate = new ArrayList<>();
         Arrays.stream(notificationIds.split(","))
@@ -500,7 +500,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<String> blockOrDeleteAccountByUserRequest(String username, AccountBlockOrDeleteRequestDto request) {
         UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(username.trim()).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
         UserValidations.userAccountDeactivationInputValidation(request);
@@ -607,7 +607,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void userRequestToIncreaseGmailSyncDailyCount(GmailSyncCountIncreaseRequestDto request, MultipartFile image, String username) throws IOException {
         UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
         UserValidations.validateUserGmailSyncCountIncreaseRequest(request, profileRepository, user.getId());
