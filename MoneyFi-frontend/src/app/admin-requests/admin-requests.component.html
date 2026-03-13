@@ -35,7 +35,8 @@
             <th>Request Type</th>
             <th>Name</th>
             <th>Description</th>
-            <th>Image</th>
+            <th *ngIf="shouldShowImage()">Image</th>
+            <th *ngIf="shouldShowDaysLeft()">Days Left</th>
             <th>Reference Number</th>
             <th>Action</th>
           </tr>
@@ -46,24 +47,39 @@
             <td>{{ request.requestType }}</td>
             <td>{{ request.name }}</td>
             <td>{{ request.description }}</td>
-            <td> 
-              <!-- Image -->
-              <div class="image-preview" (click)="viewImage(request.username, request.requestId)">
-                <img src="assets/image-placeholder.png" alt="View" />
-                <p class="click-text">Click to view image</p>
+
+            <!-- Image column -->
+            <td *ngIf="shouldShowImage()">
+              <div *ngIf="request.requestType === 'Gmail Sync Count Increase Request'; else noImage">
+                <div class="image-preview" (click)="viewImage(request.username, request.requestId)">
+                  <img src="assets/image-placeholder.png" alt="View" />
+                  <p class="click-text">Click to view image</p>
+                </div>
               </div>
+
+              <ng-template #noImage>-</ng-template>
             </td>
+
+            <!-- Days Left column -->
+            <td *ngIf="shouldShowDaysLeft()">
+              <span *ngIf="request.requestType === 'Account Retrieval'; else noDays">
+                {{ request.daysLeft }}
+              </span>
+
+              <ng-template #noDays>-</ng-template>
+            </td>
+
             <td>
               <span class="ref-text">{{ request.referenceNumber }}</span>
               <button class="copy-btn" (click)="copyToClipboard(request.referenceNumber)">📋</button>
             </td>
+
             <td>
               <div class="action-buttons">
                 <button class="approve-btn" (click)="approveUserRequest(request, status)">Approve</button>
                 <button class="decline-btn" (click)="declineUserRequest(request, status)">Decline</button>
               </div>
             </td>
-
           </tr>
         </tbody>
       </table>

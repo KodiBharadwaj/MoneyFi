@@ -18,26 +18,28 @@ public class BudgetValidator {
     public static void validateBudgetSaveRequestDto(List<AddBudgetDto> budgetList, BigDecimal totalIncomeInThisMonth) {
         Integer totalPercentage = 0;
         BigDecimal totalBudgetSet = BigDecimal.ZERO;
-        for(AddBudgetDto budget : budgetList) {
+        for (AddBudgetDto budget : budgetList) {
             totalPercentage += budget.getPercentage();
             totalBudgetSet = totalBudgetSet.add(budget.getMoneyLimit());
-            if(budget.getCategoryId() == null || budget.getMoneyLimit() == null) {
+            if (budget.getCategoryId() == null || budget.getMoneyLimit() == null) {
                 throw new ScenarioNotPossibleException(INPUT_FIELDS_EMPTY);
             }
-            if(budget.getCategoryId() == 0) throw new ScenarioNotPossibleException(CATEGORY_FIELD_EMPTY);
-            if(budget.getPercentage() < 0) throw new ScenarioNotPossibleException("Percentage should not be negative");
-            if(budget.getMoneyLimit().compareTo(BigDecimal.ZERO) < 0) throw new ScenarioNotPossibleException("Budget Limit for " + budget.getMoneyLimit() + " should not be negative");
+            if (budget.getCategoryId() == 0) throw new ScenarioNotPossibleException(CATEGORY_FIELD_EMPTY);
+            if (budget.getPercentage() < 0) throw new ScenarioNotPossibleException("Percentage should not be negative");
+            if (budget.getMoneyLimit().compareTo(BigDecimal.ZERO) < 0) throw new ScenarioNotPossibleException("Budget Limit for " + budget.getMoneyLimit() + " should not be negative");
         }
-        if(totalPercentage != 100) throw new ScenarioNotPossibleException(TOTAL_PERCENTAGE_MISMATCH);
-        if(totalBudgetSet.compareTo(totalIncomeInThisMonth) > 0) throw new ScenarioNotPossibleException("Total budget entered exceeded the available income by " + totalBudgetSet.compareTo(totalIncomeInThisMonth));
+        if (totalPercentage != 100) throw new ScenarioNotPossibleException(TOTAL_PERCENTAGE_MISMATCH);
+        if (totalBudgetSet.compareTo(BigDecimal.ZERO) == 0) throw new ScenarioNotPossibleException("Budget cannot be zero");
+        if (totalBudgetSet.compareTo(totalIncomeInThisMonth) > 0) throw new ScenarioNotPossibleException("Total budget entered exceeded the available income by " + totalBudgetSet.compareTo(totalIncomeInThisMonth));
     }
 
     public static void validateBudgetUpdateRequestDto(List<BudgetModel> budgetList) {
-        for(BudgetModel budget : budgetList) {
-            if(budget.getId() == null || budget.getMoneyLimit() == null) {
+        for (BudgetModel budget : budgetList) {
+            if (budget.getId() == null || budget.getMoneyLimit() == null) {
                 throw new ScenarioNotPossibleException(INPUT_FIELDS_EMPTY);
             }
-            if(budget.getMoneyLimit().compareTo(BigDecimal.ZERO) < 0) throw new ScenarioNotPossibleException("Budget Limit should not be negative");
+            if (budget.getMoneyLimit().compareTo(BigDecimal.ZERO) < 0)
+                throw new ScenarioNotPossibleException("Budget Limit should not be negative");
         }
     }
 }

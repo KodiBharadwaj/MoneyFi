@@ -177,6 +177,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 referenceNumber = requestDetails.get().getReferenceNumber();
                 requestDetails.get().setRequestStatus(RaiseRequestStatus.INITIATED.name());
                 requestDetails.get().setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
+                requestDetails.get().setStartTime(LocalDateTime.now());
                 savedRequest = contactUsRepository.save(requestDetails.get());
             } else {
                 referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
