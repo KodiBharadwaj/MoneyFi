@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.service.transaction;
 
+import com.moneyfi.transaction.exceptions.GenericException;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.AccountStatementResponseDto;
 import com.moneyfi.transaction.service.income.dto.response.OverviewPageDetailsDto;
@@ -20,7 +21,7 @@ public interface TransactionService {
 
     OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year);
 
-    void addGmailSyncTransactions(Long userId, LocalDate syncDate, List<ParsedTransaction> transactions);
+    void addGmailSyncTransactions(Long userId, LocalDate syncDate, List<ParsedTransaction> transactions) throws GenericException;
 
     GmailSyncTransactionsResponse getGmailSyncAddedTransactions(Long userId, LocalDate date);
 }
