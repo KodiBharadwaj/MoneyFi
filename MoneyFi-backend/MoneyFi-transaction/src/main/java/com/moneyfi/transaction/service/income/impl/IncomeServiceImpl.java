@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.service.income.impl;
 
+import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
 import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.transaction.repository.transaction.TransactionRepository;
@@ -13,7 +14,6 @@ import com.moneyfi.transaction.repository.income.IncomeRepository;
 import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.*;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
-import com.moneyfi.transaction.utils.enums.TransactionServiceType;
 import com.moneyfi.transaction.validator.IncomeValidator;
 import com.moneyfi.transaction.validator.TransactionValidator;
 import org.springframework.transaction.annotation.Transactional;

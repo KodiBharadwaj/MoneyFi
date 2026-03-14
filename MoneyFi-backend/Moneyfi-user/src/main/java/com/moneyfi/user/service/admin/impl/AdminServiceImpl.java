@@ -1,6 +1,7 @@
 package com.moneyfi.user.service.admin.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.moneyfi.constants.enums.ActiveStatus;
 import com.moneyfi.constants.enums.LoginMode;
 import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.constants.enums.ReasonEnum;
@@ -267,9 +268,9 @@ public class AdminServiceImpl implements AdminService {
 
         AdminUserRequestsCountDto saveCountDto = new AdminUserRequestsCountDto();
 
-        if (userDetails.getIsBlocked().equals(Boolean.TRUE)) userDetails.setUserStatus(UserStatus.BLOCKED.name());
-        else if (userDetails.getIsDeleted().equals(Boolean.TRUE)) userDetails.setUserStatus(UserStatus.DELETED.name());
-        else userDetails.setUserStatus(UserStatus.ACTIVE.name());
+        if (userDetails.getIsBlocked().equals(Boolean.TRUE)) userDetails.setUserStatus(ActiveStatus.BLOCKED.name());
+        else if (userDetails.getIsDeleted().equals(Boolean.TRUE)) userDetails.setUserStatus(ActiveStatus.DELETED.name());
+        else userDetails.setUserStatus(ActiveStatus.ACTIVE.name());
 
         functionCallToAddNameChangeRequestDetailsHistory(userDetails, allUserRequests, saveCountDto, adminUserId);
         functionCallToAddUnblockRequestDetailsHistory(userDetails, allUserRequests, saveCountDto, adminUserId);
