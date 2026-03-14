@@ -2,8 +2,12 @@
 FROM maven:3.9.4-eclipse-temurin-17 AS build
 
 WORKDIR /app
-# Accept GitHub token from Render
+
+# Accept GitHub credentials
+ARG GITHUB_USERNAME
 ARG GITHUB_TOKEN
+
+ENV GITHUB_USERNAME=$GITHUB_USERNAME
 ENV GITHUB_TOKEN=$GITHUB_TOKEN
 
 # Create Maven settings.xml for GitHub Packages authentication
