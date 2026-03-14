@@ -13,7 +13,7 @@ RUN mkdir -p /root/.m2 && \
     echo "  <servers>" >> /root/.m2/settings.xml && \
     echo "    <server>" >> /root/.m2/settings.xml && \
     echo "      <id>github</id>" >> /root/.m2/settings.xml && \
-    echo "      <username>KodiBharadwaj</username>" >> /root/.m2/settings.xml && \
+    echo "      <username>${GITHUB_USERNAME}</username>" >> /root/.m2/settings.xml && \
     echo "      <password>${GITHUB_TOKEN}</password>" >> /root/.m2/settings.xml && \
     echo "    </server>" >> /root/.m2/settings.xml && \
     echo "  </servers>" >> /root/.m2/settings.xml && \
