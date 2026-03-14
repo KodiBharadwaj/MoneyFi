@@ -2,8 +2,12 @@ package com.moneyfi.user.service.common.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.moneyfi.constants.enums.OtpType;
+import com.moneyfi.constants.enums.ReasonEnum;
+import com.moneyfi.constants.enums.UserRoles;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
+import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.user.model.*;
 import com.moneyfi.user.model.dto.OtpTempModel;
 import com.moneyfi.user.model.dto.UserAuthHist;
@@ -49,6 +53,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.moneyfi.constants.constants.CommonConstants.*;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 import static com.moneyfi.user.util.constants.StringUrls.DAILY_QUOTE_EXTERNAL_API_URL;
 
@@ -136,7 +141,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 requestDetails.get().setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
                 savedRequest = contactUsRepository.save(requestDetails.get());
             } else {
-                referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
+                referenceNumber = generateAlphabetCode() + generateVerificationCode();
                 ContactUs saveRequest = new ContactUs();
                 saveRequest.setEmail(email);
                 saveRequest.setReferenceNumber(referenceNumber);
@@ -180,7 +185,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 requestDetails.get().setStartTime(LocalDateTime.now());
                 savedRequest = contactUsRepository.save(requestDetails.get());
             } else {
-                referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
+                referenceNumber = generateAlphabetCode() + generateVerificationCode();
                 ContactUs saveRequest = new ContactUs();
                 saveRequest.setEmail(email);
                 saveRequest.setReferenceNumber(referenceNumber);
@@ -211,7 +216,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size() == 1 ? REFERENCE_NUMBER_SENT :
                         DETAILS_ALREADY_SUBMITTED);
             }
-            String referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
+            String referenceNumber = generateAlphabetCode() + generateVerificationCode();
             applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + "change name" + "<|>" + referenceNumber));
             ContactUs saveRequest = new ContactUs();
             saveRequest.setEmail(email);
@@ -522,7 +527,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             UserValidations.otpCheckDuringAccountDeactivationValidations(request, response, user);
 
             ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
-            String referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
+            String referenceNumber = generateAlphabetCode() + generateVerificationCode();
 
             ContactUs accountDeactivationRequest = new ContactUs();
             UserAuthHist userAuthHist = new UserAuthHist();
@@ -620,7 +625,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         }
 
         ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
-        String referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
+        String referenceNumber = generateAlphabetCode() + generateVerificationCode();
 
         ContactUs contactUs = new ContactUs();
         contactUs.setEmail(username);

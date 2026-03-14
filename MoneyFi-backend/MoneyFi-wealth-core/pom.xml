@@ -33,51 +33,23 @@
         <maven.compiler.target>21</maven.compiler.target>
     </properties>
 	<dependencies>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-		<!--		<dependency>-->
-		<!--			<groupId>io.zipkin.reporter2</groupId>-->
-		<!--			<artifactId>zipkin-reporter-brave</artifactId>-->
-		<!--		</dependency>-->
-		<!--		<dependency>-->
-		<!--			<groupId>io.micrometer</groupId>-->
-		<!--			<artifactId>micrometer-tracing-bridge-brave</artifactId>-->
-		<!--		</dependency>-->
-		<!--		<dependency>-->
-		<!--			<groupId>org.springframework.cloud</groupId>-->
-		<!--			<artifactId>spring-cloud-starter-openfeign</artifactId>-->
-		<!--		</dependency>-->
 
-		<!--		<dependency>-->
-		<!--			<groupId>org.springframework.boot</groupId>-->
-		<!--			<artifactId>spring-boot-starter-actuator</artifactId>-->
-		<!--		</dependency>-->
-		<!--		<dependency>-->
-		<!--			<groupId>org.springframework.cloud</groupId>-->
-		<!--			<artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>-->
-		<!--		</dependency>-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.postgresql</groupId>-->
-<!--			<artifactId>postgresql</artifactId>-->
-<!--			<scope>runtime</scope>-->
-<!--		</dependency>-->
-		<!--		<dependency>-->
 
-		<!--			<groupId>com.h2database</groupId>-->
-		<!--			<artifactId>h2</artifactId>-->
-		<!--			<version>2.3.232</version>-->
-		<!--		</dependency>-->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -90,6 +62,7 @@
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>2.6.0</version>
 		</dependency>
+
 		<!-- Eureka client -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -122,6 +95,7 @@
 			<version>0.11.5</version>
 			<scope>runtime</scope>
 		</dependency>
+
 		<!-- monitor client -->
 		<dependency>
 			<groupId>de.codecentric</groupId>
@@ -149,6 +123,14 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-cache</artifactId>
 		</dependency>
+
+		<!-- MoneyFi constants framework dependency -->
+		<dependency>
+			<groupId>com.kodibharadwaj.moneyfi</groupId>
+			<artifactId>moneyfi-constants</artifactId>
+			<version>1.0.3-SNAPSHOT</version>
+		</dependency>
+
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -179,4 +161,12 @@
 		</plugins>
 		<finalName>MoneyFi-wealth-core</finalName>
 	</build>
+
+	<repositories>
+		<repository>
+			<id>github</id>
+			<url>https://maven.pkg.github.com/KodiBharadwaj/MoneyFi-constants</url>
+		</repository>
+	</repositories>
+
 </project>

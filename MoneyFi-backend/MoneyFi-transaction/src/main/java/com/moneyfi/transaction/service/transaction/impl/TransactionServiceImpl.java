@@ -1,5 +1,7 @@
 package com.moneyfi.transaction.service.transaction.impl;
 
+import com.moneyfi.constants.enums.ActiveStatus;
+import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.transaction.exceptions.GenericException;
 import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
 import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
@@ -17,12 +19,10 @@ import com.moneyfi.transaction.service.income.dto.response.UserDetailsForStateme
 import com.moneyfi.transaction.service.transaction.TransactionService;
 import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction;
 import com.moneyfi.transaction.service.transaction.dto.response.GmailSyncTransactionsResponse;
-import com.moneyfi.transaction.utils.enums.ActiveStatus;
 import com.moneyfi.transaction.utils.enums.CreditOrDebit;
 import com.moneyfi.transaction.utils.GeneratePdfTemplate;
 import com.moneyfi.transaction.utils.StringConstants;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
-import com.moneyfi.transaction.utils.enums.TransactionServiceType;
 import com.moneyfi.transaction.validator.TransactionValidator;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;

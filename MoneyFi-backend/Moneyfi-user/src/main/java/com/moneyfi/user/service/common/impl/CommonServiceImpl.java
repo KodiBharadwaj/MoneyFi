@@ -2,6 +2,7 @@ package com.moneyfi.user.service.common.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.model.UserNotification;
+import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.user.repository.ProfileRepository;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.service.common.CommonService;
@@ -10,7 +11,6 @@ import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
 import com.moneyfi.user.service.common.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.util.constants.StringConstants;
-import com.moneyfi.user.util.enums.NotificationQueueEnum;
 import com.moneyfi.user.util.enums.SchedulingNotificationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

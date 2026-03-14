@@ -1,5 +1,6 @@
 package com.moneyfi.wealthcore.service.budget.impl;
 
+import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.wealthcore.exceptions.ResourceNotFoundException;
 import com.moneyfi.wealthcore.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.wealthcore.model.budget.BudgetModel;
@@ -10,7 +11,6 @@ import com.moneyfi.wealthcore.repository.common.WealthCoreRepository;
 import com.moneyfi.wealthcore.service.budget.BudgetService;
 import com.moneyfi.wealthcore.service.budget.dto.request.AddBudgetDto;
 import com.moneyfi.wealthcore.service.budget.dto.response.BudgetDetailsDto;
-import com.moneyfi.wealthcore.utils.enums.TransactionServiceType;
 import com.moneyfi.wealthcore.validator.BudgetValidator;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;

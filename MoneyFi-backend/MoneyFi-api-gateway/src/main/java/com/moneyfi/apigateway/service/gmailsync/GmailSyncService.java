@@ -17,7 +17,7 @@ import com.moneyfi.apigateway.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.apigateway.repository.gmailsync.GmailProcessedMessageRepository;
 import com.moneyfi.apigateway.service.general.GoogleOAuthEndPointDealerService;
 import com.moneyfi.apigateway.service.gmailsync.dto.response.GmailSyncHistoryResponse;
-import com.moneyfi.apigateway.util.enums.TransactionServiceType;
+import com.moneyfi.constants.enums.TransactionServiceType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

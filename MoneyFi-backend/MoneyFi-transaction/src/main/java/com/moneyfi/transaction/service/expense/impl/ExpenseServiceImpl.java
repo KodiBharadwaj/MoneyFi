@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.service.expense.impl;
 
+import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
 import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
@@ -9,7 +10,6 @@ import com.moneyfi.transaction.service.expense.ExpenseService;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
-import com.moneyfi.transaction.utils.enums.TransactionServiceType;
 import com.moneyfi.transaction.validator.TransactionValidator;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.poi.ss.usermodel.*;

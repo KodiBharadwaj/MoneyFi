@@ -5,7 +5,7 @@ import com.moneyfi.apigateway.service.userservice.UserService;
 import com.moneyfi.apigateway.service.userservice.dto.request.UserLoginDetailsRequestDto;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import com.moneyfi.apigateway.service.userservice.dto.request.UserProfile;
-import com.moneyfi.apigateway.util.enums.LoginMode;
+import com.moneyfi.constants.enums.LoginMode;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

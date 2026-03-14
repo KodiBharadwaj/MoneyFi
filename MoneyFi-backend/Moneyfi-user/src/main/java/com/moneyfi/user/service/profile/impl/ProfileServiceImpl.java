@@ -6,6 +6,7 @@ import com.moneyfi.user.model.ContactUs;
 import com.moneyfi.user.model.ContactUsHist;
 import com.moneyfi.user.model.ExcelTemplate;
 import com.moneyfi.user.model.ProfileModel;
+import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.user.repository.ContactUsHistRepository;
 import com.moneyfi.user.repository.ContactUsRepository;
 import com.moneyfi.user.repository.ExcelTemplateRepository;
@@ -21,7 +22,6 @@ import com.moneyfi.user.service.common.dto.request.UserFeedbackRequestDto;
 import com.moneyfi.user.service.profile.ProfileService;
 import com.moneyfi.user.service.profile.dto.ProfileDetailsDto;
 import com.moneyfi.user.util.constants.StringConstants;
-import com.moneyfi.user.util.enums.NotificationQueueEnum;
 import com.moneyfi.user.util.enums.RaiseRequestStatus;
 import com.moneyfi.user.util.enums.RequestReason;
 import com.moneyfi.user.validator.UserValidations;
@@ -51,6 +51,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Base64;
 
+import static com.moneyfi.constants.constants.CommonConstants.generateAlphabetCode;
+import static com.moneyfi.constants.constants.CommonConstants.generateVerificationCode;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 
 @Service
@@ -122,7 +124,7 @@ public class ProfileServiceImpl implements ProfileService {
         if (!username.equals(userDefectRequestDto.getEmail().trim())) {
             throw new BadRequestException(EMAIL_MISMATCH_MESSAGE);
         }
-        String referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
+        String referenceNumber = generateAlphabetCode() + generateVerificationCode();
 
         ContactUs userDefect = new ContactUs();
         userDefect.setEmail(userDefectRequestDto.getEmail());
