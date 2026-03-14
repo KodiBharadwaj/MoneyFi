@@ -183,6 +183,13 @@
             <groupId>jakarta.jms</groupId>
             <artifactId>jakarta.jms-api</artifactId>
         </dependency>
+
+        <!-- MoneyFi constants framework dependency -->
+        <dependency>
+            <groupId>com.kodibharadwaj.moneyfi</groupId>
+            <artifactId>moneyfi-constants</artifactId>
+            <version>1.0.1</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -214,6 +221,11 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
+        </repository>
+
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/KodiBharadwaj/MoneyFi-constants</url>
         </repository>
     </repositories>
 
