@@ -1,6 +1,5 @@
 package com.moneyfi.apigateway;
 
-import com.moneyfi.constants.CheckEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -15,6 +14,5 @@ public class MoneyFiApiGatewayApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(MoneyFiApiGatewayApplication.class, args);
 		log.info("API Gateway Service Started");
-		System.out.println("Checking Github package: " + CheckEnum.Kodi.name());
 	}
 }

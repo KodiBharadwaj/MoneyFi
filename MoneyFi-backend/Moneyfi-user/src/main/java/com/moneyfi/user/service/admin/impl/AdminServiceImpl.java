@@ -1,6 +1,9 @@
 package com.moneyfi.user.service.admin.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.moneyfi.constants.enums.LoginMode;
+import com.moneyfi.constants.enums.NotificationQueueEnum;
+import com.moneyfi.constants.enums.ReasonEnum;
 import com.moneyfi.user.exceptions.FileUploadException;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
@@ -52,6 +55,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.moneyfi.constants.constants.CommonConstants.*;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 import static com.moneyfi.user.util.constants.StringConstants.USER_NOT_FOUND;
 import static com.moneyfi.user.util.enums.SchedulingNotificationType.ADMIN_SCHEDULING;
@@ -398,7 +402,7 @@ public class AdminServiceImpl implements AdminService {
         contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
         contactUs.setStartTime(currentTime);
         contactUs.setCompletedTime(currentTime);
-        contactUs.setReferenceNumber(StringConstants.generateAlphabetCode() + generateVerificationCode());
+        contactUs.setReferenceNumber(generateAlphabetCode() + generateVerificationCode());
         ContactUs savedContactUs = contactUsRepository.save(contactUs);
 
         ContactUsHist contactUsHist = new ContactUsHist();

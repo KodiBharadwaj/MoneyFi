@@ -7,15 +7,10 @@ import com.moneyfi.user.model.dto.UserAuthModel;
 import com.moneyfi.user.model.dto.interfaces.OtpTempProjection;
 import com.moneyfi.user.model.dto.interfaces.UserAuthProjection;
 import com.moneyfi.user.repository.ProfileRepository;
-import com.moneyfi.user.util.enums.ReasonEnum;
-import com.moneyfi.user.util.enums.UserRoles;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
-
-import static com.moneyfi.user.util.enums.ReasonEnum.*;
 
 public class StringConstants {
 
@@ -37,7 +32,6 @@ public class StringConstants {
     public static final String INCORRECT_REFERENCE_NUMBER = "Incorrect Reference Number!";
     public static final String REQUEST_NOT_FOUND = "Request details not found";
 
-    public static final String PROFILE_TEMPLATE_NAME = "profile-template";
     public static final String PHONE_NUMBER_DIGITS_ONLY_MESSAGE = "Phone number must contain only digits";
     public static final String PHONE_NUMBER_MAX_LENGTH_MESSAGE = "Phone number should be 10 digits";
     public static final String INVALID_EXCEL_FORMAT = "Invalid excel format";
@@ -53,49 +47,10 @@ public class StringConstants {
     public static final String BLOCKED_BY_USER = "Blocked by User";
 
     public static final Map<String, Integer> templateIdAssociation = Map.of("profile-template", 1);
-    public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name(), 3, UserRoles.DEVELOPER.name(), 4, UserRoles.MAINTAINER.name());
-    public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation =
-            Map.ofEntries(
-                    Map.entry(BLOCK_ACCOUNT, 1),
-                    Map.entry(PASSWORD_CHANGE, 2),
-                    Map.entry(NAME_CHANGE, 3),
-                    Map.entry(UNBLOCK_ACCOUNT, 4),
-                    Map.entry(DELETE_ACCOUNT, 5),
-                    Map.entry(ACCOUNT_RETRIEVAL, 6),
-                    Map.entry(PHONE_NUMBER_CHANGE, 7),
-                    Map.entry(FORGOT_PASSWORD, 8),
-                    Map.entry(USER_RAISED_REQUEST_IGNORED, 9),
-                    Map.entry(FORGOT_USERNAME, 10),
-                    Map.entry(ADMIN_CREATION, 11),
-                    Map.entry(ADMIN_UPDATE, 12),
-                    Map.entry(ADMIN_BLOCK, 13),
-                    Map.entry(ADMIN_UNBLOCK, 14),
-                    Map.entry(ADMIN_DELETE, 15),
-                    Map.entry(ADMIN_RETRIEVAL, 16)
-            );
-    public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
-    public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
+    public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
 
     public static final ObjectMapper objectMapper = new ObjectMapper();
-
-    public static String generateVerificationCode() {
-        Random random = new Random();
-        int verificationCode = 100000 + random.nextInt(900000);
-        return String.valueOf(verificationCode);
-    }
-
-    public static String generateAlphabetCode() {
-        StringBuilder code = new StringBuilder();
-        Random random = new Random();
-
-        for (int i = 0; i < 5; i++) {
-            int index = random.nextInt(ALPHABET.length());
-            code.append(ALPHABET.charAt(index));
-        }
-
-        return code.toString();
-    }
 
     public static String generateFileNameForPictureUpload(Long id, String username, String uploadPurpose) {
         return uploadPurpose + (id) + "_" +

@@ -11,15 +11,15 @@ import com.moneyfi.apigateway.model.gmailsync.GmailAuth;
 import com.moneyfi.apigateway.repository.common.CommonServiceRepository;
 import com.moneyfi.apigateway.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.apigateway.repository.user.*;
+import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.apigateway.repository.user.auth.OtpTempRepository;
 import com.moneyfi.apigateway.repository.user.auth.SessionTokenRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.general.dto.NotificationQueueDto;
 import com.moneyfi.apigateway.util.constants.StringConstants;
-import com.moneyfi.apigateway.util.enums.NotificationQueueEnum;
-import com.moneyfi.apigateway.util.enums.ReasonEnum;
-import com.moneyfi.apigateway.util.enums.UserRoles;
+import com.moneyfi.constants.enums.ReasonEnum;
+import com.moneyfi.constants.enums.UserRoles;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.moneyfi.apigateway.util.constants.StringConstants.userRoleAssociation;
+import static com.moneyfi.constants.constants.CommonConstants.reasonCodeIdAssociation;
+import static com.moneyfi.constants.constants.CommonConstants.userRoleAssociation;
 
 @Service
 @Slf4j
@@ -111,7 +112,7 @@ public class SchedulingService {
                 roleId = it.getKey();
             }
         }
-        List<UserAuthModel> accountDeletedUsersList = userRepository.getDeletedUsersList(roleId, StringConstants.reasonCodeIdAssociation.get(ReasonEnum.DELETE_ACCOUNT));
+        List<UserAuthModel> accountDeletedUsersList = userRepository.getDeletedUsersList(roleId, reasonCodeIdAssociation.get(ReasonEnum.DELETE_ACCOUNT));
         List<UserAuthHist> userAuthHistList = new ArrayList<>();
         List<ContactUs> contactUsList = new ArrayList<>();
         List<ContactUsHist> contactUsHistList = new ArrayList<>();

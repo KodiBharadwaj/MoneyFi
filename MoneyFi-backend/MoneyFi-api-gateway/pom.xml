@@ -188,7 +188,7 @@
         <dependency>
             <groupId>com.kodibharadwaj.moneyfi</groupId>
             <artifactId>moneyfi-constants</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.3-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

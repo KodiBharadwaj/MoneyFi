@@ -1,6 +1,6 @@
 package com.moneyfi.apigateway.config;
 
-import com.moneyfi.apigateway.util.enums.UserRoles;
+import com.moneyfi.constants.enums.UserRoles;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;

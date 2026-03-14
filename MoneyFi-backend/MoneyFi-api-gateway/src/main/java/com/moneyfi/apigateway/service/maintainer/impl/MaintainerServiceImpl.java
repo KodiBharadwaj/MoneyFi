@@ -10,9 +10,9 @@ import com.moneyfi.apigateway.service.maintainer.MaintainerService;
 import com.moneyfi.apigateway.service.maintainer.dto.request.CreateOrUpdateAdminRequestDto;
 import com.moneyfi.apigateway.service.maintainer.dto.response.AdminUsersResponseDto;
 import com.moneyfi.apigateway.util.constants.StringConstants;
-import com.moneyfi.apigateway.util.enums.LoginMode;
-import com.moneyfi.apigateway.util.enums.UserRoles;
 import com.moneyfi.apigateway.validator.UserValidations;
+import com.moneyfi.constants.enums.LoginMode;
+import com.moneyfi.constants.enums.UserRoles;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,9 @@ import java.util.Map;
 import java.util.Objects;
 
 import static com.moneyfi.apigateway.util.constants.StringConstants.*;
-import static com.moneyfi.apigateway.util.enums.ReasonEnum.*;
+import static com.moneyfi.constants.constants.CommonConstants.reasonCodeIdAssociation;
+import static com.moneyfi.constants.constants.CommonConstants.userRoleAssociation;
+import static com.moneyfi.constants.enums.ReasonEnum.*;
 
 @Service
 @Slf4j

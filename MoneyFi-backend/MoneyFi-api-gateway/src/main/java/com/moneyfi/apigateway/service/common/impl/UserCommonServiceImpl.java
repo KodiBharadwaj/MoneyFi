@@ -7,14 +7,14 @@ import com.moneyfi.apigateway.model.auth.SessionTokenModel;
 import com.moneyfi.apigateway.model.auth.UserAuthModel;
 import com.moneyfi.apigateway.model.common.*;
 import com.moneyfi.apigateway.repository.user.*;
+import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.apigateway.repository.user.auth.SessionTokenRepository;
 import com.moneyfi.apigateway.repository.user.auth.TokenBlackListRepository;
 import com.moneyfi.apigateway.repository.user.auth.UserRepository;
 import com.moneyfi.apigateway.service.common.UserCommonService;
 import com.moneyfi.apigateway.service.general.dto.NotificationQueueDto;
-import com.moneyfi.apigateway.util.enums.NotificationQueueEnum;
-import com.moneyfi.apigateway.util.enums.ReasonEnum;
 import com.moneyfi.apigateway.validator.UserValidations;
+import com.moneyfi.constants.enums.ReasonEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -26,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
 import static com.moneyfi.apigateway.util.constants.StringConstants.*;
+import static com.moneyfi.constants.constants.CommonConstants.generateVerificationCode;
+import static com.moneyfi.constants.constants.CommonConstants.reasonCodeIdAssociation;
 
 @Service
 @Slf4j

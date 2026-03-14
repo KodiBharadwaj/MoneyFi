@@ -23,6 +23,7 @@ import com.moneyfi.apigateway.service.userservice.dto.request.*;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import com.moneyfi.apigateway.util.enums.*;
 import com.moneyfi.apigateway.validator.UserValidations;
+import com.moneyfi.constants.enums.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,7 @@ import java.util.*;
 
 import static com.moneyfi.apigateway.util.constants.StringConstants.*;
 import static com.moneyfi.apigateway.util.constants.StringUrls.USER_SERVICE_OPEN_URL;
+import static com.moneyfi.constants.constants.CommonConstants.*;
 
 @Service
 @Slf4j

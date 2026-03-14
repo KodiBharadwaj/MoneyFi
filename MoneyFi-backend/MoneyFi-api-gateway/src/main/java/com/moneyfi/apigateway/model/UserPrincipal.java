@@ -8,8 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
-import static com.moneyfi.apigateway.util.constants.StringConstants.userRoleAssociation;
-
+import static com.moneyfi.constants.constants.CommonConstants.userRoleAssociation;
 
 public class UserPrincipal implements UserDetails {
 

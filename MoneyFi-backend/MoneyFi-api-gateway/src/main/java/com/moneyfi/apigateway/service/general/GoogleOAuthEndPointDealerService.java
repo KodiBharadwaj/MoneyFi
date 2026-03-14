@@ -30,6 +30,7 @@ import java.util.Map;
 
 import static com.moneyfi.apigateway.util.constants.StringConstants.*;
 import static com.moneyfi.apigateway.util.constants.StringUrls.*;
+import static com.moneyfi.constants.constants.CommonConstants.MONEYFI_APPLICATION_NAME;
 
 @Component
 @RequiredArgsConstructor
