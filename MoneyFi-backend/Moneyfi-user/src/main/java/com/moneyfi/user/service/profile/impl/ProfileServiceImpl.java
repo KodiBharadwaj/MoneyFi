@@ -25,6 +25,9 @@ import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.RaiseRequestStatus;
 import com.moneyfi.user.util.enums.RequestReason;
 import com.moneyfi.user.validator.UserValidations;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +60,7 @@ import static com.moneyfi.user.util.constants.StringConstants.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProfileServiceImpl implements ProfileService {
 
     @Value("${spring.profiles.active:}")
@@ -79,7 +83,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ProfileDetailsDto saveUserDetails(Long userId, ProfileModel profile) {
+    @CachePut(value = "UserProfileDetails", key = "#username")
+    public ProfileDetailsDto saveUserDetails(String username, Long userId, ProfileModel profile) {
+        log.info("username: {}", username);
         ProfileModel fetchProfile = profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_DETAILS_NOT_FOUND));
 
         if (!profile.getName().trim().equals(fetchProfile.getName())) {
@@ -105,6 +111,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Cacheable(value = "UserProfileDetails", key = "#username")
     public ProfileDetailsDto getProfileDetailsOfUser(String username) {
         ProfileDetailsDto profileDetailsDto = commonServiceRepository.getProfileDetailsOfUser(username);
         if (profileDetailsDto == null) {
@@ -114,8 +121,11 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Cacheable(value = "userNames", key = "#userId")
     public String getUserDetailsByUserId(Long userId) {
-        return profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_DETAILS_NOT_FOUND)).getName();
+        return profileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_DETAILS_NOT_FOUND))
+                .getName();
     }
 
     @Override

@@ -88,22 +88,14 @@ export class OverviewComponent implements OnInit {
   private loadFinancialData() {
     this.loading = true;
 
-    const storedName = sessionStorage.getItem('moneyfi.user.name');
-    if (storedName !== null) {
-      this.summary.username = storedName;
-    }
-
-    else {
-      this.httpClient.get(`${this.baseUrl}/api/v1/user-service/user/name/get`, {responseType : 'text'}).subscribe({
-        next : (userName : string) => {
-          sessionStorage.setItem('moneyfi.user.name', userName);
-          this.summary.username = userName;
-        },
-        error : (error) => {
-          console.log('Failed to get the user name', error);
-        }
-      })
-    }
+    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/user/name/get`, {responseType : 'text'}).subscribe({
+      next : (userName : string) => {
+        this.summary.username = userName;
+      },
+      error : (error) => {
+        console.log('Failed to get the user name', error);
+      }
+    })
     
     this.httpClient.get<any>(`${this.baseUrl}/api/v1/transaction/overview-details/${this.thisMonth}/${this.thisYear}`).subscribe({
       next : (response) => {
