@@ -24,6 +24,7 @@ import com.moneyfi.user.service.admin.dto.request.ScheduleNotificationRequestDto
 import com.moneyfi.user.service.admin.dto.response.*;
 import com.moneyfi.user.service.common.AwsServices;
 import com.moneyfi.user.service.common.CloudinaryService;
+import com.moneyfi.user.service.common.UserCacheService;
 import com.moneyfi.user.service.common.UserCommonService;
 import com.moneyfi.user.service.common.dto.emaildto.AdminBlockUserDto;
 import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
@@ -32,6 +33,7 @@ import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.AdminValidations;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +70,9 @@ public class AdminServiceImpl implements AdminService {
 
     @Value("${spring.profiles.active:}")
     private String activeProfile;
+
+    @Autowired
+    private UserCacheService userCacheService;
 
     private static final String STATUS_REJECTED = "REJECTED";
     private static final String STATUS_APPROVED = "APPROVED";
@@ -690,6 +695,7 @@ public class AdminServiceImpl implements AdminService {
             requestUserHist.setRequestReason(RequestReason.NAME_CHANGE_REQUEST.name());
             requestUserHist.setMessage("Admin has been approved Name change Request");
             methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
+            userCacheService.updateUserNameCache(user.getId(), requestDetailsHist.getName());
 
             ScheduleNotification scheduleNotification = new ScheduleNotification();
             scheduleNotification.setSubject("Admin has been approved Name change Request");

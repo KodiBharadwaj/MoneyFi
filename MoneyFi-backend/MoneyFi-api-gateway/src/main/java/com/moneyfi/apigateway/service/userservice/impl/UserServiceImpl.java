@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -70,6 +71,8 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private RestTemplate externalRestTemplateForOAuth;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     private static final String GOOGLE_AUTH_CONSTANT_PASSWORD = null;
     private static final String GITHUB_AUTH_CONSTANT_PASSWORD = null;
@@ -422,8 +425,10 @@ public class UserServiceImpl implements UserService {
     public Map<String, String> logout(String token) {
         Map<String, String> response = new HashMap<>();
         String username = jwtService.extractUserName(token);
-        userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         makeGmailAuthInactiveForUser(getUserIdByUsername(username));
+        removeUserNameFromRedisCache(user.getId());
+        removeUserProfileDetailsFromRedisCache(user.getUsername());
         if (makeUserTokenBlacklisted(token, username) != null && makeUserSessionInActive(token) != null) {
             response.put(MESSAGE, LOGOUT_SUCCESS_MESSAGE);
         } else {
@@ -565,5 +570,13 @@ public class UserServiceImpl implements UserService {
         SessionTokenModel sessionTokens = userCommonService.getSessionDetailsByToken(token);
         sessionTokens.setIsActive(Boolean.FALSE);
         return userCommonService.save(sessionTokens);
+    }
+
+    private void removeUserNameFromRedisCache(Long userId) {
+        redisTemplate.delete("userNames::" + userId);
+    }
+
+    private void removeUserProfileDetailsFromRedisCache(String username) {
+        redisTemplate.delete("UserProfileDetails::" + username);
     }
 }

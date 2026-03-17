@@ -52,8 +52,8 @@ public class UserController {
     @PostMapping("/profile-details/save")
     public ResponseEntity<ProfileDetailsDto> saveProfileDetails(@RequestHeader("Authorization") String authHeader,
                                                                 @RequestBody ProfileModel profile){
-        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return ResponseEntity.ok(profileService.saveUserDetails(userId, profile));
+        String username = jwtService.extractUsernameFromToken(authHeader.substring(7));
+        return ResponseEntity.ok(profileService.saveUserDetails(username, jwtService.extractUserIdFromToken(authHeader.substring(7)), profile));
     }
 
     @Operation(summary = "Api to get profile details of a user")
