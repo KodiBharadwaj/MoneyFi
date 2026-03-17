@@ -31,6 +31,16 @@ spring:
       hibernate:
         format_sql: true
 
+  #Redis Configuration
+  data:
+    redis:
+      url: ${REDIS_URL}
+      timeout: 5s
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000
+
 jwt:
   secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
 
