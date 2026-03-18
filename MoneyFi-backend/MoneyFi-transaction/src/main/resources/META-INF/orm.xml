@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="https://jakarta.ee/xml/ns/persistence/orm"
+                 version="3.0">
+
+    <named-native-query name="getGmailSyncAddedIncomes"
+                        result-class="com.moneyfi.transaction.model.income.IncomeModel">
+        <query>
+            <![CDATA[
+            SELECT it.*
+            FROM income_table it WITH (NOLOCK)
+            WHERE it.user_id = :userId
+            AND it.entry_mode = 'GMAIL_SYNC'
+            AND CAST(it.gmail_sync_date AS DATE) = :date
+            ]]>
+        </query>
+    </named-native-query>
+
+    <named-native-query name="getGmailSyncAddedExpenses"
+                        result-class="com.moneyfi.transaction.model.expense.ExpenseModel">
+        <query>
+            <![CDATA[
+            SELECT et.*
+            FROM expense_table et WITH (NOLOCK)
+            WHERE et.user_id = :userId
+            AND et.entry_mode = 'GMAIL_SYNC'
+            AND CAST(et.gmail_sync_date AS DATE) = :date
+            ]]>
+        </query>
+    </named-native-query>
+
+    <named-native-query name="getCategoryNameByCategoryId"
+                        result-class="java.lang.String">
+        <query>
+            <![CDATA[
+            SELECT clt.category
+            FROM category_list_table clt
+            WHERE clt.id = :categoryId
+        ]]>
+        </query>
+    </named-native-query>
+
+</entity-mappings>

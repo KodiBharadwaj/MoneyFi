@@ -10,17 +10,21 @@ import java.util.Optional;
 
 public interface BudgetRepository extends JpaRepository<BudgetModel, Long> {
 
+    /** JPQL */
+    @Query("SELECT b FROM BudgetModel b where b.userId = :userId")
+    Optional<List<BudgetModel>> findByUserId(Long userId);
+
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec getTotalExpenseInMonthAndYear @userId = :userId, " +
             "@month = :month, @year = :year")
     BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year);
 
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec getTotalIncomeInMonthAndYear @userId = :userId, " +
             "@month = :month, @year = :year")
     BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year);
 
+    /** SP Call */
     @Query(nativeQuery = true, value =  "exec getUserIdFromUsernameAndToken @username = :username, @token = :token")
     Long getUserIdFromUsernameAndToken(String username, String token);
-
-    @Query("SELECT b FROM BudgetModel b where b.userId = :userId")
-    Optional<List<BudgetModel>> findByUserId(Long userId);
 }

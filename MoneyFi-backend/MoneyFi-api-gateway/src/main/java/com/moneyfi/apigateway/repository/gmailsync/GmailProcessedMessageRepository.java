@@ -9,8 +9,10 @@ import java.util.Optional;
 @Repository
 public interface GmailProcessedMessageRepository extends JpaRepository<GmailProcessedMessageEntity, Long> {
 
+    /** Spring JPA */
     Optional<GmailProcessedMessageEntity> findByMessageIdAndUserId(String messageId, Long userId);
 
+    /** Spring JPA */
     Optional<GmailProcessedMessageEntity> findByMessageId(String messageId);
 }
 

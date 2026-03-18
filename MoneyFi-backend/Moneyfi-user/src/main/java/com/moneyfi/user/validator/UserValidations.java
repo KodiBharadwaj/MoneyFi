@@ -8,10 +8,12 @@ import com.moneyfi.user.service.common.dto.request.AccountBlockOrDeleteRequestDt
 import com.moneyfi.user.service.common.dto.request.GmailSyncCountIncreaseRequestDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.AccDeactivationType;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 public class UserValidations {
 
     private UserValidations() {}
@@ -66,7 +68,7 @@ public class UserValidations {
             throw new ScenarioNotPossibleException("Reason should not be empty");
         }
         Integer currentCount = profileRepository.getUserGmailAuthSyncCurrentCount(userId);
-        System.out.println("checking count: " + currentCount);
+        log.info("checking count: {}", currentCount);
         if (ObjectUtils.isEmpty(currentCount)) {
             throw new ScenarioNotPossibleException("Gmail consent details not found");
         } else {

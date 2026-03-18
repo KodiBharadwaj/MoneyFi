@@ -1,7 +1,7 @@
 package com.moneyfi.user.repository;
 
 import com.moneyfi.user.model.ExcelTemplate;
-import com.moneyfi.user.model.dto.interfaces.ExcelTemplateListProjection;
+import com.moneyfi.user.service.admin.dto.response.ExcelTemplateList;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,19 +13,11 @@ import java.util.Optional;
 @Repository
 public interface ExcelTemplateRepository extends JpaRepository<ExcelTemplate, Integer> {
 
+    /** JPQL */
     @Query("SELECT e FROM ExcelTemplate e WHERE e.name = :fileName")
     Optional<ExcelTemplate> findByName(@Param("fileName") String fileName);
 
-    @Query(nativeQuery = true, value = """
-            SELECT et.name AS excelType
-            	,et.content AS excelFile
-            	,uatA.username AS createdBy
-            	,uatB.username AS updatedBy
-            	,et.created_time AS createdAt
-            	,et.updated_time AS updatedAt
-            FROM excel_template et WITH (NOLOCK)
-            INNER JOIN user_auth_table uatA WITH (NOLOCK) ON uatA.id = et.created_by
-            INNER JOIN user_auth_table uatB WITH (NOLOCK) ON uatB.id = et.updated_by
-            """)
-    List<ExcelTemplateListProjection> getAllExcelTemplateList();
+    /** ORM Mapping */
+    @Query(name = "getAllExcelTemplatesList", nativeQuery = true)
+    List<ExcelTemplateList> getAllExcelTemplateList();
 }

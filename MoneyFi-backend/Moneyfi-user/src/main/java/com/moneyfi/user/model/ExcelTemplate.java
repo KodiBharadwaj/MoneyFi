@@ -1,5 +1,6 @@
 package com.moneyfi.user.model;
 
+import com.moneyfi.user.service.admin.dto.response.ExcelTemplateList;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,6 +15,20 @@ import java.time.LocalDateTime;
 @Data
 @Builder(toBuilder = true)
 @Table(name = "excel_template")
+@SqlResultSetMapping(
+        name = "ExcelTemplateListMapping",
+        classes = @ConstructorResult(
+                targetClass = ExcelTemplateList.class,
+                columns = {
+                        @ColumnResult(name = "excelType", type = String.class),
+                        @ColumnResult(name = "excelFile", type = byte[].class),
+                        @ColumnResult(name = "createdBy", type = String.class),
+                        @ColumnResult(name = "updatedBy", type = String.class),
+                        @ColumnResult(name = "createdAt", type = LocalDateTime.class),
+                        @ColumnResult(name = "updatedAt", type = LocalDateTime.class)
+                }
+        )
+)
 public class ExcelTemplate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

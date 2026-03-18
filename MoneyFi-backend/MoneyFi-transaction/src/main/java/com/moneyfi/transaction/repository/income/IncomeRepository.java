@@ -12,34 +12,43 @@ import java.util.List;
 
 public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
 
+    /** JPQL */
     @Query("SELECT i FROM IncomeModel i WHERE i.userId = :userId")
     List<IncomeModel> findIncomesOfUser(Long userId);
 
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec getMonthlyIncomesListInAYear @userId = :userId, " +
             "@year = :year, @deleteStatus = :deleteStatus")
     List<Object[]> findMonthlyIncomes(Long userId, int year, boolean deleteStatus);
 
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec getIncomeBySourceAndCategory @userId = :userId, " +
             "@source = :source, @categoryId = :categoryId, @date = :date")
     IncomeModel getIncomeBySourceAndCategory(Long userId, String source, Integer categoryId, LocalDateTime date);
 
+    /** JPQL */
     @Query("SELECT i.amount FROM IncomeModel i WHERE i.id = :incomeId")
     BigDecimal getIncomeByIncomeId(Long incomeId);
 
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec getTotalIncomeInMonthAndYear @userId = :userId, " +
             "@month = :month, @year = :year")
     BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year);
 
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec getTotalExpenseInMonthAndYear @userId = :userId, " +
             "@month = :month, @year = :year")
     BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year);
 
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec getAvailableBalanceOfUser @userId = :userId")
     BigDecimal getAvailableBalanceOfUser(Long userId);
 
+    /** SP Call */
     @Query(nativeQuery = true, value =  "exec getUserIdFromUsernameAndToken @username = :username, @token = :token")
     Long getUserIdFromUsernameAndToken(String username, String token);
 
+    /** SQL Native Query */
     @Query(
             value = "SELECT clt.category, " +
                     "CAST(SUM(CAST(it.amount AS DECIMAL(18,2))) AS DECIMAL(18,2)) AS totalAmount " +
@@ -53,20 +62,11 @@ public interface IncomeRepository extends JpaRepository<IncomeModel, Long> {
     )
     List<Object[]> getTotalIncomeInSpecifiedRange(@Param("userId") Long userId, @Param("fromDate") LocalDateTime fromDate, @Param("toDate") LocalDateTime toDate);
 
-    @Query(
-            value = "SELECT it.* " +
-                    "FROM income_table it WITH (NOLOCK) " +
-                    "WHERE it.user_id = :userId " +
-                    "AND it.entry_mode = 'GMAIL_SYNC' " +
-                    "AND CAST(it.gmail_sync_date AS DATE) = :date ",
-            nativeQuery = true)
-    List<IncomeModel> getGmailSyncAddedIncomes(Long userId, LocalDate date);
-
-    @Query(
-            value = "SELECT clt.category " +
-                    "FROM category_list_table clt " +
-                    "WHERE clt.id = :categoryId ",
-            nativeQuery = true
-    )
+    /** ORM Mapping */
+    @Query(name = "getCategoryNameByCategoryId", nativeQuery = true)
     String getCategoryNameById(Integer categoryId);
+
+    /** ORM Mapping */
+    @Query(name = "getGmailSyncAddedIncomes", nativeQuery = true)
+    List<IncomeModel> getGmailSyncAddedIncomes(Long userId, LocalDate date);
 }

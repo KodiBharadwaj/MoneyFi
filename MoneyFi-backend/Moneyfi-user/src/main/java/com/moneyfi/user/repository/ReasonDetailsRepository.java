@@ -8,5 +8,7 @@ import java.util.List;
 
 @Repository
 public interface ReasonDetailsRepository extends JpaRepository<ReasonDetails, Integer> {
+
+    /** Spring JPA */
     List<ReasonDetails> findByReasonCode(int reasonCode);
 }
