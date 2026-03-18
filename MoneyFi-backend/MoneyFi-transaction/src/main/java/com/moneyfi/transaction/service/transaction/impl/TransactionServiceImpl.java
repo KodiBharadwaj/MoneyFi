@@ -131,7 +131,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public GmailSyncTransactionsResponse getGmailSyncAddedTransactions(Long userId, LocalDate date) {
         return new GmailSyncTransactionsResponse(
                 incomeRepository.getGmailSyncAddedIncomes(userId, date)

@@ -11,8 +11,10 @@ import java.util.Optional;
 @Repository
 public interface GmailSyncRepository extends JpaRepository<GmailAuth, Long> {
 
+    /** Spring JPA */
     Optional<GmailAuth> findByUserId(Long userId);
 
+    /** JPQL */
     @Query("SELECT g from GmailAuth g WHERE g.count >= 3")
     List<GmailAuth> getTransactionsListWhoseCountIsGreaterThanThree();
 }

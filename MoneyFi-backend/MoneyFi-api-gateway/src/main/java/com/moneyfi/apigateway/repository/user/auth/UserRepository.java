@@ -9,24 +9,33 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
 
+    /** Spring JPA */
+    List<UserAuthModel> findByRoleId(int roleId);
+
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec getUserAuthDetailsListWhoseOtpCountGreaterThanThree @startOfToday = :startOfToday")
     List<UserAuthModel> getUserListWhoseOtpCountGreaterThanThree(LocalDateTime startOfToday);
 
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec getUserAuthDetailsByUsername @username = :email")
     Optional<UserAuthModel> getUserDetailsByUsername(String email);
 
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec updateRecurringIncomesAndExpenses")
     @Transactional
     @Modifying
     void updateRecurringIncomesAndExpenses();
 
+    /** SQL Native Query */
     @Query(value = """
             SELECT uat.*
             FROM user_auth_table uat WITH (NOLOCK)
@@ -46,6 +55,7 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
                  )""", nativeQuery = true)
     List<UserAuthModel> getDeletedUsersList(@Param("roleId") int roleId, @Param("reasonTypeId") int reasonTypeId);
 
+    /** SQL Native Query */
     @Modifying
     @Transactional
     @Query(value = """
@@ -57,6 +67,7 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
             """, nativeQuery = true)
     void deleteIncomeExpenseBudgetGoalsOfDeletedUsers(List<Long> list);
 
+    /** SQL Native Query */
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value = """
@@ -65,14 +76,7 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
             """)
     void insertProfileDetailsDuringSignup(@Param("userId") Long userId, @Param("name") String name, @Param("createdTime") LocalDateTime createdTime, @Param("address") String address);
 
-    @Query(nativeQuery = true, value = """
-            SELECT updt.name FROM
-            user_profile_details_table updt WITH (NOLOCK)
-            INNER JOIN user_auth_table uat WITH (NOLOCK) ON uat.id = updt.user_id
-            WHERE uat.username = :username
-            """)
-    String getUserNameByUsername(@Param("username") String username);
-
+    /** SQL Native Query */
     @Query(nativeQuery = true, value = """
             SELECT cut.* 
             FROM contact_us_table cut WITH (NOLOCK)
@@ -80,6 +84,7 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
             """)
     List<ContactUsProjection> getContactUsRecordsByUsername(@Param("username") String username);
 
+    /** SQL Native Query */
     @Query(nativeQuery = true, value = """
             SELECT updt.* 
             FROM user_profile_details_table updt WITH (NOLOCK)
@@ -87,6 +92,7 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
             """)
     List<ProfileDetailsProjection> getUserProfileDetailsByUserId(@Param("userId") Long userId);
 
+    /** SQL Native Query */
     @Query(nativeQuery = true, value = """
             SELECT cuth.* 
             FROM contact_us_table_hist cuth WITH (NOLOCK)
@@ -94,5 +100,7 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
             """)
     List<ContactUsHistProjection> getContactUsHistoryDetailsByContactUsId(@Param("contactUsId") Long contactUsId);
 
-    List<UserAuthModel> findByRoleId(int roleId);
+    /** ORM Mapping */
+    @Query(name = "UserProfile.getUserNameByUsername", nativeQuery = true)
+    String getUserNameByUsername(@Param("username") String username);
 }

@@ -8,5 +8,7 @@ import java.util.List;
 
 @Repository
 public interface GmailSyncHistoryRepository extends JpaRepository<GmailSyncHistory, Long> {
+
+    /** Spring JPA */
     List<GmailSyncHistory> findByUserId(Long userId);
 }

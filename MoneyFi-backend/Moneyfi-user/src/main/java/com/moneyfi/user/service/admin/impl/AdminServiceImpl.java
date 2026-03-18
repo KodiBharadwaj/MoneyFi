@@ -11,7 +11,6 @@ import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.*;
 import com.moneyfi.user.model.dto.UserAuthHist;
 import com.moneyfi.user.model.dto.UserAuthModel;
-import com.moneyfi.user.model.dto.interfaces.ExcelTemplateListProjection;
 import com.moneyfi.user.model.dto.interfaces.UserAuthHistProjection;
 import com.moneyfi.user.repository.*;
 import com.moneyfi.user.repository.admin.AdminRepository;
@@ -194,6 +193,7 @@ public class AdminServiceImpl implements AdminService {
     public void updateDefectStatus(Long defectId, String status, String reason, Long adminUserId) {
         ContactUs userDefect = contactUsRepository.findById(defectId).orElseThrow(() -> new ResourceNotFoundException("User defect details not found"));
         ProfileModel userProfile = profileRepository.findByUserEmail(userDefect.getEmail()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
+        log.info("User Profile details: {}", userProfile);
         if (userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) ||
                 userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.IGNORED.name()) ||
                 userDefect.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name())) {
@@ -524,18 +524,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<ExcelTemplateList> getAllExcelTemplates() {
-        List<ExcelTemplateListProjection> templatesList = excelTemplateRepository.getAllExcelTemplateList();
-        return templatesList.stream()
-                .map(template ->
-                        ExcelTemplateList.builder()
-                            .excelFile(template.getExcelFile())
-                            .excelType(template.getExcelType())
-                            .createdBy(template.getCreatedBy())
-                            .createdAt(template.getCreatedAt())
-                            .updatedBy(template.getUpdatedBy())
-                            .updatedAt(template.getUpdatedAt())
-                            .build()
-                ).toList();
+        return excelTemplateRepository.getAllExcelTemplateList();
     }
 
     private void functionCallToUpdateExcelTemplate(Long adminUserId, String fileName, MultipartFile file) throws IOException {
