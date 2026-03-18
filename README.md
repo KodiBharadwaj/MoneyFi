@@ -42,8 +42,8 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 | Cloud         | AWS, GCP                        |
 | Security Login  | Spring Security Login, JWT, Google Oauth, Github Oauth |
 | Free Sources Used | Render(Backend), Netlify(UI), Free Hosting(DB) |
-| Other Tech Used   | Docker, Gemini Api, Eureka, SonarQube, Feign, Git, Github, Postgres, Swagger |
-| Tools Used   | Intellij Idea, VS code, SSMS, Postman, PG Admin, Redis Insight |
+| Other Tech Used   | Docker, Gemini Api, Eureka, SonarQube, Feign, Git, Github, Postgres, Swagger, Github Packages |
+| Tools Used   | Intellij Idea, VS code, SSMS, Postman, PG Admin, Redis Insight, |
 
 ---
 
