@@ -110,13 +110,17 @@ export class GmailSyncSummaryComponent implements OnInit {
       });
   }
 
+  remainingSyncCount: number = 0;
   checkGmailSyncStatus() {
     this.httpClient
       .get<number>(`${this.baseUrl}/api/v1/gmail-sync/status`)
       .subscribe((res) => {
-        if(res === null) {
+        this.remainingSyncCount = 3 - res || 0;
+        if (res === null) {
           this.isGmailConnected = false;
-        } else this.isGmailConnected = true;
+        } else {
+          this.isGmailConnected = true;
+        }
         this.gmailSyncEnabled = res >= 3;
       });
   }

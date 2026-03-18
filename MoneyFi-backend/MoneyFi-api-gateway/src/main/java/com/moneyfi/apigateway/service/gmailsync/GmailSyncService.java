@@ -88,7 +88,7 @@ public class GmailSyncService {
 
         if (gmailAuth.isPresent()) {
             Integer count = gmailAuth.get().getCount() != null ? gmailAuth.get().getCount() : null;
-            if (Boolean.TRUE.equals(gmailAuth.get().getIsActive()) || (count != null && count >= 3)) return count;
+            if (Boolean.TRUE.equals(gmailAuth.get().getIsActive()) || (count != null)) return count;
         }
         return null;
     }

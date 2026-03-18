@@ -143,7 +143,7 @@ public class TransactionServiceImpl implements TransactionService {
                                 .date(income.getDate() == null ? null : Date.from(income.getDate().atZone(ZoneId.systemDefault()).toInstant()))
                                 .category(incomeRepository.getCategoryNameById(income.getCategoryId()))
                                 .recurring(income.isRecurring())
-                                .description(income.getDescription())
+                                .description(income.getSource())
                                 .activeStatus(income.isDeleted() ? ActiveStatus.DELETED.name() : income.getCreatedAt().equals(income.getUpdatedAt()) ? ActiveStatus.ACTIVE.name() : ActiveStatus.EDITED.name())
                                 .build()
                         )
