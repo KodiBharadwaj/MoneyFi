@@ -190,9 +190,11 @@ public class AdminController {
 
     @Operation(summary = "Api to get all the schedules for admin screen")
     @GetMapping("/schedule-notifications/get")
-    public ResponseEntity<List<AdminSchedulesResponseDto>> getAllActiveSchedulesOfAdmin(@RequestParam(value = "status") String status,
+    public ResponseEntity<List<AdminSchedulesResponseDto>> getAllActiveSchedulesOfAdmin(@RequestHeader("Authorization") String authHeader,
+                                                                                        @RequestParam(value = "status") String status,
                                                                                         @RequestParam(value = "mode") String operationMode){
-        return ResponseEntity.ok(adminService.getAllActiveSchedulesOfAdmin(status, operationMode));
+        String adminUsername = jwtService.extractUsernameFromToken(authHeader.substring(7));
+        return ResponseEntity.ok(adminService.getAllActiveSchedulesOfAdmin(status, operationMode, adminUsername));
     }
 
     @Operation(summary = "Api to cancel the user scheduling")

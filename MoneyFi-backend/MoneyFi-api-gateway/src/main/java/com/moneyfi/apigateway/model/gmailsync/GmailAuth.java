@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -37,4 +38,12 @@ public class GmailAuth {
 
     @Column(name = "is_active")
     private Boolean isActive;
+
+    @Column(name = "sync_reset_at")
+    private LocalDateTime syncResetAt;
+
+    @PrePersist
+    private void function() {
+        this.syncResetAt = LocalDateTime.now();
+    }
 }

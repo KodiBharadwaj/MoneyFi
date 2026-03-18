@@ -73,7 +73,7 @@ export class UserConfigurationComponent implements AfterViewInit{
 
   changeMyName() {
     
-    this.http.get(`${this.baseUrl}/api/v1/user/get-username`, { responseType: 'text' }).subscribe({
+    this.http.get(`${this.baseUrl}/api/v1/common/get-username`, { responseType: 'text' }).subscribe({
       next: (data: string) => {
         this.username = data;
         this.callNameChangeRequestMethod(this.username);
@@ -157,7 +157,7 @@ export class UserConfigurationComponent implements AfterViewInit{
   email: string = '';
   resendOtp(type: string) {
     this.loadingResendOtp = true;
-    this.http.get(`${this.baseUrl}/api/v1/user/get-username`, { responseType: 'text' }).subscribe({
+    this.http.get(`${this.baseUrl}/api/v1/common/get-username`, { responseType: 'text' }).subscribe({
       next: (data: string) => {
         this.email = data;
 

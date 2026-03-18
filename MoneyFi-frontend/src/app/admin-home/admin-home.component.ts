@@ -53,14 +53,26 @@ export class AdminHomeComponent implements OnInit {
   baseUrl = environment.BASE_URL;
 
   constructor(private adminService: AdminService, private router:Router, private dialog: MatDialog, 
-      private route: ActivatedRoute, private httpClient:HttpClient,
-    private toastr: ToastrService) {}
+    private httpClient:HttpClient, private toastr: ToastrService) {}
 
-    mode: string = 'MANUAL'; // default
+    mode: string = 'MANUAL';
+    username = '';
 
   ngOnInit(): void {
     this.fetchCounts();
     this.getAdminScheduledNotifications();
+    this.getUsernameByToken();
+  }
+
+  getUsernameByToken() {
+    this.httpClient.get(`${this.baseUrl}/api/v1/common/get-username`, { responseType: 'text' }).subscribe({
+      next: (data: string) => {
+        this.username = data;
+      },
+      error: (err) => {
+        console.error('Error fetching username', err);
+      }
+    });
   }
 
   getAdminScheduledNotifications() {

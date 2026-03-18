@@ -36,4 +36,11 @@ public class CommonController {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         return ResponseEntity.ok(userService.updateUserSessionExpirationTime(minutes, username, authHeader.substring(7)));
     }
+
+    @Operation(summary = "Api to get the username from token and simply return")
+    @GetMapping("/get-username")
+    public ResponseEntity<String> getUsername(Authentication authentication){
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        return ResponseEntity.ok(username);
+    }
 }

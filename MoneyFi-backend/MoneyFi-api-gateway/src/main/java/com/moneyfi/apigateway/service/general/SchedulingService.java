@@ -77,10 +77,15 @@ public class SchedulingService {
 
         /** Scheduling algorithm to remove the previous day otp count which are greater than three in gmail auth table **/
         List<GmailAuth> gmailAuthListToBeUpdated = new ArrayList<>();
-        List<GmailAuth> gmailAuthList = gmailSyncRepository.findAll();
+        List<GmailAuth> gmailAuthList = gmailSyncRepository.findAll().stream()
+                .filter(gmailAuth -> gmailAuth.getSyncResetAt() != null
+                        && !gmailAuth.getSyncResetAt().toLocalDate().equals(LocalDate.now())
+                        && !gmailAuth.getCount().equals(0))
+                .toList();
         for(GmailAuth gmailAuth : gmailAuthList) {
             gmailAuth.setCount(0);
             gmailAuth.setIsActive(Boolean.FALSE);
+            gmailAuth.setSyncResetAt(LocalDateTime.now());
             gmailAuthListToBeUpdated.add(gmailAuth);
         }
         gmailSyncRepository.saveAll(gmailAuthListToBeUpdated);
