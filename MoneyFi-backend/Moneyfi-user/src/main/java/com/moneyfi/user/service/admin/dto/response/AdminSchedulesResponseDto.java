@@ -2,7 +2,6 @@ package com.moneyfi.user.service.admin.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.moneyfi.user.util.enums.TargetUsersForScheduleNotification;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,4 +28,6 @@ public class AdminSchedulesResponseDto {
     private Timestamp scheduleFrom;
     @JsonFormat(pattern = DATE_TIME_PATTERN)
     private Timestamp scheduleTo;
+    private String scheduleCreatedBy;
+    private String scheduleUpdatedBy;
 }

@@ -443,7 +443,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status, String operationMode) {
+    public List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status, String operationMode, String adminUsername) {
         return adminRepository.getAllActiveSchedulesOfAdmin(status, operationMode.toUpperCase()).stream()
                 .map(schedule -> {
                     if (schedule.getRecipients().equalsIgnoreCase(TargetUsersForScheduleNotification.ALL.name())) {
@@ -452,6 +452,8 @@ public class AdminServiceImpl implements AdminService {
                         schedule.setRecipentList(Arrays.stream(schedule.getRecipients().split(",")).toList());
                         schedule.setRecipients(TargetUsersForScheduleNotification.SPECIFIC.getTargetUser());
                     }
+                    if (schedule.getScheduleCreatedBy().equals(adminUsername)) schedule.setScheduleCreatedBy("You(" + schedule.getScheduleCreatedBy() + ")");
+                    if (schedule.getScheduleUpdatedBy().equals(adminUsername)) schedule.setScheduleUpdatedBy("You(" + schedule.getScheduleUpdatedBy() + ")");
                     return schedule;
                 }).toList();
     }

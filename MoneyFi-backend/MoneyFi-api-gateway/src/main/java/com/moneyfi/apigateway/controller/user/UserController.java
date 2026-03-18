@@ -28,13 +28,6 @@ public class UserController {
         return null;
     }
 
-    @Operation(summary = "Api to get the username from token and simply return")
-    @GetMapping("/get-username")
-    public ResponseEntity<String> getUsername(Authentication authentication){
-        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        return ResponseEntity.ok(username);
-    }
-
     @Operation(summary = "Api to change password for logged in user")
     @PostMapping("/change-password")
     public void changePassword(Authentication authentication,

@@ -52,7 +52,7 @@ public interface AdminService {
 
     void scheduleNotification(@Valid ScheduleNotificationRequestDto requestDto, Long adminUserId);
 
-    List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status, String operationMode);
+    List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status, String operationMode, String adminUsername);
 
     void cancelTheUserScheduling(Long scheduleId, Long adminUserId);
 
