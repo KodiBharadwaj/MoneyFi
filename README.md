@@ -36,10 +36,11 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 | File Storage  | AWS S3, Cloudinary             |
 | Service Communications  | Kafka, Rest Template |
 | Queue Communications | Rabbit MQ, Artemis       |
-| Caching | Redis(Distributed), Caffeine(In memory) UI Caching                    |
+| Caching | Redis(Distributed), Caffeine(In memory), UI Caching                    |
 | Realtime Notifications | Java SSE (Server Side Emitter) |
 | Reporting     | Apache POI (Excel), iText (PDF) |
 | Cloud         | AWS, GCP                        |
+| Security Login  | Spring Security Login, JWT, Google Oauth, Github Oauth |
 | Free Sources Used | Render(Backend), Netlify(UI), Free Hosting(DB) |
 | Other Used   | Docker, Gemini Api, Eureka, Postman, SonarQube, Feign, Git, Github, Postgres |
 
