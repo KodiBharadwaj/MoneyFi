@@ -1,6 +1,6 @@
 package com.moneyfi.apigateway.config;
 
-import com.moneyfi.apigateway.util.enums.UserRoles;
+import com.moneyfi.constants.enums.UserRoles;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -75,6 +75,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/user-service/admin/**").hasRole(UserRoles.ADMIN.name())
                         .requestMatchers("/api/v1/user-service/external-api/**").hasRole(UserRoles.USER.name())
                         .requestMatchers("/api/v1/user-service/user/**").hasRole(UserRoles.USER.name())
+                        .requestMatchers("/api/v1/user-service/common/**").hasAnyRole(UserRoles.USER.name(), UserRoles.ADMIN.name())
                         .anyRequest().hasAnyRole(UserRoles.USER.name()))
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

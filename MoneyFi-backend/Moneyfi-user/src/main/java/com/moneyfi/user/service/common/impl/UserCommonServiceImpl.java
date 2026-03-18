@@ -2,8 +2,12 @@ package com.moneyfi.user.service.common.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.moneyfi.constants.enums.OtpType;
+import com.moneyfi.constants.enums.ReasonEnum;
+import com.moneyfi.constants.enums.UserRoles;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
+import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.user.model.*;
 import com.moneyfi.user.model.dto.OtpTempModel;
 import com.moneyfi.user.model.dto.UserAuthHist;
@@ -26,7 +30,8 @@ import com.moneyfi.user.service.common.dto.response.UserRequestStatusDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.UserValidations;
-import jakarta.transaction.Transactional;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,6 +54,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.moneyfi.constants.constants.CommonConstants.*;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 import static com.moneyfi.user.util.constants.StringUrls.DAILY_QUOTE_EXTERNAL_API_URL;
 
@@ -103,7 +109,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private static final String USER_IS_NOT_BLOCKED_TODO_THIS = "User is not blocked to perform this operation";
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email) {
         UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
         Map<Boolean, String> response = new HashMap<>();
@@ -136,7 +142,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 requestDetails.get().setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
                 savedRequest = contactUsRepository.save(requestDetails.get());
             } else {
-                referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
+                referenceNumber = generateAlphabetCode() + generateVerificationCode();
                 ContactUs saveRequest = new ContactUs();
                 saveRequest.setEmail(email);
                 saveRequest.setReferenceNumber(referenceNumber);
@@ -177,9 +183,10 @@ public class UserCommonServiceImpl implements UserCommonService {
                 referenceNumber = requestDetails.get().getReferenceNumber();
                 requestDetails.get().setRequestStatus(RaiseRequestStatus.INITIATED.name());
                 requestDetails.get().setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
+                requestDetails.get().setStartTime(LocalDateTime.now());
                 savedRequest = contactUsRepository.save(requestDetails.get());
             } else {
-                referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
+                referenceNumber = generateAlphabetCode() + generateVerificationCode();
                 ContactUs saveRequest = new ContactUs();
                 saveRequest.setEmail(email);
                 saveRequest.setReferenceNumber(referenceNumber);
@@ -210,7 +217,7 @@ public class UserCommonServiceImpl implements UserCommonService {
                 throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size() == 1 ? REFERENCE_NUMBER_SENT :
                         DETAILS_ALREADY_SUBMITTED);
             }
-            String referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
+            String referenceNumber = generateAlphabetCode() + generateVerificationCode();
             applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + "change name" + "<|>" + referenceNumber));
             ContactUs saveRequest = new ContactUs();
             saveRequest.setEmail(email);
@@ -238,7 +245,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void accountReactivateRequestByUser(AccountRetrieveRequestDto requestDto) {
         String requestReason;
         ContactUsHist userRequestHist = new ContactUsHist();
@@ -277,7 +284,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void nameChangeRequestByUser(NameChangeRequestDto requestDto) {
         if (requestDto.getDescription() == null || requestDto.getDescription().trim().isEmpty()) {
             throw new ScenarioNotPossibleException("Description can't be empty");
@@ -354,7 +361,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void saveUserNotificationsForParticularUsers(String recipients, Long scheduleId) {
         List<UserNotification> userNotificationListForSpecifiedUsers = new ArrayList<>();
         Arrays.stream(recipients.split(","))
@@ -472,7 +479,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void updateUserNotificationSeenStatus(String username, String notificationIds) {
         List<UserNotification> userNotificationListToUpdate = new ArrayList<>();
         Arrays.stream(notificationIds.split(","))
@@ -500,7 +507,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<String> blockOrDeleteAccountByUserRequest(String username, AccountBlockOrDeleteRequestDto request) {
         UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(username.trim()).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
         UserValidations.userAccountDeactivationInputValidation(request);
@@ -521,7 +528,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             UserValidations.otpCheckDuringAccountDeactivationValidations(request, response, user);
 
             ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
-            String referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
+            String referenceNumber = generateAlphabetCode() + generateVerificationCode();
 
             ContactUs accountDeactivationRequest = new ContactUs();
             UserAuthHist userAuthHist = new UserAuthHist();
@@ -607,7 +614,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void userRequestToIncreaseGmailSyncDailyCount(GmailSyncCountIncreaseRequestDto request, MultipartFile image, String username) throws IOException {
         UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
         UserValidations.validateUserGmailSyncCountIncreaseRequest(request, profileRepository, user.getId());
@@ -619,7 +626,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         }
 
         ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
-        String referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
+        String referenceNumber = generateAlphabetCode() + generateVerificationCode();
 
         ContactUs contactUs = new ContactUs();
         contactUs.setEmail(username);

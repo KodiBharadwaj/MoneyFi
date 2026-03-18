@@ -1,0 +1,108 @@
+<div class="admin-container">
+  <nav class="top-nav">
+    <div class="brand">MoneyFi Admin</div>
+  </nav>
+
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="side-nav">
+      <ul class="nav-list">
+        <li routerLink="/admin/home">Dashboard</li>
+        <li [routerLink]="['/admin/users', 'All']">Total Users</li>
+        <li [routerLink]="['/admin/requests', 'All']">User Requests</li>
+        <li routerLink="/admin/user-defects">User Issues</li>
+        <li routerLink="/admin/feedbacks">User Feedbacks</li>
+        <li routerLink="/admin/insights">Insights/Charts</li>
+        <li routerLink="/admin/configuration">Configuration</li>
+      </ul>
+
+      <ul class="logout-list">
+        <li (click)="logoutUser()">Logout</li>
+      </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <div class="header-row">
+        <h2>Excel Templates</h2>
+
+        <button class="add-btn" (click)="openUpload()">Add Excel Template</button>
+      </div>
+
+      <table class="template-table">
+        <thead>
+          <tr>
+            <th>Template Type</th>
+            <th>Created By</th>
+            <th>Updated By</th>
+            <th>Created At</th>
+            <th>Updated At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let template of templates">
+            <td>{{template.excelType}}</td>
+            <td>{{template.createdBy}}</td>
+            <td>{{template.updatedBy}}</td>
+            <td>{{template.createdAt | date:'short'}}</td>
+            <td>{{template.updatedAt | date:'short'}}</td>
+
+            <td class="action-buttons">
+                <button class="btn download-btn" (click)="downloadTemplate(template)">
+                    Download
+                </button>
+
+                <button class="btn update-btn" (click)="openUpdate(template)">
+                    Update
+                </button>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+
+
+      <div class="modal-overlay" *ngIf="showUploadModal">
+
+        <div class="modal-box">
+
+            <div class="modal-header">
+            <h3>
+            {{ operationType === 'upload' ? 'Upload Excel Template' : 'Update Excel Template' }}
+            </h3>
+            <span class="close-btn" (click)="closeUpload()">✕</span>
+            </div>
+
+            <div class="modal-body">
+
+            <div class="form-group">
+                <label>Template Type</label>
+                <input type="text" [(ngModel)]="templateType" />
+            </div>
+
+            <div class="form-group">
+                <label>Select Excel File</label>
+                <input type="file" (change)="onFileSelected($event)" />
+            </div>
+
+            </div>
+
+            <div class="modal-footer">
+            <button class="cancel-btn" (click)="closeUpload()">Cancel</button>
+            <button class="upload-btn" (click)="uploadTemplate()" [disabled]="isUploading">
+                <span *ngIf="isUploading" class="spinner"></span>
+                {{ isUploading ? 'Uploading...' : 'Upload' }}
+            </button>
+            </div>
+
+        </div>
+
+        </div>
+    </main>
+
+  </div>
+</div>

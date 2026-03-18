@@ -19,8 +19,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.moneyfi.apigateway.util.constants.StringConstants.userRoleAssociation;
-
+import static com.moneyfi.constants.constants.CommonConstants.userRoleAssociation;
 
 @Slf4j
 @Service

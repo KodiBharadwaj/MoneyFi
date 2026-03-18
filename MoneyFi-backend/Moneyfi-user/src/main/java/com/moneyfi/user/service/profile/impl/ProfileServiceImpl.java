@@ -6,6 +6,7 @@ import com.moneyfi.user.model.ContactUs;
 import com.moneyfi.user.model.ContactUsHist;
 import com.moneyfi.user.model.ExcelTemplate;
 import com.moneyfi.user.model.ProfileModel;
+import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.user.repository.ContactUsHistRepository;
 import com.moneyfi.user.repository.ContactUsRepository;
 import com.moneyfi.user.repository.ExcelTemplateRepository;
@@ -21,11 +22,13 @@ import com.moneyfi.user.service.common.dto.request.UserFeedbackRequestDto;
 import com.moneyfi.user.service.profile.ProfileService;
 import com.moneyfi.user.service.profile.dto.ProfileDetailsDto;
 import com.moneyfi.user.util.constants.StringConstants;
-import com.moneyfi.user.util.enums.NotificationQueueEnum;
 import com.moneyfi.user.util.enums.RaiseRequestStatus;
 import com.moneyfi.user.util.enums.RequestReason;
 import com.moneyfi.user.validator.UserValidations;
-import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.transaction.annotation.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -51,10 +54,13 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Base64;
 
+import static com.moneyfi.constants.constants.CommonConstants.generateAlphabetCode;
+import static com.moneyfi.constants.constants.CommonConstants.generateVerificationCode;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProfileServiceImpl implements ProfileService {
 
     @Value("${spring.profiles.active:}")
@@ -76,8 +82,10 @@ public class ProfileServiceImpl implements ProfileService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
-    public ProfileDetailsDto saveUserDetails(Long userId, ProfileModel profile) {
+    @Transactional(rollbackFor = Exception.class)
+    @CachePut(value = "UserProfileDetails", key = "#username")
+    public ProfileDetailsDto saveUserDetails(String username, Long userId, ProfileModel profile) {
+        log.info("username: {}", username);
         ProfileModel fetchProfile = profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_DETAILS_NOT_FOUND));
 
         if (!profile.getName().trim().equals(fetchProfile.getName())) {
@@ -103,6 +111,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Cacheable(value = "UserProfileDetails", key = "#username")
     public ProfileDetailsDto getProfileDetailsOfUser(String username) {
         ProfileDetailsDto profileDetailsDto = commonServiceRepository.getProfileDetailsOfUser(username);
         if (profileDetailsDto == null) {
@@ -112,17 +121,20 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Cacheable(value = "userNames", key = "#userId")
     public String getUserDetailsByUserId(Long userId) {
-        return profileRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_DETAILS_NOT_FOUND)).getName();
+        return profileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_DETAILS_NOT_FOUND))
+                .getName();
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) throws IOException {
         if (!username.equals(userDefectRequestDto.getEmail().trim())) {
             throw new BadRequestException(EMAIL_MISMATCH_MESSAGE);
         }
-        String referenceNumber = StringConstants.generateAlphabetCode() + generateVerificationCode();
+        String referenceNumber = generateAlphabetCode() + generateVerificationCode();
 
         ContactUs userDefect = new ContactUs();
         userDefect.setEmail(userDefectRequestDto.getEmail());
@@ -165,7 +177,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void saveFeedback(UserFeedbackRequestDto feedback, Long userId) {
         String rating = feedback.getMessage().substring(0, 1);
         String message = feedback.getMessage().substring(2);
@@ -192,7 +204,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void parseUserProfileDataFromExcel(MultipartFile excel, Long userId) {
         try (InputStream is = excel.getInputStream()) {
             Workbook workbook = new XSSFWorkbook(is);
@@ -222,14 +234,23 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public ResponseEntity<byte[]> downloadTemplateForUserProfile() {
-        ExcelTemplate template = excelTemplateRepository.findById(templateIdAssociation.get(PROFILE_TEMPLATE_NAME))
-                .orElseThrow(() -> new RuntimeException(TEMPLATE_NOT_FOUND_MESSAGE));
+    public ResponseEntity<byte[]> downloadTemplateForUserProfile(String fileType) {
+        String fileName = "";
+        if ("profile-template".equalsIgnoreCase(fileType)) fileName = StringConstants.PROFILE_TEMPLATE_EXCEL_NAME;
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + template.getName())
-                .contentType(MediaType.parseMediaType(template.getContentType()))
-                .body(template.getContent());
+        try {
+            if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
+                return cloudinaryService.getExcelTemplateFromCloudinary(fileName);
+            } else {
+                return awsServices.fetchExcelTemplateFromS3(fileName);
+            }
+        } catch (Exception e) {
+            ExcelTemplate template = excelTemplateRepository.findByName(fileName).orElseThrow(() -> new ResourceNotFoundException(TEMPLATE_NOT_FOUND_MESSAGE));
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + template.getName() + "\"")
+                    .contentType(MediaType.parseMediaType(template.getContentType()))
+                    .body(template.getContent());
+        }
     }
 
     private ProfileDetailsDto convertProfileModelToProfileDetailsDto(ProfileModel savedProfile) {

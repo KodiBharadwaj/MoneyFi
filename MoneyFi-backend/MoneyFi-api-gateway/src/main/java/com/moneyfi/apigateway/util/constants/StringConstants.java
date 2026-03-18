@@ -7,24 +7,17 @@ import com.moneyfi.apigateway.dto.ProfileModel;
 import com.moneyfi.apigateway.dto.interfaces.ContactUsHistProjection;
 import com.moneyfi.apigateway.dto.interfaces.ContactUsProjection;
 import com.moneyfi.apigateway.dto.interfaces.ProfileDetailsProjection;
-import com.moneyfi.apigateway.util.enums.ReasonEnum;
-import com.moneyfi.apigateway.util.enums.UserRoles;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.HttpURLConnection;
-import java.util.Map;
-import java.util.Random;
-
-import static com.moneyfi.apigateway.util.enums.ReasonEnum.*;
 
 public class StringConstants {
 
     private StringConstants() {}
 
-    public static final String MONEYFI_APPLICATION_NAME = "MoneyFi";
     public static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     public static final String MESSAGE = "message";
@@ -50,6 +43,7 @@ public class StringConstants {
     public static final String ACCOUNT_DELETED = "Account Deleted! Please contact admin";
     public static final String INVALID_CREDENTIALS = "Invalid Credentials Entered";
     public static final String LOGIN_ERROR = "An error occurred during login";
+    public static final String OTP_RESEND_FAILURE_MESSAGE = "Otp not found or expired. Get a new otp";
 
     public static final long SESSION_LOGIN_MINUTES = 60L;
 
@@ -69,33 +63,6 @@ public class StringConstants {
     public static final String STRING_EMAIL = "email";
     public static final String GMAIL_SYNC = "GMAIL_SYNC";
     public static final String GOOGLE_AUTHORIZATION_CODE_NULL_MESSAGE = "Google Authorization code cannot be null";
-
-    public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name(), 3, UserRoles.DEVELOPER.name(), 4, UserRoles.MAINTAINER.name());
-    public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation =
-            Map.ofEntries(
-                    Map.entry(BLOCK_ACCOUNT, 1),
-                    Map.entry(PASSWORD_CHANGE, 2),
-                    Map.entry(NAME_CHANGE, 3),
-                    Map.entry(UNBLOCK_ACCOUNT, 4),
-                    Map.entry(DELETE_ACCOUNT, 5),
-                    Map.entry(ACCOUNT_RETRIEVAL, 6),
-                    Map.entry(PHONE_NUMBER_CHANGE, 7),
-                    Map.entry(FORGOT_PASSWORD, 8),
-                    Map.entry(USER_RAISED_REQUEST_IGNORED, 9),
-                    Map.entry(FORGOT_USERNAME, 10),
-                    Map.entry(ADMIN_CREATION, 11),
-                    Map.entry(ADMIN_UPDATE, 12),
-                    Map.entry(ADMIN_BLOCK, 13),
-                    Map.entry(ADMIN_UNBLOCK, 14),
-                    Map.entry(ADMIN_DELETE, 15),
-                    Map.entry(ADMIN_RETRIEVAL, 16)
-            );
-
-    public static String generateVerificationCode() {
-        Random random = new Random();
-        int verificationCode = 100000 + random.nextInt(900000);
-        return String.valueOf(verificationCode);
-    }
 
     public static MultipartFile convertImageUrlToMultipartFile(String imageUrl) throws Exception {
         URL url = new URL(imageUrl);

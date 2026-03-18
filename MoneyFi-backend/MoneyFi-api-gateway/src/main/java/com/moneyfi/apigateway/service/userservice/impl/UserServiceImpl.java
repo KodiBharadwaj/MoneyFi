@@ -23,18 +23,21 @@ import com.moneyfi.apigateway.service.userservice.dto.request.*;
 import com.moneyfi.apigateway.service.userservice.dto.response.RemainingTimeCountDto;
 import com.moneyfi.apigateway.util.enums.*;
 import com.moneyfi.apigateway.validator.UserValidations;
-import jakarta.transaction.Transactional;
+import com.moneyfi.constants.enums.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -47,6 +50,7 @@ import java.util.*;
 
 import static com.moneyfi.apigateway.util.constants.StringConstants.*;
 import static com.moneyfi.apigateway.util.constants.StringUrls.USER_SERVICE_OPEN_URL;
+import static com.moneyfi.constants.constants.CommonConstants.*;
 
 @Service
 @Slf4j
@@ -67,6 +71,8 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private RestTemplate externalRestTemplateForOAuth;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     private static final String GOOGLE_AUTH_CONSTANT_PASSWORD = null;
     private static final String GITHUB_AUTH_CONSTANT_PASSWORD = null;
@@ -95,7 +101,7 @@ public class UserServiceImpl implements UserService {
                            @Qualifier("getRestTemplate") RestTemplate restTemplate,
                            GmailSyncRepository gmailSyncRepository,
                            GoogleOAuthEndPointDealerService googleOAuthEndPointDealerService,
-                           ApplicationEventPublisher applicationEventPublisher){
+                           ApplicationEventPublisher applicationEventPublisher) {
         this.userRepository = userRepository;
         this.otpTempRepository = otpTempRepository;
         this.jwtService = jwtService;
@@ -109,7 +115,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public UserAuthModel registerUser(UserProfile userProfile, String loginMode, String address) {
         UserValidations.checkForUserAlreadyExistenceValidation(userRepository.getUserDetailsByUsername(userProfile.getUsername().trim()).orElse(null));
         UserAuthModel userAuthModel = new UserAuthModel();
@@ -161,7 +167,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<Map<String, String>> login(UserLoginDetailsRequestDto requestDto) {
         UserAuthModel userAuthModel = new UserAuthModel();
         userAuthModel.setUsername(requestDto.getUsername().trim());
@@ -217,7 +223,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<Map<String, String>> loginViaGoogleOAuth(Map<String, String> googleAuthToken) {
         Map<String, String> userRoleToken = new HashMap<>();
         if (googleAuthToken == null || googleAuthToken.isEmpty()) {
@@ -239,12 +245,13 @@ public class UserServiceImpl implements UserService {
             UserAuthModel newOrExistingUser = userRepository.getUserDetailsByUsername(email).orElse(null);
             if (newOrExistingUser == null) {
                 newOrExistingUser = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Google User", email, GOOGLE_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()), LoginMode.GOOGLE_OAUTH.name(), null);
-                if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(newOrExistingUser.getUsername(), newOrExistingUser.getId(), convertImageUrlToMultipartFile(picture));
+                if (picture != null && !picture.trim().isEmpty())
+                    uploadUserProfilePictureToS3(newOrExistingUser.getUsername(), newOrExistingUser.getId(), convertImageUrlToMultipartFile(picture));
             }
 
             GmailAuth newAuth = new GmailAuth();
             Optional<GmailAuth> gmailAuth = gmailSyncRepository.findByUserId(newOrExistingUser.getId());
-            if(gmailAuth.isPresent()) newAuth = gmailAuth.get();
+            if (gmailAuth.isPresent()) newAuth = gmailAuth.get();
             googleOAuthEndPointDealerService.setGmailAuthDetails(newAuth, newOrExistingUser.getId(), accessToken, refreshToken, expiresIn);
             gmailSyncRepository.save(newAuth);
 
@@ -267,7 +274,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public String loginViaGithubOAuth(String code) {
         if (code == null || code.isEmpty()) {
             throw new RuntimeException("Authorization code is invalid");
@@ -322,7 +329,8 @@ public class UserServiceImpl implements UserService {
             if (user == null) {
                 user = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Github User", email, GITHUB_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()),
                         LoginMode.GITHUB_OAUTH.name(), (address != null && !address.trim().isEmpty()) ? address : null);
-                if(picture != null && !picture.trim().isEmpty()) uploadUserProfilePictureToS3(user.getUsername(), user.getId(), convertImageUrlToMultipartFile(picture));
+                if (picture != null && !picture.trim().isEmpty())
+                    uploadUserProfilePictureToS3(user.getUsername(), user.getId(), convertImageUrlToMultipartFile(picture));
             }
             if (user.isBlocked()) {
                 throw new ScenarioNotPossibleException("User is blocked, Kindly contact admin");
@@ -356,7 +364,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void changePassword(ChangePasswordDto changePasswordDto) {
         UserAuthModel user = userRepository.findById(changePasswordDto.getUserId()).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         UserValidations.changePasswordValidations(changePasswordDto, user);
@@ -365,7 +373,7 @@ public class UserServiceImpl implements UserService {
         user.setVerificationCodeExpiration(LocalDateTime.now());
         userRepository.save(user);
         userAuthHistRepository.save(new UserAuthHist(changePasswordDto.getUserId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE), changePasswordDto.getDescription(), changePasswordDto.getUserId()));
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_PASSWORD_CHANGE_ALERT_MAIL. name(), userRepository.getUserNameByUsername(user.getUsername()) + "<|>" + user.getUsername()));
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_PASSWORD_CHANGE_ALERT_MAIL.name(), userRepository.getUserNameByUsername(user.getUsername()) + "<|>" + user.getUsername()));
     }
 
     @Override
@@ -379,7 +387,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public String sendOtpForSignup(String email, String name) {
         UserValidations.checkForUserAlreadyExistenceValidation(userRepository.getUserDetailsByUsername(email).orElse(null));
         String verificationCode = generateVerificationCode();
@@ -413,12 +421,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public Map<String, String> logout(String token) {
         Map<String, String> response = new HashMap<>();
         String username = jwtService.extractUserName(token);
-        userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         makeGmailAuthInactiveForUser(getUserIdByUsername(username));
+        removeUserNameFromRedisCache(user.getId());
+        removeUserProfileDetailsFromRedisCache(user.getUsername());
         if (makeUserTokenBlacklisted(token, username) != null && makeUserSessionInActive(token) != null) {
             response.put(MESSAGE, LOGOUT_SUCCESS_MESSAGE);
         } else {
@@ -428,22 +438,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<String> sendOtpToBlockAccount(String username, String type) {
         UserAuthModel userData = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         UserValidations.userAlreadyDeactivatedCheckValidation(userData);
 
-        String verificationCode;
-        String otpType;
-        if (type.equalsIgnoreCase("BLOCK")) {
-            otpType = OtpType.ACCOUNT_BLOCK.name();
-        } else if (type.equalsIgnoreCase("DELETE")) {
-            otpType = OtpType.ACCOUNT_DELETE.name();
-        } else {
-            otpType = null;
-        }
-        verificationCode = otpTempRepository.findByEmail(username)
-                .stream()
+        String otpType = functionToGetOtpType(type);
+        String verificationCode = otpTempRepository.findByEmail(username).stream()
                 .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(otpType) && tempOtp.getExpirationTime().isAfter(LocalDateTime.now()))
                 .map(OtpTempModel::getOtp)
                 .findFirst()
@@ -456,8 +457,18 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity.ok(EMAIL_SENT_SUCCESS_MESSAGE);
     }
 
+    private String functionToGetOtpType(String type) {
+        if (type.equalsIgnoreCase(ResendOtpType.BLOCK.name())) {
+            return OtpType.ACCOUNT_BLOCK.name();
+        } else if (type.equalsIgnoreCase(ResendOtpType.DELETE.name())) {
+            return OtpType.ACCOUNT_DELETE.name();
+        } else {
+            return null;
+        }
+    }
+
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public String updateUserSessionExpirationTime(long minutes, String username, String token) {
         if (minutes == 0) {
             throw new ScenarioNotPossibleException("Minutes cannot be zero");
@@ -469,26 +480,53 @@ public class UserServiceImpl implements UserService {
         return newToken;
     }
 
-    private void saveUserAuthDetails(UserAuthModel userAuthModel, String username){
+    @Override
+    public void resendOtp(String username, String type) {
+        if (StringUtils.isBlank(username)) throw new ScenarioNotPossibleException("Username cannot be empty");
+        if (ResendOtpType.BLOCK.name().equalsIgnoreCase(type) || ResendOtpType.DELETE.name().equalsIgnoreCase(type)) {
+            resendOtpForUserBlockOrDeleteOperation(username, type);
+        } else if (ResendOtpType.FORGOT_PASSWORD.name().equalsIgnoreCase(type)) {
+            resendOtpForForgotPasswordOperation(username);
+        }
+    }
+
+    private void resendOtpForForgotPasswordOperation(String username) {
+        UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        if (StringUtils.isNotBlank(user.getVerificationCode()) && user.getVerificationCodeExpiration() != null && user.getVerificationCodeExpiration().isAfter(LocalDateTime.now())) {
+            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name(), userRepository.getUserNameByUsername(username) + "<|>" + username + "<|>" + user.getVerificationCode()));
+        } else throw new ScenarioNotPossibleException(OTP_RESEND_FAILURE_MESSAGE);
+    }
+
+    private void resendOtpForUserBlockOrDeleteOperation(String username, String type) {
+        String otpType = functionToGetOtpType(type);
+        String verificationCode = otpTempRepository.findByEmail(username).stream()
+                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(otpType) && tempOtp.getExpirationTime().isAfter(LocalDateTime.now()))
+                .map(OtpTempModel::getOtp)
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(OTP_RESEND_FAILURE_MESSAGE));
+        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_FOR_USER_BLOCK.name(), username + "<|>" + userRepository.getUserNameByUsername(username.trim()) + "<|>" + verificationCode + "<|>" + type));
+    }
+
+    private void saveUserAuthDetails(UserAuthModel userAuthModel, String username) {
         userAuthModel.setUsername(username.trim());
         userAuthModel.setOtpCount(0);
         userAuthModel.setDeleted(false);
         userAuthModel.setBlocked(false);
     }
 
-    private void saveUserProfileDetails(Long userId, UserProfile userProfile, String address){
+    private void saveUserProfileDetails(Long userId, UserProfile userProfile, String address) {
         userRepository.insertProfileDetailsDuringSignup(userId, userProfile.getName(), LocalDateTime.now(), (address != null && !address.isEmpty()) ? address : null);
     }
 
     private void makeGmailAuthInactiveForUser(Long userId) {
         GmailAuth gmailAuth = gmailSyncRepository.findByUserId(userId).orElse(null);
-        if(gmailAuth == null) return;
+        if (gmailAuth == null) return;
         gmailAuth.setIsActive(Boolean.FALSE);
         gmailSyncRepository.save(gmailAuth);
     }
 
-    private void functionToPreventMultipleLogins(UserAuthModel userAuthModel, JwtToken token){
-        if(userCommonService.getUserByUsername(userAuthModel.getUsername()) != null){
+    private void functionToPreventMultipleLogins(UserAuthModel userAuthModel, JwtToken token) {
+        if (userCommonService.getUserByUsername(userAuthModel.getUsername()) != null) {
             SessionTokenModel sessionTokens = userCommonService.getUserByUsername(userAuthModel.getUsername());
             sessionTokens.setUsername(userAuthModel.getUsername());
             sessionTokens.setCreatedTime(LocalDateTime.now());
@@ -517,20 +555,28 @@ public class UserServiceImpl implements UserService {
         restTemplate.postForEntity(url, requestEntity, String.class);
     }
 
-    private void makeOldSessionInActiveOfUserForNewLogin(String username){
+    private void makeOldSessionInActiveOfUserForNewLogin(String username) {
         SessionTokenModel sessionTokenUser = userCommonService.getUserByUsername(username);
-        if(sessionTokenUser != null && sessionTokenUser.getIsActive()){
+        if (sessionTokenUser != null && sessionTokenUser.getIsActive()) {
             makeUserTokenBlacklisted(sessionTokenUser.getToken(), username);
         }
     }
 
-    private BlackListedToken makeUserTokenBlacklisted(String token, String username){
+    private BlackListedToken makeUserTokenBlacklisted(String token, String username) {
         return userCommonService.blacklistToken(new BlackListedToken(token, new Date(System.currentTimeMillis()), username));
     }
 
-    private SessionTokenModel makeUserSessionInActive(String token){
+    private SessionTokenModel makeUserSessionInActive(String token) {
         SessionTokenModel sessionTokens = userCommonService.getSessionDetailsByToken(token);
         sessionTokens.setIsActive(Boolean.FALSE);
         return userCommonService.save(sessionTokens);
+    }
+
+    private void removeUserNameFromRedisCache(Long userId) {
+        redisTemplate.delete("userNames::" + userId);
+    }
+
+    private void removeUserProfileDetailsFromRedisCache(String username) {
+        redisTemplate.delete("UserProfileDetails::" + username);
     }
 }

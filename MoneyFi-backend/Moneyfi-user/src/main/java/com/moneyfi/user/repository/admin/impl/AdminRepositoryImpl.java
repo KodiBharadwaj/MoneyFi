@@ -147,13 +147,15 @@ public class AdminRepositoryImpl implements AdminRepository {
     }
 
     @Override
-    public List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status) {
+    public List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status, String operationMode) {
         List<AdminSchedulesResponseDto> scheduleList = new ArrayList<>();
         try {
             Query query = entityManager.createNativeQuery(
                             "exec getAllActiveSchedulesOfAdmin " +
-                                    "@status = :status")
+                                    "@status = :status, " +
+                                    "@operationMode = :operationMode ")
                     .setParameter("status", status)
+                    .setParameter("operationMode", operationMode)
                     .unwrap(NativeQuery.class)
                     .setResultTransformer(Transformers.aliasToBean(AdminSchedulesResponseDto.class));
             scheduleList.addAll(query.getResultList());

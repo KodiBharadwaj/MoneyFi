@@ -2,7 +2,7 @@
 <nav class="navbar">
   <span class="brand-name">
     <i class="fas fa-chart-pie"></i>
-    MoneyFi Admin
+    MoneyFi Admin & Maintainer
   </span>
 </nav>
 
@@ -13,20 +13,54 @@
 
 <div class="login-container">
   <div class="login-content">
-    <div class="chart-card">
-      <canvas baseChart 
-        [data]="radarChartData"
-        [options]="radarChartOptions"
-        [type]="'radar'">
-      </canvas>
+
+    <div class="admin-info-card">
+  <h3>MoneyFi Control Center</h3>
+  <p class="info-subtitle">Manage and monitor the platform</p>
+
+  <div class="feature-list">
+
+    <div class="feature-item">
+      <i class="fas fa-users-cog"></i>
+      <div>
+        <h4>User Management</h4>
+        <p>Manage users and access permissions</p>
+      </div>
     </div>
+
+    <div class="feature-item">
+      <i class="fas fa-chart-line"></i>
+      <div>
+        <h4>Analytics</h4>
+        <p>Monitor system insights and reports</p>
+      </div>
+    </div>
+
+    <div class="feature-item">
+      <i class="fas fa-file-excel"></i>
+      <div>
+        <h4>Template Control</h4>
+        <p>Upload and manage excel templates</p>
+      </div>
+    </div>
+
+    <div class="feature-item">
+      <i class="fas fa-shield-alt"></i>
+      <div>
+        <h4>Security</h4>
+        <p>Maintain system integrity and access</p>
+      </div>
+    </div>
+
+  </div>
+</div>
     
     <div class="login-card">
       <div class="card-brand-name" (click)="navigateTo('')" role="button" tabindex="0">
         <i class="fas fa-chart-pie"></i>
         MoneyFi
       </div>
-      <h2>Welcome Admin</h2>
+      <h2>Welcome Admin/Maintainer</h2>
       <p class="subtitle">Please login to your account</p>
       <form [formGroup]="loginForm" (submit)="onSubmit(loginForm.value)">
         <div class="form-group">

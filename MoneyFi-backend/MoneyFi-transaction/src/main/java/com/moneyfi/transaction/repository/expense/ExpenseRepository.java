@@ -11,28 +11,36 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ExpenseRepository extends JpaRepository<ExpenseModel, Long> {
+
+    /** JPQL */
     @Query("SELECT e FROM ExpenseModel e WHERE e.userId = :userId")
     List<ExpenseModel> findExpensesByUserId(Long userId);
 
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec getMonthlyExpensesListInAYear @userId = :userId, " +
             "@year = :year, @deleteStatus = :deleteStatus")
     List<Object[]> findMonthlyExpenses(Long userId, int year, boolean deleteStatus);
 
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec getMonthlyIncomesListInAYear @userId = :userId, " +
             "@year = :year, @deleteStatus = :deleteStatus")
     List<Object[]> getMonthlyIncomesListInAYear(Long userId, int year, boolean deleteStatus);
 
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec getTotalExpenseInMonthAndYear @userId = :userId, " +
             "@month = :month, @year = :year")
     BigDecimal getTotalExpenseInMonthAndYear(Long userId, int month, int year);
 
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec getTotalIncomeInMonthAndYear @userId = :userId, " +
             "@month = :month, @year = :year")
     BigDecimal getTotalIncomeInMonthAndYear(Long userId, int month, int year);
 
+    /** SP Call */
     @Query(nativeQuery = true, value =  "exec getUserIdFromUsernameAndToken @username = :username, @token = :token")
     Long getUserIdFromUsernameAndToken(String username, String token);
 
+    /** SQL Native Query */
     @Query(
             value = "SELECT clt.category, " +
                     "CAST(SUM(CAST(et.amount AS DECIMAL(18,2))) AS DECIMAL(18,2)) AS totalAmount " +
@@ -46,12 +54,7 @@ public interface ExpenseRepository extends JpaRepository<ExpenseModel, Long> {
     )
     List<Object[]> getTotalIncomeInSpecifiedRange(@Param("userId") Long userId, @Param("fromDate") LocalDateTime fromDate, @Param("toDate") LocalDateTime toDate);
 
-    @Query(
-            value = "SELECT et.* " +
-                    "FROM expense_table et WITH (NOLOCK) " +
-                    "WHERE et.user_id = :userId " +
-                    "AND et.entry_mode = 'GMAIL_SYNC' " +
-                    "AND CAST(et.gmail_sync_date AS DATE) = :date ",
-            nativeQuery = true)
+    /** ORM Mapping */
+    @Query(name = "getGmailSyncAddedExpenses", nativeQuery = true)
     List<ExpenseModel> getGmailSyncAddedExpenses(Long userId, LocalDate date);
 }

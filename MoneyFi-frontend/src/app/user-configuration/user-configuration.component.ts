@@ -39,6 +39,7 @@ export class UserConfigurationComponent implements AfterViewInit{
   deleteReasons: string[] = [];
   isDownloading = false;
   isUploading = false;
+  loadingResendOtp = false;
 
   ngAfterViewInit() {
     this.route.fragment.subscribe(fragment => {
@@ -153,21 +154,73 @@ export class UserConfigurationComponent implements AfterViewInit{
     });
   }
 
+  email: string = '';
+  resendOtp(type: string) {
+    this.loadingResendOtp = true;
+    this.http.get(`${this.baseUrl}/api/v1/user/get-username`, { responseType: 'text' }).subscribe({
+      next: (data: string) => {
+        this.email = data;
+
+        this.http.get(`${this.baseUrl}/api/auth/otp-resend?username=${this.email}&type=${type}`).subscribe({
+          next: response => {
+            this.toastr.success('OTP sent to your email');
+            this.loadingResendOtp = false;
+          },
+          error: err => {
+            this.loadingResendOtp = false;
+            try {
+              const errorObj =
+                typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+              this.toastr.error(errorObj.message);
+            } catch (e) {
+              console.error('Failed to parse error:', err.error);
+            }
+          }
+        });
+
+      },
+      error: (err) => {
+        this.loadingResendOtp = false;
+        console.error('Error fetching username', err);
+      }
+    });
+  }
+
   downloadProfileTemplate() {
     this.isDownloading = true;
-    this.http.get(`${this.baseUrl}/api/v1/user-service/user/profile-details-template/download`, {
+    this.http.get(`${this.baseUrl}/api/v1/user-service/user/excel-template/download?type=profile-template`, {
       responseType: 'blob'
-    }).subscribe(blob => {
-      const a = document.createElement('a');
-      const objectUrl = URL.createObjectURL(blob);
-      a.href = objectUrl;
-      a.download = 'profile-template.xlsx'; // Filename for downloaded file
-      a.click();
-      URL.revokeObjectURL(objectUrl);
-      this.isDownloading = false;
-    }, error => {
-      console.error('Download failed:', error);
-      this.isDownloading = false;
+    }).subscribe({
+      next: (blob) => {
+        const a = document.createElement('a');
+        const objectUrl = URL.createObjectURL(blob);
+        a.href = objectUrl;
+        a.download = 'profile-template.xlsx';
+        a.click();
+        URL.revokeObjectURL(objectUrl);
+        this.isDownloading = false;
+      },
+      error: (err) => {
+        this.isDownloading = false;
+          if (err.error instanceof Blob) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              try {
+                const text = reader.result as string;
+                const errorObj = JSON.parse(text);
+                this.toastr.error(errorObj.message);
+              } catch (e) {
+                console.error('Failed to parse Blob error:', e);
+                this.toastr.error('Something went wrong');
+              }
+            };
+            reader.readAsText(err.error);
+          } else {
+            // fallback if it's not a Blob
+            const message = err.error?.message || 'Something went wrong';
+            this.toastr.error(message);
+          }
+        }
     });
   }
 

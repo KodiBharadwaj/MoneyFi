@@ -52,8 +52,8 @@ public class UserController {
     @PostMapping("/profile-details/save")
     public ResponseEntity<ProfileDetailsDto> saveProfileDetails(@RequestHeader("Authorization") String authHeader,
                                                                 @RequestBody ProfileModel profile){
-        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return ResponseEntity.ok(profileService.saveUserDetails(userId, profile));
+        String username = jwtService.extractUsernameFromToken(authHeader.substring(7));
+        return ResponseEntity.ok(profileService.saveUserDetails(username, jwtService.extractUserIdFromToken(authHeader.substring(7)), profile));
     }
 
     @Operation(summary = "Api to get profile details of a user")
@@ -154,9 +154,9 @@ public class UserController {
     }
 
     @Operation(summary = "Api to download the empty template of excel for user profile details to be saved")
-    @GetMapping("/profile-details-template/download")
-    public ResponseEntity<byte[]> downloadTemplateForUserProfile() {
-        return profileService.downloadTemplateForUserProfile();
+    @GetMapping("/excel-template/download")
+    public ResponseEntity<byte[]> downloadTemplateForUserProfile(@RequestParam("type") String fileType) {
+        return profileService.downloadTemplateForUserProfile(fileType);
     }
 
     @Operation(summary = "Api to parse the excel to extract user's profile data and save into db")

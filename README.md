@@ -11,44 +11,58 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 - 🎯 Set monthly budgets and savings goals
 - 📊 Visual indicators and insights for better decisions
 - 🔐 OTP-based signup, secure authentication, jwt authorization
+- 🔑 Google Login & GitHub Login (OAuth 2.0 integration)
 - 📥 Export/download reports and email them securely
+- 📧 Google Email transaction sync (automatic transaction detection from emails)
+- 📨 Smart email alerts for transactions, budgets & important activities
+- 📄 Account statement generation with password-protected PDF delivery via email
+- 🔔 Real-time notifications (in-app) and email notifications
 - 🗑️ Soft-delete and recovery of incomes up to 30 days
 - 📅 Period-based statements with pagination
 - 🔐 Forgot password/username with OTP verification
-- 👥 Role-based system: User & Admin
+- 👥 Role-based system: User, Admin & Maintainer
+- 🧩 Dynamic email template uploading & management system
 ---
 
 ## 🛠️ Tech Stack
 
 | Layer         | Technology                     |
 |---------------|--------------------------------|
-| Frontend      | Angular                        |
-| Backend       | Java + Spring Boot (Microservices) |
+| Frontend      | Angular (TypeScript)                        |
+| Backend       | Java, Spring Boot (Microservices) |
 | Database      | Microsoft SQL Server (Stored Procedures, Triggers) |
-| Email Service | AWS SES + Spring Mail          |
-| File Storage  | AWS S3                         |
-| Service Communications  | Kafka, Rest Template   |
+| DB Backend Interaction | JPA, JPQL, JDBC, Java Persistance Context, ORM Mapping |
+| Email Service | AWS SES, Spring Mail           |
+| File Storage  | AWS S3, Cloudinary             |
+| Service Communications  | Kafka, Rest Template |
+| Queue Communications | Rabbit MQ, Artemis       |
+| Caching | Redis(Distributed), Caffeine(In memory), UI Caching                    |
+| Realtime Notifications | Java SSE (Server Side Emitter) |
 | Reporting     | Apache POI (Excel), iText (PDF) |
-| Other Used   | Eureka, Postman, SonarQube, Feign, Git, Github, Postgres, Docker |
+| Cloud         | AWS, GCP                        |
+| Security Login  | Spring Security Login, JWT, Google Oauth, Github Oauth |
+| Free Sources Used | Render(Backend), Netlify(UI), Free Hosting(DB) |
+| Other Tech Used   | Docker, Gemini Api, Eureka, SonarQube, Feign, Git, Github, Postgres, Swagger, Github Packages |
+| Tools Used   | Intellij Idea, VS code, SSMS, Postman, PG Admin, Redis Insight, Docker Desktop |
 
 ---
 
 ## 📸 Screenshots
 
 ### 🔐 Landing Page
-<img width="1889" height="883" alt="Screenshot (6)" src="https://github.com/user-attachments/assets/73c5ef04-9eae-4282-8e23-a0f6ed69ccaa" />
+<img width="1893" height="896" alt="image" src="https://github.com/user-attachments/assets/15af93e1-ac24-4b81-8501-aaf64e2cff4b" />
 
 ### Signup
 <img width="1891" height="891" alt="Screenshot (7)" src="https://github.com/user-attachments/assets/5b916ae2-4045-4b82-acf7-d27242f1ce23" />
 
-### Login
-<img width="1881" height="888" alt="Screenshot (8)" src="https://github.com/user-attachments/assets/00197486-af84-4bd3-9da6-b732a6ba1ad6" />
+### Login (Email Login, Google Login, Github Login)
+<img width="1884" height="898" alt="image" src="https://github.com/user-attachments/assets/cdca8d83-ecd4-49ee-bbbf-ecbca723cd6f" />
 
 ### 🔑 OTP Verification (Signup & Forgot Password)
 <table> <tr> <td align="center"> <img width="300" alt="Screenshot (12)" src="https://github.com/user-attachments/assets/79b21135-b3f6-4538-8fb4-ebf4606ffd49" /> </td> <td align="center"> <img width="300" alt="Screenshot (14)" src="https://github.com/user-attachments/assets/e49e6608-8250-439f-afa5-9f8ee3c3d7e7" /> </td> </tr> <tr> <td align="center"> <img width="300" alt="Screenshot (17)" src="https://github.com/user-attachments/assets/e9413645-0a93-42de-888a-24a5d5a6e381" /> </td> <td align="center"> <img width="300" alt="Screenshot 2025-07-27 175733" src="https://github.com/user-attachments/assets/506d0597-0b2a-4e46-a41d-a14022822087" /> </td> </tr> </table>
 
 ### 🏠 User Dashboard
-<img width="1843" height="903" alt="Screenshot (18)" src="https://github.com/user-attachments/assets/b2d831d2-bd12-4fa2-b1b4-b1cc00f02d3d" />
+<img width="1911" height="904" alt="image" src="https://github.com/user-attachments/assets/7a4e8598-785d-43a1-b374-627f9058eb06" />
 
 ### 💼 Income Management
 - Add, Edit, Delete, Restore (soft delete up to 30 days)
@@ -89,6 +103,13 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 
 <img width="1849" height="891" alt="Screenshot 2025-07-27 180841" src="https://github.com/user-attachments/assets/21b8a889-47ee-4028-8b0c-a5d59070c145" />
 
+### Detect Email Transactions
+- Automatic email transactions detection and history with calender
+
+<img width="1893" height="898" alt="image" src="https://github.com/user-attachments/assets/c2bbc71c-83c6-4853-88b0-deb02acc7b88" />
+
+### Real Time Notifications
+<img width="1884" height="900" alt="image" src="https://github.com/user-attachments/assets/d4026b9c-426e-47ed-a833-7d470cae7bcb" />
 
 ### 👤 Profile Section
 - Update profile details
@@ -96,6 +117,17 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 
 <img width="1523" height="903" alt="Screenshot 2025-07-27 181025" src="https://github.com/user-attachments/assets/4995e1a2-c439-49ad-93df-c5fe10e11084" />
 
+
+### Account Block, Unblock, retrieval, Name change Request and Tracking 
+<img width="1879" height="919" alt="image" src="https://github.com/user-attachments/assets/dbb65481-f0c7-438b-af55-c58da3b398b8" />
+<img width="1887" height="897" alt="image" src="https://github.com/user-attachments/assets/b7a341a3-65a1-450e-a042-134093c097d5" />
+
+### Admin Page  
+<img width="1897" height="905" alt="image" src="https://github.com/user-attachments/assets/fcd375c7-8257-4f9e-931c-33a9b0478b9b" />
+
+
+### Maintainer Page  
+<img width="1915" height="894" alt="image" src="https://github.com/user-attachments/assets/c1388792-85c7-49a3-bc5a-2e2ec54ebf7d" />
 
 ### 🔐 Forgot Username 
 - Provide your any relevant details and try fetching

@@ -11,7 +11,7 @@ import java.io.IOException;
 
 public interface ProfileService {
 
-    ProfileDetailsDto saveUserDetails(Long userId, ProfileModel profile);
+    ProfileDetailsDto saveUserDetails(String username, Long userId, ProfileModel profile);
 
     ProfileDetailsDto getProfileDetailsOfUser(String username);
 
@@ -23,5 +23,5 @@ public interface ProfileService {
 
     void parseUserProfileDataFromExcel(MultipartFile excel, Long userId);
 
-    ResponseEntity<byte[]> downloadTemplateForUserProfile();
+    ResponseEntity<byte[]> downloadTemplateForUserProfile(String fileType);
 }

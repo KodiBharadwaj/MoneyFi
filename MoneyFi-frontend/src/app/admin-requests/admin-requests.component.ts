@@ -52,6 +52,14 @@ export class AdminRequestsComponent implements OnInit {
     })
   }
 
+  shouldShowDaysLeft(): boolean {
+    return this.requests?.some(r => r.requestType === 'Account Retrieval');
+  }
+
+  shouldShowImage(): boolean {
+    return this.requests?.some(r => r.requestType === 'Gmail Sync Count Increase Request');
+  }
+
   approveUserRequest(request: any, status: string): void {
     if(status === 'Rename') this.requestType = 'NAME_CHANGE_REQUEST';
     else if(status === 'Unblock') this.requestType = 'ACCOUNT_UNBLOCK_REQUEST';

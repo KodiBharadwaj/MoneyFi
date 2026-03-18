@@ -10,13 +10,13 @@ import com.moneyfi.apigateway.service.maintainer.MaintainerService;
 import com.moneyfi.apigateway.service.maintainer.dto.request.CreateOrUpdateAdminRequestDto;
 import com.moneyfi.apigateway.service.maintainer.dto.response.AdminUsersResponseDto;
 import com.moneyfi.apigateway.util.constants.StringConstants;
-import com.moneyfi.apigateway.util.enums.LoginMode;
-import com.moneyfi.apigateway.util.enums.UserRoles;
 import com.moneyfi.apigateway.validator.UserValidations;
-import jakarta.transaction.Transactional;
+import com.moneyfi.constants.enums.LoginMode;
+import com.moneyfi.constants.enums.UserRoles;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,7 +24,9 @@ import java.util.Map;
 import java.util.Objects;
 
 import static com.moneyfi.apigateway.util.constants.StringConstants.*;
-import static com.moneyfi.apigateway.util.enums.ReasonEnum.*;
+import static com.moneyfi.constants.constants.CommonConstants.reasonCodeIdAssociation;
+import static com.moneyfi.constants.constants.CommonConstants.userRoleAssociation;
+import static com.moneyfi.constants.enums.ReasonEnum.*;
 
 @Service
 @Slf4j
@@ -41,7 +43,7 @@ public class MaintainerServiceImpl implements MaintainerService {
     private static final String UNDELETE = "UNDELETE";
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void addAdminUser(CreateOrUpdateAdminRequestDto requestDto, Long maintainerUserId) {
         UserValidations.validateAdminCreationRequestByMaintainer(requestDto);
         UserValidations.validateExistingUserCheck(requestDto, userRepository);
@@ -72,7 +74,7 @@ public class MaintainerServiceImpl implements MaintainerService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void updateAdminUser(CreateOrUpdateAdminRequestDto requestDto, Long adminUserId, Long maintainerUserId) {
         UserAuthModel user = userRepository.findById(adminUserId).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         if (!Objects.equals(user.getUsername(), requestDto.getUsername().trim()))
@@ -84,7 +86,7 @@ public class MaintainerServiceImpl implements MaintainerService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void deleteAdminUser(Long adminUserId, Long maintainerUserId, String type) {
         UserAuthModel user = userRepository.findById(adminUserId).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         if (BLOCK.equalsIgnoreCase(type))
@@ -96,7 +98,7 @@ public class MaintainerServiceImpl implements MaintainerService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void unblockOrRetrieveAdmin(Long adminUserId, Long maintainerUserId, String type) {
         UserAuthModel user = userRepository.findById(adminUserId).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         if (UNBLOCK.equalsIgnoreCase(type))

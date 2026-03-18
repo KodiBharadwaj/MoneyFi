@@ -1,6 +1,7 @@
 package com.moneyfi.transaction.config;
 
 import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
+import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.transaction.repository.income.IncomeRepository;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +27,9 @@ public class JwtService {
                 .getBody()
                 .getSubject();
         try {
-            return incomeRepository.getUserIdFromUsernameAndToken(username, token);
+            Long userId = incomeRepository.getUserIdFromUsernameAndToken(username, token);
+            if (userId == null) throw new ScenarioNotPossibleException("Not Authorized to perform");
+            return userId;
         } catch (DataAccessException ex) {
             throw new IllegalArgumentException("Token is blacklisted");
         } catch (Exception e) {

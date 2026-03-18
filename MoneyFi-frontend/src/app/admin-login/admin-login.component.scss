@@ -47,24 +47,6 @@
     align-items: center;
   }
 
-  .chart-card {
-    // background: rgba(255, 255, 255, 0.9);
-    background: transparent;
-    padding: 2rem;
-    border-radius: 20px;
-    // box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    height: 100%;
-    max-height: 600px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    canvas {
-      max-width: 100%;
-      max-height: 100%;
-    }
-  }
-
   .login-card {
     background: white;
     padding: 2.5rem;
@@ -330,4 +312,55 @@
 
 .card-brand-name i {
   font-size: 24px;
+}
+
+
+.admin-info-card {
+  width: 420px;
+  background: white;
+  border-radius: 10px;
+  padding: 30px;
+  margin-right: 40px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.admin-info-card h3 {
+  font-size: 22px;
+  margin-bottom: 5px;
+}
+
+.info-subtitle {
+  color: #64748b;
+  margin-bottom: 25px;
+}
+
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.feature-item i {
+  font-size: 22px;
+  color: #2c7be5;
+  background: #eef4ff;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.feature-item h4 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.feature-item p {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
 }

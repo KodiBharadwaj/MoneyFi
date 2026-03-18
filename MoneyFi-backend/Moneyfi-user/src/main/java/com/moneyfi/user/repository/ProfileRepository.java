@@ -19,31 +19,26 @@ import java.util.Optional;
 @Repository
 public interface ProfileRepository extends JpaRepository<ProfileModel, Long> {
 
+    /** Spring JPA */
     Optional<ProfileModel> findByUserId(Long userId);
 
+    /** Spring JPA */
     List<ProfileModel> findByPhone(String phoneNumber);
 
+    /** SP Call */
     @Query(nativeQuery = true, value = "exec getUsersByUsingUserProfileDetails @dateOfBirth = :dateOfBirth, @name = :name," +
             "@gender = :gender, @maritalStatus = :maritalStatus")
     List<ProfileModel> findByUserProfileDetails(LocalDate dateOfBirth, String name, String gender, String maritalStatus);
 
+    /** SP Call */
     @Query(nativeQuery = true, value =  "exec getUserIdFromUsernameAndToken @username = :username, @token = :token")
     Long getUserIdFromUsernameAndToken(String username, String token);
 
-    @Query(
-            nativeQuery = true,
-            value = "exec getUserAuthDetailsByUsername @username = :username"
-    )
+    /** SP Call */
+    @Query(nativeQuery = true, value = "exec getUserAuthDetailsByUsername @username = :username")
     Optional<UserAuthProjection> getUserDetailsByUsername(String username);
 
-    @Query(nativeQuery = true, value = """
-            SELECT updt.* 
-            FROM user_profile_details_table updt WITH (NOLOCK)
-            INNER JOIN user_auth_table uat WITH (NOLOCK) ON uat.id = updt.user_id
-            WHERE uat.username = :username
-            """)
-    Optional<ProfileModel> findByUserEmail(@Param(("username")) String username);
-
+    /** SQL Native Query */
     @Query(value = """
             SELECT uaht.* 
             FROM user_auth_hist_table uaht WITH (NOLOCK)
@@ -53,20 +48,19 @@ public interface ProfileRepository extends JpaRepository<ProfileModel, Long> {
             """, nativeQuery = true)
     List<UserAuthHistProjection> findTopByUserIdAndReasonTypeId(@Param("userId") Long userId, @Param("reasonTypeId") Integer reasonTypeId);
 
+    /** SQL Native Query */
     @Transactional
     @Modifying
-    @Query(nativeQuery = true, value = """
-        UPDATE user_auth_table SET is_blocked = :blockStatus WHERE id = :id
-        """)
+    @Query(nativeQuery = true, value = "UPDATE user_auth_table SET is_blocked = :blockStatus WHERE id = :id")
     void updateUserAuthTableWithBlockOrUnblockStatus(@Param("id") Long id, @Param("blockStatus") boolean blockStatus);
 
+    /** SQL Native Query */
     @Transactional
     @Modifying
-    @Query(nativeQuery = true, value = """
-        UPDATE user_auth_table SET is_deleted = :blockStatus WHERE id = :id
-        """)
+    @Query(nativeQuery = true, value = "UPDATE user_auth_table SET is_deleted = :blockStatus WHERE id = :id")
     void updateUserAuthTableWithDeleteOrUndeleteStatus(@Param("id") Long id, @Param("blockStatus") boolean blockStatus);
 
+    /** SQL Native Query */
     @Transactional
     @Modifying
     @Query(value = """
@@ -78,6 +72,7 @@ public interface ProfileRepository extends JpaRepository<ProfileModel, Long> {
     void insertUserAuthHistory(@Param("userId") Long userId, @Param("updatedTime") LocalDateTime updatedTime,
                                @Param("reasonTypeId") int reasonTypeId, @Param("comment") String comment, @Param("updatedBy") Long updatedBy);
 
+    /** SQL Native Query */
     @Query(nativeQuery = true, value = """
             SELECT ott.* 
             FROM otp_temp_table ott WITH (NOLOCK)
@@ -87,11 +82,13 @@ public interface ProfileRepository extends JpaRepository<ProfileModel, Long> {
             """)
     Optional<OtpTempProjection> getOtpTempDetails(@Param("username") String username, @Param("otpType") String otpType, @Param("currentTime") LocalDateTime currentTime);
 
+    /** SQL Native Query */
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value = "DELETE FROM otp_temp_table WHERE email = :email AND otp_type = :requestType")
     int deleteByEmailAndRequestType(@Param("email") String email, @Param("requestType") String requestType);
 
+    /** SQL Native Query */
     @Query(nativeQuery = true, value = """
             SELECT uat.* 
             FROM user_auth_table uat WITH (NOLOCK)
@@ -99,11 +96,17 @@ public interface ProfileRepository extends JpaRepository<ProfileModel, Long> {
             """)
     Optional<UserAuthProjection> getUserAuthModelByUserId(@Param("userId") Long userId);
 
+    /** SQL Native Query */
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value = "UPDATE user_gmail_auth set count = :gmailSyncRequestCount WHERE user_id = :userId")
     int updateGmailSyncCountByUserRequest(@Param(value = "userId") Long userId, @Param(value = "gmailSyncRequestCount") int gmailSyncRequestCount);
 
-    @Query(nativeQuery = true, value = "SELECT count FROM user_gmail_auth WHERE user_id = :userId")
+    /** ORM Mapping */
+    @Query(name = "UserGmailAuth.getSyncCount", nativeQuery = true)
     Integer getUserGmailAuthSyncCurrentCount(Long userId);
+
+    /** ORM Mapping */
+    @Query(name = "getUserProfileDetails", nativeQuery = true)
+    Optional<ProfileModel> findByUserEmail(@Param(("username")) String username);
 }

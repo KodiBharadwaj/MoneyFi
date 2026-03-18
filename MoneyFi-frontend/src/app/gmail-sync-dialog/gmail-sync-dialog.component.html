@@ -21,7 +21,6 @@
     <p>No transactions found from Gmail.</p>
   </div>
 
-
   <!-- Table Wrapper -->
   <div class="table-wrapper" *ngIf="transactions.length > 0">
     <table class="sync-table">
@@ -38,22 +37,58 @@
 
       <tbody>
         <tr *ngFor="let tx of transactions; let i = index">
+
+          <!-- Category -->
           <td>
-            <select [(ngModel)]="tx.categoryId" class="input">
+            <select
+              [(ngModel)]="tx.categoryId"
+              class="input"
+              [ngClass]="{'input-error': tx.validationErrors?.['categoryId']}"
+            >
               <option *ngFor="let cat of categories" [value]="cat.categoryId">
                 {{ cat.category }}
               </option>
             </select>
+
+            <div class="error-msg" *ngIf="tx.validationErrors?.['categoryId']">
+              <div *ngFor="let err of tx.validationErrors?.['categoryId']">
+                {{ err }}
+              </div>
+            </div>
           </td>
 
+          <!-- Description -->
           <td>
-            <input [(ngModel)]="tx.description" class="input" />
+            <input
+              [(ngModel)]="tx.description"
+              class="input"
+              [ngClass]="{'input-error': tx.validationErrors?.['description']}"
+            />
+
+            <div class="error-msg" *ngIf="tx.validationErrors?.['description']">
+              <div *ngFor="let err of tx.validationErrors?.['description']">
+                {{ err }}
+              </div>
+            </div>
           </td>
 
+          <!-- Amount -->
           <td>
-            <input type="number" [(ngModel)]="tx.amount" class="input amount" />
+            <input
+              type="number"
+              [(ngModel)]="tx.amount"
+              class="input amount"
+              [ngClass]="{'input-error': tx.validationErrors?.['amount']}"
+            />
+
+            <div class="error-msg" *ngIf="tx.validationErrors?.['amount']">
+              <div *ngFor="let err of tx.validationErrors?.['amount']">
+                {{ err }}
+              </div>
+            </div>
           </td>
 
+          <!-- Type -->
           <td>
             <select [(ngModel)]="tx.transactionType" class="input">
               <option *ngFor="let type of transactionTypes" [value]="type">
@@ -62,19 +97,29 @@
             </select>
           </td>
 
+          <!-- Date -->
           <td>
             <input
               type="datetime-local"
               [(ngModel)]="tx.transactionDate"
               class="input"
+              [ngClass]="{'input-error': tx.validationErrors?.['transactionDate']}"
             />
+
+            <div class="error-msg" *ngIf="tx.validationErrors?.['transactionDate']">
+              <div *ngFor="let err of tx.validationErrors?.['transactionDate']">
+                {{ err }}
+              </div>
+            </div>
           </td>
 
+          <!-- Ignore -->
           <td class="action-cell">
             <button class="btn btn-ignore" (click)="ignore(i)">
               Ignore
             </button>
           </td>
+
         </tr>
       </tbody>
     </table>
@@ -83,6 +128,7 @@
   <!-- Footer -->
   <div class="sync-footer">
     <button class="btn btn-outline" (click)="cancel()">Cancel</button>
+
     <button
       class="btn btn-primary submit-btn"
       (click)="submit()"

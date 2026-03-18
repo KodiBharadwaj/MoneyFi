@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.service.income.impl;
 
+import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
 import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.transaction.repository.transaction.TransactionRepository;
@@ -13,10 +14,9 @@ import com.moneyfi.transaction.repository.income.IncomeRepository;
 import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.*;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
-import com.moneyfi.transaction.utils.enums.TransactionServiceType;
 import com.moneyfi.transaction.validator.IncomeValidator;
 import com.moneyfi.transaction.validator.TransactionValidator;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -54,7 +54,7 @@ public class IncomeServiceImpl implements IncomeService {
     private static final String INCOME_ALREADY_PRESENT_MESSAGE = "Income with this source and category is already there";
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void saveIncome(IncomeSaveRequest incomeSaveRequest, Long userId) {
         IncomeValidator.validateIncomeSaveRequest(incomeSaveRequest, userId);
         List<Integer> categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
@@ -282,7 +282,7 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public boolean incomeRevertFunction(Long incomeId, Long userId) {
         IncomeDeleted incomeDeleted = incomeDeletedRepository.findByIncomeId(incomeId);
         LocalDateTime expiryTime = incomeDeleted.getExpiryDateTime();
@@ -313,7 +313,7 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void updateBySource(Long id, Long userId, IncomeUpdateRequest incomeUpdateRequest) {
         IncomeModel incomeModel = incomeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(INCOME_NOT_FOUND));
         IncomeValidator.validateIncomeUpdateRequest(incomeUpdateRequest);
@@ -333,7 +333,7 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteIncomeById(Long id, Long userId) {
         try {
             IncomeModel income = incomeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(INCOME_NOT_FOUND));

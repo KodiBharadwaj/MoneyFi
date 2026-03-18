@@ -253,3 +253,54 @@ select:focus {
 }
 
 
+
+
+
+
+
+.config-btn {
+  padding: 10px 18px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: 0.2s ease;
+}
+
+/* Danger button */
+.config-btn.danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.config-btn.danger:hover {
+  background-color: #c82333;
+}
+
+/* Resend button */
+.resend-btn {
+  background-color: #f1f3f5;
+  color: #333;
+}
+
+.resend-btn:hover {
+  background-color: #e2e6ea;
+}
+
+/* Spinner */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ccc;
+  border-top: 2px solid #333;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}

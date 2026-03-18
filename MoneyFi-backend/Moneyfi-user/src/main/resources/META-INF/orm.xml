@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="https://jakarta.ee/xml/ns/persistence/orm"
+                 version="3.0">
+
+    <named-native-query name="getAllExcelTemplatesList"
+                        result-set-mapping="ExcelTemplateListMapping">
+        <query>
+            <![CDATA[
+        SELECT
+            et.name AS excelType,
+            et.content AS excelFile,
+            uatA.username AS createdBy,
+            uatB.username AS updatedBy,
+            et.created_time AS createdAt,
+            et.updated_time AS updatedAt
+        FROM excel_template et WITH (NOLOCK)
+        INNER JOIN user_auth_table uatA WITH (NOLOCK) ON uatA.id = et.created_by
+        INNER JOIN user_auth_table uatB WITH (NOLOCK) ON uatB.id = et.updated_by
+        ]]>
+        </query>
+    </named-native-query>
+
+    <named-native-query name="getUserProfileDetails"
+                        result-class="com.moneyfi.user.model.ProfileModel">
+        <query>
+            <![CDATA[
+            SELECT updt.*
+            FROM user_profile_details_table updt WITH (NOLOCK)
+            INNER JOIN user_auth_table uat WITH (NOLOCK) ON uat.id = updt.user_id
+            WHERE uat.username = :username
+            ]]>
+        </query>
+    </named-native-query>
+
+    <named-native-query name="UserGmailAuth.getSyncCount"
+                        result-class="java.lang.Integer">
+        <query>
+            <![CDATA[
+            SELECT uga.count
+            FROM user_gmail_auth uga
+            WHERE uga.user_id = :userId
+        ]]>
+        </query>
+    </named-native-query>
+
+</entity-mappings>

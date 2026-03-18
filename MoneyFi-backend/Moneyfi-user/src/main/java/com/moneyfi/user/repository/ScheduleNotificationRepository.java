@@ -8,5 +8,7 @@ import java.util.List;
 
 @Repository
 public interface ScheduleNotificationRepository extends JpaRepository<ScheduleNotification, Long> {
+
+    /** Spring JPA */
     List<ScheduleNotification> findByScheduleBy(Long id);
 }

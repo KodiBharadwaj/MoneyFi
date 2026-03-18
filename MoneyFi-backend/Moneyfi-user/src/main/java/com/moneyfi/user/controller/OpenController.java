@@ -1,4 +1,4 @@
-package com.moneyfi.user.controller.common;
+package com.moneyfi.user.controller;
 
 import com.moneyfi.user.service.common.UserCommonService;
 import com.moneyfi.user.service.common.dto.request.AccountRetrieveRequestDto;

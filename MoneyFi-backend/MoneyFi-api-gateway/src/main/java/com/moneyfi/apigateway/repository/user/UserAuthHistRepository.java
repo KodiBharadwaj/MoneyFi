@@ -8,5 +8,7 @@ import java.util.List;
 
 @Repository
 public interface UserAuthHistRepository extends JpaRepository<UserAuthHist, Long> {
+
+    /** Spring JPA */
     List<UserAuthHist> findByUserId(Long id);
 }

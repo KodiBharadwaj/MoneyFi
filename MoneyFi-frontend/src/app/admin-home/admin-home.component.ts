@@ -13,6 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { AdminScheduleDialogComponent } from '../admin-schedule-dialog/admin-schedule-dialog.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-admin-home',
@@ -26,6 +27,7 @@ import { AdminScheduleDialogComponent } from '../admin-schedule-dialog/admin-sch
       OverviewComponent,
       ConfirmLogoutDialogComponent,
       RouterModule,
+      FormsModule
     ],
   templateUrl: './admin-home.component.html',
   styleUrl: './admin-home.component.css'
@@ -54,18 +56,26 @@ export class AdminHomeComponent implements OnInit {
       private route: ActivatedRoute, private httpClient:HttpClient,
     private toastr: ToastrService) {}
 
+    mode: string = 'MANUAL'; // default
+
   ngOnInit(): void {
     this.fetchCounts();
     this.getAdminScheduledNotifications();
   }
 
   getAdminScheduledNotifications() {
-    this.httpClient.get<any[]>(`${this.baseUrl}/api/v1/user-service/admin/schedule-notifications/get?status=ACTIVE`).subscribe({
-      next: (data) => {
-        this.schedules = data;
-      },
-      error: () => this.toastr.error('Failed to load schedules')
-    });
+    this.httpClient
+      .get<any[]>(`${this.baseUrl}/api/v1/user-service/admin/schedule-notifications/get?status=ACTIVE&mode=${this.mode}`)
+      .subscribe({
+        next: (data) => {
+          this.schedules = data;
+        },
+        error: () => this.toastr.error('Failed to load schedules')
+      });
+  }
+
+  onModeChange() {
+    this.getAdminScheduledNotifications();
   }
 
   cancelSchedule(scheduleId: number) {
@@ -77,7 +87,14 @@ export class AdminHomeComponent implements OnInit {
             s.scheduleId === scheduleId ? { ...s, cancelled: true } : s
           );
         },
-        error: () => this.toastr.error('Failed to cancel schedule')
+          error: (err) => {
+          try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            this.toastr.error(errorObj.message);
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+          }
+        }
       });
   }
 
@@ -88,7 +105,14 @@ export class AdminHomeComponent implements OnInit {
         this.toastr.success('Schedule Deleted');
         this.getAdminScheduledNotifications();
       },
-      error: () => this.toastr.error('Failed to delete schedule')
+      error: (err) => {
+        try {
+          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+          console.error('Failed to parse error:', err.error);
+        }
+      }
     })
   }
 

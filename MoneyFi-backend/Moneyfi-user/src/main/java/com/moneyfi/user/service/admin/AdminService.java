@@ -10,6 +10,7 @@ import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
 import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -47,17 +48,19 @@ public interface AdminService {
 
     void deleteReasonByReasonId(int reasonId, Long adminUserId);
 
-    Map<String, List<UserDefectHistDetailsResponseDto>> getUserDefectHistDetails(List<Long> defectIds);
-
     List<String> getUsernamesOfAllUsers();
 
     void scheduleNotification(@Valid ScheduleNotificationRequestDto requestDto, Long adminUserId);
 
-    List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status);
+    List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status, String operationMode);
 
     void cancelTheUserScheduling(Long scheduleId, Long adminUserId);
 
     void updateAdminPlacedSchedules(@Valid AdminScheduleRequestDto requestDto, Long adminUserId);
 
     void deleteUserScheduling(Long scheduleId, Long adminUserId);
+
+    void uploadExcelTemplate(Long adminUserId, String type,String operation, MultipartFile file) throws IOException;
+
+    List<ExcelTemplateList> getAllExcelTemplates();
 }
