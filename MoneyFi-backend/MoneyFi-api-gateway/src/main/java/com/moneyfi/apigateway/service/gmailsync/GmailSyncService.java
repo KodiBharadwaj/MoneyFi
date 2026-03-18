@@ -85,7 +85,12 @@ public class GmailSyncService {
 
     public Integer getGmailConsentStatus(Long userId) {
         Optional<GmailAuth> gmailAuth = gmailSyncRepository.findByUserId(userId);
-        return (gmailAuth.isPresent() && Boolean.TRUE.equals(gmailAuth.get().getIsActive())) ? gmailAuth.get().getCount() : null;
+
+        if (gmailAuth.isPresent()) {
+            Integer count = gmailAuth.get().getCount() != null ? gmailAuth.get().getCount() : null;
+            if (Boolean.TRUE.equals(gmailAuth.get().getIsActive()) || (count != null && count >= 3)) return count;
+        }
+        return null;
     }
 
     public List<GmailSyncHistoryResponse> getSyncHistoryResponse(Long userId) {
