@@ -508,3 +508,19 @@ button:disabled i {
   border-radius: 4px;
   cursor: pointer;
 }
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-count {
+  font-weight: 500;
+}
+
+.page-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

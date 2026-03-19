@@ -188,19 +188,27 @@
     </div>
 
     <div class="pagination" *ngIf="expenses.length > 0">
-      <button mat-stroked-button (click)="previousPage()" [disabled]="currentPage === 0">
-        ← Previous
-      </button>
+      <!-- LEFT: Total Count -->
+      <div class="total-count">
+        Total: {{ totalCount }} transactions
+      </div>
 
-      <span class="page-info">
-        Page {{ currentPage + 1 }}
-      </span>
+      <!-- CENTER: Pagination -->
+      <div class="page-controls">
+        <button mat-stroked-button (click)="previousPage()" [disabled]="currentPage === 0">
+          ← Previous
+        </button>
 
-      <button mat-stroked-button (click)="nextPage()" [disabled]="expenses.length < pageSize">
-        Next →
-      </button>
+        <span>
+          Page {{ currentPage + 1 }} / {{ totalPages }}
+        </span>
 
-      <!-- NEW: Page Size Dropdown -->
+        <button mat-stroked-button (click)="nextPage()" [disabled]="currentPage + 1 >= totalPages">
+          Next →
+        </button>
+      </div>
+
+      <!-- RIGHT: Page Size -->
       <div class="page-size-selector">
         <label>Show:</label>
         <select [(ngModel)]="pageSize" (change)="onPageSizeChange()">

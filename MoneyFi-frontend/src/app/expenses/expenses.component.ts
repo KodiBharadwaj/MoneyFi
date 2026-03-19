@@ -134,6 +134,8 @@ export class ExpensesComponent {
     this.loadExpensesData(); // reload with new page size
   }
 
+  totalCount: number = 0;
+  totalPages: number = 0;
   loadExpensesData() {
     this.loading = true;
 
@@ -148,11 +150,13 @@ export class ExpensesComponent {
       requestType: this.selectedMonth === 0 ? 'YEARLY' : 'MONTHLY'
     };
 
-    this.httpClient.post<Expense[]>(`${this.baseUrl}/api/v1/transaction/expense/get-expenses`, payload).subscribe({
+    this.httpClient.post<any>(`${this.baseUrl}/api/v1/transaction/expense/get-expenses`, payload).subscribe({
       next: (data) => {
-        if (data && data.length > 0) {
-          this.expenses = data;
-          this.totalExpenses = data[0]?.totalAmount;
+        if (data.data && data.data.length > 0) {
+          this.expenses = data.data
+          this.totalCount = data.totalCount;
+          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+          this.totalExpenses = data.totalAmount;
           this.totalExpensesCount = data[0]?.totalCount;
           this.calculateTotalExpenses();
           this.updateChartData();

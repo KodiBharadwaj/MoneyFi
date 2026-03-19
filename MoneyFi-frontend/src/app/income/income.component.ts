@@ -132,6 +132,8 @@ export class IncomeComponent {
     this.loadDeletedIncomeData()
   }
 
+  totalCount: number = 0;
+  totalPages: number = 0;
   loadIncomeData() {
     this.loading = true;
 
@@ -146,11 +148,13 @@ export class IncomeComponent {
       requestType: this.selectedMonth === 0 ? 'YEARLY' : 'MONTHLY'
     };
 
-    this.httpClient.post<any[]>(`${this.baseUrl}/api/v1/transaction/income/get-incomes`, payload).subscribe({
+    this.httpClient.post<any>(`${this.baseUrl}/api/v1/transaction/income/get-incomes`, payload).subscribe({
       next: (data) => {
-        if (data && data.length > 0) {
-          this.incomeSources = data;
-          this.totalIncome = data[0]?.totalAmount;
+        if (data.data && data.data.length > 0) {
+          this.incomeSources = data.data;
+          this.totalCount = data.totalCount;
+          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+          this.totalIncome = data.totalAmount;
           this.totalIncomesCount = data[0]?.totalCount;
           this.updateChartData();
         } else {
@@ -186,8 +190,10 @@ export class IncomeComponent {
   }
 
   nextPage() {
-    this.currentPage++;
-    this.loadIncomeData();
+    if (this.currentPage + 1 < this.totalPages) {
+      this.currentPage++;
+      this.loadIncomeData();
+    }
   }
 
   previousPage() {

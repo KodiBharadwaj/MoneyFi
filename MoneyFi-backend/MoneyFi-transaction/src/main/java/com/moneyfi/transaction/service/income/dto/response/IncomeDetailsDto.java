@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.service.income.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,8 @@ public class IncomeDetailsDto {
     private boolean recurring;
     private String description;
     private String activeStatus;
+    @JsonIgnore
     private Long totalCount;
+    @JsonIgnore
     private BigDecimal totalAmount;
 }

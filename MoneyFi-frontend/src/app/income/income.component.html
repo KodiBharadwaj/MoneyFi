@@ -4,7 +4,7 @@
     <div class="card total-income">
       <div class="card-content">
         <h3>Total Income</h3>
-        <p class="amount"><span [appCountUp]="totalIncome"></span></p>      
+        <p class="amount"><span [appCountUp]="totalIncome"></span></p>
         <div class="income-ratio">
           <div class="ratio-header">
             <span class="ratio-label">Recurring vs One-Time</span>
@@ -26,10 +26,7 @@
       <div class="card-content">
         <h3>Income Overview</h3>
         <div class="chart-container" *ngIf="incomeSources.length > 0">
-          <canvas baseChart
-            [data]="pieChartData"
-            [options]="pieChartOptions"
-            [type]="'pie'">
+          <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" [type]="'pie'">
           </canvas>
         </div>
         <div class="empty-chart" *ngIf="incomeSources.length === 0">
@@ -40,63 +37,63 @@
   </div>
 
 
-    <!-- Header Section -->
-    <div class="header">
-      <div class="title-section">
-        <h1>Income Management</h1>
-        <p>Track and manage your income</p>
-      </div>
-      <button class="add-income-btn" (click)="addIncome()">
-        <i class="fas fa-plus"></i>
-        Add Income
-      </button>
+  <!-- Header Section -->
+  <div class="header">
+    <div class="title-section">
+      <h1>Income Management</h1>
+      <p>Track and manage your income</p>
     </div>
-  
-    <!-- Filter Section -->
-    <div class="filters-section">
-      <div class="filter-group">
-        <div class="filter-item">
-          <mat-form-field appearance="outline">
-            <mat-label>Year</mat-label>
-            <mat-select [(ngModel)]="selectedYear" (selectionChange)="filterIncome()">
-              <mat-option *ngFor="let year of availableYears" [value]="year">
-                {{ year }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-  
-        <div class="filter-item">
-          <mat-form-field appearance="outline">
-            <mat-label>Month</mat-label>
-            <mat-select [(ngModel)]="selectedMonth" (selectionChange)="filterIncome()">
-              <mat-option [value]="0">All Months</mat-option>
-              <mat-option *ngFor="let month of months; let i = index" [value]="i + 1">
-                {{ month }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-  
-        <div class="filter-item">
-          <mat-form-field appearance="outline">
-            <mat-label>Category</mat-label>
-            <mat-select [(ngModel)]="selectedCategory" (selectionChange)="filterIncome()">
-              <mat-option [value]="''">All Sources</mat-option>
-              <mat-option *ngFor="let category of categories" [value]="category.categoryId">
-                {{ category.category }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-  
-        <div class="filter-item button-container">
-          <button mat-stroked-button color="primary" class="reset-btn" (click)="resetFilters()">
-            <i class="fas fa-undo"></i> Reset Filters
-          </button>
-        </div>
+    <button class="add-income-btn" (click)="addIncome()">
+      <i class="fas fa-plus"></i>
+      Add Income
+    </button>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <div class="filter-item">
+        <mat-form-field appearance="outline">
+          <mat-label>Year</mat-label>
+          <mat-select [(ngModel)]="selectedYear" (selectionChange)="filterIncome()">
+            <mat-option *ngFor="let year of availableYears" [value]="year">
+              {{ year }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="filter-item">
+        <mat-form-field appearance="outline">
+          <mat-label>Month</mat-label>
+          <mat-select [(ngModel)]="selectedMonth" (selectionChange)="filterIncome()">
+            <mat-option [value]="0">All Months</mat-option>
+            <mat-option *ngFor="let month of months; let i = index" [value]="i + 1">
+              {{ month }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="filter-item">
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <mat-select [(ngModel)]="selectedCategory" (selectionChange)="filterIncome()">
+            <mat-option [value]="''">All Sources</mat-option>
+            <mat-option *ngFor="let category of categories" [value]="category.categoryId">
+              {{ category.category }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="filter-item button-container">
+        <button mat-stroked-button color="primary" class="reset-btn" (click)="resetFilters()">
+          <i class="fas fa-undo"></i> Reset Filters
+        </button>
       </div>
     </div>
+  </div>
 
 
   <!-- Income Sources Table -->
@@ -105,7 +102,7 @@
       <h2>Income Sources</h2>
       <div>
         <button class="report-btn" (click)="isDeletedClicked()"> Deleted Incomes </button>
-         <button class="report-btn" (click)="generateReport()" style="margin-left: 5px;" [disabled]="isLoading">
+        <button class="report-btn" (click)="generateReport()" style="margin-left: 5px;" [disabled]="isLoading">
           <ng-container *ngIf="!isLoading; else loadingTpl">
             📊 Generate Report
           </ng-container>
@@ -115,7 +112,8 @@
         </button>
       </div>
     </div>
-    <p style="color:rgb(224, 5, 5);">Note: Recurring incomes of this month will be automatically added in next month.</p>
+    <p style="color:rgb(224, 5, 5);">Note: Recurring incomes of this month will be automatically added in next month.
+    </p>
     <table *ngIf="!loading && incomeSources.length > 0">
       <thead>
         <tr>
@@ -183,19 +181,28 @@
     </div>
 
     <div class="pagination" *ngIf="incomeSources.length > 0">
-      <button mat-stroked-button (click)="previousPage()" [disabled]="currentPage === 0">
-        ← Previous
-      </button>
 
-      <span class="page-info">
-        Page {{ currentPage + 1 }}
-      </span>
+      <!-- LEFT: Total Count -->
+      <div class="total-count">
+        Total: {{ totalCount }} transactions
+      </div>
 
-      <button mat-stroked-button (click)="nextPage()" [disabled]="incomeSources.length < pageSize">
-        Next →
-      </button>
+      <!-- CENTER: Pagination -->
+      <div class="page-controls">
+        <button mat-stroked-button (click)="previousPage()" [disabled]="currentPage === 0">
+          ← Previous
+        </button>
 
-      <!-- NEW: Page Size Dropdown -->
+        <span>
+          Page {{ currentPage + 1 }} / {{ totalPages }}
+        </span>
+
+        <button mat-stroked-button (click)="nextPage()" [disabled]="currentPage + 1 >= totalPages">
+          Next →
+        </button>
+      </div>
+
+      <!-- RIGHT: Page Size -->
       <div class="page-size-selector">
         <label>Show:</label>
         <select [(ngModel)]="pageSize" (change)="onPageSizeChange()">
@@ -204,6 +211,7 @@
           </option>
         </select>
       </div>
+
     </div>
   </div>
 </div>
