@@ -50,7 +50,6 @@ interface IncomeSource {
 export class IncomeComponent {
   totalIncome: number = 0;
   incomeSources: any[] = [];
-  totalIncomesCount: number = 0;
   deletedIncomeSources: IncomeSource[] = [];
   loading: boolean = false;
   recurringPercentage: number = 0;
@@ -155,7 +154,6 @@ export class IncomeComponent {
           this.totalCount = data.totalCount;
           this.totalPages = Math.ceil(this.totalCount / this.pageSize);
           this.totalIncome = data.totalAmount;
-          this.totalIncomesCount = data[0]?.totalCount;
           this.updateChartData();
         } else {
           this.incomeSources = [];
@@ -441,7 +439,7 @@ export class IncomeComponent {
       deleteStatus: false,
       date: this.getSelectedDate(),
       startIndex: 0,
-      threshold: this.totalIncomesCount,
+      threshold: this.totalCount,
       sortBy: "",
       sortOrder: "",
       requestType: this.selectedMonth === 0 ? 'YEARLY' : 'MONTHLY'
