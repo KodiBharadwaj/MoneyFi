@@ -16,6 +16,7 @@ import com.moneyfi.apigateway.repository.gmailsync.GmailSyncHistoryRepository;
 import com.moneyfi.apigateway.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.apigateway.repository.gmailsync.GmailProcessedMessageRepository;
 import com.moneyfi.apigateway.service.general.GoogleOAuthEndPointDealerService;
+import com.moneyfi.apigateway.service.gmailsync.dto.response.GmailConsentResponse;
 import com.moneyfi.apigateway.service.gmailsync.dto.response.GmailSyncHistoryResponse;
 import com.moneyfi.constants.enums.TransactionServiceType;
 import lombok.RequiredArgsConstructor;
@@ -83,14 +84,25 @@ public class GmailSyncService {
         gmailSyncRepository.save(auth);
     }
 
-    public Integer getGmailConsentStatus(Long userId) {
+    public GmailConsentResponse<Integer> getGmailConsentStatus(Long userId) {
         Optional<GmailAuth> gmailAuth = gmailSyncRepository.findByUserId(userId);
 
         if (gmailAuth.isPresent()) {
             Integer count = gmailAuth.get().getCount() != null ? gmailAuth.get().getCount() : null;
-            if (Boolean.TRUE.equals(gmailAuth.get().getIsActive()) || (count != null)) return count;
+            if (Boolean.TRUE.equals(gmailAuth.get().getIsActive())) {
+                return GmailConsentResponse.<Integer>builder()
+                        .data(count)
+                        .consentStatus(Boolean.TRUE).build();
+            } else if(count != null) {
+                return GmailConsentResponse.<Integer>builder()
+                        .data(count)
+                        .consentStatus(Boolean.FALSE).build();
+            }
         }
-        return null;
+        return GmailConsentResponse.<Integer>builder()
+                .data(0)
+                .consentStatus(false)
+                .build();
     }
 
     public List<GmailSyncHistoryResponse> getSyncHistoryResponse(Long userId) {
