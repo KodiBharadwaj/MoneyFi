@@ -18,22 +18,23 @@ import { ForgotUsernameComponent } from './forgot-username/forgot-username.compo
 import { ReportsInsightsComponent } from './reports-insights/reports-insights.component';
 import { RaiseRequestComponent } from './raise-request/raise-request.component';
 import { RequestTrackerComponent } from './request-tracker/request-tracker.component';
-import { AdminHomeComponent } from './admin-home/admin-home.component';
-import { AdminUsersComponent } from './admin-users/admin-users.component';
-import { AdminLoginComponent } from './admin-login/admin-login.component';
-import { AdminRequestsComponent } from './admin-requests/admin-requests.component';
-import { AdminInsightsComponent } from './admin-insights/admin-insights.component';
-import { AdminUserDefectsComponent } from './admin-user-defects/admin-user-defects.component';
+import { AdminHomeComponent } from './admin/admin-home/admin-home.component';
+import { AdminUsersComponent } from './admin/admin-users/admin-users.component';
+import { AdminLoginComponent } from './admin/admin-login/admin-login.component';
+import { AdminRequestsComponent } from './admin/admin-requests/admin-requests.component';
+import { AdminInsightsComponent } from './admin/admin-insights/admin-insights.component';
+import { AdminUserDefectsComponent } from './admin/admin-user-defects/admin-user-defects.component';
 import { UserConfigurationComponent } from './user-configuration/user-configuration.component';
-import { AdminUserFeedbackComponent } from './admin-user-feedback/admin-user-feedback.component';
-import { AdminConfigurationComponent } from './admin-configuration/admin-configuration.component';
+import { AdminUserFeedbackComponent } from './admin/admin-user-feedback/admin-user-feedback.component';
+import { AdminConfigurationComponent } from './admin/admin-configuration/admin-configuration.component';
 import { UserNotificationsComponent } from './user-notifications/user-notifications.component';
-import { AdminReasonsComponent } from './admin-reasons/admin-reasons.component';
+import { AdminReasonsComponent } from './admin/admin-reasons/admin-reasons.component';
 import { HelpCenterComponent } from './help-center/help-center.component';
-import { AdminCategoriesListComponent } from './admin-categories-list/admin-categories-list.component';
+import { AdminCategoriesListComponent } from './admin/admin-categories-list/admin-categories-list.component';
 import { GmailSyncSummaryComponent } from './gmail-sync-summary/gmail-sync-summary.component';
 import { MaintainerHomeComponent } from './maintainer-home/maintainer-home.component';
-import { AdminExcelTemplatesComponent } from './admin-excel-templates/admin-excel-templates.component';
+import { AdminExcelTemplatesComponent } from './admin/admin-excel-templates/admin-excel-templates.component';
+import { AdminLayoutComponent } from './admin/admin-layout/admin-layout.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -46,17 +47,23 @@ export const routes: Routes = [
   { path: 'otp-confirm', component: SignupOtpConfirmDialogComponent },
   { path: 'track-request', component: RequestTrackerComponent },
   { path: 'help-center', component: HelpCenterComponent },
-  { path: 'admin/home', component: AdminHomeComponent },
-  { path: 'admin/users/:status', component: AdminUsersComponent },
-  { path: 'admin/requests/:status', component: AdminRequestsComponent },
-  { path: 'admin/insights', component: AdminInsightsComponent },
-  { path: 'admin/user-defects', component: AdminUserDefectsComponent },
-  { path: 'admin/feedbacks', component: AdminUserFeedbackComponent },
-  { path: 'admin/configuration', component: AdminConfigurationComponent },
-  { path: 'admin/configuration/reasons', component: AdminReasonsComponent },
-  { path: 'admin/configuration/categories', component: AdminCategoriesListComponent },
-  { path: 'admin/configuration/manage-templates', component: AdminExcelTemplatesComponent },
   { path: 'maintainer/home', component: MaintainerHomeComponent },
+  {
+    path: 'admin',
+    component: AdminLayoutComponent,
+    children: [
+      { path: 'home', component: AdminHomeComponent },
+      { path: 'users/:status', component: AdminUsersComponent },
+      { path: 'requests/:status', component: AdminRequestsComponent },
+      { path: 'insights', component: AdminInsightsComponent },
+      { path: 'user-defects', component: AdminUserDefectsComponent },
+      { path: 'feedbacks', component: AdminUserFeedbackComponent },
+      { path: 'configuration', component: AdminConfigurationComponent },
+      { path: 'configuration/reasons', component: AdminReasonsComponent },
+      { path: 'configuration/categories', component: AdminCategoriesListComponent },
+      { path: 'configuration/manage-templates', component: AdminExcelTemplatesComponent },
+    ]
+  },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard],children:[
     {path:'',component:OverviewComponent},
     {path:'overview',component:OverviewComponent},

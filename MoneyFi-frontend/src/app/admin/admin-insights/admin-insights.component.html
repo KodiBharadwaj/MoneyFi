@@ -1,0 +1,30 @@
+<!-- Main Content -->
+<div class="main-content">
+  <!-- Year Selector -->
+  <div class="chart-header">
+    <label for="yearSelect">Select Year:</label>
+    <select id="yearSelect" [(ngModel)]="selectedYear" (change)="onYearChange()">
+      <option *ngFor="let year of years" [value]="year">{{ year }}</option>
+    </select>
+  </div>
+
+  <!-- Charts -->
+  <div class="chart-container">
+    <div class="chart-box">
+      <canvas baseChart
+              [data]="userMonthlyChartData"
+              [options]="userMonthlyChartOptions"
+              chartType="bar">
+      </canvas>
+    </div>
+
+    <div class="chart-box clickable">
+      <canvas baseChart
+              [data]="dummyChartData"
+              [options]="dummyChartOptions"
+              [type]="'bar'"
+              (chartClick)="handleChartClick($event)">
+      </canvas>
+    </div>
+  </div>
+</div>

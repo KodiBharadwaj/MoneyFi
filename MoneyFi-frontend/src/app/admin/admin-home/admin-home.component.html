@@ -1,0 +1,151 @@
+<fieldset class="tile-group">
+  <legend class="group-title">Users Summary</legend>
+  <div class="tiles">
+    <div class="tile" [routerLink]="['/admin/users', 'All']">
+      <h3>Total Users</h3>
+      <h1>{{ totalUsers }}</h1>
+    </div>
+    <div class="tile" [routerLink]="['/admin/users', 'ACTIVE']">
+      <h3>Active Users</h3>
+      <h1>{{ activeUsers }}</h1>
+    </div>
+    <div class="tile" [routerLink]="['/admin/users', 'BLOCKED']">
+      <h3>Blocked Users</h3>
+      <h1>{{ blockedUsers }}</h1>
+    </div>
+    <div class="tile" [routerLink]="['/admin/users', 'DELETED']">
+      <h3>Deleted Users</h3>
+      <h1>{{ deletedUsers }}</h1>
+    </div>
+  </div>
+</fieldset>
+
+<br>
+<fieldset class="tile-group">
+  <legend class="group-title">User Requests Summary</legend>
+  <div class="tiles tiles-4">
+    <div class="tile" [routerLink]="['/admin/requests', 'Unblock']">
+      <h3>Account Unblock Requests</h3>
+      <h1>{{ accountUnblockRequests }}</h1>
+    </div>
+    <div class="tile" [routerLink]="['/admin/requests', 'Rename']">
+      <h3>Name Change Requests</h3>
+      <h1>{{ nameChangeRequests }}</h1>
+    </div>
+    <div class="tile" [routerLink]="['/admin/requests', 'Retrieve']">
+      <h3>Account Reactivate Requests</h3>
+      <h1>{{ accountReactivateRequests }}</h1>
+    </div>
+    <div class="tile" [routerLink]="['/admin/requests', 'Other']">
+      <h3>Other Requests</h3>
+      <h1>{{ otherRequests }}</h1>
+    </div>
+  </div>
+</fieldset>
+
+<br>
+<fieldset class="tile-group">
+  <legend class="group-title">User Requests Summary</legend>
+  <div class="tiles tiles-2">
+    <div class="tile" [routerLink]="['/admin/user-defects']">
+      <h3>Issues/Defects</h3>
+      <h1>{{ userDefectRaises }}</h1>
+    </div>
+    <div class="tile" [routerLink]="['/admin/feedbacks']">
+      <h3>User feedback</h3>
+      <h1>{{ userFeedbacks }}</h1>
+    </div>
+  </div>
+</fieldset>
+
+
+<fieldset class="tile-group">
+  <legend class="group-title">Scheduled Notifications</legend>
+
+  <!-- Toggle -->
+  <div class="toggle-container">
+    <label>
+      <input type="radio" name="mode" value="MANUAL" [(ngModel)]="mode" (change)="onModeChange()" />
+      Manual
+    </label>
+
+    <label>
+      <input type="radio" name="mode" value="AUTOMATIC" [(ngModel)]="mode" (change)="onModeChange()" />
+      Automatic
+    </label>
+  </div>
+
+  <div class="schedule-container" *ngIf="schedules.length > 0; else noSchedules">
+    <div class="schedule-item" *ngFor="let s of schedules">
+      <div class="schedule-row">
+        <div class="schedule-col">
+          <strong>Subject:</strong> {{ s.subject }}
+        </div>
+        <div class="schedule-col">
+          <strong>Created:</strong> {{ s.createdDate }}
+        </div>
+      </div>
+
+      <div class="schedule-row">
+        <div class="schedule-col">
+          <strong>Description:</strong> {{ s.description }}
+        </div>
+        <div class="schedule-col">
+          <strong>Target Users:</strong>
+
+          <!-- Manual Mode -->
+          <span *ngIf="mode === 'MANUAL'">
+            {{ s.recipients }}
+          </span>
+
+          <!-- Automatic Mode -->
+          <span *ngIf="mode === 'AUTOMATIC'">
+            <span *ngFor="let user of s.recipentList; let last = last">
+              {{ user }}<span *ngIf="!last">, </span>
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <div class="schedule-row">
+        <div class="schedule-col">
+          <strong>From:</strong> {{ s.scheduleFrom }}
+        </div>
+        <div class="schedule-col">
+          <strong>To:</strong> {{ s.scheduleTo }}
+        </div>
+      </div>
+
+      <div class="schedule-row">
+        <div class="schedule-col">
+          <strong>Scheduled Created By: </strong> {{ s.scheduleCreatedBy }}
+        </div>
+        <div class="schedule-col">
+          <strong>Schedule Updated/Cancelled By:</strong> {{ s.scheduleUpdatedBy }}
+        </div>
+      </div>
+
+      <div class="schedule-actions">
+        <button (click)="editSchedule(s)" [disabled]="mode === 'AUTOMATIC'">
+          Edit
+        </button>
+
+        <button 
+          (click)="cancelSchedule(s.scheduleId)" 
+          [disabled]="s.cancelled || mode === 'AUTOMATIC'">
+          {{ s.cancelled ? 'Cancelled' : 'Cancel' }}
+        </button>
+
+        <button 
+          (click)="deleteSchedule(s.scheduleId)" 
+          [disabled]="mode === 'AUTOMATIC'">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noSchedules>
+    <p>No schedules found.</p>
+  </ng-template>
+</fieldset>

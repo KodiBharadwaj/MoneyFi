@@ -1,0 +1,54 @@
+<!-- <main class="main-content" -->
+  <div class="feedback-container">
+    <h2>User Feedbacks</h2>
+
+    <!-- Loader -->
+    <div *ngIf="loading" class="loader">Loading feedbacks...</div>
+
+    <!-- No feedbacks -->
+    <div *ngIf="!loading && feedbacks.length === 0" class="no-feedback">
+        No feedbacks available.
+    </div>
+
+    <!-- Feedback Table -->
+    <table *ngIf="!loading && feedbacks.length > 0" class="feedback-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Rating</th>
+            <th>Message</th>
+            <th>Time</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let feedback of feedbacks">
+            <td>{{ feedback.id }}</td>
+            <td>
+            <span class="rating">
+                <ng-container *ngFor="let star of getStars(feedback.rating)">
+                ⭐
+                </ng-container>
+            </span>
+            </td>
+            <td>{{ feedback.message }}</td>
+            <td>{{ feedback.timeOfFeedback | date:'medium' }}</td>
+            <td>
+            <button class="seen-btn" 
+                    [disabled]="buttonLoadingId === feedback.feedbackId"
+                    (click)="markAsSeen(feedback.feedbackId)">
+                
+                <!-- Show loader if this button is loading -->
+                <ng-container *ngIf="buttonLoadingId === feedback.feedbackId; else seenText">
+                <span class="spinner"></span> Processing...
+                </ng-container>
+                
+                <ng-template #seenText>
+                Seen
+                </ng-template>
+            </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+  </div>
