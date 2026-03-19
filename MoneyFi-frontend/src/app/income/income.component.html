@@ -194,6 +194,16 @@
       <button mat-stroked-button (click)="nextPage()" [disabled]="incomeSources.length < pageSize">
         Next →
       </button>
+
+      <!-- NEW: Page Size Dropdown -->
+      <div class="page-size-selector">
+        <label>Show:</label>
+        <select [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+          <option *ngFor="let size of pageSizeOptions" [value]="size">
+            {{ size }}
+          </option>
+        </select>
+      </div>
     </div>
   </div>
 </div>

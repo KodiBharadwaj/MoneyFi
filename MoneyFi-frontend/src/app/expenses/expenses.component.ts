@@ -70,6 +70,7 @@ export class ExpensesComponent {
 
   currentPage: number = 0;
   pageSize: number = 5;
+  pageSizeOptions: number[] = [5, 10, 15, 20, 50, 100];
   sortBy: string = '';
   sortOrder: 'asc' | 'desc' | '' = '';
 
@@ -126,6 +127,11 @@ export class ExpensesComponent {
     // Generate last 5 years
     const currentYear = new Date().getFullYear();
     this.availableYears = Array.from({length: 5}, (_, i) => currentYear - i);
+  }
+
+  onPageSizeChange() {
+    this.currentPage = 0; // reset to first page
+    this.loadExpensesData(); // reload with new page size
   }
 
   loadExpensesData() {

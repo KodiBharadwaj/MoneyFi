@@ -66,6 +66,7 @@ export class IncomeComponent {
 
   currentPage: number = 0;
   pageSize: number = 5;
+  pageSizeOptions: number[] = [5, 10, 15, 20, 50, 100];
   sortBy: string = '';
   sortOrder: 'asc' | 'desc' | '' = '';
   
@@ -117,6 +118,11 @@ export class IncomeComponent {
     // Generate last 5 years
     const currentYear = new Date().getFullYear();
     this.availableYears = Array.from({length: 5}, (_, i) => currentYear - i);
+  }
+
+  onPageSizeChange() {
+    this.currentPage = 0; // reset to first page
+    this.loadIncomeData(); // reload with new page size
   }
 
   deleted : boolean = false;
