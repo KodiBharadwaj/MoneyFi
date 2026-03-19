@@ -66,6 +66,7 @@ export class IncomeComponent {
 
   currentPage: number = 0;
   pageSize: number = 5;
+  pageSizeOptions: number[] = [5, 10, 15, 20, 50, 100];
   sortBy: string = '';
   sortOrder: 'asc' | 'desc' | '' = '';
   
@@ -119,6 +120,11 @@ export class IncomeComponent {
     this.availableYears = Array.from({length: 5}, (_, i) => currentYear - i);
   }
 
+  onPageSizeChange() {
+    this.currentPage = 0; // reset to first page
+    this.loadIncomeData(); // reload with new page size
+  }
+
   deleted : boolean = false;
   isDeletedClicked(){
     // console.log("clicked");
@@ -126,6 +132,8 @@ export class IncomeComponent {
     this.loadDeletedIncomeData()
   }
 
+  totalCount: number = 0;
+  totalPages: number = 0;
   loadIncomeData() {
     this.loading = true;
 
@@ -140,11 +148,13 @@ export class IncomeComponent {
       requestType: this.selectedMonth === 0 ? 'YEARLY' : 'MONTHLY'
     };
 
-    this.httpClient.post<any[]>(`${this.baseUrl}/api/v1/transaction/income/get-incomes`, payload).subscribe({
+    this.httpClient.post<any>(`${this.baseUrl}/api/v1/transaction/income/get-incomes`, payload).subscribe({
       next: (data) => {
-        if (data && data.length > 0) {
-          this.incomeSources = data;
-          this.totalIncome = data[0]?.totalAmount;
+        if (data.data && data.data.length > 0) {
+          this.incomeSources = data.data;
+          this.totalCount = data.totalCount;
+          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+          this.totalIncome = data.totalAmount;
           this.totalIncomesCount = data[0]?.totalCount;
           this.updateChartData();
         } else {
@@ -180,8 +190,10 @@ export class IncomeComponent {
   }
 
   nextPage() {
-    this.currentPage++;
-    this.loadIncomeData();
+    if (this.currentPage + 1 < this.totalPages) {
+      this.currentPage++;
+      this.loadIncomeData();
+    }
   }
 
   previousPage() {

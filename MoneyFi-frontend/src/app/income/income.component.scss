@@ -512,3 +512,32 @@ h2 {
 .page-info {
   font-weight: 600;
 }
+
+.page-size-selector {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 15px;
+  gap: 5px;
+}
+
+.page-size-selector select {
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-count {
+  font-weight: 500;
+}
+
+.page-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

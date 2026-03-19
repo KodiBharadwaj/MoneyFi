@@ -8,6 +8,7 @@ import com.moneyfi.transaction.service.income.dto.response.IncomeDeletedDto;
 import com.moneyfi.transaction.model.income.IncomeModel;
 import com.moneyfi.transaction.service.income.IncomeService;
 import com.moneyfi.transaction.service.income.dto.response.IncomeDetailsDto;
+import com.moneyfi.transaction.service.transaction.dto.response.TransactionPagedResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -51,10 +52,16 @@ public class IncomeApiController {
 
     @Operation(summary = "Api to get all the income details")
     @PostMapping("/get-incomes")
-    public ResponseEntity<List<IncomeDetailsDto>> getAllIncomesByDate(@RequestHeader("Authorization") String authHeader,
-                                                                      @RequestBody TransactionsListRequestDto requestDto){
+    public ResponseEntity<TransactionPagedResponse<IncomeDetailsDto>> getAllIncomesByDate(@RequestHeader("Authorization") String authHeader,
+                                                                                          @RequestBody TransactionsListRequestDto requestDto){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return ResponseEntity.ok(incomeService.getAllIncomesByDate(userId, requestDto));
+        List<IncomeDetailsDto> incomes = incomeService.getAllIncomesByDate(userId, requestDto);
+        return ResponseEntity.ok(TransactionPagedResponse.<IncomeDetailsDto>builder()
+                .data(incomes)
+                .totalCount(incomes.get(0).getTotalCount())
+                .totalAmount(incomes.get(0).getTotalAmount())
+                .build()
+        );
     }
 
     @Operation(summary = "Api to generate Excel report for monthly incomes of a user")

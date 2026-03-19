@@ -5,6 +5,7 @@ import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.service.expense.ExpenseService;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
+import com.moneyfi.transaction.service.transaction.dto.response.TransactionPagedResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -55,10 +56,16 @@ public class ExpenseApiController {
 
     @Operation(summary = "Api to get all the expense details")
     @PostMapping("/get-expenses")
-    public ResponseEntity<List<ExpenseDetailsDto>> getAllExpensesByDate(@RequestHeader("Authorization") String authHeader,
-                                                                        @RequestBody TransactionsListRequestDto requestDto) {
+    public ResponseEntity<TransactionPagedResponse<ExpenseDetailsDto>> getAllExpensesByDate(@RequestHeader("Authorization") String authHeader,
+                                                                                            @RequestBody TransactionsListRequestDto requestDto) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        return ResponseEntity.status(HttpStatus.OK).body(expenseService.getAllExpensesByDate(userId, requestDto));
+        List<ExpenseDetailsDto> expenses = expenseService.getAllExpensesByDate(userId, requestDto);
+        return ResponseEntity.ok(TransactionPagedResponse.<ExpenseDetailsDto>builder()
+                .data(expenses)
+                .totalCount(expenses.get(0).getTotalCount())
+                .totalAmount(expenses.get(0).getTotalAmount())
+                .build()
+        );
     }
 
     @Operation(summary = "Api to generate Excel report for the expenses of a user")
