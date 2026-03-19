@@ -343,9 +343,9 @@ public class UserServiceImpl implements UserService {
             functionToPreventMultipleLogins(user, jwtToken);
             String token = jwtToken.getJwtToken().replace("'", "\\'"); // escape quotes
 
-            String angularOrigin = allowedOrigins.trim(); // wherever your frontend runs
+            String[] angularOrigin = Arrays.stream(allowedOrigins.split(",")).map(String::trim).toArray(String[]::new); // wherever your frontend runs
             return "<script>" +
-                    "window.opener.postMessage({USER: '" + token + "'}, '" + angularOrigin + "');" +
+                    "window.opener.postMessage({USER: '" + token + "'}, '" + angularOrigin[0] + "');" +
                     "window.close();" +
                     "</script>";
         } catch (Exception e) {
