@@ -47,7 +47,6 @@ interface Expense {
 })
 export class ExpensesComponent {
   totalExpenses: number = 0;
-  totalExpensesCount: number = 0;
   expenses: Expense[] = [];
   loading: boolean = false;
   recurringPercentage: number = 0;
@@ -150,33 +149,32 @@ export class ExpensesComponent {
       requestType: this.selectedMonth === 0 ? 'YEARLY' : 'MONTHLY'
     };
 
-    this.httpClient.post<any>(`${this.baseUrl}/api/v1/transaction/expense/get-expenses`, payload).subscribe({
-      next: (data) => {
-        if (data.data && data.data.length > 0) {
-          this.expenses = data.data
-          this.totalCount = data.totalCount;
-          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-          this.totalExpenses = data.totalAmount;
-          this.totalExpensesCount = data[0]?.totalCount;
-          this.calculateTotalExpenses();
-          this.updateChartData();
-        } else {
-          this.expenses = [];
-          this.calculateTotalExpenses();
-          this.toastr.warning('No expenses found for the selected filters.', 'No Data');
-        }
-      },
-      error: (error) => {
-        console.error('Failed to load expense data:', error);
-      },
-      complete: () => {
-        this.loading = false;
-      }
-    });
-
     this.httpClient.get<number>(`${this.baseUrl}/api/v1/transaction/income/totalIncome/${this.selectedMonth}/${this.selectedYear}`).subscribe({
       next: (totalIncome) => {
         this.totalIncome = totalIncome;
+
+        this.httpClient.post<any>(`${this.baseUrl}/api/v1/transaction/expense/get-expenses`, payload).subscribe({
+          next: (data) => {
+            if (data.data && data.data.length > 0) {
+              this.expenses = data.data
+              this.totalCount = data.totalCount;
+              this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+              this.totalExpenses = data.totalAmount;
+              this.calculateTotalExpenses();
+              this.updateChartData();
+            } else {
+              this.expenses = [];
+              this.calculateTotalExpenses();
+              this.toastr.warning('No expenses found for the selected filters.', 'No Data');
+            }
+          },
+          error: (error) => {
+            console.error('Failed to load expense data:', error);
+          },
+          complete: () => {
+            this.loading = false;
+          }
+        });
       },
       error: (error) => {
         console.error('Failed to load total income:', error);
@@ -446,7 +444,7 @@ export class ExpensesComponent {
       deleteStatus: false,
       date: this.getSelectedDate(),
       startIndex: 0,
-      threshold: this.totalExpensesCount,
+      threshold: this.totalCount,
       sortBy: "",
       sortOrder: "",
       requestType: this.selectedMonth === 0 ? 'YEARLY' : 'MONTHLY'
