@@ -19,28 +19,50 @@
           <span class="date-value">{{ selectedDate | date: 'dd MMM yyyy' }}</span>
         </div>
         
-        <button
-          *ngIf="!gmailSyncEnabled"
-          class="btn btn-sync"
-          (click)="onGmailSyncClick()"
-        >
-          <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="23 4 23 10 17 10"></polyline>
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-          </svg>
+        
+      <!-- 🟡 CONSENT REQUIRED -->
+      <button
+        *ngIf="!isGmailConnected && remainingSyncCount > 0"
+        class="btn btn-sync"
+        (click)="gmailSyncReConsent()"
+      >
+        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
 
-          Sync Email Transactions
-          <span *ngIf="remainingSyncCount > 0">
-            ({{ remainingSyncCount }})
-          </span>
-        </button>
+        Consent & Sync
+        <span *ngIf="remainingSyncCount > 0">
+          ({{ remainingSyncCount }})
+        </span>
+      </button>
 
-        <button *ngIf="gmailSyncEnabled" class="btn btn-enabled" disabled>
-          <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          Sync limit reached
-        </button>
+
+      <!-- 🟢 NORMAL SYNC -->
+      <button
+        *ngIf="isGmailConnected && !gmailSyncEnabled"
+        class="btn btn-sync"
+        (click)="onGmailSyncClick()"
+      >
+        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+
+        Sync Email Transactions
+        <span *ngIf="remainingSyncCount > 0">
+          ({{ remainingSyncCount }})
+        </span>
+      </button>
+
+
+      <!-- 🔴 LIMIT REACHED -->
+      <button *ngIf="gmailSyncEnabled" class="btn btn-enabled" disabled>
+        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        Sync limit reached
+      </button>
 
         <button
           *ngIf="!gmailSyncEnabled"

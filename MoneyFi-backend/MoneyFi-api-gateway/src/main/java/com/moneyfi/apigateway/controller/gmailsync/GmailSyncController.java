@@ -2,10 +2,12 @@ package com.moneyfi.apigateway.controller.gmailsync;
 
 import com.moneyfi.apigateway.dto.ParsedTransaction;
 import com.moneyfi.apigateway.service.gmailsync.GmailSyncService;
+import com.moneyfi.apigateway.service.gmailsync.dto.response.GmailConsentResponse;
 import com.moneyfi.apigateway.service.gmailsync.dto.response.GmailSyncHistoryResponse;
 import com.moneyfi.apigateway.service.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -34,8 +36,8 @@ public class GmailSyncController {
     }
 
     @Operation(summary = "Api to check the status of user to sync email")
-    @GetMapping("/status")
-    public ResponseEntity<Integer> getStatus(Authentication authentication) {
+    @GetMapping(value = "/status", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<GmailConsentResponse<Integer>> getStatus(Authentication authentication) {
         Long userId = userService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         return ResponseEntity.ok(gmailSyncService.getGmailConsentStatus(userId));
     }
