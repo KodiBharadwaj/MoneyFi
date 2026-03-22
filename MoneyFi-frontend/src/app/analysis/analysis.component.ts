@@ -11,6 +11,21 @@ import { finalize } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { FormsModule } from '@angular/forms';
 
+export interface Expense {
+  id: number;
+  category: string;
+  amount: number;
+  date: string;
+  recurring: boolean;
+  description: string;
+  activeStatus: any;
+  deleted: boolean;
+}
+
+export interface ExpenseResponse {
+  data: Expense[];
+}
+
 @Component({
   selector: 'app-analysis',
   standalone: true,
@@ -85,6 +100,12 @@ export class AnalysisComponent {
   isMixedChartLoading = false;
   isLineChartLoading = false;
 
+  getSelectedDate(): string {
+    if (this.selectedRadarMonth === 0) {
+      return `${this.selectedRadarYear}-01-01`;
+    }
+    return `${this.selectedRadarYear}-${this.selectedRadarMonth.toString().padStart(2, '0')}-01`;
+  }
 
   loadChartData() {
     this.isRadarChartLoading = true;
@@ -92,19 +113,27 @@ export class AnalysisComponent {
       this.toastr.error('Please enter valid year');
       return;
     }
-    const expensesUrl = `${this.baseUrl}/api/v1/transaction/expense/getExpenses/${this.selectedRadarMonth}/${this.selectedRadarYear}/all/false`;
+    const payload = {
+      category: 'All',
+      deleteStatus: false,
+      date: this.getSelectedDate(),
+      startIndex: 0,
+      threshold: 100,
+      requestType: 'MONTHLY'
+    };
+    const expensesUrl = `${this.baseUrl}/api/v1/transaction/expense/get-expenses`;
     const budgetsUrl = `${this.baseUrl}/api/v1/wealth-core/budget/all/${this.selectedRadarMonth}/${this.selectedRadarYear}/get`;
 
         // Use forkJoin to make parallel requests
     forkJoin({
-      expenses: this.httpClient.get<any[]>(expensesUrl),
+      expenses: this.httpClient.post<ExpenseResponse>(expensesUrl, payload),
       budgets: this.httpClient.get<any[]>(budgetsUrl)
     }).subscribe({
       next: ({ expenses, budgets }) => {
         this.isRadarChartLoading = false;
         // Process category-wise expenses
         const categoryExpenses = new Map<string, number>();
-        expenses.forEach(expense => {
+        expenses.data.forEach(expense => {
           const currentAmount = categoryExpenses.get(expense.category) || 0;
           categoryExpenses.set(expense.category, currentAmount + expense.amount);
         });
