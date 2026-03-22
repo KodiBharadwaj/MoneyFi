@@ -138,11 +138,6 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-
-        <repository>
-            <id>github</id>
-            <url>https://maven.pkg.github.com/KodiBharadwaj/MoneyFi-constants</url>
-        </repository>
     </repositories>
 
 </project>
