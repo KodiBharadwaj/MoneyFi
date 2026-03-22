@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-import static com.moneyfi.transaction.utils.StringConstants.DATE_MONTH_YEAR_FORMAT;
+import static com.moneyfi.transaction.utils.constants.StringConstants.DATE_MONTH_YEAR_FORMAT;
 
 @Data
 @NoArgsConstructor

@@ -11,6 +11,8 @@ import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.validator.TransactionValidator;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -31,19 +33,15 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.moneyfi.transaction.utils.StringConstants.*;
+import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class ExpenseServiceImpl implements ExpenseService {
 
     private final ExpenseRepository expenseRepository;
     private final TransactionRepository transactionRepository;
-
-    public ExpenseServiceImpl(ExpenseRepository expenseRepository,
-                              TransactionRepository transactionRepository){
-        this.expenseRepository = expenseRepository;
-        this.transactionRepository = transactionRepository;
-    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)

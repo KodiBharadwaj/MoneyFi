@@ -100,10 +100,15 @@ export class ReportsInsightsComponent implements OnInit   {
           this.accountStatementGenerated = statement;
           this.isGenerating = false;
         },
-        error: (error) => {
-          this.toastr.error('Error fetching account statements');
-          console.error('Error fetching statements:', error);
+        error: (err) => {
+          console.error('Error fetching statements:', err);
           this.isGenerating = false;
+          try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            this.toastr.error(errorObj.message);
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+          }
         }
       });
   }

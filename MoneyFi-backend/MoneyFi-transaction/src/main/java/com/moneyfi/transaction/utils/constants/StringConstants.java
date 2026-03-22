@@ -1,6 +1,5 @@
-package com.moneyfi.transaction.utils;
+package com.moneyfi.transaction.utils.constants;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -33,8 +32,6 @@ public class StringConstants {
     public static final String NO = "No";
 
     public static final String DATE_MONTH_YEAR_FORMAT = "yyyy-MM-dd";
-
-    public static final String ACCOUNT_STATEMENT_USER_SERVICE_URL = "http://MONEYFI-USER/api/v1/user-service/user/account-statement/email";
 
     public static String changeTransactionTimeToTwelveHourFormat(String transactionTime) {
         if (transactionTime == null) return null;

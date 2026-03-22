@@ -16,6 +16,7 @@ import com.moneyfi.transaction.service.income.dto.response.*;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.validator.IncomeValidator;
 import com.moneyfi.transaction.validator.TransactionValidator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -33,23 +34,16 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.moneyfi.transaction.utils.StringConstants.*;
+import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class IncomeServiceImpl implements IncomeService {
 
     private final IncomeRepository incomeRepository;
     private final TransactionRepository transactionRepository;
     private final IncomeDeletedRepository incomeDeletedRepository;
-
-    public IncomeServiceImpl(IncomeRepository incomeRepository,
-                             TransactionRepository transactionRepository,
-                             IncomeDeletedRepository incomeDeletedRepository){
-        this.incomeRepository = incomeRepository;
-        this.transactionRepository = transactionRepository;
-        this.incomeDeletedRepository = incomeDeletedRepository;
-    }
 
     private static final String INCOME_ALREADY_PRESENT_MESSAGE = "Income with this source and category is already there";
 

@@ -1,5 +1,7 @@
-package com.moneyfi.wealthcore.exceptions;
+package com.moneyfi.wealthcore.exceptions.handler;
 
+import com.moneyfi.wealthcore.exceptions.ResourceNotFoundException;
+import com.moneyfi.wealthcore.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.wealthcore.service.budget.dto.response.ErrorResponse;
 import jakarta.ws.rs.BadRequestException;
 import org.springframework.http.HttpStatus;

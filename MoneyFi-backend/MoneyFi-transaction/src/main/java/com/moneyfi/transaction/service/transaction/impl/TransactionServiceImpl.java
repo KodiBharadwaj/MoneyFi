@@ -3,7 +3,6 @@ package com.moneyfi.transaction.service.transaction.impl;
 import com.moneyfi.constants.enums.ActiveStatus;
 import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.transaction.exceptions.GenericException;
-import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
 import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.model.income.IncomeModel;
@@ -11,6 +10,7 @@ import com.moneyfi.transaction.repository.expense.ExpenseRepository;
 import com.moneyfi.transaction.repository.income.IncomeRepository;
 import com.moneyfi.transaction.repository.transaction.TransactionRepository;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
+import com.moneyfi.transaction.service.external.api.ExternalApiCallService;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.AccountStatementResponseDto;
 import com.moneyfi.transaction.service.income.dto.response.IncomeDetailsDto;
@@ -21,14 +21,15 @@ import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction
 import com.moneyfi.transaction.service.transaction.dto.response.GmailSyncTransactionsResponse;
 import com.moneyfi.transaction.utils.enums.CreditOrDebit;
 import com.moneyfi.transaction.utils.GeneratePdfTemplate;
-import com.moneyfi.transaction.utils.StringConstants;
+import com.moneyfi.transaction.utils.constants.StringConstants;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.validator.TransactionValidator;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -39,28 +40,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.moneyfi.transaction.utils.StringConstants.*;
+import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
 
     private final IncomeRepository incomeRepository;
     private final ExpenseRepository expenseRepository;
     private final TransactionRepository transactionRepository;
     private final GeneratePdfTemplate generatePdfTemplate;
-    private final RestTemplate restTemplate;
-
-    public TransactionServiceImpl(IncomeRepository incomeRepository,
-                                  ExpenseRepository expenseRepository,
-                                  TransactionRepository transactionRepository,
-                                  GeneratePdfTemplate generatePdfTemplate,
-                                  RestTemplate restTemplate){
-        this.incomeRepository = incomeRepository;
-        this.expenseRepository = expenseRepository;
-        this.transactionRepository = transactionRepository;
-        this.generatePdfTemplate = generatePdfTemplate;
-        this.restTemplate = restTemplate;
-    }
+    private final ExternalApiCallService externalApiCallService;
 
     @Override
     public OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year) {
@@ -95,7 +86,7 @@ public class TransactionServiceImpl implements TransactionService {
     public ResponseEntity<String> sendAccountStatementEmailToUser(Long userId, AccountStatementRequestDto inputDto, String token) {
         try {
             byte[] pdfBytes = generatePdfForAccountStatement(userId, inputDto);
-            apiCallToGatewayServiceToSendEmail(pdfBytes, token);
+            externalApiCallService.apiCallToGatewayServiceToSendEmail(pdfBytes, token);
             return ResponseEntity.ok("Email sent successfully");
         } catch (Exception e) {
             e.printStackTrace();
@@ -172,24 +163,6 @@ public class TransactionServiceImpl implements TransactionService {
 
     private String generateDocumentPasswordForUser(UserDetailsForStatementDto userDetails){
         return userDetails.getName().substring(0,4).toUpperCase() + userDetails.getUsername().substring(0,4).toLowerCase();
-    }
-
-    private void apiCallToGatewayServiceToSendEmail(byte[] pdfBytes, String authHeader){
-        String token = authHeader.substring(7);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setBearerAuth(token);
-        HttpEntity<byte[]> requestEntity = new HttpEntity<>(pdfBytes, headers);
-
-        ResponseEntity<Void> response = restTemplate.exchange(
-                StringConstants.ACCOUNT_STATEMENT_USER_SERVICE_URL,
-                HttpMethod.POST,
-                requestEntity,
-                Void.class
-        );
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new ResourceNotFoundException("Failed to send email: " + response.getStatusCode());
-        }
     }
 
     private IncomeModel getSaveIncomeModel(ParsedTransaction transaction, LocalDate syncDate, Long userId) {
