@@ -43,7 +43,6 @@ export class DashboardComponent implements OnInit{
 
   isLoading = false;
   baseUrl = environment.BASE_URL;
-  userServiceBaseUrl = environment.USER_SERVICE_URL;
   private eventSource?: EventSource;
   notifications: UserNotification[] = [];
   notificationCount : number = 0;
@@ -69,7 +68,7 @@ export class DashboardComponent implements OnInit{
     if (!token) return;
 
     this.eventSource = new EventSource(
-      `${this.userServiceBaseUrl}/api/v1/user-service/user/sse-notifications/subscribe?token=${encodeURIComponent(token)}`
+      `${this.baseUrl}/api/v1/user-service/sse-notifications/subscribe?token=${encodeURIComponent(token)}`
     );
 
     this.eventSource.addEventListener('notification', (event: any) => {
@@ -104,7 +103,7 @@ export class DashboardComponent implements OnInit{
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.isLogoutLoading = true;
-        this.httpClient.post(`${this.baseUrl}/api/v1/common/logout`, {}, { responseType: 'text' }).subscribe({
+        this.httpClient.post(`${this.baseUrl}/api/v1/user-service/common/logout`, {}, { responseType: 'text' }).subscribe({
           next: (response) => {
             this.isLogoutLoading = false;
             const jsonResponse = JSON.parse(response);

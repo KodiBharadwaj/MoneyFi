@@ -109,7 +109,7 @@ export class LoginComponent implements OnInit {
       return;
     }
     this.isLoading = true;
-    this.http.post(`${this.baseUrl}/api/v1/Oauth/google/callback`, { code: response.code })
+    this.http.post(`${this.baseUrl}/api/v1/user-service/Oauth/google/callback`, { code: response.code })
       .subscribe({
         next: (res: any) => {
           this.isLoading = false;
@@ -141,7 +141,7 @@ export class LoginComponent implements OnInit {
 
   githubBtn.addEventListener("click", () => {
     const clientId = environment.GITHUB_CLIENT_ID;
-    const redirectUri = `${this.baseUrl}/api/v1/Oauth/github/popup-callback`;
+    const redirectUri = `${this.baseUrl}/api/v1/user-service/Oauth/github/popup-callback`;
     const scope = "read:user user:email";
     const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
 

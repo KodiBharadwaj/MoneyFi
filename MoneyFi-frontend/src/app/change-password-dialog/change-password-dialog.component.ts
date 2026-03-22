@@ -91,7 +91,7 @@ export class ChangePasswordDialogComponent implements OnInit{
       };
 
       if(changePasswordDto.currentPassword !== changePasswordDto.newPassword){
-        this.http.post(`${this.baseUrl}/api/v1/user/change-password`, changePasswordDto)
+        this.http.post(`${this.baseUrl}/api/v1/user-service/user/change-password`, changePasswordDto)
         .subscribe({
           next: (response) => { 
             this.isLoading = false;

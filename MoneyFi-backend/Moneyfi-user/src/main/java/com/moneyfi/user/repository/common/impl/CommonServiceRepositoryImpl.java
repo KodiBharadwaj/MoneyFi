@@ -2,9 +2,9 @@ package com.moneyfi.user.repository.common.impl;
 
 import com.moneyfi.user.exceptions.QueryValidationException;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
-import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
-import com.moneyfi.user.service.common.dto.response.UserRequestStatusDto;
-import com.moneyfi.user.service.profile.dto.ProfileDetailsDto;
+import com.moneyfi.user.service.user.dto.response.UserNotificationResponseDto;
+import com.moneyfi.user.service.user.dto.response.UserRequestStatusDto;
+import com.moneyfi.user.service.user.dto.response.ProfileDetailsDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
@@ -96,4 +96,19 @@ public class CommonServiceRepositoryImpl implements CommonServiceRepository {
         }
     }
 
+    @Override
+    public List<String> getCategoriesBasedOnTransactionType(String categoryType) {
+        try {
+            List<String> incomeCategoryIdList = new ArrayList<>();
+            Query query = entityManager.createNativeQuery(
+                            "exec [getCategoriesByCategoryType] " +
+                                    "@categoryType = :categoryType ")
+                    .setParameter("categoryType", categoryType);
+            incomeCategoryIdList.addAll(query.getResultList());
+            return incomeCategoryIdList;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Income Category Ids not found");
+        }
+    }
 }

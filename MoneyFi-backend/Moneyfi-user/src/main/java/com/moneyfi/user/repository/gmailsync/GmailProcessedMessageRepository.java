@@ -1,0 +1,18 @@
+package com.moneyfi.user.repository.gmailsync;
+
+import com.moneyfi.user.model.gmailsync.GmailProcessedMessageEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface GmailProcessedMessageRepository extends JpaRepository<GmailProcessedMessageEntity, Long> {
+
+    /** Spring JPA */
+    Optional<GmailProcessedMessageEntity> findByMessageIdAndUserId(String messageId, Long userId);
+
+    /** Spring JPA */
+    Optional<GmailProcessedMessageEntity> findByMessageId(String messageId);
+}
+

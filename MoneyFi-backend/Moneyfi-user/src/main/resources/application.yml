@@ -22,14 +22,16 @@ spring:
     url: ${DB_URL}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
+        highlight_sql: true
 
   #Redis Configuration
   data:
@@ -60,8 +62,8 @@ eureka:
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.SQL: OFF
+    org.hibernate.orm.jdbc.bind: OFF
 
 server:
   port: 8500

@@ -23,7 +23,6 @@ export class UserNotificationsComponent implements OnInit {
   constructor(private http: HttpClient, private notificationService: NotificationService, private ngZone: NgZone) {}
 
   baseUrl = environment.BASE_URL;
-  userServiceBaseUrl = environment.USER_SERVICE_URL;
 
   ngOnInit(): void {
     this.notificationService.notificationList$.subscribe(notification => {
@@ -72,7 +71,7 @@ export class UserNotificationsComponent implements OnInit {
     if (!token) return;
 
     this.eventSource = new EventSource(
-      `${this.userServiceBaseUrl}/api/v1/user-service/user/sse-notifications/subscribe?token=${encodeURIComponent(token)}`
+      `${this.baseUrl}/api/v1/user-service/sse-notifications/subscribe?token=${encodeURIComponent(token)}`
     );
 
     this.eventSource.addEventListener('notification', (event: any) => {

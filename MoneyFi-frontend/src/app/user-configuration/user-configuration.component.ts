@@ -95,7 +95,7 @@ export class UserConfigurationComponent implements AfterViewInit{
 
   initiateAccountBlock() {
     this.loadingAccountDeactivationRequest = true;
-    this.http.get(`${this.baseUrl}/api/v1/user/otp-request/account-deactivate-actions?type=BLOCK`, {
+    this.http.get(`${this.baseUrl}/api/v1/user-service/user/otp-request/account-deactivate-actions?type=BLOCK`, {
       responseType: 'text'
     }).subscribe({
       next: response => {
@@ -128,7 +128,7 @@ export class UserConfigurationComponent implements AfterViewInit{
 
   initiateAccountDelete() {
     this.loadingAccountDeleteRequest = true;
-    this.http.get(`${this.baseUrl}/api/v1/user/otp-request/account-deactivate-actions?type=DELETE`, {
+    this.http.get(`${this.baseUrl}/api/v1/user-service/user/otp-request/account-deactivate-actions?type=DELETE`, {
       responseType: 'text'
     }).subscribe({
       next: response => {
@@ -157,11 +157,11 @@ export class UserConfigurationComponent implements AfterViewInit{
   email: string = '';
   resendOtp(type: string) {
     this.loadingResendOtp = true;
-    this.http.get(`${this.baseUrl}/api/v1/common/get-username`, { responseType: 'text' }).subscribe({
+    this.http.get(`${this.baseUrl}/api/v1/user-service/common/get-username`, { responseType: 'text' }).subscribe({
       next: (data: string) => {
         this.email = data;
 
-        this.http.get(`${this.baseUrl}/api/auth/otp-resend?username=${this.email}&type=${type}`).subscribe({
+        this.http.get(`${this.baseUrl}/api/v1/user-service/auth/otp-resend?username=${this.email}&type=${type}`).subscribe({
           next: response => {
             this.toastr.success('OTP sent to your email');
             this.loadingResendOtp = false;
@@ -271,7 +271,7 @@ export class UserConfigurationComponent implements AfterViewInit{
     }).subscribe({
       next: response => {
         alert('Account block confirmed.');
-        this.http.post(`${this.baseUrl}/api/v1/common/logout`, {}, { responseType: 'text' }).subscribe({
+        this.http.post(`${this.baseUrl}/api/v1/user-service/common/logout`, {}, { responseType: 'text' }).subscribe({
           next: (response) => {
             const jsonResponse = JSON.parse(response);
             if(jsonResponse.message === 'Logged out successfully'){
@@ -317,7 +317,7 @@ export class UserConfigurationComponent implements AfterViewInit{
     }).subscribe({
       next: response => {
         alert('Account has been deleted. Please raise retrieve request before 30 days to use again.');
-        this.http.post(`${this.baseUrl}/api/v1/common/logout`, {}, { responseType: 'text' }).subscribe({
+        this.http.post(`${this.baseUrl}/api/v1/user-service/common/logout`, {}, { responseType: 'text' }).subscribe({
           next: (response) => {
             const jsonResponse = JSON.parse(response);
             if(jsonResponse.message === 'Logged out successfully'){

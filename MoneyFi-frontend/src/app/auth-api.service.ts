@@ -19,12 +19,12 @@ export class AuthApiService {
   baseUrl = environment.BASE_URL;
   
   loginApiFunction(loginCredentials:LoginCredentials):Observable<{ [key: string]: string }>{
-    return this.authClient.post<{ [key: string]: string }>(`${this.baseUrl}/api/auth/login`, loginCredentials);
+    return this.authClient.post<{ [key: string]: string }>(`${this.baseUrl}/api/v1/user-service/auth/login`, loginCredentials);
     // console.log(token);
   }
 
   signupApiFunction(signupCredentials:SignupCredentials):Observable<JwtToken>{
-    return this.authClient.post<JwtToken>(`${this.baseUrl}/api/auth/register`, signupCredentials);
+    return this.authClient.post<JwtToken>(`${this.baseUrl}/api/v1/user-service/auth/register`, signupCredentials);
   }
 
   loginWithFacebook(code: string): Observable<any> {

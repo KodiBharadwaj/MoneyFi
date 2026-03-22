@@ -1,13 +1,13 @@
 package com.moneyfi.user.controller.admin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.moneyfi.user.config.JwtService;
 import com.moneyfi.user.service.admin.AdminService;
 import com.moneyfi.user.service.admin.dto.request.*;
 import com.moneyfi.user.service.admin.dto.response.*;
-import com.moneyfi.user.service.common.UserCommonService;
-import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
-import com.moneyfi.user.service.profile.ProfileService;
+import com.moneyfi.user.service.user.UserAuthService;
+import com.moneyfi.user.service.user.UserCommonService;
+import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;
+import com.moneyfi.user.service.user.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +16,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,13 +28,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/user-service/admin")
+@PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 public class AdminController {
 
     private final AdminService adminService;
     private final UserCommonService userCommonService;
-    private final JwtService jwtService;
     private final ProfileService profileService;
+    private final UserAuthService userAuthService;
 
     @Operation(summary = "Api to get the user count home page of admin")
     @GetMapping("/overview-user-details")
@@ -61,29 +65,29 @@ public class AdminController {
 
     @Operation(summary = "Api to change the user defect status in contact us table")
     @PutMapping("/{defectId}/update-defect-status")
-    public void updateDefectStatus(@RequestHeader("Authorization") String authHeader,
+    public void updateDefectStatus(Authentication authentication,
                                    @PathVariable("defectId") Long defectId,
                                    @RequestBody Map<String, String> body,
                                    @RequestParam String reason) {
-        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.updateDefectStatus(defectId, body.get("status"), reason, adminUserId);
     }
 
     @Operation(summary = "Api to unblock/retrieve/name change of the user account with respective details")
     @PostMapping("/user-requests/action")
-    public boolean accountReactivationAndNameChangeRequest(@RequestHeader("Authorization") String authHeader,
+    public boolean accountReactivationAndNameChangeRequest(Authentication authentication,
                                                            @RequestBody UserRequestsApprovalDto requestDto){
-        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         return adminService.accountReactivationAndNameChangeRequest(requestDto.getEmail(), requestDto.getReferenceNumber(), requestDto.getRequestStatus(), adminUserId, requestDto.getApproveStatus(), requestDto.getDeclineReason(), requestDto.getGmailSyncRequestCount());
     }
 
     @Operation(summary = "Api to block the user's account by admin")
     @PostMapping(value = "/user-account/block", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public void blockTheUserAccountByAdmin(@RequestHeader("Authorization") String authHeader,
+    public void blockTheUserAccountByAdmin(Authentication authentication,
                                                              @RequestParam String email,
                                                              @RequestParam String reason,
                                                              @RequestParam(required = true) MultipartFile file) throws JsonProcessingException {
-        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.blockTheUserAccountByAdmin(email, reason, file, adminUserId);
     }
 
@@ -111,9 +115,9 @@ public class AdminController {
 
     @Operation(summary = "Api to update the user feedback by admin")
     @PutMapping("/user-feedback/update")
-    public void updateUserFeedback(@RequestHeader("Authorization") String authHeader,
+    public void updateUserFeedback(Authentication authentication,
                                    @RequestParam("id") Long feedbackId){
-        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.updateUserFeedback(feedbackId, adminUserId);
     }
 
@@ -126,9 +130,9 @@ public class AdminController {
 
     @Operation(summary = "Api to get the user profile details for admin")
     @GetMapping("/user-profile-details")
-    public ResponseEntity<UserProfileAndRequestDetailsDto> getCompleteUserDetailsForAdmin(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<UserProfileAndRequestDetailsDto> getCompleteUserDetailsForAdmin(Authentication authentication,
                                                                                           @RequestParam("username") String username){
-        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         return ResponseEntity.ok(adminService.getCompleteUserDetailsForAdmin(username, adminUserId));
     }
 
@@ -140,9 +144,9 @@ public class AdminController {
 
     @Operation(summary = "Api to add the reason dropdown names")
     @PostMapping("/reasons/add")
-    public void addReasonsForUserReasonDialog(@RequestHeader("Authorization") String authHeader,
+    public void addReasonsForUserReasonDialog(Authentication authentication,
                                               @RequestBody ReasonDetailsRequestDto requestDto){
-        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.addReasonsForUserReasonDialog(requestDto, adminUserId);
     }
 
@@ -159,17 +163,17 @@ public class AdminController {
 
     @Operation(summary = "Api to update the reason string")
     @PutMapping("/reasons/update")
-    public void updateReasonsForUserReasonDialogByReasonCode(@RequestHeader("Authorization") String authHeader,
+    public void updateReasonsForUserReasonDialogByReasonCode(Authentication authentication,
                                                              @RequestBody ReasonUpdateRequestDto requestDto){
-        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.updateReasonsForUserReasonDialogByReasonCode(requestDto, adminUserId);
     }
 
     @Operation(summary = "Api to delete the reason names by admin - soft delete")
     @DeleteMapping("/reasons/delete")
-    public void deleteReasonByReasonIdByAdmin(@RequestHeader("Authorization") String authHeader,
+    public void deleteReasonByReasonIdByAdmin(Authentication authentication,
                                               @RequestParam("id") int reasonId){
-        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.deleteReasonByReasonId(reasonId, adminUserId);
     }
 
@@ -182,52 +186,52 @@ public class AdminController {
 
     @Operation(summary = "Api to schedule a notification by admin")
     @PostMapping("/schedule-notification")
-    public void scheduleNotification(@RequestHeader("Authorization") String authHeader,
+    public void scheduleNotification(Authentication authentication,
                                      @RequestBody @Valid ScheduleNotificationRequestDto requestDto){
-        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.scheduleNotification(requestDto, adminUserId);
     }
 
     @Operation(summary = "Api to get all the schedules for admin screen")
     @GetMapping("/schedule-notifications/get")
-    public ResponseEntity<List<AdminSchedulesResponseDto>> getAllActiveSchedulesOfAdmin(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<List<AdminSchedulesResponseDto>> getAllActiveSchedulesOfAdmin(Authentication authentication,
                                                                                         @RequestParam(value = "status") String status,
                                                                                         @RequestParam(value = "mode") String operationMode){
-        String adminUsername = jwtService.extractUsernameFromToken(authHeader.substring(7));
+        String adminUsername = ((UserDetails) authentication.getPrincipal()).getUsername();
         return ResponseEntity.ok(adminService.getAllActiveSchedulesOfAdmin(status, operationMode, adminUsername));
     }
 
     @Operation(summary = "Api to cancel the user scheduling")
     @PutMapping("/schedule-notification/cancel")
-    public void cancelTheUserScheduling(@RequestHeader("Authorization") String authHeader,
+    public void cancelTheUserScheduling(Authentication authentication,
                                         @RequestParam("id") Long scheduleId){
-        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.cancelTheUserScheduling(scheduleId, adminUserId);
     }
 
     @Operation(summary = "Api to soft delete the user scheduling")
     @DeleteMapping("/schedule-notification/delete")
-    public void deleteUserScheduling(@RequestHeader("Authorization") String authHeader,
+    public void deleteUserScheduling(Authentication authentication,
                                      @RequestParam("id") Long scheduleId){
-        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.deleteUserScheduling(scheduleId, adminUserId);
     }
 
     @Operation(summary = "Api to update the already scheduled notification")
     @PutMapping("/schedule-notification/update")
-    public void updateAdminPlacedSchedules(@RequestHeader("Authorization") String authHeader,
+    public void updateAdminPlacedSchedules(Authentication authentication,
                                            @RequestBody @Valid AdminScheduleRequestDto requestDto){
-        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.updateAdminPlacedSchedules(requestDto, adminUserId);
     }
 
     @Operation(summary = "Api to upload excel templates into cloud and database(only when fallback occurs)")
     @PostMapping("/excel-template/upload")
-    public void uploadTemplateExcel(@RequestHeader("Authorization") String authHeader,
+    public void uploadTemplateExcel(Authentication authentication,
                                     @RequestParam("type") String type,
                                     @RequestParam("operation") String operation,
                                     @RequestParam("file") MultipartFile file) throws IOException {
-        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.uploadExcelTemplate(adminUserId, type, operation, file);
     }
 

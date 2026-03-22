@@ -90,6 +90,13 @@
 			<artifactId>ses</artifactId>
 			<version>2.20.0</version>
 		</dependency>
+
+		<!-- MoneyFi constants framework dependency -->
+		<dependency>
+			<groupId>com.kodibharadwaj.moneyfi</groupId>
+			<artifactId>moneyfi-constants</artifactId>
+			<version>1.0.3-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<build>

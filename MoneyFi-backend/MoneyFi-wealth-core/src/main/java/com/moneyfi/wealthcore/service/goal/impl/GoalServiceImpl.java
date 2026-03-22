@@ -1,11 +1,11 @@
 package com.moneyfi.wealthcore.service.goal.impl;
 
-import com.moneyfi.wealthcore.config.JwtService;
 import com.moneyfi.wealthcore.exceptions.ResourceNotFoundException;
 import com.moneyfi.wealthcore.model.goal.GoalModel;
 import com.moneyfi.wealthcore.repository.common.CategoryListRepository;
 import com.moneyfi.wealthcore.repository.common.WealthCoreRepository;
 import com.moneyfi.wealthcore.repository.goal.GoalRepository;
+import com.moneyfi.wealthcore.security.JwtService;
 import com.moneyfi.wealthcore.service.goal.GoalService;
 import com.moneyfi.wealthcore.service.goal.dto.response.ExpenseModelDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalDetailsDto;

@@ -57,7 +57,7 @@ export class GmailSyncSummaryComponent implements OnInit {
   loadHistory() {
     this.httpClient
       .get<GmailSyncHistoryResponse[]>(
-        `${this.baseUrl}/api/v1/gmail-sync/history`
+        `${this.baseUrl}/api/v1/user-service/gmail-sync/history`
       )
       .subscribe(res => {
         this.syncHistory = res;
@@ -120,7 +120,7 @@ export class GmailSyncSummaryComponent implements OnInit {
 
   checkGmailSyncStatus() {
     this.httpClient
-      .get<GmailConsentResponse<number>>(`${this.baseUrl}/api/v1/gmail-sync/status`)
+      .get<GmailConsentResponse<number>>(`${this.baseUrl}/api/v1/user-service/gmail-sync/status`)
       .subscribe((res) => {
 
         const count = res?.data ?? 0;
@@ -180,7 +180,7 @@ export class GmailSyncSummaryComponent implements OnInit {
 
   handleGmailSync(response: any) {
     this.httpClient
-      .post(`${this.baseUrl}/api/v1/gmail-sync/enable`, { code: response.code })
+      .post(`${this.baseUrl}/api/v1/user-service/gmail-sync/enable`, { code: response.code })
       .subscribe({
         next: () => {
           console.log('Gmail sync enabled');

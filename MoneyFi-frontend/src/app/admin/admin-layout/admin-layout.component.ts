@@ -31,7 +31,7 @@ export class AdminLayoutComponent {
   }
 
   getUsernameByToken() {
-    this.httpClient.get(`${this.baseUrl}/api/v1/common/get-username`, { responseType: 'text' }).subscribe({
+    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/common/get-username`, { responseType: 'text' }).subscribe({
       next: (data: string) => {
         this.username = data;
       },
@@ -49,7 +49,7 @@ export class AdminLayoutComponent {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.isLogoutLoading = true;
-        this.httpClient.post(`${this.baseUrl}/api/v1/common/logout`, {}, { responseType: 'text' }).subscribe({
+        this.httpClient.post(`${this.baseUrl}/api/v1/user-service/common/logout`, {}, { responseType: 'text' }).subscribe({
           next: (response) => {
             this.isLogoutLoading = false;
             const jsonResponse = JSON.parse(response);

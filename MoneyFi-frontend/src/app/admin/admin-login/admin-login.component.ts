@@ -23,7 +23,8 @@ export class AdminLoginComponent {
     constructor(private fb: FormBuilder, private router: Router, private authApiService:AuthApiService, private toastr:ToastrService) {
       this.loginForm = this.fb.group({
         username: ['', [Validators.required]],
-        password: ['', [Validators.required, Validators.minLength(6)]]
+        password: ['', [Validators.required, Validators.minLength(6)]],
+        role: ['ADMIN', Validators.required]
       });
     }
   

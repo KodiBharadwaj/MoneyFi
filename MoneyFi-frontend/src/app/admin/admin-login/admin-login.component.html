@@ -63,6 +63,27 @@
       <h2>Welcome Admin/Maintainer</h2>
       <p class="subtitle">Please login to your account</p>
       <form [formGroup]="loginForm" (submit)="onSubmit(loginForm.value)">
+
+        <div class="form-group role-selector">
+          <label>Select Role</label>
+
+          <div class="role-options">
+            <label>
+              <input type="radio" formControlName="role" value="ADMIN">
+              Admin
+            </label>
+
+            <label>
+              <input type="radio" formControlName="role" value="MAINTAINER">
+              Maintainer
+            </label>
+          </div>
+
+          <div class="error-message" *ngIf="loginForm.get('role')?.touched && loginForm.get('role')?.errors?.['required']">
+            Please select a role
+          </div>
+      </div>
+
         <div class="form-group">
           <label for="username">Username</label>
           <input 
