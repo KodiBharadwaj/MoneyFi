@@ -232,10 +232,15 @@ export class ReportsInsightsComponent implements OnInit   {
           .map(([key, value]) => ({ key, value: Number(value) }));
 
         this.isGeneratingForSpendingAnalysis = false;
-      },error: (error) => {
-        this.toastr.error('Error fetching spending analysis');
-        console.error('Error fetching spending analysis:', error);
+      },error: (err) => {
+        console.error('Error fetching spending analysis:', err);
         this.isGeneratingForSpendingAnalysis = false;
+        try {
+          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+          console.error('Failed to parse error:', err.error);
+        }
       }
     });
   }
@@ -258,10 +263,15 @@ export class ReportsInsightsComponent implements OnInit   {
         URL.revokeObjectURL(fileURL);
         this.isDownloadingForSpendingAnalysis = false;
       },
-      error: (error) => {
-        console.error('Error downloading spending analysis:', error);
-        this.toastr.error('Error downloading spending analysis');
+      error: (err) => {
+        console.error('Error downloading spending analysis:', err);
         this.isDownloadingForSpendingAnalysis = false;
+        try {
+          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+          console.error('Failed to parse error:', err.error);
+        }
       }
     });
   }
@@ -282,10 +292,14 @@ export class ReportsInsightsComponent implements OnInit   {
         }
         this.isSendingEmailForSpendingAnalysis = false;
       },
-      error: (error) => {
-        console.error('Error occurred:', error);
-        this.toastr.error("Failed to send email, Please try later");
+      error: (err) => {
         this.isSendingEmailForSpendingAnalysis = false;
+        try {
+          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+          console.error('Failed to parse error:', err.error);
+        }
       }
     });
   }

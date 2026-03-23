@@ -14,7 +14,7 @@ public class ExternalApiCallService {
 
     private final WebClientService webClientService;
 
-    public void apiCallToGatewayServiceToSendEmail(byte[] pdfBytes, String authHeader) {
+    public void externalCallToUserServiceToSendPdf(byte[] pdfBytes, String authHeader) {
         String token = authHeader.substring(7);
         webClientService.postRequest(
                 StringUrls.ACCOUNT_STATEMENT_USER_SERVICE_URL,

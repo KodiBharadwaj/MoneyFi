@@ -86,7 +86,7 @@ public class TransactionServiceImpl implements TransactionService {
     public ResponseEntity<String> sendAccountStatementEmailToUser(Long userId, AccountStatementRequestDto inputDto, String token) {
         try {
             byte[] pdfBytes = generatePdfForAccountStatement(userId, inputDto);
-            externalApiCallService.apiCallToGatewayServiceToSendEmail(pdfBytes, token);
+            externalApiCallService.externalCallToUserServiceToSendPdf(pdfBytes, token);
             return ResponseEntity.ok("Email sent successfully");
         } catch (Exception e) {
             e.printStackTrace();

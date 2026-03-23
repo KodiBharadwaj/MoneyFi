@@ -6,6 +6,7 @@ import com.moneyfi.wealthcore.repository.common.CategoryListRepository;
 import com.moneyfi.wealthcore.repository.common.WealthCoreRepository;
 import com.moneyfi.wealthcore.repository.goal.GoalRepository;
 import com.moneyfi.wealthcore.security.JwtService;
+import com.moneyfi.wealthcore.service.api.ExternalApiCallService;
 import com.moneyfi.wealthcore.service.goal.GoalService;
 import com.moneyfi.wealthcore.service.goal.dto.response.ExpenseModelDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalDetailsDto;
@@ -18,7 +19,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -29,8 +29,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.moneyfi.wealthcore.utils.constants.StringConstants.*;
-import static com.moneyfi.wealthcore.utils.constants.StringUrls.EUREKA_TRANSACTION_SERVICE_URL;
-
 
 @Service
 @Slf4j
@@ -39,9 +37,9 @@ public class GoalServiceImpl implements GoalService {
 
     private final GoalRepository goalRepository;
     private final WealthCoreRepository wealthCoreRepository;
-    private final RestTemplate restTemplate;
     private final JwtService jwtService;
     private final CategoryListRepository categoryListRepository;
+    private final ExternalApiCallService externalApiCallService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -126,16 +124,15 @@ public class GoalServiceImpl implements GoalService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deleteGoalById(Long id, String authHeader) {
+    public void deleteGoalById(Long id, String authHeader) {
         try {
             GoalModel goalModel = goalRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(GOAL_NOT_FOUND));
             goalModel.setDeleted(Boolean.TRUE);
             goalModel.setUpdatedAt(LocalDateTime.now());
             goalRepository.save(goalModel);
-            return functionCallToExpenseServiceToDeleteExpense(goalModel.getExpenseIds(), authHeader);
+            functionCallToExpenseServiceToDeleteExpense(goalModel.getExpenseIds(), authHeader);
         } catch (HttpClientErrorException.NotFound e) {
             e.printStackTrace();
-            return false;
         }
     }
 
@@ -150,40 +147,15 @@ public class GoalServiceImpl implements GoalService {
         }
         expenseModelDto.setDate(LocalDateTime.now());
         expenseModelDto.setRecurring(true);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + token);
-        HttpEntity<ExpenseModelDto> requestEntity = new HttpEntity<>(expenseModelDto, headers);
-        ResponseEntity<ExpenseModelDto> response = restTemplate.exchange(
-                EUREKA_TRANSACTION_SERVICE_URL + "/expense/saveExpense",
-                HttpMethod.POST,
-                requestEntity,
-                ExpenseModelDto.class
-        );
-        ExpenseModelDto responseBody = response.getBody();
-        if(responseBody == null){
-            throw new ResourceNotFoundException("Failed to fetch the expense model");
-        }
-        return responseBody.getId();
+        return externalApiCallService.externalApiCallToTransactionServiceToSaveExpense(token, "/expense/saveExpense", expenseModelDto).getId();
     }
 
-    private Boolean functionCallToExpenseServiceToDeleteExpense(String expenseIds, String authHeader){
+    private void functionCallToExpenseServiceToDeleteExpense(String expenseIds, String authHeader){
         String token = authHeader.substring(7);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + token);
         List<Long> expenseIdsList = Arrays.stream(expenseIds.split(","))
                 .map(Long::parseLong)
                 .collect(Collectors.toList());
-        HttpEntity<List<Long>> requestEntity = new HttpEntity<>(expenseIdsList, headers);
-        ResponseEntity<Void> response = restTemplate.exchange(
-                EUREKA_TRANSACTION_SERVICE_URL + "/expense",
-                HttpMethod.DELETE,
-                requestEntity,
-                Void.class
-        );
-        return response.getStatusCode().is2xxSuccessful();
+        externalApiCallService.externalApiCallToTransactionServiceToDeleteExpense(token, "/expense", expenseIdsList);
     }
 
     private GoalDetailsDto updatedGoalDtoConversion(GoalModel updatedGoal){
