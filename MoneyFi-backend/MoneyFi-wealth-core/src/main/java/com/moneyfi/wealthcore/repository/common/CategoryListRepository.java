@@ -11,10 +11,6 @@ import java.util.List;
 public interface CategoryListRepository extends JpaRepository<CategoryListModel, Integer> {
 
     /** JPQL */
-    @Query("SELECT c from CategoryListModel c WHERE c.type = :categoryType")
-    List<CategoryListModel> findByType(String categoryType);
-
-    /** JPQL */
     @Query("SELECT c FROM CategoryListModel c WHERE c.type IN :types")
     List<CategoryListModel> findByTypeIn(List<String> types);
 }

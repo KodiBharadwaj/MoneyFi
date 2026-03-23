@@ -9,6 +9,7 @@ import com.moneyfi.transaction.model.income.IncomeModel;
 import com.moneyfi.transaction.repository.expense.ExpenseRepository;
 import com.moneyfi.transaction.repository.income.IncomeRepository;
 import com.moneyfi.transaction.repository.transaction.TransactionRepository;
+import com.moneyfi.transaction.service.caching.CachingService;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.external.api.ExternalApiCallService;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
@@ -26,6 +27,9 @@ import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.validator.TransactionValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.http.*;
@@ -46,6 +50,9 @@ import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 @Slf4j
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     private final IncomeRepository incomeRepository;
     private final ExpenseRepository expenseRepository;
@@ -132,7 +139,7 @@ public class TransactionServiceImpl implements TransactionService {
                                 .amount(income.getAmount())
                                 .source(income.getSource())
                                 .date(income.getDate() == null ? null : Date.from(income.getDate().atZone(ZoneId.systemDefault()).toInstant()))
-                                .category(incomeRepository.getCategoryNameById(income.getCategoryId()))
+                                .category(getCategoryNameFromCacheOrDb(income.getCategoryId(), TransactionServiceType.INCOME.name()))
                                 .recurring(income.isRecurring())
                                 .description(income.getSource())
                                 .activeStatus(income.isDeleted() ? ActiveStatus.DELETED.name() : income.getCreatedAt().equals(income.getUpdatedAt()) ? ActiveStatus.ACTIVE.name() : ActiveStatus.EDITED.name())
@@ -146,7 +153,7 @@ public class TransactionServiceImpl implements TransactionService {
                                 .amount(expense.getAmount())
                                 .description(expense.getDescription())
                                 .date(expense.getDate() == null ? null : Date.from(expense.getDate().atZone(ZoneId.systemDefault()).toInstant()))
-                                .category(incomeRepository.getCategoryNameById(expense.getCategoryId()))
+                                .category(getCategoryNameFromCacheOrDb(expense.getCategoryId(), TransactionServiceType.EXPENSE.name()))
                                 .recurring(expense.isRecurring())
                                 .description(expense.getDescription())
                                 .activeStatus(expense.isDeleted() ? ActiveStatus.DELETED.name() : expense.getCreatedAt().equals(expense.getUpdatedAt()) ? ActiveStatus.ACTIVE.name() : ActiveStatus.EDITED.name())
@@ -154,6 +161,14 @@ public class TransactionServiceImpl implements TransactionService {
                         )
                         .toList()
         );
+    }
+
+    private String getCategoryNameFromCacheOrDb(Integer categoryId, String type) {
+        String category = CachingService.getCategoryFromCache(categoryId, type, redisTemplate);
+        if (StringUtils.isNotBlank(category)) {
+            return category;
+        }
+        return incomeRepository.getCategoryNameById(categoryId);
     }
 
     private String makeUsernamePrivate(String username){

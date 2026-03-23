@@ -7,6 +7,7 @@ import com.moneyfi.wealthcore.repository.common.WealthCoreRepository;
 import com.moneyfi.wealthcore.repository.goal.GoalRepository;
 import com.moneyfi.wealthcore.security.JwtService;
 import com.moneyfi.wealthcore.service.api.ExternalApiCallService;
+import com.moneyfi.wealthcore.service.common.CommonService;
 import com.moneyfi.wealthcore.service.goal.GoalService;
 import com.moneyfi.wealthcore.service.goal.dto.response.ExpenseModelDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalDetailsDto;
@@ -39,6 +40,7 @@ public class GoalServiceImpl implements GoalService {
     private final WealthCoreRepository wealthCoreRepository;
     private final JwtService jwtService;
     private final CategoryListRepository categoryListRepository;
+    private final CommonService commonService;
     private final ExternalApiCallService externalApiCallService;
 
     @Override
@@ -47,7 +49,7 @@ public class GoalServiceImpl implements GoalService {
         String token = authHeader.substring(7);
         Long userId = jwtService.extractUserIdFromToken(token);
         goal.setUserId(userId);
-        Long expenseId = functionCallToExpenseServiceToSaveExpense(goal, amountToBeAdded, token);
+        Long expenseId = functionCallToTransactionServiceToSaveExpense(goal, amountToBeAdded, token);
         if (goal.getExpenseIds() == null || goal.getExpenseIds().isEmpty()) {
             goal.setExpenseIds(expenseId.toString());
         } else {
@@ -136,10 +138,10 @@ public class GoalServiceImpl implements GoalService {
         }
     }
 
-    private Long functionCallToExpenseServiceToSaveExpense(GoalModel goal, BigDecimal amountToBeAdded, String token){
+    private Long functionCallToTransactionServiceToSaveExpense(GoalModel goal, BigDecimal amountToBeAdded, String token){
         ExpenseModelDto expenseModelDto = new ExpenseModelDto();
         expenseModelDto.setDescription(goal.getGoalName());
-        expenseModelDto.setCategoryId(categoryListRepository.findByType(CategoryType.EXPENSE.name()).stream().filter(category -> category.getCategory().equalsIgnoreCase("Goal")).findFirst().get().getId());
+        expenseModelDto.setCategoryId(commonService.getCategoryWiseList(List.of(CategoryType.EXPENSE.name())).stream().filter(category -> category.getCategory().equalsIgnoreCase("Goal")).findFirst().get().getCategoryId());
         if(amountToBeAdded.compareTo(BigDecimal.ZERO) == 0){
             expenseModelDto.setAmount(goal.getCurrentAmount());
         } else {
@@ -162,7 +164,7 @@ public class GoalServiceImpl implements GoalService {
         GoalDetailsDto goalDetailsDto = new GoalDetailsDto();
         BeanUtils.copyProperties(updatedGoal, goalDetailsDto);
         goalDetailsDto.setDeadLine(Date.valueOf(updatedGoal.getDeadLine().toLocalDate()));
-        goalDetailsDto.setCategory(categoryListRepository.findById(updatedGoal.getCategoryId()).get().getCategory());
+        goalDetailsDto.setCategory(categoryListRepository.findById(updatedGoal.getCategoryId()).orElseThrow(() -> new ResourceNotFoundException("Category not found")).getCategory());
         return goalDetailsDto;
     }
 }
