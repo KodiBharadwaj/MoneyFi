@@ -36,28 +36,32 @@ public class WealthCoreServiceImpl implements WealthCoreService {
                 authHeader,
                 Map.of(
                         FROM_DATE, fromDate.toString(),
-                        END_DATE, toDate.toString()),
+                        END_DATE, toDate.toString()
+                ),
                 "/income/total-income/specified-range"
         );
         List<Object[]> expenseResponse = externalApiCallService.externalApiCallToTransactionService(
                 authHeader,
                 Map.of(
                         FROM_DATE, fromDate.toString(),
-                        END_DATE, toDate.toString()),
+                        END_DATE, toDate.toString()
+                ),
                 "/expense/total-expenses/specified-range"
         );
         List<Object[]> incomeResponseTillToDate = externalApiCallService.externalApiCallToTransactionService(
                 authHeader,
                 Map.of(
                         FROM_DATE, LocalDate.of(1, 1, 1).toString(),
-                        END_DATE, toDate.toString()),
+                        END_DATE, toDate.toString()
+                ),
                 "/income/total-income/specified-range"
         );
         List<Object[]> expenseResponseTillToDate = externalApiCallService.externalApiCallToTransactionService(
                 authHeader,
                 Map.of(
                         FROM_DATE, LocalDate.of(1, 1, 1).toString(),
-                        END_DATE, toDate.toString()),
+                        END_DATE, toDate.toString()
+                ),
                 "/expense/total-expenses/specified-range"
         );
 
