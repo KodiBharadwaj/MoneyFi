@@ -1,8 +1,12 @@
 package com.moneyfi.transaction.service.transaction;
 
 import com.moneyfi.transaction.exceptions.GenericException;
+import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
+import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.AccountStatementResponseDto;
+import com.moneyfi.transaction.service.income.dto.response.IncomeDeletedDto;
+import com.moneyfi.transaction.service.income.dto.response.IncomeDetailsDto;
 import com.moneyfi.transaction.service.income.dto.response.OverviewPageDetailsDto;
 import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction;
 import com.moneyfi.transaction.service.transaction.dto.response.GmailSyncTransactionsResponse;
@@ -24,4 +28,12 @@ public interface TransactionService {
     void addGmailSyncTransactions(Long userId, LocalDate syncDate, List<ParsedTransaction> transactions) throws GenericException;
 
     GmailSyncTransactionsResponse getGmailSyncAddedTransactions(Long userId, LocalDate date);
+
+    List<Integer> getCategoryIdsBasedOnTransactionType(String transactionType);
+
+    List<IncomeDetailsDto> getAllIncomesByDate(Long userId, TransactionsListRequestDto requestDto);
+
+    List<IncomeDeletedDto> getDeletedIncomesInAMonth(Long userId, int month, int year);
+
+    List<ExpenseDetailsDto> getAllExpensesByDate(Long userId, TransactionsListRequestDto requestDto);
 }

@@ -103,11 +103,11 @@ export class ForgotPasswordComponent {
     this.isLoading = true; // Start loading
 
 
-    this.http.get<remainingTimeCount>(`${this.baseUrl}/api/auth/${this.email}/otp-send/check`).subscribe({
+    this.http.get<remainingTimeCount>(`${this.baseUrl}/api/v1/user-service/auth/${this.email}/otp-send/check`).subscribe({
       next : (outputDto) => {
         if(outputDto.result){
 
-          this.http.get(`${this.baseUrl}/api/auth/forgot-password/get-otp`, { 
+          this.http.get(`${this.baseUrl}/api/v1/user-service/auth/forgot-password/get-otp`, { 
             params: { email: this.email },
             responseType: 'text'
           }).subscribe({
@@ -170,7 +170,7 @@ export class ForgotPasswordComponent {
     }
 
     // Make API call to verify code
-    this.http.get(`${this.baseUrl}/api/auth/forgot-password/verify-otp`, { 
+    this.http.get(`${this.baseUrl}/api/v1/user-service/auth/forgot-password/verify-otp`, { 
       params: { 
         email: this.email,
         code: this.verificationCode 
@@ -203,7 +203,7 @@ export class ForgotPasswordComponent {
     }
 
     // Make API call to reset password
-    this.http.put(`${this.baseUrl}/api/auth/forgot-password/update-password`, null, { 
+    this.http.put(`${this.baseUrl}/api/v1/user-service/auth/forgot-password/update-password`, null, { 
       params: { 
         email: this.email,
         password: this.newPassword 
@@ -250,7 +250,7 @@ export class ForgotPasswordComponent {
   loadingResendOtp = false;
   resendOtp(type:string) {
     this.loadingResendOtp = true;
-    this.http.get(`${this.baseUrl}/api/auth/otp-resend?username=${this.email}&type=${type}`).subscribe({
+    this.http.get(`${this.baseUrl}/api/v1/user-service/auth/otp-resend?username=${this.email}&type=${type}`).subscribe({
       next: response => {
         this.toastr.success('OTP sent to your email');
         this.loadingResendOtp = false;

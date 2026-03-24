@@ -105,7 +105,7 @@ onSubmit(signupCredentials: SignupCredentials) {
   this.tempSignupCredentials = signupCredentials;
   this.isOtpLoading = true; // optional: show loading spinner for OTP step
 
-  this.authClient.get(`${this.baseUrl}/api/auth/send-otp/signup?email=${this.tempSignupCredentials.username}&name=${this.tempSignupCredentials.name}`, {
+  this.authClient.get(`${this.baseUrl}/api/v1/user-service/auth/send-otp/signup?email=${this.tempSignupCredentials.username}&name=${this.tempSignupCredentials.name}`, {
     responseType: 'text'
   }).subscribe({
     next: (response : string) => {

@@ -3,10 +3,12 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { SessionGuardService } from './session-gurard.service';
+import { ToastrService } from 'ngx-toastr';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const sessionGuard = inject(SessionGuardService);
+  const toastr = inject(ToastrService);
 
   // Skip auth for public APIs
   if (req.url.includes('/register')) {
@@ -30,7 +32,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         sessionStorage.removeItem('moneyfi.auth');
         sessionStorage.clear();
         router.navigate(['/']);
-      }
+      } else if (error.status === 503) toastr.error('Service Unavailable. Please try later')
+        else if (error.status === 403) toastr.error('You are not authorized to access')
       return throwError(() => error);
     })
   );

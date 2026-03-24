@@ -8,27 +8,30 @@ import com.moneyfi.constants.enums.ReasonEnum;
 import com.moneyfi.user.exceptions.FileUploadException;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
-import com.moneyfi.user.model.*;
-import com.moneyfi.user.model.dto.UserAuthHist;
-import com.moneyfi.user.model.dto.UserAuthModel;
-import com.moneyfi.user.model.dto.interfaces.UserAuthHistProjection;
-import com.moneyfi.user.repository.*;
+import com.moneyfi.user.model.auth.UserAuthHist;
+import com.moneyfi.user.model.auth.UserAuthModel;
+import com.moneyfi.user.model.general.*;
+import com.moneyfi.user.model.gmailsync.GmailAuth;
 import com.moneyfi.user.repository.admin.AdminRepository;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
+import com.moneyfi.user.repository.auth.UserAuthHistRepository;
+import com.moneyfi.user.repository.auth.UserRepository;
+import com.moneyfi.user.repository.general.*;
+import com.moneyfi.user.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.user.service.admin.AdminService;
 import com.moneyfi.user.service.admin.dto.request.AdminScheduleRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonDetailsRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonUpdateRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.user.service.admin.dto.response.*;
-import com.moneyfi.user.service.common.AwsServices;
-import com.moneyfi.user.service.common.CloudinaryService;
-import com.moneyfi.user.service.common.UserCacheService;
-import com.moneyfi.user.service.common.UserCommonService;
-import com.moneyfi.user.service.common.dto.emaildto.AdminBlockUserDto;
-import com.moneyfi.user.service.common.dto.internal.GmailSyncCountJsonDto;
-import com.moneyfi.user.service.common.dto.internal.NotificationQueueDto;
-import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
+import com.moneyfi.user.service.general.aws.AwsServices;
+import com.moneyfi.user.service.general.cloudinary.CloudinaryService;
+import com.moneyfi.user.service.general.caching.UserCacheService;
+import com.moneyfi.user.service.user.UserCommonService;
+import com.moneyfi.user.service.user.dto.emaildto.AdminBlockUserDto;
+import com.moneyfi.user.service.user.dto.internal.GmailSyncCountJsonDto;
+import com.moneyfi.user.service.user.dto.internal.NotificationQueueDto;
+import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.AdminValidations;
@@ -89,6 +92,9 @@ public class AdminServiceImpl implements AdminService {
     private final ExcelTemplateRepository excelTemplateRepository;
     private final CloudinaryService cloudinaryService;
     private final AwsServices awsServices;
+    private final UserRepository userRepository;
+    private final UserAuthHistRepository userAuthHistRepository;
+    private final GmailSyncRepository gmailSyncRepository;
 
     @Override
     public AdminOverviewPageDto getAdminOverviewPageDetails() {
@@ -122,7 +128,7 @@ public class AdminServiceImpl implements AdminService {
                         i.getReferenceNumber().trim().equalsIgnoreCase(referenceNumber.trim()))
                 .findFirst()
                 .map(request -> {
-                    UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
+                    UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
                     ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
                     if (approveStatus.equalsIgnoreCase(ApproveStatus.APPROVE.name())) {
                         try {
@@ -389,14 +395,15 @@ public class AdminServiceImpl implements AdminService {
         if (email == null || email.trim().isEmpty() || reason == null || reason.trim().isEmpty()) {
             throw new ScenarioNotPossibleException("Please provide all the details correctly");
         }
-        UserAuthModel user = convertUserAuthInterfaceToDto(profileRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND)));
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         if (user.isBlocked()) {
             throw new ScenarioNotPossibleException("User account is already blocked");
         }
         if (user.isDeleted()) {
             throw new ScenarioNotPossibleException("User account is deleted, can't block the user");
         }
-        profileRepository.updateUserAuthTableWithBlockOrUnblockStatus(user.getId(), Boolean.TRUE);
+        user.setBlocked(Boolean.TRUE);
+        userRepository.save(user);
 
         ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
         LocalDateTime currentTime = LocalDateTime.now();
@@ -648,7 +655,8 @@ public class AdminServiceImpl implements AdminService {
         ContactUsHist requestUserHist = new ContactUsHist();
 
         if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name())) {
-            profileRepository.updateUserAuthTableWithBlockOrUnblockStatus(user.getId(), false);
+            user.setBlocked(Boolean.FALSE);
+            userRepository.save(user);
             ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId()).stream()
                     .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
                     .findFirst()
@@ -660,7 +668,8 @@ public class AdminServiceImpl implements AdminService {
             methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
             applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_SUCCESSFUL_MAIL.name(), userProfile.getName() + "<|>" + email + "<|>" + contactUs.getReferenceNumber().substring(4) + "<|>" + "Unblocked successfully"));
         } else if (requestStatus.equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name())) {
-            profileRepository.updateUserAuthTableWithDeleteOrUndeleteStatus(user.getId(), false);
+            user.setDeleted(Boolean.FALSE);
+            userRepository.save(user);
             ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId()).stream()
                     .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
                     .findFirst()
@@ -704,8 +713,9 @@ public class AdminServiceImpl implements AdminService {
                 throw new ScenarioNotPossibleException("Please enter valid count between 0 to 3");
             }
 
-            int rowsAffected = profileRepository.updateGmailSyncCountByUserRequest(user.getId(), 3 - gmailSyncRequestCount);
-            log.info("Rows Affected {}", rowsAffected);
+            GmailAuth gmailAuth = gmailSyncRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(GMAIL_AUTH_NOT_FOUND));
+            gmailAuth.setCount(3 - gmailSyncRequestCount);
+            gmailSyncRepository.save(gmailAuth);
 
             requestUserHist.setRequestReason(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name());
             requestUserHist.setMessage("Admin has been approved with " + gmailSyncRequestCount + " sync chance/chances");
@@ -735,7 +745,13 @@ public class AdminServiceImpl implements AdminService {
     }
 
     private void methodToUpdateUserAuthHistTable(Long userId, int reasonTypeId, String comment, Long updatedUserId, LocalDateTime completedTime){
-        profileRepository.insertUserAuthHistory(userId, completedTime, reasonTypeId, comment, updatedUserId);
+        UserAuthHist userAuthHist = new UserAuthHist();
+        userAuthHist.setUserId(userId);
+        userAuthHist.setReasonTypeId(reasonTypeId);
+        userAuthHist.setComment(comment);
+        userAuthHist.setUpdatedBy(updatedUserId);
+        userAuthHist.setUpdatedTime(completedTime);
+        userAuthHistRepository.save(userAuthHist);
     }
 
     private void functionCallToDeclineTheUserRequest(UserAuthModel user, ProfileModel userProfile, ContactUs contactUs, String declineReason, String email, Long adminUserId, int gmailSyncRequestCount) throws JsonProcessingException {
@@ -842,7 +858,7 @@ public class AdminServiceImpl implements AdminService {
                                 approvedOrRejectedMap.put(STATUS_REJECTED, nameChangeRequestHist.getMessage());
                             else approvedOrRejectedMap.put(STATUS_APPROVED, nameChangeRequestHist.getMessage());
 
-                            String username = Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(nameChangeRequestHist.getUpdatedBy()).orElse(null)).getUsername();
+                            String username = Objects.requireNonNull(userRepository.findById(nameChangeRequestHist.getUpdatedBy()).orElse(null)).getUsername();
                             if (!Objects.equals(nameChangeRequestHist.getUpdatedBy(), adminUserId)) dto.getRequestDoneBy().append(nameChangeRequestHist.getRequestStatus().substring(0, 1).toUpperCase()).append(nameChangeRequestHist.getRequestStatus().substring(1).toLowerCase()).append(" By: ").append(username);
                             else dto.getRequestDoneBy().append(nameChangeRequestHist.getRequestStatus().substring(0,1).toUpperCase()).append(nameChangeRequestHist.getRequestStatus().substring(1).toLowerCase()).append(" By: You" + "(").append(username).append(")");
                         }
@@ -885,7 +901,7 @@ public class AdminServiceImpl implements AdminService {
                     List<ContactUsHist> unblockAccHistList = contactUsHistRepository.findByContactUsId(request.getId());
                     unblockAccHistList.forEach(accUnblockHistRequest -> {
                         if (accUnblockHistRequest.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_BLOCK_REQUEST.name())) {
-                            String adminUsername = Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(accUnblockHistRequest.getUpdatedBy()).orElse(null)).getUsername();
+                            String adminUsername = Objects.requireNonNull(userRepository.findById(accUnblockHistRequest.getUpdatedBy()).orElse(null)).getUsername();
                             if (accUnblockHistRequest.getMessage().split(",")[0].equalsIgnoreCase(BLOCKED_BY_USER))
                                 dto.setBlockedBy("USER");
                             else dto.setBlockedBy(adminUsername);
@@ -903,7 +919,7 @@ public class AdminServiceImpl implements AdminService {
                                     approvedOrRejectedMap.put(STATUS_REJECTED, accUnblockHistRequest.getMessage());
                                 else approvedOrRejectedMap.put(STATUS_APPROVED, accUnblockHistRequest.getMessage());
 
-                                String username = Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(accUnblockHistRequest.getUpdatedBy()).orElse(null)).getUsername();
+                                String username = Objects.requireNonNull(userRepository.findById(accUnblockHistRequest.getUpdatedBy()).orElse(null)).getUsername();
                                 if (!Objects.equals(accUnblockHistRequest.getUpdatedBy(), adminUserId)) dto.getRequestDoneBy().append(accUnblockHistRequest.getRequestStatus().substring(0, 1).toUpperCase()).append(accUnblockHistRequest.getRequestStatus().substring(1).toLowerCase()).append(" By: ").append(username);
                                 else dto.getRequestDoneBy().append(accUnblockHistRequest.getRequestStatus().substring(0,1).toUpperCase()).append(accUnblockHistRequest.getRequestStatus().substring(1).toLowerCase()).append(" By: You" + "(").append(username).append(")");
                             }
@@ -959,7 +975,7 @@ public class AdminServiceImpl implements AdminService {
                                 approvedOrRejectedMap.put(STATUS_REJECTED, accRetrievalHistRequest.getMessage());
                             else approvedOrRejectedMap.put(STATUS_APPROVED, accRetrievalHistRequest.getMessage());
 
-                            String username = Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(accRetrievalHistRequest.getUpdatedBy()).orElse(null)).getUsername();
+                            String username = Objects.requireNonNull(userRepository.findById(accRetrievalHistRequest.getUpdatedBy()).orElse(null)).getUsername();
                             if (!Objects.equals(accRetrievalHistRequest.getUpdatedBy(), adminUserId)) dto.getRequestDoneBy().append(accRetrievalHistRequest.getRequestStatus().substring(0, 1).toUpperCase()).append(accRetrievalHistRequest.getRequestStatus().substring(1).toLowerCase()).append(" By: ").append(username);
                             else dto.getRequestDoneBy().append(accRetrievalHistRequest.getRequestStatus().substring(0,1).toUpperCase()).append(accRetrievalHistRequest.getRequestStatus().substring(1).toLowerCase()).append(" By: You" + "(").append(username).append(")");
                         }
@@ -984,7 +1000,7 @@ public class AdminServiceImpl implements AdminService {
     private void functionCallToAddUserPasswordChangeHistory(UserProfileAndRequestDetailsDto userDetails) {
         userDetails.getPasswordChangeHistoryTrackDtoList()
                 .addAll(
-                        convertUserAuthHistInterfaceToDto(profileRepository.findTopByUserIdAndReasonTypeId(userDetails.getUserId(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE)))
+                        userAuthHistRepository.findTopByUserIdAndReasonTypeId(userDetails.getUserId(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE))
                                 .stream()
                                 .map(responseHistory -> new PasswordChangeHistoryTrackDto(responseHistory.getComment(), responseHistory.getUpdatedTime()))
                                 .toList()
@@ -994,7 +1010,7 @@ public class AdminServiceImpl implements AdminService {
     private void functionCallToAddUserForgotPasswordHistory(UserProfileAndRequestDetailsDto userDetails) {
         userDetails.getForgotPasswordHistoryTrackDtoList()
                 .addAll(
-                        convertUserAuthHistInterfaceToDto(profileRepository.findTopByUserIdAndReasonTypeId(userDetails.getUserId(), reasonCodeIdAssociation.get(ReasonEnum.FORGOT_PASSWORD)))
+                        userAuthHistRepository.findTopByUserIdAndReasonTypeId(userDetails.getUserId(), reasonCodeIdAssociation.get(ReasonEnum.FORGOT_PASSWORD))
                                 .stream()
                                 .map(responseHistory -> new ForgotPasswordHistoryTrackDto(responseHistory.getComment(), responseHistory.getUpdatedTime()))
                                 .toList()
@@ -1019,12 +1035,12 @@ public class AdminServiceImpl implements AdminService {
                         if (historyRecord.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.PENDED.name())) {
                             userDefectTrackingForAdminDto.setPendTime(historyRecord.getUpdatedTime());
                             userDefectTrackingForAdminDto.setAdminRemarks(new StringBuilder("Pended For: " + historyRecord.getMessage() + " | "));
-                            String username = Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(historyRecord.getUpdatedBy()).orElse(null)).getUsername();
+                            String username = Objects.requireNonNull(userRepository.findById(historyRecord.getUpdatedBy()).orElse(null)).getUsername();
                             if (!Objects.equals(historyRecord.getUpdatedBy(), adminUserId)) userDefectTrackingForAdminDto.setRequestDoneBy(new StringBuilder("Pended By: " + username + " | "));
                             else userDefectTrackingForAdminDto.setRequestDoneBy(new StringBuilder("Pended By: You" + "(" + username + ") | "));
                         }
                         if (historyRecord.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.IGNORED.name()) || historyRecord.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name())) {
-                            String username = Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(historyRecord.getUpdatedBy()).orElse(null)).getUsername();
+                            String username = Objects.requireNonNull(userRepository.findById(historyRecord.getUpdatedBy()).orElse(null)).getUsername();
                             userDefectTrackingForAdminDto.getAdminRemarks().append(historyRecord.getRequestStatus()).append(" For: ").append(historyRecord.getMessage());
                             if (!Objects.equals(historyRecord.getUpdatedBy(), adminUserId)) userDefectTrackingForAdminDto.getRequestDoneBy().append(historyRecord.getRequestStatus().substring(0, 1).toUpperCase()).append(historyRecord.getRequestStatus().substring(1).toLowerCase()).append(" By: ").append(username);
                             else userDefectTrackingForAdminDto.getRequestDoneBy().append(historyRecord.getRequestStatus().substring(0,1).toUpperCase()).append(historyRecord.getRequestStatus().substring(1).toLowerCase()).append(" By: You" + "(").append(username).append(")");
@@ -1077,8 +1093,8 @@ public class AdminServiceImpl implements AdminService {
                         }
                         if (historyRecord.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.CANCELLED.name()) || historyRecord.getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name())) {
                             gmailSyncHistoryTrackDto.setAdminRemarks(historyRecord.getMessage());
-                            if (!Objects.equals(historyRecord.getUpdatedBy(), adminUserId)) gmailSyncHistoryTrackDto.setRequestDoneBy(Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(historyRecord.getUpdatedBy()).orElse(null)).getUsername());
-                            else gmailSyncHistoryTrackDto.setRequestDoneBy("You" + " (" + Objects.requireNonNull(profileRepository.getUserAuthModelByUserId(historyRecord.getUpdatedBy()).orElse(null)).getUsername() + ")");
+                            if (!Objects.equals(historyRecord.getUpdatedBy(), adminUserId)) gmailSyncHistoryTrackDto.setRequestDoneBy(Objects.requireNonNull(userRepository.findById(historyRecord.getUpdatedBy()).orElse(null)).getUsername());
+                            else gmailSyncHistoryTrackDto.setRequestDoneBy("You" + " (" + Objects.requireNonNull(userRepository.findById(historyRecord.getUpdatedBy()).orElse(null)).getUsername() + ")");
                         }
                     });
                     gmailSyncHistoryTrackDto.setRequestId(gmailSyncRequest.getId());
@@ -1093,23 +1109,5 @@ public class AdminServiceImpl implements AdminService {
             e.printStackTrace();
         }
         return null;
-    }
-
-    private List<UserAuthHist> convertUserAuthHistInterfaceToDto(List<UserAuthHistProjection> interfaceAuthHistList) {
-        if (interfaceAuthHistList == null || interfaceAuthHistList.isEmpty()) {
-            return new ArrayList<>();
-        }
-        return interfaceAuthHistList.stream()
-                .map(projection -> {
-                    UserAuthHist userAuthHist = new UserAuthHist();
-                    userAuthHist.setId(projection.getId());
-                    userAuthHist.setUserId(projection.getUserId());
-                    userAuthHist.setUpdatedTime(projection.getUpdatedTime());
-                    userAuthHist.setComment(projection.getComment());
-                    userAuthHist.setUpdatedBy(projection.getUpdatedBy());
-                    userAuthHist.setReasonTypeId(projection.getReasonTypeId());
-                    return userAuthHist;
-                })
-                .toList();
     }
 }

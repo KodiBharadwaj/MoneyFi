@@ -5,12 +5,14 @@ import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
 import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.repository.expense.ExpenseRepository;
-import com.moneyfi.transaction.repository.transaction.TransactionRepository;
 import com.moneyfi.transaction.service.expense.ExpenseService;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
+import com.moneyfi.transaction.service.transaction.TransactionService;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.validator.TransactionValidator;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -31,24 +33,20 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.moneyfi.transaction.utils.StringConstants.*;
+import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class ExpenseServiceImpl implements ExpenseService {
 
     private final ExpenseRepository expenseRepository;
-    private final TransactionRepository transactionRepository;
-
-    public ExpenseServiceImpl(ExpenseRepository expenseRepository,
-                              TransactionRepository transactionRepository){
-        this.expenseRepository = expenseRepository;
-        this.transactionRepository = transactionRepository;
-    }
+    private final TransactionService transactionService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ExpenseModel save(ExpenseModel expense) {
-        List<Integer> categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
+        List<Integer> categoryIds = transactionService.getCategoryIdsBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
         if(!categoryIds.contains(expense.getCategoryId())) {
             throw new ScenarioNotPossibleException(CATEGORY_ID_INVALID);
         }
@@ -69,7 +67,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Override
     public List<ExpenseDetailsDto> getAllExpensesByDate(Long userId, TransactionsListRequestDto requestDto) {
         TransactionValidator.validateTransactionsListGetRequestDto(userId, requestDto);
-        List<ExpenseDetailsDto> expenses = transactionRepository.getAllExpensesByDate(userId, requestDto);
+        List<ExpenseDetailsDto> expenses = transactionService.getAllExpensesByDate(userId, requestDto);
         if (requestDto.getSortBy() == null || requestDto.getSortOrder() == null) {
             return expenses;
         }
@@ -197,7 +195,8 @@ public class ExpenseServiceImpl implements ExpenseService {
         expense.setDeleted(false);
 
         ExpenseModel expenseModel = expenseRepository.findById(id).orElse(null);
-        List<Integer> categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
+
+        List<Integer> categoryIds = transactionService.getCategoryIdsBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
         if(!categoryIds.contains(expense.getCategoryId())) {
             throw new ScenarioNotPossibleException(CATEGORY_ID_INVALID);
         }
@@ -289,7 +288,6 @@ public class ExpenseServiceImpl implements ExpenseService {
         try(Workbook workbook = new XSSFWorkbook()){
             Sheet sheet = workbook.createSheet("Monthly Expense Report");
 
-            // Create Header Row
             Row headerRow = sheet.createRow(0);
             String[] headers = {"Category", "Description", "Amount", "Date", "Recurring"};
             for(int i=0; i< headers.length; i++){
@@ -298,30 +296,25 @@ public class ExpenseServiceImpl implements ExpenseService {
                 cell.setCellStyle(createHeaderStyle(workbook));
             }
 
-            // Create a Date Style
             CellStyle dateStyle = createDateStyle(workbook);
 
-            // Populate Data Rows
             int rowIndex = 1;
             for (ExpenseDetailsDto data : expenseList) {
                 Row row = sheet.createRow(rowIndex++);
                 row.createCell(0).setCellValue(data.getCategory());
                 row.createCell(1).setCellValue(data.getDescription());
                 row.createCell(2).setCellValue(data.getAmount().doubleValue());
-                // Format Date Properly
                 Cell dateCell = row.createCell(3);
-                dateCell.setCellValue(data.getDate()); // Assuming data.getDate() is `java.util.Date`
-                dateCell.setCellStyle(dateStyle); // Apply formatting
+                dateCell.setCellValue(data.getDate());
+                dateCell.setCellStyle(dateStyle);
 
                 row.createCell(4).setCellValue(data.isRecurring()?"Yes":"No");
             }
 
-            // Auto-size columns
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
             }
 
-            // Convert to byte array
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             workbook.write(outputStream);
             return outputStream.toByteArray();
@@ -335,7 +328,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     private CellStyle createDateStyle(Workbook workbook) {
         CellStyle dateStyle = workbook.createCellStyle();
         CreationHelper createHelper = workbook.getCreationHelper();
-        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy")); // Change format as needed
+        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy"));
         return dateStyle;
     }
 
@@ -346,11 +339,9 @@ public class ExpenseServiceImpl implements ExpenseService {
         font.setBold(true);
         style.setFont(font);
 
-        // Set Background Color
-        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex()); // Yellow background
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND); // Apply solid fill
+        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        // Set Border (Optional)
         style.setBorderTop(BorderStyle.THIN);
         style.setBorderBottom(BorderStyle.THIN);
         style.setBorderLeft(BorderStyle.THIN);

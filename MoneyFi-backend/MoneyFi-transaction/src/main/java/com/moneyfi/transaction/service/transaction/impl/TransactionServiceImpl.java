@@ -3,32 +3,35 @@ package com.moneyfi.transaction.service.transaction.impl;
 import com.moneyfi.constants.enums.ActiveStatus;
 import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.transaction.exceptions.GenericException;
-import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
 import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.model.income.IncomeModel;
 import com.moneyfi.transaction.repository.expense.ExpenseRepository;
 import com.moneyfi.transaction.repository.income.IncomeRepository;
 import com.moneyfi.transaction.repository.transaction.TransactionRepository;
+import com.moneyfi.transaction.service.caching.CachingService;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
+import com.moneyfi.transaction.service.external.api.ExternalApiCallService;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
-import com.moneyfi.transaction.service.income.dto.response.AccountStatementResponseDto;
-import com.moneyfi.transaction.service.income.dto.response.IncomeDetailsDto;
-import com.moneyfi.transaction.service.income.dto.response.OverviewPageDetailsDto;
-import com.moneyfi.transaction.service.income.dto.response.UserDetailsForStatementDto;
+import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
+import com.moneyfi.transaction.service.income.dto.response.*;
 import com.moneyfi.transaction.service.transaction.TransactionService;
 import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction;
 import com.moneyfi.transaction.service.transaction.dto.response.GmailSyncTransactionsResponse;
 import com.moneyfi.transaction.utils.enums.CreditOrDebit;
 import com.moneyfi.transaction.utils.GeneratePdfTemplate;
-import com.moneyfi.transaction.utils.StringConstants;
+import com.moneyfi.transaction.utils.constants.StringConstants;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.validator.TransactionValidator;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -39,28 +42,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.moneyfi.transaction.utils.StringConstants.*;
+import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     private final IncomeRepository incomeRepository;
     private final ExpenseRepository expenseRepository;
     private final TransactionRepository transactionRepository;
     private final GeneratePdfTemplate generatePdfTemplate;
-    private final RestTemplate restTemplate;
-
-    public TransactionServiceImpl(IncomeRepository incomeRepository,
-                                  ExpenseRepository expenseRepository,
-                                  TransactionRepository transactionRepository,
-                                  GeneratePdfTemplate generatePdfTemplate,
-                                  RestTemplate restTemplate){
-        this.incomeRepository = incomeRepository;
-        this.expenseRepository = expenseRepository;
-        this.transactionRepository = transactionRepository;
-        this.generatePdfTemplate = generatePdfTemplate;
-        this.restTemplate = restTemplate;
-    }
+    private final ExternalApiCallService externalApiCallService;
 
     @Override
     public OverviewPageDetailsDto getOverviewPageTileDetails(Long userId, int month, int year) {
@@ -95,7 +91,7 @@ public class TransactionServiceImpl implements TransactionService {
     public ResponseEntity<String> sendAccountStatementEmailToUser(Long userId, AccountStatementRequestDto inputDto, String token) {
         try {
             byte[] pdfBytes = generatePdfForAccountStatement(userId, inputDto);
-            apiCallToGatewayServiceToSendEmail(pdfBytes, token);
+            externalApiCallService.externalCallToUserServiceToSendPdf(pdfBytes, token);
             return ResponseEntity.ok("Email sent successfully");
         } catch (Exception e) {
             e.printStackTrace();
@@ -112,9 +108,9 @@ public class TransactionServiceImpl implements TransactionService {
             throw new ScenarioNotPossibleException(USER_ID_EMPTY);
         }
 
-        List<Integer> incomeCategoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
-        List<Integer> expenseCategoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
-        TransactionValidator.validateGmailSyncTransactionsBulkUpload(transactions, incomeCategoryIds, expenseCategoryIds);
+        List<Integer> incomeCategoryIds = getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
+        List<Integer> expenseCategoryIds = getCategoryIdsBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
+        TransactionValidator.validateGmailSyncTransactionsBulkUpload(transactions, incomeCategoryIds, expenseCategoryIds, incomeRepository, userId);
 
         for (ParsedTransaction transaction : transactions) {
             if (transaction.getTransactionType().equalsIgnoreCase(CreditOrDebit.CREDIT.name())) {
@@ -141,7 +137,7 @@ public class TransactionServiceImpl implements TransactionService {
                                 .amount(income.getAmount())
                                 .source(income.getSource())
                                 .date(income.getDate() == null ? null : Date.from(income.getDate().atZone(ZoneId.systemDefault()).toInstant()))
-                                .category(incomeRepository.getCategoryNameById(income.getCategoryId()))
+                                .category(getCategoryNameFromCacheOrDb(income.getCategoryId(), TransactionServiceType.INCOME.name()))
                                 .recurring(income.isRecurring())
                                 .description(income.getSource())
                                 .activeStatus(income.isDeleted() ? ActiveStatus.DELETED.name() : income.getCreatedAt().equals(income.getUpdatedAt()) ? ActiveStatus.ACTIVE.name() : ActiveStatus.EDITED.name())
@@ -155,7 +151,7 @@ public class TransactionServiceImpl implements TransactionService {
                                 .amount(expense.getAmount())
                                 .description(expense.getDescription())
                                 .date(expense.getDate() == null ? null : Date.from(expense.getDate().atZone(ZoneId.systemDefault()).toInstant()))
-                                .category(incomeRepository.getCategoryNameById(expense.getCategoryId()))
+                                .category(getCategoryNameFromCacheOrDb(expense.getCategoryId(), TransactionServiceType.EXPENSE.name()))
                                 .recurring(expense.isRecurring())
                                 .description(expense.getDescription())
                                 .activeStatus(expense.isDeleted() ? ActiveStatus.DELETED.name() : expense.getCreatedAt().equals(expense.getUpdatedAt()) ? ActiveStatus.ACTIVE.name() : ActiveStatus.EDITED.name())
@@ -165,6 +161,36 @@ public class TransactionServiceImpl implements TransactionService {
         );
     }
 
+    @Override
+    public List<Integer> getCategoryIdsBasedOnTransactionType(String transactionType){
+        List<Integer> categoryIds = CachingService.getCategoryIdsFromCache(transactionType, redisTemplate);
+        if(categoryIds.isEmpty()) categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(transactionType);
+        return categoryIds;
+    }
+
+    @Override
+    public List<IncomeDetailsDto> getAllIncomesByDate(Long userId, TransactionsListRequestDto requestDto) {
+        return transactionRepository.getAllIncomesByDate(userId, requestDto);
+    }
+
+    @Override
+    public List<IncomeDeletedDto> getDeletedIncomesInAMonth(Long userId, int month, int year) {
+        return transactionRepository.getDeletedIncomesInAMonth(userId, month, year);
+    }
+
+    @Override
+    public List<ExpenseDetailsDto> getAllExpensesByDate(Long userId, TransactionsListRequestDto requestDto) {
+        return transactionRepository.getAllExpensesByDate(userId, requestDto);
+    }
+
+    private String getCategoryNameFromCacheOrDb(Integer categoryId, String type) {
+        String category = CachingService.getCategoryNamesFromCache(categoryId, type, redisTemplate);
+        if (StringUtils.isNotBlank(category)) {
+            return category;
+        }
+        return incomeRepository.getCategoryNameById(categoryId);
+    }
+
     private String makeUsernamePrivate(String username){
         int index = username.indexOf('@');
         return username.substring(0, index/3) + "x".repeat(index - index/3) + username.substring(index);
@@ -172,24 +198,6 @@ public class TransactionServiceImpl implements TransactionService {
 
     private String generateDocumentPasswordForUser(UserDetailsForStatementDto userDetails){
         return userDetails.getName().substring(0,4).toUpperCase() + userDetails.getUsername().substring(0,4).toLowerCase();
-    }
-
-    private void apiCallToGatewayServiceToSendEmail(byte[] pdfBytes, String authHeader){
-        String token = authHeader.substring(7);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setBearerAuth(token);
-        HttpEntity<byte[]> requestEntity = new HttpEntity<>(pdfBytes, headers);
-
-        ResponseEntity<Void> response = restTemplate.exchange(
-                StringConstants.ACCOUNT_STATEMENT_USER_SERVICE_URL,
-                HttpMethod.POST,
-                requestEntity,
-                Void.class
-        );
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new ResourceNotFoundException("Failed to send email: " + response.getStatusCode());
-        }
     }
 
     private IncomeModel getSaveIncomeModel(ParsedTransaction transaction, LocalDate syncDate, Long userId) {

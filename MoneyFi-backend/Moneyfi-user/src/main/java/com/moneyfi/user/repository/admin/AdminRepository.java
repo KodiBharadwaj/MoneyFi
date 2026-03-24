@@ -1,7 +1,7 @@
 package com.moneyfi.user.repository.admin;
 
 import com.moneyfi.user.service.admin.dto.response.*;
-import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
+import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;
 
 import java.util.List;
 import java.util.Map;

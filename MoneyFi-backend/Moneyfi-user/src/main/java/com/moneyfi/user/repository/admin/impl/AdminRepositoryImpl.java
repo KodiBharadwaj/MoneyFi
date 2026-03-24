@@ -3,7 +3,7 @@ package com.moneyfi.user.repository.admin.impl;
 import com.moneyfi.user.exceptions.QueryValidationException;
 import com.moneyfi.user.repository.admin.AdminRepository;
 import com.moneyfi.user.service.admin.dto.response.*;
-import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
+import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;

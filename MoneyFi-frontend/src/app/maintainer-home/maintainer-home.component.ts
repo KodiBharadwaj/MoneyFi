@@ -56,7 +56,7 @@ export class MaintainerHomeComponent implements OnInit {
   }
 
   getAdmins() {
-    this.http.get<AdminUsersResponseDto[]>(`${this.baseUrl}/api/v1/maintainer/get-admins?type=ACTIVE`)
+    this.http.get<AdminUsersResponseDto[]>(`${this.baseUrl}/api/v1/user-service/maintainer/get-admins?type=ACTIVE`)
       .subscribe(res => {
         this.admins = res;
         this.filteredAdmins = res;
@@ -86,7 +86,7 @@ export class MaintainerHomeComponent implements OnInit {
       return;
     }
 
-    this.http.post(`${this.baseUrl}/api/v1/maintainer/add-admin`, this.addForm).subscribe({
+    this.http.post(`${this.baseUrl}/api/v1/user-service/maintainer/add-admin`, this.addForm).subscribe({
       next: (data) => {
         this.closeAddModal();
         this.getAdmins(); // refresh list
@@ -123,14 +123,14 @@ export class MaintainerHomeComponent implements OnInit {
     }
 
     this.http.post(
-      `${this.baseUrl}/api/v1/maintainer/${this.selectedAdminId}/update-admin`,
+      `${this.baseUrl}/api/v1/user-service/maintainer/${this.selectedAdminId}/update-admin`,
       this.updateForm
     ).subscribe(() => {
       this.closeUpdateModal();
       this.getAdmins(); // refresh list
     });
 
-    this.http.post(`${this.baseUrl}/api/v1/maintainer/${this.selectedAdminId}/update-admin`,
+    this.http.post(`${this.baseUrl}/api/v1/user-service/maintainer/${this.selectedAdminId}/update-admin`,
       this.updateForm).subscribe({
       next: (data) => {
         this.closeUpdateModal();
@@ -148,7 +148,7 @@ export class MaintainerHomeComponent implements OnInit {
   }
 
   blockOrDeleteAdmin(admin: AdminUsersResponseDto, type: String) {
-    this.http.delete(`${this.baseUrl}/api/v1/maintainer/${admin.id}/delete-admin?type=${type}`).subscribe({
+    this.http.delete(`${this.baseUrl}/api/v1/user-service/maintainer/${admin.id}/delete-admin?type=${type}`).subscribe({
       next: (data) => {
         this.getAdmins();
         this.getBlockedAdmins();  
@@ -166,21 +166,21 @@ export class MaintainerHomeComponent implements OnInit {
   }
 
   getBlockedAdmins() {
-    this.http.get<AdminUsersResponseDto[]>(`${this.baseUrl}/api/v1/maintainer/get-admins?type=BLOCK`)
+    this.http.get<AdminUsersResponseDto[]>(`${this.baseUrl}/api/v1/user-service/maintainer/get-admins?type=BLOCK`)
     .subscribe(res => {
       this.blockedAdmins = res || [];
     });
   }
 
   getDeletedAdmins() {
-    this.http.get<AdminUsersResponseDto[]>(`${this.baseUrl}/api/v1/maintainer/get-admins?type=DELETE`)
+    this.http.get<AdminUsersResponseDto[]>(`${this.baseUrl}/api/v1/user-service/maintainer/get-admins?type=DELETE`)
       .subscribe(res => {
         this.deletedAdmins = res || [];
       });
   }
 
   unblockOrUnDeleteAdmin(admin: any, type: string) {
-    this.http.post(`${this.baseUrl}/api/v1/maintainer/${admin.id}/retrieve-admin?type=${type}`, {})
+    this.http.post(`${this.baseUrl}/api/v1/user-service/maintainer/${admin.id}/retrieve-admin?type=${type}`, {})
       .subscribe(() => {
         this.getAdmins();
         this.getBlockedAdmins();
@@ -196,7 +196,7 @@ export class MaintainerHomeComponent implements OnInit {
       dialogRef.afterClosed().subscribe((result) => {
         if (result) {
           this.isLogoutLoading = true;
-          this.httpClient.post(`${this.baseUrl}/api/v1/common/logout`, {}, { responseType: 'text' }).subscribe({
+          this.httpClient.post(`${this.baseUrl}/api/v1/user-service/common/logout`, {}, { responseType: 'text' }).subscribe({
             next: (response) => {
               this.isLogoutLoading = false;
               const jsonResponse = JSON.parse(response);

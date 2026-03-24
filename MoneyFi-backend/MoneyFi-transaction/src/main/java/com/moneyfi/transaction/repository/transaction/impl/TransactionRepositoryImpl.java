@@ -23,8 +23,8 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.moneyfi.transaction.utils.StringConstants.*;
-import static com.moneyfi.transaction.utils.StringConstants.YEAR;
+import static com.moneyfi.transaction.utils.constants.StringConstants.*;
+import static com.moneyfi.transaction.utils.constants.StringConstants.YEAR;
 
 @Repository
 public class TransactionRepositoryImpl implements TransactionRepository {

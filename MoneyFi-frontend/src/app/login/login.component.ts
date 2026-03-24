@@ -9,7 +9,6 @@ import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { SessionTimerService } from '../services/session-timer.service';
 
 declare const google: any;
 
@@ -109,7 +108,7 @@ export class LoginComponent implements OnInit {
       return;
     }
     this.isLoading = true;
-    this.http.post(`${this.baseUrl}/api/v1/Oauth/google/callback`, { code: response.code })
+    this.http.post(`${this.baseUrl}/api/v1/user-service/Oauth/google/callback`, { code: response.code })
       .subscribe({
         next: (res: any) => {
           this.isLoading = false;
@@ -141,7 +140,7 @@ export class LoginComponent implements OnInit {
 
   githubBtn.addEventListener("click", () => {
     const clientId = environment.GITHUB_CLIENT_ID;
-    const redirectUri = `${this.baseUrl}/api/v1/Oauth/github/popup-callback`;
+    const redirectUri = `${this.baseUrl}/api/v1/user-service/Oauth/github/popup-callback`;
     const scope = "read:user user:email";
     const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
 
@@ -231,13 +230,15 @@ private fbClientId = '1488343345815971';
             this.router.navigate(['dashboard']);
           } else this.toastr.error('User is not authorized to login');
         },
-        error: error => {
+        error: (err) => {
           this.isLoading = false;
-          if (error.status === 404) this.toastr.error('User not found. Please sign up.', 'Login Failed');
-          else if (error.status === 401) this.toastr.error(error.error.error);
-          else {
-            console.error('Login Failed', error);
-            this.toastr.error('An error occurred. Please try again.', 'Login Failed');
+          try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            const message = errorObj?.message || errorObj?.error || 'Something went wrong';
+            this.toastr.error(message, 'Login Failed');
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+            this.toastr.error('An error occurred', 'Login Failed');
           }
         }
       });

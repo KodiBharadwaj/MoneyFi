@@ -21,7 +21,7 @@
     </named-native-query>
 
     <named-native-query name="getUserProfileDetails"
-                        result-class="com.moneyfi.user.model.ProfileModel">
+                        result-class="com.moneyfi.user.model.general.ProfileModel">
         <query>
             <![CDATA[
             SELECT updt.*
@@ -29,17 +29,6 @@
             INNER JOIN user_auth_table uat WITH (NOLOCK) ON uat.id = updt.user_id
             WHERE uat.username = :username
             ]]>
-        </query>
-    </named-native-query>
-
-    <named-native-query name="UserGmailAuth.getSyncCount"
-                        result-class="java.lang.Integer">
-        <query>
-            <![CDATA[
-            SELECT uga.count
-            FROM user_gmail_auth uga
-            WHERE uga.user_id = :userId
-        ]]>
         </query>
     </named-native-query>
 

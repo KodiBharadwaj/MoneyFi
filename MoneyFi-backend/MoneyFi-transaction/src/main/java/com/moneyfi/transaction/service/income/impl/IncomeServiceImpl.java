@@ -3,7 +3,6 @@ package com.moneyfi.transaction.service.income.impl;
 import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
 import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
-import com.moneyfi.transaction.repository.transaction.TransactionRepository;
 import com.moneyfi.transaction.service.income.IncomeService;
 import com.moneyfi.transaction.service.income.dto.request.IncomeSaveRequest;
 import com.moneyfi.transaction.service.income.dto.request.IncomeUpdateRequest;
@@ -13,9 +12,11 @@ import com.moneyfi.transaction.repository.income.IncomeDeletedRepository;
 import com.moneyfi.transaction.repository.income.IncomeRepository;
 import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.*;
+import com.moneyfi.transaction.service.transaction.TransactionService;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.validator.IncomeValidator;
 import com.moneyfi.transaction.validator.TransactionValidator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -33,31 +34,23 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.moneyfi.transaction.utils.StringConstants.*;
+import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class IncomeServiceImpl implements IncomeService {
 
     private final IncomeRepository incomeRepository;
-    private final TransactionRepository transactionRepository;
     private final IncomeDeletedRepository incomeDeletedRepository;
-
-    public IncomeServiceImpl(IncomeRepository incomeRepository,
-                             TransactionRepository transactionRepository,
-                             IncomeDeletedRepository incomeDeletedRepository){
-        this.incomeRepository = incomeRepository;
-        this.transactionRepository = transactionRepository;
-        this.incomeDeletedRepository = incomeDeletedRepository;
-    }
-
-    private static final String INCOME_ALREADY_PRESENT_MESSAGE = "Income with this source and category is already there";
+    private final TransactionService transactionService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void saveIncome(IncomeSaveRequest incomeSaveRequest, Long userId) {
         IncomeValidator.validateIncomeSaveRequest(incomeSaveRequest, userId);
-        List<Integer> categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
+
+        List<Integer> categoryIds = transactionService.getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
         if(!categoryIds.contains(incomeSaveRequest.getCategoryId())) {
             throw new ScenarioNotPossibleException(CATEGORY_ID_INVALID);
         }
@@ -85,7 +78,7 @@ public class IncomeServiceImpl implements IncomeService {
     @Override
     public List<IncomeDetailsDto> getAllIncomesByDate(Long userId, TransactionsListRequestDto requestDto) {
         TransactionValidator.validateTransactionsListGetRequestDto(userId, requestDto);
-        List<IncomeDetailsDto> incomes = transactionRepository.getAllIncomesByDate(userId, requestDto);
+        List<IncomeDetailsDto> incomes = transactionService.getAllIncomesByDate(userId, requestDto);
         if (requestDto.getSortBy() == null || requestDto.getSortOrder() == null) {
             return incomes;
         }
@@ -131,14 +124,13 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     public List<IncomeDeletedDto> getDeletedIncomesInAMonth(Long userId, int month, int year) {
-        return transactionRepository.getDeletedIncomesInAMonth(userId, month, year);
+        return transactionService.getDeletedIncomesInAMonth(userId, month, year);
     }
 
     private byte[] generateExcelReport(List<IncomeDetailsDto> incomeList){
         try(Workbook workbook = new XSSFWorkbook()){
             Sheet sheet = workbook.createSheet("Monthly Income Report");
 
-            // Create Header Row
             Row headerRow = sheet.createRow(0);
             String[] headers = {"Category", "Source", "Amount", "Date", "Recurring", "Description"};
             for(int i=0; i< headers.length; i++){
@@ -147,10 +139,8 @@ public class IncomeServiceImpl implements IncomeService {
                 cell.setCellStyle(createHeaderStyle(workbook));
             }
 
-            // Create a Date Style
             CellStyle dateStyle = createDateStyle(workbook);
 
-            // Populate Data Rows
             int rowIndex = 1;
             for (IncomeDetailsDto data : incomeList) {
                 Row row = sheet.createRow(rowIndex++);
@@ -159,19 +149,17 @@ public class IncomeServiceImpl implements IncomeService {
                 row.createCell(2).setCellValue(data.getAmount().doubleValue());
                 // Format Date Properly
                 Cell dateCell = row.createCell(3);
-                dateCell.setCellValue(data.getDate()); // Assuming data.getDate() is `java.util.Date`
-                dateCell.setCellStyle(dateStyle); // Apply formatting
+                dateCell.setCellValue(data.getDate());
+                dateCell.setCellStyle(dateStyle);
 
                 row.createCell(4).setCellValue(data.isRecurring() ? YES : NO);
                 row.createCell(5).setCellValue(data.getDescription());
             }
 
-            // Auto-size columns
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
             }
 
-            // Convert to byte array
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             workbook.write(outputStream);
             return outputStream.toByteArray();
@@ -184,7 +172,7 @@ public class IncomeServiceImpl implements IncomeService {
     private CellStyle createDateStyle(Workbook workbook) {
         CellStyle dateStyle = workbook.createCellStyle();
         CreationHelper createHelper = workbook.getCreationHelper();
-        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy")); // Change format as needed
+        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy"));
         return dateStyle;
     }
 
@@ -195,11 +183,9 @@ public class IncomeServiceImpl implements IncomeService {
         font.setBold(true);
         style.setFont(font);
 
-        // Set Background Color
-        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex()); // Yellow background
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND); // Apply solid fill
+        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        // Set Border (Optional)
         style.setBorderTop(BorderStyle.THIN);
         style.setBorderBottom(BorderStyle.THIN);
         style.setBorderLeft(BorderStyle.THIN);
@@ -317,7 +303,8 @@ public class IncomeServiceImpl implements IncomeService {
     public void updateBySource(Long id, Long userId, IncomeUpdateRequest incomeUpdateRequest) {
         IncomeModel incomeModel = incomeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(INCOME_NOT_FOUND));
         IncomeValidator.validateIncomeUpdateRequest(incomeUpdateRequest);
-        List<Integer> categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
+
+        List<Integer> categoryIds = transactionService.getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
         if (!categoryIds.contains(incomeUpdateRequest.getCategoryId())) {
             throw new ScenarioNotPossibleException(CATEGORY_ID_INVALID);
         }
@@ -358,5 +345,4 @@ public class IncomeServiceImpl implements IncomeService {
         incomeDeleted.setDeletedAt(currentTime);
         incomeDeletedRepository.save(incomeDeleted);
     }
-
 }

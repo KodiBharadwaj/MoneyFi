@@ -1,15 +1,14 @@
 package com.moneyfi.wealthcore.service.wealthcore.impl;
 
-import com.moneyfi.wealthcore.exceptions.ResourceNotFoundException;
 import com.moneyfi.wealthcore.repository.common.WealthCoreRepository;
+import com.moneyfi.wealthcore.service.api.ExternalApiCallService;
 import com.moneyfi.wealthcore.service.budget.dto.response.SpendingAnalysisResponseDto;
 import com.moneyfi.wealthcore.service.budget.dto.response.UserDetailsForSpendingAnalysisDto;
 import com.moneyfi.wealthcore.service.wealthcore.WealthCoreService;
 import com.moneyfi.wealthcore.utils.GeneratePdfTemplate;
-import org.springframework.core.ParameterizedTypeReference;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,58 +19,54 @@ import java.util.Objects;
 
 import static com.moneyfi.wealthcore.utils.constants.StringConstants.*;
 import static com.moneyfi.wealthcore.utils.constants.StringConstants.EMAIL_SENT_FAILURE_MESSAGE;
-import static com.moneyfi.wealthcore.utils.constants.StringUrls.EUREKA_TRANSACTION_SERVICE_URL;
-import static com.moneyfi.wealthcore.utils.constants.StringUrls.USER_SERVICE_URL_CONTROLLER;
 
 @Service
+@RequiredArgsConstructor
 public class WealthCoreServiceImpl implements WealthCoreService {
 
     private final WealthCoreRepository wealthCoreRepository;
-    private final RestTemplate restTemplate;
     private final GeneratePdfTemplate generatePdfTemplate;
-
-    public WealthCoreServiceImpl(WealthCoreRepository wealthCoreRepository,
-                                 RestTemplate restTemplate,
-                                 GeneratePdfTemplate generatePdfTemplate) {
-        this.wealthCoreRepository = wealthCoreRepository;
-        this.restTemplate = restTemplate;
-        this.generatePdfTemplate = generatePdfTemplate;
-    }
+    private final ExternalApiCallService externalApiCallService;
 
     @Override
     public SpendingAnalysisResponseDto getUserSpendingAnalysisByBudgetCategories(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader) {
         SpendingAnalysisResponseDto spendingAnalysis = new SpendingAnalysisResponseDto(new HashMap<>(), new HashMap<>(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", authHeader);
-        HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
-        ResponseEntity<List<Object[]>> incomeResponse = restTemplate.exchange(
-                EUREKA_TRANSACTION_SERVICE_URL + "/income/total-income/specified-range?fromDate=" + fromDate + "&toDate=" + toDate,
-                HttpMethod.GET,
-                requestEntity,
-                new ParameterizedTypeReference<List<Object[]>>() {}
+
+        List<Object[]> incomeResponse = externalApiCallService.externalApiCallToTransactionService(
+                authHeader,
+                Map.of(
+                        FROM_DATE, fromDate.toString(),
+                        END_DATE, toDate.toString()
+                ),
+                "/income/total-income/specified-range"
         );
-        ResponseEntity<List<Object[]>> expenseResponse = restTemplate.exchange(
-                EUREKA_TRANSACTION_SERVICE_URL + "/expense/total-expenses/specified-range?fromDate=" + fromDate + "&toDate=" + toDate,
-                HttpMethod.GET,
-                requestEntity,
-                new ParameterizedTypeReference<List<Object[]>>() {}
+        List<Object[]> expenseResponse = externalApiCallService.externalApiCallToTransactionService(
+                authHeader,
+                Map.of(
+                        FROM_DATE, fromDate.toString(),
+                        END_DATE, toDate.toString()
+                ),
+                "/expense/total-expenses/specified-range"
         );
-        ResponseEntity<List<Object[]>> incomeResponseTillToDate = restTemplate.exchange(
-                EUREKA_TRANSACTION_SERVICE_URL + "/income/total-income/specified-range?fromDate=" + LocalDate.of(1, 1, 1) + "&toDate=" + toDate,
-                HttpMethod.GET,
-                requestEntity,
-                new ParameterizedTypeReference<List<Object[]>>() {}
+        List<Object[]> incomeResponseTillToDate = externalApiCallService.externalApiCallToTransactionService(
+                authHeader,
+                Map.of(
+                        FROM_DATE, LocalDate.of(1, 1, 1).toString(),
+                        END_DATE, toDate.toString()
+                ),
+                "/income/total-income/specified-range"
         );
-        ResponseEntity<List<Object[]>> expenseResponseTillToDate = restTemplate.exchange(
-                EUREKA_TRANSACTION_SERVICE_URL + "/expense/total-expenses/specified-range?fromDate=" + LocalDate.of(1, 1, 1) + "&toDate=" + toDate,
-                HttpMethod.GET,
-                requestEntity,
-                new ParameterizedTypeReference<List<Object[]>>() {}
+        List<Object[]> expenseResponseTillToDate = externalApiCallService.externalApiCallToTransactionService(
+                authHeader,
+                Map.of(
+                        FROM_DATE, LocalDate.of(1, 1, 1).toString(),
+                        END_DATE, toDate.toString()
+                ),
+                "/expense/total-expenses/specified-range"
         );
 
         Map<String, BigDecimal> incomeByCategoryMap = new HashMap<>();
-        Objects.requireNonNull(incomeResponse.getBody())
+        Objects.requireNonNull(incomeResponse)
                 .forEach(income -> {
                     String category = (String) income[0];
                     BigDecimal amount = BigDecimal.valueOf(((Number) income[1]).doubleValue());
@@ -81,7 +76,7 @@ public class WealthCoreServiceImpl implements WealthCoreService {
         spendingAnalysis.setIncomeByCategory(incomeByCategoryMap);
 
         Map<String, BigDecimal> expenseByCategoryMap = new HashMap<>();
-        Objects.requireNonNull(expenseResponse.getBody())
+        Objects.requireNonNull(expenseResponse)
                 .forEach(expense -> {
                     String category = (String) expense[0];
                     BigDecimal amount = BigDecimal.valueOf(((Number) expense[1]).doubleValue());
@@ -90,11 +85,11 @@ public class WealthCoreServiceImpl implements WealthCoreService {
                 });
         spendingAnalysis.setExpenseByCategory(expenseByCategoryMap);
 
-        BigDecimal totalIncomeTillEndDate = Objects.requireNonNull(incomeResponseTillToDate.getBody())
+        BigDecimal totalIncomeTillEndDate = Objects.requireNonNull(incomeResponseTillToDate)
                 .stream()
                 .map(income -> BigDecimal.valueOf(((Number) income[1]).doubleValue()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalExpensesTillEndDate = Objects.requireNonNull(expenseResponseTillToDate.getBody())
+        BigDecimal totalExpensesTillEndDate = Objects.requireNonNull(expenseResponseTillToDate)
                 .stream()
                 .map(expense -> BigDecimal.valueOf(((Number) expense[1]).doubleValue()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -114,29 +109,11 @@ public class WealthCoreServiceImpl implements WealthCoreService {
     public ResponseEntity<String> getUserSpendingAnalysisByBudgetCategoriesPdfEmail(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader) {
         try {
             byte[] pdfBytes = getUserSpendingAnalysisByBudgetCategoriesPdf(userId, fromDate, toDate, authHeader);
-            apiCallToGatewayServiceToSendEmail(pdfBytes, authHeader);
+            externalApiCallService.externalApiCallToUserServiceToSendPdfEmail(pdfBytes, authHeader, "/spending-analysis/email");
             return ResponseEntity.ok(EMAIL_SENT_SUCCESS_MESSAGE);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(EMAIL_SENT_FAILURE_MESSAGE + ": " + e.getMessage());
-        }
-    }
-
-    private void apiCallToGatewayServiceToSendEmail(byte[] pdfBytes, String authHeader){
-        String token = authHeader.substring(7);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setBearerAuth(token);
-
-        HttpEntity<byte[]> requestEntity = new HttpEntity<>(pdfBytes, headers);
-        ResponseEntity<Void> response = restTemplate.exchange(
-                USER_SERVICE_URL_CONTROLLER + "/spending-analysis/email",
-                HttpMethod.POST,
-                requestEntity,
-                Void.class
-        );
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new ResourceNotFoundException(EMAIL_SENT_FAILURE_MESSAGE + ": " + response.getStatusCode());
         }
     }
 }

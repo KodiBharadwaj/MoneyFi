@@ -24,7 +24,7 @@ export class SignupOtpConfirmDialogComponent {
   otpValue: string = '';
 
   validateOtp() {
-    this.httpClient.get<boolean>(`${this.baseUrl}/api/auth/${this.email}/${this.otpValue}/check-otp/signup`).subscribe({
+    this.httpClient.get<boolean>(`${this.baseUrl}/api/v1/user-service/auth/${this.email}/${this.otpValue}/check-otp/signup`).subscribe({
       next : (response) => {
         if(response){
           this.otpValidated.emit(true); // ✅ Emit boolean

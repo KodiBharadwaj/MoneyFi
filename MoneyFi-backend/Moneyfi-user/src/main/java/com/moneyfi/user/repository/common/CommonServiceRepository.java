@@ -1,8 +1,8 @@
 package com.moneyfi.user.repository.common;
 
-import com.moneyfi.user.service.common.dto.response.UserNotificationResponseDto;
-import com.moneyfi.user.service.common.dto.response.UserRequestStatusDto;
-import com.moneyfi.user.service.profile.dto.ProfileDetailsDto;
+import com.moneyfi.user.service.user.dto.response.UserNotificationResponseDto;
+import com.moneyfi.user.service.user.dto.response.UserRequestStatusDto;
+import com.moneyfi.user.service.user.dto.response.ProfileDetailsDto;
 
 import java.util.List;
 
@@ -14,4 +14,6 @@ public interface CommonServiceRepository {
     List<UserNotificationResponseDto> getUserNotifications(String username, String status);
 
     List<String> findAllUsernamesOfUsers();
+
+    List<String> getCategoriesBasedOnTransactionType(String name);
 }
