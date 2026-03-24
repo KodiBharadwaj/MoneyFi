@@ -328,7 +328,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     private CellStyle createDateStyle(Workbook workbook) {
         CellStyle dateStyle = workbook.createCellStyle();
         CreationHelper createHelper = workbook.getCreationHelper();
-        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy")); // Change format as needed
+        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy"));
         return dateStyle;
     }
 

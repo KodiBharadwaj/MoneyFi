@@ -29,7 +29,7 @@ public class TransactionValidator {
 
     private TransactionValidator(){}
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATE_MONTH_YEAR_FORMAT);
 
     public static void validateTransactionsListGetRequestDto(Long userId, TransactionsListRequestDto requestDto) {
         if(ObjectUtils.isEmpty(userId)) throw new ResourceNotFoundException("User not found");
@@ -40,7 +40,7 @@ public class TransactionValidator {
 
     private static void validateRequestType(String requestType) {
         if (StringUtils.isBlank(requestType)) throw new ScenarioNotPossibleException("Request Type not found");
-        if (!"MONTHLY".equalsIgnoreCase(requestType) && !"YEARLY".equalsIgnoreCase(requestType)) throw new ScenarioNotPossibleException("Irrelevant Request Type");
+        if (!MONTHLY.equalsIgnoreCase(requestType) && !YEARLY.equalsIgnoreCase(requestType)) throw new ScenarioNotPossibleException("Irrelevant Request Type");
     }
 
     private static void validateDate(String date) {

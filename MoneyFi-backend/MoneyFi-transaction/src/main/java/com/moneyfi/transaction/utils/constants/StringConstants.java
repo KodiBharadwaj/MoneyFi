@@ -22,6 +22,9 @@ public class StringConstants {
     public static final String LIMIT = "limit";
     public static final String ALL = "ALL";
 
+    public static final String MONTHLY = "MONTHLY";
+    public static final String YEARLY = "YEARLY";
+
     public static final String CATEGORY_ID = "categoryId";
     public static final String DESCRIPTION = "description";
     public static final String TRANSACTION_DATE = "transactionDate";

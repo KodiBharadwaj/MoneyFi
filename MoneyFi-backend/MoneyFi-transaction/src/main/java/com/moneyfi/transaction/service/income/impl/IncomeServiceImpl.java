@@ -149,8 +149,8 @@ public class IncomeServiceImpl implements IncomeService {
                 row.createCell(2).setCellValue(data.getAmount().doubleValue());
                 // Format Date Properly
                 Cell dateCell = row.createCell(3);
-                dateCell.setCellValue(data.getDate()); // Assuming data.getDate() is `java.util.Date`
-                dateCell.setCellStyle(dateStyle); // Apply formatting
+                dateCell.setCellValue(data.getDate());
+                dateCell.setCellStyle(dateStyle);
 
                 row.createCell(4).setCellValue(data.isRecurring() ? YES : NO);
                 row.createCell(5).setCellValue(data.getDescription());
@@ -183,8 +183,8 @@ public class IncomeServiceImpl implements IncomeService {
         font.setBold(true);
         style.setFont(font);
 
-        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex()); // Yellow background
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND); // Apply solid fill
+        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         style.setBorderTop(BorderStyle.THIN);
         style.setBorderBottom(BorderStyle.THIN);
