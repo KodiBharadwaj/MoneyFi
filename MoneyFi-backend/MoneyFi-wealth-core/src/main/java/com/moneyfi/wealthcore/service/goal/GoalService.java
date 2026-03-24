@@ -22,7 +22,7 @@ public interface GoalService {
 
     ResponseEntity<GoalDetailsDto> updateByGoalName(Long id, GoalModel goal, String authHeader);
 
-    boolean deleteGoalById(Long id, String authHeader);
+    void deleteGoalById(Long id, String authHeader);
 
     GoalTileDetailsDto getGoalTileDetails(Long userId);
 }

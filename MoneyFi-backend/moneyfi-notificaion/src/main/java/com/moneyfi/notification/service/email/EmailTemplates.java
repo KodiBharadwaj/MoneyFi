@@ -540,8 +540,7 @@ public class EmailTemplates {
         }
     }
 
-    /**
-    public void sendEmailForSuccessfulUserCreation(String name, String email){
+    public void sendEmailForSuccessfulUserCreation(String email, String name){
         String subject = "Welcome to MoneyFi";
         String body = "<html>"
                 + "<body>"
@@ -561,7 +560,6 @@ public class EmailTemplates {
             awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
         }
     }
-    **/
 
     private SimpleMailMessage functionToSetAwsSesObjectValues(String email, String subject, String body) {
         SimpleMailMessage simpleMailMessage = new SimpleMailMessage();

@@ -100,25 +100,15 @@ export class GoalsComponent {
         }
 
       },
-      error: (error) => {
+      error: (err) => {
         this.loading = false;
-        console.error('Failed to load goal data:', error);
-        if(error.status === 401){
-            if (error.error === 'TokenExpired') {
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            } else if(error.error === 'Token is blacklisted'){
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              this.router.navigate(['/']);
-            }
-            else if(error.error === 'AuthorizationFailed'){
-              alert('Service Unavailable!! Please try later');
-            }
-          } else if (error.status === 503){
-            alert('Service Unavailable!! Please try later');
-          }
+        console.error('Failed to load goal data:', err);
+        try {
+          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+          console.error('Failed to parse error:', err.error);
+        }
       },
     });
   }
@@ -130,9 +120,14 @@ export class GoalsComponent {
         this.totalGoalSavings = response.goalTileDetails.totalGoalAmount;
         this.totalGoalTargetAmount = response.goalTileDetails.totalGoalTargetAmount;
       }, 
-      error : (error) => {
-        console.log('Failed to get the total goal target amount', error);
-        this.toastr.error("Failed to retrive values, try later")
+      error : (err) => {
+        console.log('Failed to get the total goal target amount', err);
+        try {
+          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+          this.toastr.error(errorObj.message);
+        } catch (e) {
+          console.error('Failed to parse error:', err.error);
+        }
       }
     })
   }
@@ -165,24 +160,14 @@ export class GoalsComponent {
                 this.loadGoalTileData();
                 this.toastr.success('Goal ' + newGoal.goalName + ' added successfully');
               },
-              error: (error) => {
+              error: (err) => {
                 this.addGoalLoading = false;
-                console.error('Failed to add goal data:', error);
-                if(error.status === 401){
-                  if (error.error === 'TokenExpired') {
-                    alert('Your session has expired. Please login again.');
-                    sessionStorage.removeItem('moneyfi.auth');
-                    this.router.navigate(['/']);
-                  } else if(error.error === 'Token is blacklisted'){
-                    alert('Your session has expired. Please login again.');
-                    sessionStorage.removeItem('moneyfi.auth');
-                    this.router.navigate(['/']);
-                  }
-                  else if(error.error === 'AuthorizationFailed'){
-                    alert('Service Unavailable!! Please try later');
-                  }
-                } else if (error.status === 503){
-                  alert('Service Unavailable!! Please try later');
+                console.error('Failed to add goal data:', err);
+                try {
+                  const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+                  this.toastr.error(errorObj.message);
+                } catch (e) {
+                  console.error('Failed to parse error:', err.error);
                 }
               },
               complete: () => {
@@ -219,24 +204,14 @@ export class GoalsComponent {
               this.loadGoals();
               this.loadGoalTileData();
             },
-            error: (error) => {
+            error: (err) => {
               this.addAmountGoalLoading = false;
-              console.error('Error adding amount:', error);
-              if(error.status === 401){
-                if (error.error === 'TokenExpired') {
-                  alert('Your session has expired. Please login again.');
-                  sessionStorage.removeItem('moneyfi.auth');
-                  this.router.navigate(['/']);
-                } else if(error.error === 'Token is blacklisted'){
-                  alert('Your session has expired. Please login again.');
-                  sessionStorage.removeItem('moneyfi.auth');
-                  this.router.navigate(['/']);
-                }
-                else if(error.error === 'AuthorizationFailed'){
-                  alert('Service Unavailable!! Please try later');
-                }
-              } else if (error.status === 503){
-                alert('Service Unavailable!! Please try later');
+              console.error('Error adding amount:', err);
+              try {
+                const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+                this.toastr.error(errorObj.message);
+              } catch (e) {
+                console.error('Failed to parse error:', err.error);
               }
             }
           });
@@ -269,23 +244,13 @@ export class GoalsComponent {
             this.loadGoals();
             this.loadGoalTileData();
           },
-          error: (error) => {
-            console.error('Failed to update goal data:', error);
-            if(error.status === 401){
-              if (error.error === 'TokenExpired') {
-                alert('Your session has expired. Please login again.');
-                sessionStorage.removeItem('moneyfi.auth');
-                this.router.navigate(['/']);
-              } else if(error.error === 'Token is blacklisted'){
-                alert('Your session has expired. Please login again.');
-                sessionStorage.removeItem('moneyfi.auth');
-                this.router.navigate(['/']);
-              }
-              else if(error.error === 'AuthorizationFailed'){
-                alert('Service Unavailable!! Please try later');
-              }
-            } else if (error.status === 503){
-              alert('Service Unavailable!! Please try later');
+          error: (err) => {
+            console.error('Failed to update goal data:', err);
+            try {
+              const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+              this.toastr.error(errorObj.message);
+            } catch (e) {
+              console.error('Failed to parse error:', err.error);
             }
           },
           complete: () => {

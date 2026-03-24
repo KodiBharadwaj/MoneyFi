@@ -6,7 +6,7 @@ import com.moneyfi.user.service.admin.dto.request.ReasonDetailsRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonUpdateRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.user.service.admin.dto.response.*;
-import com.moneyfi.user.service.common.dto.response.UserFeedbackResponseDto;
+import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;
 import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
 

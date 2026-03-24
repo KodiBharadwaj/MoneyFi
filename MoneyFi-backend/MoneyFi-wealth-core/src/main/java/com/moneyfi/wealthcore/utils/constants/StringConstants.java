@@ -17,6 +17,8 @@ public class StringConstants {
     public static final String CATEGORY_ID_INVALID = "Category is invalid";
     public static final String BUDGET_ALREADY_EXIST_MESSAGE = "Budget already exists! Please update if required";
     public static final String ALL = "ALL";
+    public static final String FROM_DATE = "fromDate";
+    public static final String TO_DATE = "toDate";
 
     public static final String USER_ID = "userId";
     public static final String TOTAL_GOAL_AMOUNT = "totalGoalAmount";

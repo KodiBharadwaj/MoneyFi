@@ -61,18 +61,6 @@ export class AdminHomeComponent implements OnInit {
   ngOnInit(): void {
     this.fetchCounts();
     this.getAdminScheduledNotifications();
-    this.getUsernameByToken();
-  }
-
-  getUsernameByToken() {
-    this.httpClient.get(`${this.baseUrl}/api/v1/common/get-username`, { responseType: 'text' }).subscribe({
-      next: (data: string) => {
-        this.username = data;
-      },
-      error: (err) => {
-        console.error('Error fetching username', err);
-      }
-    });
   }
 
   getAdminScheduledNotifications() {

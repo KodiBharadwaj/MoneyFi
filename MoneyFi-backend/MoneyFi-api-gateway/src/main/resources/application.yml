@@ -1,75 +1,40 @@
 spring:
   application:
     name: MoneyFi-api-gateway
-  profiles:
-    active: ${PROFILE:local}
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
-          github:
-            client-id: ${GITHUB_CLIENT_ID}
-            client-secret: ${GITHUB_CLIENT_SECRET}
-          facebook:
-            client-id: xxxxxxxxxxxxxxxxxx
-            client-secret: xxxxxxxxxxxxxxxxxxxxxxxxxx
-            redirect-uri: "xxxxxxxxxxxxxxxxxxxxx"
-
-  datasource:
-    url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-
-  #Redis Configuration
-  data:
-    redis:
-      url: ${REDIS_URL}
-      timeout: 5s
-  cache:
-    type: redis
-    redis:
-      time-to-live: 3600000
-
-  #Artemis Configuration
-  artemis:
-    mode: native
-    host: localhost
-    port: 8161
-    user: artemis
-    password: artemis
 
   cloud:
     gateway:
-      mvc:
-        routes:
-          - id: MoneyFi-Transaction
-            uri: lb://MoneyFi-Transaction
-            predicates:
-              - Path=/api/v1/transaction/income/**, /api/v1/transaction/expense/**, /api/v1/transaction/**
-
-          - id: MoneyFi-wealth-core
-            uri: lb://MoneyFi-wealth-core
-            predicates:
-              - Path=/api/v1/wealth-core/budget/**, /api/v1/wealth-core/goal/**, /api/v1/wealth-core/**, /api/v1/wealth-core/common/**, /api/v1/wealth-core/admin/**
-
-          - id: MoneyFi-user
-            uri: lb://MoneyFi-user
-            predicates:
-              - Path=/api/v1/user-service/open/**, /api/v1/user-service/admin/**, /api/v1/user-service/external-api/**, /api/v1/user-service/user/**, /api/v1/user-service/common/**
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+      routes:
+        - id: MoneyFi-user
+          uri: lb://MoneyFi-user
+          predicates:
+            - Path=/api/v1/user-service/**
+        - id: MoneyFi-Transaction
+          uri: lb://MoneyFi-Transaction
+          predicates:
+            - Path=/api/v1/transaction/**
+        - id: MoneyFi-wealth-core
+          uri: lb://MoneyFi-wealth-core
+          predicates:
+            - Path=/api/v1/wealth-core/**
 
 jwt:
   secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
+
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS}
 
 eureka:
   client:
@@ -77,27 +42,6 @@ eureka:
       defaultZone: ${EUREKA_URL}
   instance:
     prefer-ip-address: true
-
-cors:
-  allowed-origins: ${ALLOWED_ORIGINS}
-
-  #Rabbit MQ Configuration
-  rabbitmq:
-    uri: ${RABBITMQ_URI}
-
-rabbitmq:
-  queue: rabbit.mq.queue
-  exchange: rabbit.mq.exchange
-  routing-key: rabbit.mq.routing.key
-
-
-  jackson:
-    time-zone: Asia/Kolkata
-
-logging:
-  level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
 
 server:
   port: 8765

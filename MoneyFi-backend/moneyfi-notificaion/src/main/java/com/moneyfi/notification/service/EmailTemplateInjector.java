@@ -1,5 +1,6 @@
 package com.moneyfi.notification.service;
 
+import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.notification.service.dto.NotificationQueueDto;
 import com.moneyfi.notification.service.dto.emaildto.AdminBlockUserDto;
 import com.moneyfi.notification.service.dto.emaildto.StatementAnalysisDto;
@@ -7,7 +8,6 @@ import com.moneyfi.notification.service.dto.emaildto.GmailSyncIncreaseRequestDto
 import com.moneyfi.notification.service.dto.emaildto.UserRaisedDefectDto;
 import com.moneyfi.notification.service.email.EmailTemplates;
 import com.moneyfi.notification.util.constants.StringConstants;
-import com.moneyfi.notification.util.enums.NotificationQueueEnum;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -62,7 +62,16 @@ public class EmailTemplateInjector {
             functionCallToSendUserAnniversaryMail(notificationQueueDto, emailTemplates);
         } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_BIRTHDAY_MAIL.name())) {
             functionCallToSendUserBirthdayMail(notificationQueueDto, emailTemplates);
+        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_ACCOUNT_CREATION_MAIL.name())) {
+            functionCallToSendUserAccountCreationMail(notificationQueueDto, emailTemplates);
         }
+    }
+
+    private static void functionCallToSendUserAccountCreationMail(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
+        String email = parts[0];
+        String name = parts[1];
+        emailTemplates.sendEmailForSuccessfulUserCreation(email, name);
     }
 
     private static void functionCallToSendUserBirthdayMail(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
@@ -102,7 +111,7 @@ public class EmailTemplateInjector {
         String email = parts[0];
         String name = parts[1];
         String verificationCode = parts[2];
-        emailTemplates.sendOtpEmailToUserForSignup(name, email, verificationCode);
+        emailTemplates.sendOtpEmailToUserForSignup(email, name, verificationCode);
     }
 
     private static void functionCallToSendMailForUserPasswordChange(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {

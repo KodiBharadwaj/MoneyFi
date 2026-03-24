@@ -3,10 +3,13 @@ package com.moneyfi.transaction.validator;
 import com.moneyfi.transaction.exceptions.GenericException;
 import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
 import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
+import com.moneyfi.transaction.model.income.IncomeModel;
+import com.moneyfi.transaction.repository.income.IncomeRepository;
 import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction;
 import com.moneyfi.transaction.service.transaction.dto.response.GmailSyncErrorResponse;
 import com.moneyfi.transaction.utils.enums.CreditOrDebit;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,13 +22,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.moneyfi.transaction.utils.StringConstants.*;
+import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 
+@Slf4j
 public class TransactionValidator {
 
     private TransactionValidator(){}
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATE_MONTH_YEAR_FORMAT);
 
     public static void validateTransactionsListGetRequestDto(Long userId, TransactionsListRequestDto requestDto) {
         if(ObjectUtils.isEmpty(userId)) throw new ResourceNotFoundException("User not found");
@@ -36,7 +40,7 @@ public class TransactionValidator {
 
     private static void validateRequestType(String requestType) {
         if (StringUtils.isBlank(requestType)) throw new ScenarioNotPossibleException("Request Type not found");
-        if (!"MONTHLY".equalsIgnoreCase(requestType) && !"YEARLY".equalsIgnoreCase(requestType)) throw new ScenarioNotPossibleException("Irrelevant Request Type");
+        if (!MONTHLY.equalsIgnoreCase(requestType) && !YEARLY.equalsIgnoreCase(requestType)) throw new ScenarioNotPossibleException("Irrelevant Request Type");
     }
 
     private static void validateDate(String date) {
@@ -55,7 +59,7 @@ public class TransactionValidator {
         }
     }
 
-    public static void validateGmailSyncTransactionsBulkUpload(List<ParsedTransaction> transactions, List<Integer> incomeCategoryIds, List<Integer> expenseCategoryIds) throws GenericException {
+    public static void validateGmailSyncTransactionsBulkUpload(List<ParsedTransaction> transactions, List<Integer> incomeCategoryIds, List<Integer> expenseCategoryIds, IncomeRepository incomeRepository, Long userId) throws GenericException {
         List<GmailSyncErrorResponse> errorList = new ArrayList<>();
         for (ParsedTransaction transaction : transactions) {
             GmailSyncErrorResponse dto = new GmailSyncErrorResponse();
@@ -65,6 +69,7 @@ public class TransactionValidator {
             validateTransactionDescription(transaction, map);
             validateTransactionAmount(transaction, map);
             validateTransactionDateAndTime(transaction, map);
+            if (transaction.getTransactionType().equalsIgnoreCase(CreditOrDebit.CREDIT.name())) validateExistingIncomeSourceInDB(transaction, map, incomeRepository, userId);
 
             if (!map.isEmpty()) {
                 dto.setGmailProcessedId(transaction.getGmailProcessedId());
@@ -75,38 +80,48 @@ public class TransactionValidator {
         if (!errorList.isEmpty()) throw GenericException.create(errorList);
     }
 
+    private static void validateExistingIncomeSourceInDB(ParsedTransaction transaction, Map<String, List<String>> map, IncomeRepository incomeRepository, Long userId) {
+        log.info("checking input gmail sync transaction request: {}", transaction);
+        IncomeModel incomeModel = incomeRepository.getIncomeBySourceAndCategory(userId, transaction.getDescription().trim(), transaction.getCategoryId(), transaction.getTransactionDate());
+        log.info("checking existing income with request details: {}", incomeModel);
+        if (incomeModel != null) {
+            map.computeIfAbsent(CATEGORY_ID, k -> new ArrayList<>()).add(INCOME_ALREADY_PRESENT_MESSAGE);
+            map.computeIfAbsent(DESCRIPTION, k -> new ArrayList<>()).add(INCOME_ALREADY_PRESENT_MESSAGE);
+        }
+    }
+
     private static void validateTransactionDateAndTime(ParsedTransaction transaction, Map<String, List<String>> map) {
         if (transaction.getTransactionDate() == null) {
-            map.computeIfAbsent("transactionDate", k -> new ArrayList<>()).add("Date can't be empty");
+            map.computeIfAbsent(TRANSACTION_DATE, k -> new ArrayList<>()).add("Date can't be empty");
         }
     }
 
     private static void validateTransactionAmount(ParsedTransaction transaction, Map<String, List<String>> map) {
         if (ObjectUtils.isEmpty(transaction.getAmount())) {
-            map.computeIfAbsent("amount", k -> new ArrayList<>()).add("Amount can't be empty");
+            map.computeIfAbsent(AMOUNT, k -> new ArrayList<>()).add("Amount can't be empty");
         }
         if (!ObjectUtils.isEmpty(transaction.getAmount()) && transaction.getAmount().compareTo(BigDecimal.ZERO) == 0) {
-            map.computeIfAbsent("amount", k -> new ArrayList<>()).add("Amount can't be zero");
+            map.computeIfAbsent(AMOUNT, k -> new ArrayList<>()).add("Amount can't be zero");
         }
     }
 
     private static void validateTransactionDescription(ParsedTransaction transaction, Map<String, List<String>> map) {
         if (StringUtils.isBlank(transaction.getDescription())) {
-            map.computeIfAbsent("description", k -> new ArrayList<>()).add("Description can't be empty");
+            map.computeIfAbsent(DESCRIPTION, k -> new ArrayList<>()).add("Description can't be empty");
         }
         if (!StringUtils.isBlank(transaction.getDescription()) && !transaction.getDescription().substring(0,1).equals(transaction.getDescription().substring(0,1).toUpperCase())) {
-            map.computeIfAbsent("description", k -> new ArrayList<>()).add("First letter should be in capital");
+            map.computeIfAbsent(DESCRIPTION, k -> new ArrayList<>()).add("First letter should be in capital");
         }
     }
 
     private static void validateTransactionCategory(ParsedTransaction transaction, Map<String, List<String>> map, List<Integer> incomeCategoryIds, List<Integer> expenseCategoryIds) {
         if (ObjectUtils.isEmpty(transaction.getCategoryId())) {
-            map.computeIfAbsent("categoryId", k -> new ArrayList<>()).add("Category can't be empty");
+            map.computeIfAbsent(CATEGORY_ID, k -> new ArrayList<>()).add("Category can't be empty");
         }
 
         List<Integer> categoryIds = transaction.getTransactionType().equalsIgnoreCase(CreditOrDebit.CREDIT.name()) ? incomeCategoryIds : expenseCategoryIds;
         if (!ObjectUtils.isEmpty(transaction.getCategoryId()) && !categoryIds.contains(transaction.getCategoryId())) {
-            map.computeIfAbsent("categoryId", k -> new ArrayList<>()).add(CATEGORY_NOT_ALIGN_MESSAGE);
+            map.computeIfAbsent(CATEGORY_ID, k -> new ArrayList<>()).add(CATEGORY_NOT_ALIGN_MESSAGE);
         }
     }
 }
