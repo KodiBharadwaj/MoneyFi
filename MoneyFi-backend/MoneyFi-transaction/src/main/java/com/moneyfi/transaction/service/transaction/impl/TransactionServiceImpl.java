@@ -13,10 +13,8 @@ import com.moneyfi.transaction.service.caching.CachingService;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.external.api.ExternalApiCallService;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
-import com.moneyfi.transaction.service.income.dto.response.AccountStatementResponseDto;
-import com.moneyfi.transaction.service.income.dto.response.IncomeDetailsDto;
-import com.moneyfi.transaction.service.income.dto.response.OverviewPageDetailsDto;
-import com.moneyfi.transaction.service.income.dto.response.UserDetailsForStatementDto;
+import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
+import com.moneyfi.transaction.service.income.dto.response.*;
 import com.moneyfi.transaction.service.transaction.TransactionService;
 import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction;
 import com.moneyfi.transaction.service.transaction.dto.response.GmailSyncTransactionsResponse;
@@ -110,9 +108,9 @@ public class TransactionServiceImpl implements TransactionService {
             throw new ScenarioNotPossibleException(USER_ID_EMPTY);
         }
 
-        List<Integer> incomeCategoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
-        List<Integer> expenseCategoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
-        TransactionValidator.validateGmailSyncTransactionsBulkUpload(transactions, incomeCategoryIds, expenseCategoryIds);
+        List<Integer> incomeCategoryIds = getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
+        List<Integer> expenseCategoryIds = getCategoryIdsBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
+        TransactionValidator.validateGmailSyncTransactionsBulkUpload(transactions, incomeCategoryIds, expenseCategoryIds, incomeRepository, userId);
 
         for (ParsedTransaction transaction : transactions) {
             if (transaction.getTransactionType().equalsIgnoreCase(CreditOrDebit.CREDIT.name())) {
@@ -163,8 +161,30 @@ public class TransactionServiceImpl implements TransactionService {
         );
     }
 
+    @Override
+    public List<Integer> getCategoryIdsBasedOnTransactionType(String transactionType){
+        List<Integer> categoryIds = CachingService.getCategoryIdsFromCache(transactionType, redisTemplate);
+        if(categoryIds.isEmpty()) categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(transactionType);
+        return categoryIds;
+    }
+
+    @Override
+    public List<IncomeDetailsDto> getAllIncomesByDate(Long userId, TransactionsListRequestDto requestDto) {
+        return transactionRepository.getAllIncomesByDate(userId, requestDto);
+    }
+
+    @Override
+    public List<IncomeDeletedDto> getDeletedIncomesInAMonth(Long userId, int month, int year) {
+        return transactionRepository.getDeletedIncomesInAMonth(userId, month, year);
+    }
+
+    @Override
+    public List<ExpenseDetailsDto> getAllExpensesByDate(Long userId, TransactionsListRequestDto requestDto) {
+        return transactionRepository.getAllExpensesByDate(userId, requestDto);
+    }
+
     private String getCategoryNameFromCacheOrDb(Integer categoryId, String type) {
-        String category = CachingService.getCategoryFromCache(categoryId, type, redisTemplate);
+        String category = CachingService.getCategoryNamesFromCache(categoryId, type, redisTemplate);
         if (StringUtils.isNotBlank(category)) {
             return category;
         }
