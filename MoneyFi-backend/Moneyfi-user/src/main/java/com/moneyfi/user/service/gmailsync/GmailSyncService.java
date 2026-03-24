@@ -107,8 +107,8 @@ public class GmailSyncService {
                 .build();
     }
 
-    public List<GmailSyncHistoryResponse> getSyncHistoryResponse(Long userId) {
-        return gmailSyncHistoryRepository.findByUserId(userId)
+    public List<GmailSyncHistoryResponse> getSyncHistoryResponse(Long userId, LocalDate currentdate) {
+        return gmailSyncHistoryRepository.findByUserIdAndByCurrentMonth(userId, currentdate.getMonthValue())
                 .stream()
                 .collect(Collectors.groupingBy(history -> history.getSyncTime().toLocalDate()))
                 .entrySet()
