@@ -1,8 +1,8 @@
 package com.moneyfi.wealthcore.service.common.impl;
 
+import com.moneyfi.constants.dto.CategoryResponseDto;
 import com.moneyfi.wealthcore.model.common.CategoryListModel;
 import com.moneyfi.wealthcore.repository.common.CategoryListRepository;
-import com.moneyfi.wealthcore.service.admin.dto.response.CategoryResponseDto;
 import com.moneyfi.wealthcore.service.common.CommonService;
 import com.moneyfi.wealthcore.utils.constants.StringConstants;
 import lombok.extern.slf4j.Slf4j;

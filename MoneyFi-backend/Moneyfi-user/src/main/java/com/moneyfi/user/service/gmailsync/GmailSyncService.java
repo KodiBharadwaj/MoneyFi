@@ -15,6 +15,7 @@ import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.repository.gmailsync.GmailProcessedMessageRepository;
 import com.moneyfi.user.repository.gmailsync.GmailSyncHistoryRepository;
 import com.moneyfi.user.repository.gmailsync.GmailSyncRepository;
+import com.moneyfi.user.service.general.caching.UserCacheService;
 import com.moneyfi.user.service.general.external.endpoint.GoogleOAuthEndPointDealerService;
 import com.moneyfi.user.service.gmailsync.dto.response.GmailConsentResponse;
 import com.moneyfi.user.service.gmailsync.dto.response.GmailSyncHistoryResponse;
@@ -52,6 +53,7 @@ public class GmailSyncService {
     private final GmailProcessedMessageRepository processedRepository;
     private final CommonServiceRepository commonServiceRepository;
     private final GmailSyncHistoryRepository gmailSyncHistoryRepository;
+    private final UserCacheService userCacheService;
     private final GoogleOAuthEndPointDealerService googleOAuthEndPointDealerService;
 
     private static final String FUTURE_SYNC_NOT_ALLOWED = "Future date sync is not allowed";
@@ -162,7 +164,10 @@ public class GmailSyncService {
         gmailSyncHistoryRepository.save(new GmailSyncHistory(date.atTime(LocalTime.now()), userId));
         if (response.getMessages() == null) return new ArrayList<>();
 
-        List<String> categories = commonServiceRepository.getCategoriesBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
+        List<String> categories = userCacheService.getCategoryFromCache(TransactionServiceType.EXPENSE.name());
+        if (categories.isEmpty()) {
+            categories = commonServiceRepository.getCategoriesBasedOnTransactionType(TransactionServiceType.EXPENSE.name());
+        }
         Map<String, Integer> categoryNameIdMap = new HashMap<>();
         categories.forEach(category -> {
             String categoryName = category.split("-")[0];

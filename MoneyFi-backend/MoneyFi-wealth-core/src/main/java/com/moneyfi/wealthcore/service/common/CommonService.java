@@ -1,6 +1,6 @@
 package com.moneyfi.wealthcore.service.common;
 
-import com.moneyfi.wealthcore.service.admin.dto.response.CategoryResponseDto;
+import com.moneyfi.constants.dto.CategoryResponseDto;
 
 import java.util.List;
 

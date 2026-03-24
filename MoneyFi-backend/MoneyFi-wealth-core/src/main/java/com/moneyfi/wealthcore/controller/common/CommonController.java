@@ -1,6 +1,6 @@
 package com.moneyfi.wealthcore.controller.common;
 
-import com.moneyfi.wealthcore.service.admin.dto.response.CategoryResponseDto;
+import com.moneyfi.constants.dto.CategoryResponseDto;
 import com.moneyfi.wealthcore.service.common.CommonService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;

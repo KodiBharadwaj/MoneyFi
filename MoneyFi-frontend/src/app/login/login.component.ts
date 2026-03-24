@@ -9,7 +9,6 @@ import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { SessionTimerService } from '../services/session-timer.service';
 
 declare const google: any;
 
@@ -231,13 +230,15 @@ private fbClientId = '1488343345815971';
             this.router.navigate(['dashboard']);
           } else this.toastr.error('User is not authorized to login');
         },
-        error: error => {
+        error: (err) => {
           this.isLoading = false;
-          if (error.status === 404) this.toastr.error('User not found. Please sign up.', 'Login Failed');
-          else if (error.status === 401) this.toastr.error(error.error.error);
-          else {
-            console.error('Login Failed', error);
-            this.toastr.error('An error occurred. Please try again.', 'Login Failed');
+          try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            const message = errorObj?.message || errorObj?.error || 'Something went wrong';
+            this.toastr.error(message, 'Login Failed');
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+            this.toastr.error('An error occurred', 'Login Failed');
           }
         }
       });

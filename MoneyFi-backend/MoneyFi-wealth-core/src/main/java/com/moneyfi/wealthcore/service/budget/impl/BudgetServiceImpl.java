@@ -4,18 +4,18 @@ import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.wealthcore.exceptions.ResourceNotFoundException;
 import com.moneyfi.wealthcore.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.wealthcore.model.budget.BudgetModel;
-import com.moneyfi.wealthcore.model.common.CategoryListModel;
 import com.moneyfi.wealthcore.repository.budget.BudgetRepository;
-import com.moneyfi.wealthcore.repository.common.CategoryListRepository;
 import com.moneyfi.wealthcore.repository.common.WealthCoreRepository;
 import com.moneyfi.wealthcore.service.budget.BudgetService;
 import com.moneyfi.wealthcore.service.budget.dto.request.AddBudgetDto;
 import com.moneyfi.wealthcore.service.budget.dto.response.BudgetDetailsDto;
+import com.moneyfi.wealthcore.service.common.CommonService;
 import com.moneyfi.wealthcore.validator.BudgetValidator;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import com.moneyfi.constants.dto.CategoryResponseDto;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -30,7 +30,7 @@ public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetRepository budgetRepository;
     private final WealthCoreRepository wealthCoreRepository;
-    private final CategoryListRepository categoryListRepository;
+    private final CommonService commonService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -40,7 +40,7 @@ public class BudgetServiceImpl implements BudgetService {
             throw new ScenarioNotPossibleException(BUDGET_ALREADY_EXIST_MESSAGE);
         }
         BudgetValidator.validateBudgetSaveRequestDto(budgetList, getTotalIncomeInMonthAndYear(userId, LocalDateTime.now().getMonthValue(), LocalDateTime.now().getYear()));
-        Set<Integer> existingCategoryIds = new HashSet<>(categoryListRepository.findByType(TransactionServiceType.EXPENSE.name()).stream().map(CategoryListModel::getId).toList());
+        Set<Integer> existingCategoryIds = new HashSet<>(commonService.getCategoryWiseList(List.of(TransactionServiceType.EXPENSE.name())).stream().map(CategoryResponseDto::getCategoryId).toList());
         if (!budgetList.stream().map(AddBudgetDto::getCategoryId).allMatch(existingCategoryIds::contains))
             throw new ScenarioNotPossibleException(CATEGORY_ID_INVALID);
 
