@@ -36,7 +36,7 @@ public class WealthCoreServiceImpl implements WealthCoreService {
                 authHeader,
                 Map.of(
                         FROM_DATE, fromDate.toString(),
-                        END_DATE, toDate.toString()
+                        TO_DATE, toDate.toString()
                 ),
                 "/income/total-income/specified-range"
         );
@@ -44,7 +44,7 @@ public class WealthCoreServiceImpl implements WealthCoreService {
                 authHeader,
                 Map.of(
                         FROM_DATE, fromDate.toString(),
-                        END_DATE, toDate.toString()
+                        TO_DATE, toDate.toString()
                 ),
                 "/expense/total-expenses/specified-range"
         );
@@ -52,7 +52,7 @@ public class WealthCoreServiceImpl implements WealthCoreService {
                 authHeader,
                 Map.of(
                         FROM_DATE, LocalDate.of(1, 1, 1).toString(),
-                        END_DATE, toDate.toString()
+                        TO_DATE, toDate.toString()
                 ),
                 "/income/total-income/specified-range"
         );
@@ -60,7 +60,7 @@ public class WealthCoreServiceImpl implements WealthCoreService {
                 authHeader,
                 Map.of(
                         FROM_DATE, LocalDate.of(1, 1, 1).toString(),
-                        END_DATE, toDate.toString()
+                        TO_DATE, toDate.toString()
                 ),
                 "/expense/total-expenses/specified-range"
         );
