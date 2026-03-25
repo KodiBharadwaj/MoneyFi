@@ -2,6 +2,7 @@ package com.moneyfi.user.repository.common.impl;
 
 import com.moneyfi.user.exceptions.QueryValidationException;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
+import com.moneyfi.user.service.general.scheduling.dto.UserEventDto;
 import com.moneyfi.user.service.user.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.service.user.dto.response.UserRequestStatusDto;
 import com.moneyfi.user.service.user.dto.response.ProfileDetailsDto;
@@ -109,6 +110,28 @@ public class CommonServiceRepositoryImpl implements CommonServiceRepository {
         } catch (Exception e) {
             e.printStackTrace();
             throw new QueryValidationException("Income Category Ids not found");
+        }
+    }
+
+    @Override
+    public List<UserEventDto> getBirthdayAndAnniversaryUsersList(int month, int day, String occasion) {
+        List<UserEventDto> response = new ArrayList<>();
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getBirthdayOrAnniversaryUserEmailAndName " +
+                                    "@month = :month, " +
+                                    "@day = :day, " +
+                                    "@occasion = :occasion")
+                    .setParameter("month", month)
+                    .setParameter("day", day)
+                    .setParameter("occasion", occasion)
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserEventDto.class));
+            response.addAll(query.getResultList());
+            return response;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching " + occasion + " user names");
         }
     }
 }

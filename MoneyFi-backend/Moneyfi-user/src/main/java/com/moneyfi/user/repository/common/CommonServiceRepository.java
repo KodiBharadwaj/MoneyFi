@@ -1,5 +1,6 @@
 package com.moneyfi.user.repository.common;
 
+import com.moneyfi.user.service.general.scheduling.dto.UserEventDto;
 import com.moneyfi.user.service.user.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.service.user.dto.response.UserRequestStatusDto;
 import com.moneyfi.user.service.user.dto.response.ProfileDetailsDto;
@@ -16,4 +17,6 @@ public interface CommonServiceRepository {
     List<String> findAllUsernamesOfUsers();
 
     List<String> getCategoriesBasedOnTransactionType(String name);
+
+    List<UserEventDto> getBirthdayAndAnniversaryUsersList(int month, int day, String occasion);
 }
