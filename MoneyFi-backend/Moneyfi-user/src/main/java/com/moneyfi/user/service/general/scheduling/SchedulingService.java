@@ -49,20 +49,16 @@ public class SchedulingService {
         userRepository.deleteAllUserDataForDeletedUsersAfter30Days();
         gmailSyncRepository.updateGmailCountToResetForUsers();
 
-        /** Scheduling algorithm to find the users who completed more than 1 year in MoneyFi */
-        List<UserEventDto> anniversaryUsersList = commonServiceRepository.getBirthdayAndAnniversaryUsersList(LocalDate.now().getMonthValue(), LocalDate.now().getDayOfMonth(), "Birthday");
-        anniversaryUsersList.forEach(user -> {
-            String email = user.getUsername();
-            String name = user.getName();
-            int year = user.getYear();
-            int numberOfYears = LocalDate.now().getYear() - year;
+        functionCallToSendAnniversaryEmailToUsers();
+        functionCallToSendBirthdayEmailToUsers();
+    }
 
-            if (numberOfYears != 0) {
-                applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_ANNIVERSARY_MAIL.name(), email + "<|>" + name + "<|>" + numberOfYears));
-            }
-        });
+    @Scheduled(cron = "0 0 0 1 * *") //Runs on 1st of every month
+    public void runOnFirstDayOfMonthAtMidnightForRecurringIncomeAndExpense() {
+        userRepository.updateRecurringIncomesAndExpenses();
+    }
 
-        /** Scheduling algorithm to find the birthday users */
+    private void functionCallToSendBirthdayEmailToUsers() {
         List<UserEventDto> birthdayList = commonServiceRepository.getBirthdayAndAnniversaryUsersList(LocalDate.now().getMonthValue(), LocalDate.now().getDayOfMonth(), "Anniversary");
         birthdayList.forEach(user -> {
             String email = user.getUsername();
@@ -76,8 +72,17 @@ public class SchedulingService {
         });
     }
 
-    @Scheduled(cron = "0 0 0 1 * *") //Runs on 1st of every month
-    public void runOnFirstDayOfMonthAtMidnightForRecurringIncomeAndExpense() {
-        userRepository.updateRecurringIncomesAndExpenses();
+    private void functionCallToSendAnniversaryEmailToUsers() {
+        List<UserEventDto> anniversaryUsersList = commonServiceRepository.getBirthdayAndAnniversaryUsersList(LocalDate.now().getMonthValue(), LocalDate.now().getDayOfMonth(), "Birthday");
+        anniversaryUsersList.forEach(user -> {
+            String email = user.getUsername();
+            String name = user.getName();
+            int year = user.getYear();
+            int numberOfYears = LocalDate.now().getYear() - year;
+
+            if (numberOfYears != 0) {
+                applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_ANNIVERSARY_MAIL.name(), email + "<|>" + name + "<|>" + numberOfYears));
+            }
+        });
     }
 }
