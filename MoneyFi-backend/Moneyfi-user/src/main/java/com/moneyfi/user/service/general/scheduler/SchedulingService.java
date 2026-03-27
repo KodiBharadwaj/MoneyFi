@@ -1,11 +1,11 @@
-package com.moneyfi.user.service.general.scheduling;
+package com.moneyfi.user.service.general.scheduler;
 
 import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.user.repository.auth.TokenBlackListRepository;
 import com.moneyfi.user.repository.auth.UserRepository;
-import com.moneyfi.user.service.general.scheduling.dto.UserEventDto;
+import com.moneyfi.user.service.general.scheduler.dto.UserEventDto;
 import com.moneyfi.user.service.user.dto.internal.NotificationQueueDto;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,6 @@ public class SchedulingService {
     @PostConstruct
     public void initializeScheduledMethodsInCaseOfServiceRunningDelay(){
         dailyJobRunInBeginningOfTheDay();
-        runOnFirstDayOfMonthAtMidnightForRecurringIncomeAndExpense();
     }
 
     @Scheduled(fixedRate = 3600000) // Runs every 1 hour
@@ -51,11 +50,6 @@ public class SchedulingService {
 
         functionCallToSendAnniversaryEmailToUsers();
         functionCallToSendBirthdayEmailToUsers();
-    }
-
-    @Scheduled(cron = "0 0 0 1 * *") //Runs on 1st of every month
-    public void runOnFirstDayOfMonthAtMidnightForRecurringIncomeAndExpense() {
-        userRepository.updateRecurringIncomesAndExpenses();
     }
 
     private void functionCallToSendBirthdayEmailToUsers() {

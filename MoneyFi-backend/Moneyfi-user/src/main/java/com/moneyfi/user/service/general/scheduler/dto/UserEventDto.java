@@ -1,4 +1,4 @@
-package com.moneyfi.user.service.general.scheduling.dto;
+package com.moneyfi.user.service.general.scheduler.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

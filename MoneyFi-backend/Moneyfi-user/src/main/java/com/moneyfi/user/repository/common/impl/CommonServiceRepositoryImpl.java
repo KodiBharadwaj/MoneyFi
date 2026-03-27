@@ -2,7 +2,7 @@ package com.moneyfi.user.repository.common.impl;
 
 import com.moneyfi.user.exceptions.QueryValidationException;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
-import com.moneyfi.user.service.general.scheduling.dto.UserEventDto;
+import com.moneyfi.user.service.general.scheduler.dto.UserEventDto;
 import com.moneyfi.user.service.user.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.service.user.dto.response.UserRequestStatusDto;
 import com.moneyfi.user.service.user.dto.response.ProfileDetailsDto;

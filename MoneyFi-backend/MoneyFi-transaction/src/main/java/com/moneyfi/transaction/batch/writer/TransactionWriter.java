@@ -17,10 +17,11 @@ public class TransactionWriter {
         writer.setDataSource(dataSource);
 
         writer.setSql("""
-        INSERT INTO income_table 
-        (amount, category_id, date, is_deleted, recurring, source, user_id)
-        VALUES (:amount, :categoryId, :date, :isDeleted, :recurring, :source, :userId)
-    """);
+            INSERT INTO income_table 
+            (user_id, amount, category_id, source, date, recurring, is_deleted, description, entry_mode, created_at, updated_at)
+            VALUES 
+            (:userId, :amount, :categoryId, :source, :date, :recurring, :isDeleted, :description, :entryMode, :createdAt, :updatedAt)
+        """);
 
         writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
         return writer;
