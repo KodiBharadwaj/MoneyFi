@@ -1,8 +1,6 @@
 package com.moneyfi.user.model.auth;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -16,7 +14,6 @@ public class UserAuthModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotBlank
     @Column(unique = true)
     private String username;
     private String password;
@@ -25,12 +22,11 @@ public class UserAuthModel {
     private int otpCount;
     private boolean isBlocked;
     private boolean isDeleted;
-    @NotNull
+    @Column(nullable = false)
     private Integer loginCodeValue;
-    @NotNull
     private int roleId;
 
-    @NotNull
+    @Column(nullable = false)
     private LocalDateTime lastReset;
 
     @PrePersist
