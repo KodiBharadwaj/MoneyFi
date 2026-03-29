@@ -16,6 +16,11 @@ spring:
             user.name: client
             user.password: client123
 
+  #Redis Configuration
+  data:
+    redis:
+      url: ${REDIS_URL}
+
 jwt:
   secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
 

@@ -1,10 +1,12 @@
 package com.moneyfi.transaction.service.caching;
 
 import com.moneyfi.constants.dto.CategoryResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.List;
 
+@Slf4j
 public class CachingService {
 
     private CachingService() {}
