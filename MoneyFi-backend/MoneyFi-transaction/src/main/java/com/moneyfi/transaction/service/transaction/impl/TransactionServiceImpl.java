@@ -138,9 +138,9 @@ public class TransactionServiceImpl implements TransactionService {
                                 .source(income.getSource())
                                 .date(income.getDate() == null ? null : Date.from(income.getDate().atZone(ZoneId.systemDefault()).toInstant()))
                                 .category(getCategoryNameFromCacheOrDb(income.getCategoryId(), TransactionServiceType.INCOME.name()))
-                                .recurring(income.isRecurring())
+                                .recurring(income.getRecurring())
                                 .description(income.getSource())
-                                .activeStatus(income.isDeleted() ? ActiveStatus.DELETED.name() : income.getCreatedAt().equals(income.getUpdatedAt()) ? ActiveStatus.ACTIVE.name() : ActiveStatus.EDITED.name())
+                                .activeStatus(income.getIsDeleted() ? ActiveStatus.DELETED.name() : income.getCreatedAt().equals(income.getUpdatedAt()) ? ActiveStatus.ACTIVE.name() : ActiveStatus.EDITED.name())
                                 .build()
                         )
                         .toList(),

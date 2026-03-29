@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Configuration
 public class TransactionProcessor {
@@ -21,10 +20,10 @@ public class TransactionProcessor {
                     .amount(income.getAmount())
                     .categoryId(income.getCategoryId())
                     .source(income.getSource())
-                    .date(income.getDate())
+                    .date(currentTime)
                     .recurring(Boolean.TRUE)
                     .isDeleted(Boolean.FALSE)
-                    .description(Objects.requireNonNull(income.getDescription()))
+                    .description(income.getDescription())
                     .entryMode(EntryModeEnum.MANUAL.name())
                     .createdAt(currentTime)
                     .updatedAt(currentTime)

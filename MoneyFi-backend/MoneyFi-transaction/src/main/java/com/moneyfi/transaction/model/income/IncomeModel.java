@@ -30,8 +30,8 @@ public class IncomeModel {
     private LocalDateTime date;
     @NotNull
     private Integer categoryId;
-    private boolean recurring;
-    private boolean isDeleted;
+    private Boolean recurring;
+    private Boolean isDeleted;
     private String description;
     private String entryMode;
     private LocalDateTime gmailSyncDate;
@@ -41,7 +41,7 @@ public class IncomeModel {
     @PrePersist
     public void initFunction() {
         LocalDateTime currentTime = LocalDateTime.now();
-        this.isDeleted = false;
+        if (isDeleted == null) this.isDeleted = false;
         this.createdAt = currentTime;
         this.updatedAt = currentTime;
     }

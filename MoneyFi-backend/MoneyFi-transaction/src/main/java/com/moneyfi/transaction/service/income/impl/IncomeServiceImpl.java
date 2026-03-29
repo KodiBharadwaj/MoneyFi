@@ -70,7 +70,7 @@ public class IncomeServiceImpl implements IncomeService {
     public List<IncomeModel> getAllIncomes(Long userId) {
         return incomeRepository.findIncomesOfUser(userId)
                 .stream()
-                .filter(i -> !i.isDeleted())
+                .filter(i -> !i.getIsDeleted())
                 .sorted((a,b) -> a.getDate().compareTo(b.getDate()))
                 .toList();
     }
@@ -277,7 +277,7 @@ public class IncomeServiceImpl implements IncomeService {
         if(numberOfDays > 0){
             IncomeModel income = incomeRepository.findById(incomeId).orElse(null);
             if(income != null && income.getUserId().equals(userId)){
-                income.setDeleted(false);
+                income.setIsDeleted(Boolean.FALSE);
                 incomeRepository.save(income);
                 incomeDeletedRepository.deleteByIncomeId(incomeId);
                 return true;
@@ -326,7 +326,7 @@ public class IncomeServiceImpl implements IncomeService {
             IncomeModel income = incomeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(INCOME_NOT_FOUND));
             LocalDateTime currentTime = LocalDateTime.now();
             income.setUpdatedAt(currentTime);
-            income.setDeleted(true);
+            income.setIsDeleted(Boolean.TRUE);
             saveIncomeDeletedDetails(id, currentTime);
             incomeRepository.save(income);
             return true;

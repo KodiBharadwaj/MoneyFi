@@ -28,6 +28,10 @@ management:
     health:
       show-details: always
 
+app:
+  scheduler:
+    enabled: ${SCHEDULER_STATUS}
+
 logging:
   level:
     org.hibernate.SQL: OFF
