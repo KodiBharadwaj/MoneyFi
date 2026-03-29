@@ -33,6 +33,7 @@ export class GmailSyncCalendarComponent {
       this.currentMonth.getMonth() - 1,
       1
     );
+    this.dateSelected.emit(this.currentMonth);
   }
 
   // Navigate to next month
@@ -42,6 +43,7 @@ export class GmailSyncCalendarComponent {
       this.currentMonth.getMonth() + 1,
       1
     );
+    this.dateSelected.emit(this.currentMonth);
   }
 
   // Go to today

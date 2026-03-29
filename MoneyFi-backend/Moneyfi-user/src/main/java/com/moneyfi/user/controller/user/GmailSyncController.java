@@ -6,6 +6,7 @@ import com.moneyfi.user.service.gmailsync.dto.response.GmailConsentResponse;
 import com.moneyfi.user.service.gmailsync.dto.response.GmailSyncHistoryResponse;
 import com.moneyfi.user.service.gmailsync.dto.response.ParsedTransaction;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -54,8 +55,9 @@ public class GmailSyncController {
 
     @Operation(summary = "Api to get history gmail sync data")
     @GetMapping("/history")
-    public ResponseEntity<List<GmailSyncHistoryResponse>> getSyncHistoryResponse(Authentication authentication) {
+    public ResponseEntity<List<GmailSyncHistoryResponse>> getSyncHistoryResponse(Authentication authentication,
+                                                                                 @NotNull @RequestParam(value = "date") LocalDate currentDate) {
         Long userId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        return ResponseEntity.ok(gmailSyncService.getSyncHistoryResponse(userId));
+        return ResponseEntity.ok(gmailSyncService.getSyncHistoryResponse(userId, currentDate));
     }
 }

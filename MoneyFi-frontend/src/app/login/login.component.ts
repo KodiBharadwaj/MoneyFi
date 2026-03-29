@@ -238,7 +238,7 @@ private fbClientId = '1488343345815971';
             this.toastr.error(message, 'Login Failed');
           } catch (e) {
             console.error('Failed to parse error:', err.error);
-            this.toastr.error('An error occurred', 'Login Failed');
+            // this.toastr.error('An error occurred', 'Login Failed');
           }
         }
       });

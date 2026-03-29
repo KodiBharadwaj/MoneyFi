@@ -54,10 +54,13 @@ export class GmailSyncSummaryComponent implements OnInit {
     this.fetchTransactions(new Date);
   }
 
+  currentDate = new Date();
+
   loadHistory() {
+    const formattedDate = this.currentDate.toLocaleDateString('en-CA');
     this.httpClient
       .get<GmailSyncHistoryResponse[]>(
-        `${this.baseUrl}/api/v1/user-service/gmail-sync/history`
+        `${this.baseUrl}/api/v1/user-service/gmail-sync/history?date=${formattedDate}`
       )
       .subscribe(res => {
         this.syncHistory = res;
@@ -66,6 +69,8 @@ export class GmailSyncSummaryComponent implements OnInit {
 
   onDateSelected(date: Date) {
     this.selectedDate = date;
+    this.currentDate = date;
+    this.loadHistory();
     
     // Check if this date has sync history
     const hasHistory = this.syncHistory.find(h =>
