@@ -60,8 +60,8 @@ public class IncomeApiController {
         List<IncomeDetailsDto> incomes = incomeService.getAllIncomesByDate(userId, requestDto);
         return ResponseEntity.ok(TransactionPagedResponse.<IncomeDetailsDto>builder()
                 .data(incomes)
-                .totalCount(incomes.get(0).getTotalCount())
-                .totalAmount(incomes.get(0).getTotalAmount())
+                .totalCount(!incomes.isEmpty() ? incomes.get(0).getTotalCount(): 0)
+                .totalAmount(!incomes.isEmpty() ? incomes.get(0).getTotalAmount() : BigDecimal.ZERO)
                 .build()
         );
     }

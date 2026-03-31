@@ -64,8 +64,8 @@ public class ExpenseApiController {
         List<ExpenseDetailsDto> expenses = expenseService.getAllExpensesByDate(userId, requestDto);
         return ResponseEntity.ok(TransactionPagedResponse.<ExpenseDetailsDto>builder()
                 .data(expenses)
-                .totalCount(expenses.get(0).getTotalCount())
-                .totalAmount(expenses.get(0).getTotalAmount())
+                .totalCount(!expenses.isEmpty() ? expenses.get(0).getTotalCount() : 0)
+                .totalAmount(!expenses.isEmpty() ? expenses.get(0).getTotalAmount() : BigDecimal.ZERO)
                 .build()
         );
     }
