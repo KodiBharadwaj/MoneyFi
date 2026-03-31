@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 
 import javax.sql.DataSource;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +22,7 @@ public class TransactionReader {
         reader.setDataSource(dataSource);
         reader.setPageSize(1000);
 
-        LocalDate now = LocalDate.now();
+        LocalDate now = LocalDate.now(ZoneId.of("Asia/Kolkata"));
         LocalDate firstDayOfThisMonth = now.withDayOfMonth(1);
         LocalDate firstDayOfLastMonth = firstDayOfThisMonth.minusMonths(1);
 
