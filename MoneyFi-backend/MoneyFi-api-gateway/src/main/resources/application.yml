@@ -21,14 +21,40 @@ spring:
           uri: lb://MoneyFi-user
           predicates:
             - Path=/api/v1/user-service/**
+
+        # Swagger docs for user service
+        - id: user-service-docs
+          uri: lb://MoneyFi-user
+          predicates:
+          - Path=/user-service/v3/api-docs
+          filters:
+            - RewritePath=/user-service/v3/api-docs, /v3/api-docs
+
         - id: MoneyFi-Transaction
           uri: lb://MoneyFi-Transaction
           predicates:
             - Path=/api/v1/transaction/**
+
+        # Swagger docs for user service
+        - id: transaction-service-docs
+          uri: lb://MoneyFi-Transaction
+          predicates:
+            - Path=/transaction-service/v3/api-docs
+          filters:
+            - RewritePath=/transaction-service/v3/api-docs, /v3/api-docs
+
         - id: MoneyFi-wealth-core
           uri: lb://MoneyFi-wealth-core
           predicates:
             - Path=/api/v1/wealth-core/**
+
+        # Swagger docs for user service
+        - id: wealth-core-service-docs
+          uri: lb://MoneyFi-wealth-core
+          predicates:
+            - Path=/wealth-core-service/v3/api-docs
+          filters:
+            - RewritePath=/wealth-core-service/v3/api-docs, /v3/api-docs
 
 jwt:
   secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
@@ -45,3 +71,20 @@ eureka:
 
 server:
   port: 8765
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: MoneyFi-user
+        url: /user-service/v3/api-docs
+      - name: MoneyFi-Transaction
+        url: /transaction-service/v3/api-docs
+      - name: MoneyFi-wealth-core
+        url: /wealth-core-service/v3/api-docs
+    config-url: /v3/api-docs/swagger-config
+    disable-swagger-default-url: true
+
+  api-docs:
+    enabled: true
+
+  override-with-generic-response: false

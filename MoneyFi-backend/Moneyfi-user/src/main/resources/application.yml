@@ -67,3 +67,10 @@ logging:
 
 server:
   port: 8500
+
+springdoc:
+  api-docs:
+    enabled: true
+    server-url: /
+  swagger-ui:
+    enabled: true

@@ -45,3 +45,11 @@ logging:
 
 jwt:
   secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
+
+
+springdoc:
+  api-docs:
+    enabled: true
+    server-url: /
+  swagger-ui:
+    enabled: true
