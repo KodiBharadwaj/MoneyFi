@@ -50,7 +50,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         if(!categoryIds.contains(expense.getCategoryId())) {
             throw new ScenarioNotPossibleException(CATEGORY_ID_INVALID);
         }
-        expense.setDeleted(false);
+        expense.setIsDeleted(Boolean.FALSE);
         expense.setEntryMode(EntryModeEnum.MANUAL.name());
         return expenseRepository.save(expense);
     }
@@ -59,7 +59,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     public List<ExpenseModel> getAllExpenses(Long userId) {
         return expenseRepository.findExpensesByUserId(userId)
                 .stream()
-                .filter(i -> !i.isDeleted())
+                .filter(i -> !i.getIsDeleted())
                 .sorted((a,b) -> Long.compare(a.getId(), b.getId()))
                 .toList();
     }
@@ -192,7 +192,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<ExpenseDetailsDto> updateBySource(Long id, Long userId, ExpenseModel expense) {
         expense.setUserId(userId);
-        expense.setDeleted(false);
+        expense.setIsDeleted(Boolean.FALSE);
 
         ExpenseModel expenseModel = expenseRepository.findById(id).orElse(null);
 
@@ -208,7 +208,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 expenseModel.getCategoryId().equals(expense.getCategoryId()) &&
                 expenseModel.getDescription().equals(expense.getDescription()) &&
                 expenseModel.getDate().equals(expense.getDate()) &&
-                expenseModel.isRecurring() == expense.isRecurring()){
+                expenseModel.getRecurring() == expense.getRecurring()){
             return ResponseEntity.noContent().build(); // 204
         }
 
@@ -224,8 +224,8 @@ public class ExpenseServiceImpl implements ExpenseService {
         if(expense.getDescription() != null){
             expenseModel.setDescription(expense.getDescription());
         }
-        if(expense.isRecurring()){
-            expenseModel.setRecurring(expense.isRecurring());
+        if(expense.getRecurring()){
+            expenseModel.setRecurring(expense.getRecurring());
         }
         expenseModel.setUpdatedAt(LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.CREATED).body(updateExpenseDtoConversion(expenseRepository.save(expenseModel)));
@@ -239,7 +239,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             for(Long it : ids){
                 ExpenseModel expense = expenseRepository.findById(it).orElse(null);
                 if(expense != null){
-                    expense.setDeleted(true);
+                    expense.setIsDeleted(Boolean.TRUE);
                     expense.setUpdatedAt(currentTime);
                     expenseRepository.save(expense);
                 }

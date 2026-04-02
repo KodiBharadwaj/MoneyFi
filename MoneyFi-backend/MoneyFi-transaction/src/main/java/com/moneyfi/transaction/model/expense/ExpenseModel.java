@@ -24,10 +24,10 @@ public class ExpenseModel {
     @Column(precision = 38, scale = 2)
     private BigDecimal amount;
     private LocalDateTime date;
-    private boolean recurring;
+    private Boolean recurring;
     private String description;
     private String entryMode;
-    private boolean isDeleted;
+    private Boolean isDeleted;
     private LocalDateTime gmailSyncDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

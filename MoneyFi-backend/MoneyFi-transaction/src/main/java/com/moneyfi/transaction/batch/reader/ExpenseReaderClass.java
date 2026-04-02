@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-public class ExpenseReader {
+public class ExpenseReaderClass {
 
     @Bean
     public JdbcPagingItemReader<ExpenseModel> expenseReader(DataSource dataSource) throws Exception {
@@ -32,25 +32,30 @@ public class ExpenseReader {
         SqlPagingQueryProviderFactoryBean queryProvider = new SqlPagingQueryProviderFactoryBean();
         queryProvider.setDataSource(dataSource);
 
-        queryProvider.setSelectClause("SELECT id, amount, category_id, source, user_id");
-        queryProvider.setFromClause("FROM expense_table et");
+        queryProvider.setSelectClause("SELECT et.id, et.amount, et.category_id, et.description, et.user_id");
+        queryProvider.setFromClause("""
+                FROM expense_table et
+                INNER JOIN category_list_table clt ON clt.id = et.category_id
+                """);
 
         queryProvider.setWhereClause("""
-            WHERE et.recurring = 1
-              AND et.is_deleted = 0
-              AND CAST(et.date AS DATE) >= :startLastMonth
-              AND CAST(et.date AS DATE) < :startThisMonth
-              AND NOT EXISTS (
-                    SELECT 1
-                    FROM expense_table existing
-                    WHERE existing.recurring = 1
-                      AND existing.user_id = et.user_id
-                      AND existing.category_id = et.category_id
-                      AND existing.source = et.source
-                      AND existing.amount = et.amount
-                      AND CAST(existing.date AS DATE) >= :startThisMonth
-                )
-        """);
+                    WHERE et.recurring = 1
+                      AND et.is_deleted = 0
+                      AND clt.category NOT IN ('Goal')
+                      AND CAST(et.date AS DATE) >= :startLastMonth
+                      AND CAST(et.date AS DATE) < :startThisMonth
+                      AND NOT EXISTS (
+                            SELECT 1
+                            FROM expense_table existing
+                            WHERE existing.recurring = 1
+                              AND existing.user_id = et.user_id
+                              AND existing.category_id = et.category_id
+                              AND existing.description = et.description
+                              AND existing.amount = et.amount
+                              AND existing.is_deleted = 0
+                              AND CAST(existing.date AS DATE) >= :startThisMonth
+                        )
+                """);
 
         queryProvider.setSortKey("id");
 

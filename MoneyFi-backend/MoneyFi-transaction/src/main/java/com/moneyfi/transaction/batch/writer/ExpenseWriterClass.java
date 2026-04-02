@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
 
 @Configuration
-public class ExpenseWriter {
+public class ExpenseWriterClass {
 
     @Bean
     public JdbcBatchItemWriter<ExpenseModel> expenseWriter(DataSource dataSource) {
@@ -17,11 +17,11 @@ public class ExpenseWriter {
         writer.setDataSource(dataSource);
 
         writer.setSql("""
-            INSERT INTO expense_table 
-            (user_id, amount, category_id, source, date, recurring, is_deleted, description, entry_mode, created_at, updated_at)
-            VALUES 
-            (:userId, :amount, :categoryId, :source, :date, :recurring, :isDeleted, :description, :entryMode, :createdAt, :updatedAt)
-        """);
+                    INSERT INTO expense_table 
+                    (user_id, amount, category_id, date, recurring, is_deleted, description, entry_mode, created_at, updated_at)
+                    VALUES 
+                    (:userId, :amount, :categoryId, :date, :recurring, :isDeleted, :description, :entryMode, :createdAt, :updatedAt)
+                """);
 
         writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
         return writer;
