@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-public class TransactionReader {
+public class IncomeReader {
 
     @Bean
     public JdbcPagingItemReader<IncomeModel> reader(DataSource dataSource) throws Exception {

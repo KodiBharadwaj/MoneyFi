@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.batch.config;
 
+import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.model.income.IncomeModel;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -19,9 +20,14 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class BatchConfig {
 
     @Bean
-    public Step step(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-                     JdbcPagingItemReader<IncomeModel> reader, ItemProcessor<IncomeModel, IncomeModel> processor, JdbcBatchItemWriter<IncomeModel> writer) {
-        return new StepBuilder("recurring-step", jobRepository)
+    public Job incomeJob(JobRepository jobRepository, Step incomeStep) {
+        return new JobBuilder("recurring-income-job", jobRepository).start(incomeStep).build();
+    }
+
+    @Bean
+    public Step incomeStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                           JdbcPagingItemReader<IncomeModel> reader, ItemProcessor<IncomeModel, IncomeModel> processor, JdbcBatchItemWriter<IncomeModel> writer) {
+        return new StepBuilder("recurring-income-step", jobRepository)
                 .<IncomeModel, IncomeModel>chunk(1000, transactionManager)
                 .reader(reader)
                 .processor(processor)
@@ -30,7 +36,21 @@ public class BatchConfig {
     }
 
     @Bean
-    public Job job(JobRepository jobRepository, Step step) {
-        return new JobBuilder("recurring-job", jobRepository).start(step).build();
+    public Job expenseJob(JobRepository jobRepository, Step expenseStep) {
+        return new JobBuilder("recurring-expense-job", jobRepository)
+                .start(expenseStep)
+                .build();
+    }
+
+    @Bean
+    public Step expenseStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, JdbcPagingItemReader<ExpenseModel> expenseReader,
+                            ItemProcessor<ExpenseModel, ExpenseModel> expenseProcessor, JdbcBatchItemWriter<ExpenseModel> expenseWriter) {
+
+        return new StepBuilder("recurring-expense-step", jobRepository)
+                .<ExpenseModel, ExpenseModel>chunk(1000, transactionManager)
+                .reader(expenseReader)
+                .processor(expenseProcessor)
+                .writer(expenseWriter)
+                .build();
     }
 }

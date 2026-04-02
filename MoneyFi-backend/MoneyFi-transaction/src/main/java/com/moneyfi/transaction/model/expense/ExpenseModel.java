@@ -2,6 +2,7 @@ package com.moneyfi.transaction.model.expense;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "expense_table")
+@Builder
 public class ExpenseModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

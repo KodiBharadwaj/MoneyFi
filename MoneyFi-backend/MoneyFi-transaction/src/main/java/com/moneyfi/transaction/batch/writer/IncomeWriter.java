@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
 
 @Configuration
-public class TransactionWriter {
+public class IncomeWriter {
 
     @Bean
     public JdbcBatchItemWriter<IncomeModel> writer(DataSource dataSource) {
