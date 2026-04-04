@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.service.expense;
 
+import com.moneyfi.constants.dto.GoalExpenseRelationRequestDto;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
@@ -12,6 +13,8 @@ import java.util.List;
 public interface ExpenseService {
 
     ExpenseModel save(ExpenseModel expense);
+
+    void addGoalExpenseTransaction(GoalExpenseRelationRequestDto requestDto, Long userId);
 
     List<ExpenseModel> getAllExpenses(Long userId);
 

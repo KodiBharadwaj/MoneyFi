@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.service.transaction.impl;
 
+import com.moneyfi.constants.dto.CategoryResponseDto;
 import com.moneyfi.constants.enums.ActiveStatus;
 import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.transaction.exceptions.GenericException;
@@ -163,9 +164,14 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public List<Integer> getCategoryIdsBasedOnTransactionType(String transactionType){
-        List<Integer> categoryIds = CachingService.getCategoryIdsFromCache(transactionType, redisTemplate);
+        List<Integer> categoryIds = CachingService.getCategoryIdsFromCache(transactionType, redisTemplate).stream().map(CategoryResponseDto::getCategoryId).toList();
         if(categoryIds.isEmpty()) categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(transactionType);
         return categoryIds;
+    }
+
+    @Override
+    public List<CategoryResponseDto> getCategoryWiseList(String type) {
+        return CachingService.getCategoryIdsFromCache(type, redisTemplate);
     }
 
     @Override

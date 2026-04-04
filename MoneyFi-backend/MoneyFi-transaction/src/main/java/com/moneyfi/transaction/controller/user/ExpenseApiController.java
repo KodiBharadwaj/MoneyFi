@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.controller.user;
 
+import com.moneyfi.constants.dto.GoalExpenseRelationRequestDto;
 import com.moneyfi.transaction.security.JwtService;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.service.expense.ExpenseService;
@@ -137,8 +138,8 @@ public class ExpenseApiController {
     @Operation(summary = "Method to update the expense details")
     @PutMapping("/{id}")
     public ResponseEntity<ExpenseDetailsDto> updateExpense(@RequestHeader("Authorization") String authHeader,
-                                                      @PathVariable("id") Long id,
-                                                      @RequestBody ExpenseModel expense) {
+                                                           @PathVariable("id") Long id,
+                                                           @RequestBody ExpenseModel expense) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return expenseService.updateBySource(id, userId, expense);
     }
@@ -152,5 +153,13 @@ public class ExpenseApiController {
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // 404: Not Found
         }
+    }
+
+    @Operation(summary = "Api to add goal transaction as expense")
+    @PostMapping("/goal-expense-relation/add")
+    public void addGoalExpenseTransaction(@RequestHeader("Authorization") String authHeader,
+                                          @RequestBody GoalExpenseRelationRequestDto requestDto) {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        expenseService.addGoalExpenseTransaction(requestDto, userId);
     }
 }

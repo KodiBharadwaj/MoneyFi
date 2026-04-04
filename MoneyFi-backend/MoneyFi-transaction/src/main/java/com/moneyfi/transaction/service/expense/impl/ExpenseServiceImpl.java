@@ -1,9 +1,12 @@
 package com.moneyfi.transaction.service.expense.impl;
 
+import com.moneyfi.constants.dto.GoalExpenseRelationRequestDto;
 import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
 import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
+import com.moneyfi.transaction.model.expense.ExpenseGoalRelation;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
+import com.moneyfi.transaction.repository.expense.ExpenseGoalRelationRepository;
 import com.moneyfi.transaction.repository.expense.ExpenseRepository;
 import com.moneyfi.transaction.service.expense.ExpenseService;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
@@ -42,6 +45,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     private final ExpenseRepository expenseRepository;
     private final TransactionService transactionService;
+    private final ExpenseGoalRelationRepository expenseGoalRelationRepository;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -53,6 +57,25 @@ public class ExpenseServiceImpl implements ExpenseService {
         expense.setIsDeleted(Boolean.FALSE);
         expense.setEntryMode(EntryModeEnum.MANUAL.name());
         return expenseRepository.save(expense);
+    }
+
+    @Override
+    public void addGoalExpenseTransaction(GoalExpenseRelationRequestDto requestDto, Long userId) {
+        log.info("checking dto: {}", requestDto);
+        ExpenseModel savedExpense = save(ExpenseModel.builder()
+                .userId(userId)
+                .categoryId(requestDto.getCategoryId())
+                .amount(requestDto.getAmount())
+                .date(requestDto.getDate())
+                .recurring(requestDto.isRecurring())
+                .description(requestDto.getDescription())
+                .build()
+        );
+        ExpenseGoalRelation expenseGoalRelation = ExpenseGoalRelation.builder()
+                .expense(savedExpense)
+                .goalId(requestDto.getGoalId())
+                .build();
+        expenseGoalRelationRepository.save(expenseGoalRelation);
     }
 
     @Override

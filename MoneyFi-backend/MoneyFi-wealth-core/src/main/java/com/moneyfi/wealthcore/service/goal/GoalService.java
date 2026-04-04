@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface GoalService {
 
-    GoalDetailsDto save(GoalModel goal, BigDecimal amountToBeAdded, String authHeader);
+    GoalDetailsDto save(GoalModel goal, Long userId, String authHeader);
 
     GoalDetailsDto addAmount(Long id, BigDecimal amount, String authHeader);
 

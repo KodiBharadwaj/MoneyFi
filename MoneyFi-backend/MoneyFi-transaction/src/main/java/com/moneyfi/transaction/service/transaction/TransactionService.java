@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.service.transaction;
 
+import com.moneyfi.constants.dto.CategoryResponseDto;
 import com.moneyfi.transaction.exceptions.GenericException;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
@@ -30,6 +31,8 @@ public interface TransactionService {
     GmailSyncTransactionsResponse getGmailSyncAddedTransactions(Long userId, LocalDate date);
 
     List<Integer> getCategoryIdsBasedOnTransactionType(String transactionType);
+
+    List<CategoryResponseDto> getCategoryWiseList(String type);
 
     List<IncomeDetailsDto> getAllIncomesByDate(Long userId, TransactionsListRequestDto requestDto);
 

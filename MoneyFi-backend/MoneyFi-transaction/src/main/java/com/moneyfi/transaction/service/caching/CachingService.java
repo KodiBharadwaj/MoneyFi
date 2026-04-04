@@ -24,14 +24,8 @@ public class CachingService {
         return null;
     }
 
-    public static List<Integer> getCategoryIdsFromCache(String type, RedisTemplate redisTemplate) {
+    public static List<CategoryResponseDto> getCategoryIdsFromCache(String type, RedisTemplate redisTemplate) {
         String key = "categoryList::" + type;
-        List<CategoryResponseDto> list = (List<CategoryResponseDto>) redisTemplate.opsForValue().get(key);
-        if (list != null) {
-            return list.stream()
-                    .map(CategoryResponseDto::getCategoryId)
-                    .toList();
-        }
-        return List.of();
+        return (List<CategoryResponseDto>) redisTemplate.opsForValue().get(key);
     }
 }

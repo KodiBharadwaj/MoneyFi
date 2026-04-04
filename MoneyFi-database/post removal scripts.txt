@@ -1,0 +1,4 @@
+delete from expense_table where category_id in (select id from category_list_table where type = 'EXPENSE' AND category = 'Goal');
+
+
+drop table goal_table;

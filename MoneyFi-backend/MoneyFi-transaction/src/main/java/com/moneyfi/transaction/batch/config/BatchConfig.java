@@ -56,4 +56,23 @@ public class BatchConfig {
                 .writer(expenseWriter)
                 .build();
     }
+
+    @Bean
+    public Job goalJob(JobRepository jobRepository, Step goalStep) {
+        return new JobBuilder("recurring-goal-job", jobRepository)
+                .start(goalStep)
+                .build();
+    }
+
+    @Bean
+    public Step goalStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, JdbcPagingItemReader<ExpenseModel> expenseReader,
+                            ItemProcessor<ExpenseModel, ExpenseModel> expenseProcessor, JdbcBatchItemWriter<ExpenseModel> expenseWriter) {
+
+        return new StepBuilder("recurring-goal-step", jobRepository)
+                .<ExpenseModel, ExpenseModel>chunk(1000, transactionManager)
+                .reader(expenseReader)
+                .processor(expenseProcessor)
+                .writer(expenseWriter)
+                .build();
+    }
 }

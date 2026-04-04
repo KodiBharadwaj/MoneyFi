@@ -6,6 +6,7 @@ import com.moneyfi.wealthcore.service.goal.GoalService;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalDetailsDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalTileDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,18 +28,13 @@ public class GoalApiController {
     private final GoalService goalService;
     private final JwtService jwtService;
 
-    @Operation(summary = "Method to add a goal")
-    @PostMapping("/saveGoal")
-    public ResponseEntity<GoalDetailsDto> saveGoal(@RequestBody GoalModel goal,
-                                                   @RequestHeader("Authorization") String authHeader) {
-
-        BigDecimal amountToBeAdded = BigDecimal.ZERO;
-        GoalDetailsDto createdGoal = goalService.save(goal, amountToBeAdded, authHeader);
-        if (createdGoal != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdGoal); // 201
-        } else {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null); // 409
-        }
+    @Operation(summary = "Api to add a goal")
+    @PostMapping("/save")
+    public ResponseEntity<Void> saveGoal(@RequestHeader("Authorization") String authHeader,
+                                         @Valid @RequestBody GoalModel goal) {
+        Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        goalService.save(goal, userId, authHeader);
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Api to add amount to a particular goal")
@@ -46,7 +42,6 @@ public class GoalApiController {
     public GoalDetailsDto addAmount(@RequestHeader("Authorization") String authHeader,
                                     @NotNull @PathVariable(value = "id") Long id,
                                     @NotNull @PathVariable(value = "amount") BigDecimal amount){
-
         return goalService.addAmount(id, amount, authHeader);
     }
 
