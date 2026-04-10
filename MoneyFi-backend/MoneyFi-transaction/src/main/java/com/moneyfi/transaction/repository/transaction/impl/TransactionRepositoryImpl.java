@@ -308,4 +308,20 @@ public class TransactionRepositoryImpl implements TransactionRepository {
             }
         });
     }
+
+    @Override
+    public List<String> getCategoriesBasedOnTransactionType(String categoryType) {
+        try {
+            List<String> incomeCategoryIdList = new ArrayList<>();
+            Query query = entityManager.createNativeQuery(
+                            "exec [getCategoriesByCategoryType] " +
+                                    "@categoryType = :categoryType ")
+                    .setParameter("categoryType", categoryType);
+            incomeCategoryIdList.addAll(query.getResultList());
+            return incomeCategoryIdList;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Income Category Ids not found");
+        }
+    }
 }

@@ -170,8 +170,27 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<CategoryResponseDto> getCategoryWiseList(String type) {
-        return CachingService.getCategoryIdsFromCache(type, redisTemplate);
+    public Integer getCategoryWiseList(String type) {
+        List<CategoryResponseDto> responseList = CachingService.getCategoryIdsFromCache(type, redisTemplate);
+
+        if (responseList == null || responseList.isEmpty()) {
+            List<String> categories = transactionRepository.getCategoriesBasedOnTransactionType(type);
+            if (categories != null) {
+                for (String category : categories) {
+                    String[] parts = category.split("-");
+                    String categoryName = parts[0];
+                    Integer categoryId = Integer.parseInt(parts[1]);
+                    if ("Goal".equalsIgnoreCase(categoryName)) return categoryId;
+                }
+            }
+            return null;
+        }
+
+        return responseList.stream()
+                .filter(category -> "Goal".equalsIgnoreCase(category.getCategory()))
+                .map(CategoryResponseDto::getCategoryId)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override

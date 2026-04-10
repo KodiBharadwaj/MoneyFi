@@ -32,7 +32,7 @@ public interface TransactionService {
 
     List<Integer> getCategoryIdsBasedOnTransactionType(String transactionType);
 
-    List<CategoryResponseDto> getCategoryWiseList(String type);
+    Integer getCategoryWiseList(String type);
 
     List<IncomeDetailsDto> getAllIncomesByDate(Long userId, TransactionsListRequestDto requestDto);
 

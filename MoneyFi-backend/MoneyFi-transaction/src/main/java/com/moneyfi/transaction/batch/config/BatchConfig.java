@@ -1,5 +1,7 @@
 package com.moneyfi.transaction.batch.config;
 
+import com.moneyfi.transaction.batch.dto.GoalModelDto;
+import com.moneyfi.transaction.batch.dto.GoalProcessingResult;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.model.income.IncomeModel;
 import org.springframework.batch.core.Job;
@@ -9,6 +11,7 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.context.annotation.Bean;
@@ -65,14 +68,14 @@ public class BatchConfig {
     }
 
     @Bean
-    public Step goalStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, JdbcPagingItemReader<ExpenseModel> expenseReader,
-                            ItemProcessor<ExpenseModel, ExpenseModel> expenseProcessor, JdbcBatchItemWriter<ExpenseModel> expenseWriter) {
+    public Step goalStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, JdbcPagingItemReader<GoalModelDto> goalReader,
+                         ItemProcessor<GoalModelDto, GoalProcessingResult> goalProcessor, ItemWriter<GoalProcessingResult> goalWriter) {
 
         return new StepBuilder("recurring-goal-step", jobRepository)
-                .<ExpenseModel, ExpenseModel>chunk(1000, transactionManager)
-                .reader(expenseReader)
-                .processor(expenseProcessor)
-                .writer(expenseWriter)
+                .<GoalModelDto, GoalProcessingResult>chunk(1000, transactionManager)
+                .reader(goalReader)
+                .processor(goalProcessor)
+                .writer(goalWriter)
                 .build();
     }
 }

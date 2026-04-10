@@ -1,6 +1,7 @@
 package com.moneyfi.transaction.batch.reader;
 
 import com.moneyfi.transaction.batch.dto.GoalModelDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.support.SqlPagingQueryProviderFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -9,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
 
 @Configuration
+@Slf4j
 public class GoalReaderClass {
 
     @Bean
@@ -40,11 +42,9 @@ public class GoalReaderClass {
                               AND e.is_deleted = 0
                               AND YEAR(e.date) = YEAR(GETDATE())
                               AND MONTH(e.date) = MONTH(GETDATE())
-                              AND e.entry_mode = 'GOAL_AUTO'
                       )
                 """);
-
-        queryProvider.setSortKey("g.id");
+        queryProvider.setSortKey("id");
 
         try {
             reader.setQueryProvider(queryProvider.getObject());
@@ -66,6 +66,7 @@ public class GoalReaderClass {
                 .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
                 .updatedAt(rs.getTimestamp("updated_at").toLocalDateTime())
                 .build());
+        log.info("Recurring goal details: {}", reader);
         return reader;
     }
 }

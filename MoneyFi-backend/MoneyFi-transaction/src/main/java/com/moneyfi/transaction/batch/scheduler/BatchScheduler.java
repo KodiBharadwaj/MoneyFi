@@ -27,13 +27,18 @@ public class BatchScheduler {
     @Qualifier("expenseJob")
     private Job expenseJob;
 
+    @Autowired
+    @Qualifier("goalJob")
+    private Job goalJob;
+
     @PostConstruct
     public void initializeScheduledMethodsInCaseOfServiceRunningDelay() throws Exception {
-        runBatchJob();
+        runMonthlyBatchJob();
+        runDailyBatchJob();
     }
 
     @Scheduled(cron = "0 0 0 1 * *")
-    public void runBatchJob() throws Exception {
+    public void runMonthlyBatchJob() throws Exception {
         try {
             log.info("Running Adding Recurring Incomes Job...");
             jobLauncher.run(incomeJob, new JobParametersBuilder()
@@ -44,13 +49,26 @@ public class BatchScheduler {
             e.printStackTrace();
         }
 
+//        try {
+//            log.info("Running Adding Recurring Expenses Job...");
+//            jobLauncher.run(expenseJob, new JobParametersBuilder()
+//                    .addLong("time", System.currentTimeMillis() + 1)
+//                    .toJobParameters());
+//        } catch (Exception e) {
+//            log.error("Recurring Expenses job failed", e);
+//            e.printStackTrace();
+//        }
+    }
+
+    @Scheduled(cron = "0 0 0 * * *")
+    public void runDailyBatchJob() throws Exception {
         try {
-            log.info("Running Adding Recurring Expenses Job...");
-            jobLauncher.run(expenseJob, new JobParametersBuilder()
-                    .addLong("time", System.currentTimeMillis() + 1)
+            log.info("Running Adding Recurring Goals Job...");
+            jobLauncher.run(goalJob, new JobParametersBuilder()
+                    .addLong("time", System.currentTimeMillis())
                     .toJobParameters());
         } catch (Exception e) {
-            log.error("Recurring Expenses job failed", e);
+            log.error("Recurring Goals job failed", e);
             e.printStackTrace();
         }
     }

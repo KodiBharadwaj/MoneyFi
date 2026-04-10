@@ -21,8 +21,8 @@ public class GoalWriterClass {
 
     @Bean
     public ItemWriter<GoalProcessingResult> goalWriter(ExpenseRepository expenseRepository, ExpenseGoalRelationRepository relationRepository, JdbcTemplate jdbcTemplate) {
-        return items -> {
 
+        return items -> {
             List<ExpenseModel> expenses = new ArrayList<>();
             for (GoalProcessingResult item : items) {
                 expenses.add(item.getExpense());
@@ -39,20 +39,19 @@ public class GoalWriterClass {
             relationRepository.saveAll(relations);
 
             String sql = """
-                UPDATE goal_table
-                SET current_amount =
-                        CASE 
-                            WHEN current_amount + ? > target_amount 
-                            THEN target_amount
-                            ELSE current_amount + ?
-                        END,
-                    updated_at = ?
-                WHERE id = ?
-                  AND deleted = 0
-                """;
+                    UPDATE goal_table
+                    SET current_amount =
+                            CASE 
+                                WHEN current_amount + ? > target_amount 
+                                THEN target_amount
+                                ELSE current_amount + ?
+                            END,
+                        updated_at = ?
+                    WHERE id = ?
+                      AND deleted = 0
+                    """;
 
             List<Object[]> batchArgs = new ArrayList<>();
-
             for (GoalProcessingResult item : items) {
                 BigDecimal amount = item.getExpense().getAmount();
                 batchArgs.add(new Object[]{
@@ -62,7 +61,6 @@ public class GoalWriterClass {
                         item.getGoal().getId()
                 });
             }
-
             jdbcTemplate.batchUpdate(sql, batchArgs);
         };
     }

@@ -24,18 +24,16 @@ public class GoalProcessorClass {
     @Bean
     public ItemProcessor<GoalModelDto, GoalProcessingResult> goalProcessor() {
         LocalDateTime currentTime = LocalDateTime.now();
-        Integer categoryId = transactionService.getCategoryWiseList(TransactionServiceType.EXPENSE.name()).stream().filter(category -> category.getCategory().equalsIgnoreCase("Goal")).findFirst().get().getCategoryId();
+        Integer categoryId = transactionService.getCategoryWiseList(TransactionServiceType.EXPENSE.name());
+
         return goal -> {
-
             BigDecimal remaining = goal.getTargetAmount().subtract(goal.getCurrentAmount());
-
             if (remaining.compareTo(BigDecimal.ZERO) <= 0) {
-                return null; // skip
+                return null;
             }
 
             BigDecimal contribution = goal.getRecurringAmount().min(remaining);
 
-            // Create Expense
             ExpenseModel expense = ExpenseModel.builder()
                     .userId(goal.getUserId())
                     .categoryId(categoryId)
@@ -46,11 +44,9 @@ public class GoalProcessorClass {
                     .description("Auto contribution for goal: " + goal.getGoalName())
                     .build();
 
-            // Update Goal
             goal.setCurrentAmount(goal.getCurrentAmount().add(contribution));
-            goal.setUpdatedAt(LocalDateTime.now());
+            goal.setUpdatedAt(currentTime);
 
-            // Relation (expense will be set later after save)
             ExpenseGoalRelation relation = ExpenseGoalRelation.builder()
                     .goalId(goal.getId())
                     .build();
