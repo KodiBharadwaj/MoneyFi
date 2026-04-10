@@ -151,7 +151,7 @@ export class GoalsComponent {
 
           if(goalData.currentAmount < this.availableBalance){
             this.addGoalLoading = true;
-            this.httpClient.post<inputGoal>(`${this.baseUrl}/api/v1/wealth-core/goal/saveGoal`, goalData).subscribe({
+            this.httpClient.post<inputGoal>(`${this.baseUrl}/api/v1/wealth-core/goal/save`, goalData).subscribe({
               next: (newGoal) => {
                 // const newGoalConverted = this.modelConverterFunction(newGoal); 
                 // this.goals.push(newGoalConverted); 

@@ -2,6 +2,7 @@ package com.moneyfi.transaction.controller.user;
 
 import com.moneyfi.transaction.security.JwtService;
 import com.moneyfi.transaction.exceptions.GenericException;
+import com.moneyfi.transaction.service.general.ManualBatchScheduling;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.AccountStatementResponseDto;
 import com.moneyfi.transaction.service.income.dto.response.OverviewPageDetailsDto;
@@ -9,10 +10,14 @@ import com.moneyfi.transaction.service.transaction.TransactionService;
 import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction;
 import com.moneyfi.transaction.service.transaction.dto.response.GmailSyncTransactionsResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.constraints.NotBlank;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -22,16 +27,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/transaction")
 @PreAuthorize("hasRole('USER')")
+@RequiredArgsConstructor
+@Slf4j
+@Validated
 public class TransactionApiController {
 
     private final JwtService jwtService;
     private final TransactionService transactionService;
-
-    public TransactionApiController(TransactionService transactionService,
-                                    JwtService jwtService){
-        this.transactionService = transactionService;
-        this.jwtService = jwtService;
-    }
+    private final ManualBatchScheduling manualBatchScheduling;
 
     @Operation(summary = "Api to get the overview page tile details")
     @GetMapping("/overview-details/{month}/{year}")
@@ -86,5 +89,11 @@ public class TransactionApiController {
                                                                                        @RequestParam LocalDate date){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return ResponseEntity.ok(transactionService.getGmailSyncAddedTransactions(userId, date));
+    }
+
+    /** Test api */
+    @GetMapping(value = "batch-sync")
+    public void enableRecurringSyncUsingSpringBatch(@NotBlank @RequestParam(value = "type") String type) {
+        manualBatchScheduling.enableRecurringSyncUsingSpringBatch(type);
     }
 }

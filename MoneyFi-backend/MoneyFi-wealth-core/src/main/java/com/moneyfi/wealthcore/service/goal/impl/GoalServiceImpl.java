@@ -1,5 +1,6 @@
 package com.moneyfi.wealthcore.service.goal.impl;
 
+import com.moneyfi.constants.dto.GoalExpenseRelationRequestDto;
 import com.moneyfi.wealthcore.exceptions.ResourceNotFoundException;
 import com.moneyfi.wealthcore.model.goal.GoalModel;
 import com.moneyfi.wealthcore.repository.common.CategoryListRepository;
@@ -9,7 +10,6 @@ import com.moneyfi.wealthcore.security.JwtService;
 import com.moneyfi.wealthcore.service.api.ExternalApiCallService;
 import com.moneyfi.wealthcore.service.common.CommonService;
 import com.moneyfi.wealthcore.service.goal.GoalService;
-import com.moneyfi.wealthcore.service.goal.dto.response.ExpenseModelDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalDetailsDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalTileDetailsDto;
 import com.moneyfi.wealthcore.utils.enums.CategoryType;
@@ -19,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -45,26 +44,24 @@ public class GoalServiceImpl implements GoalService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public GoalDetailsDto save(GoalModel goal, BigDecimal amountToBeAdded, String authHeader) {
+    public GoalDetailsDto save(GoalModel goal, Long userId, String authHeader) {
         String token = authHeader.substring(7);
-        Long userId = jwtService.extractUserIdFromToken(token);
         goal.setUserId(userId);
-        Long expenseId = functionCallToTransactionServiceToSaveExpense(goal, amountToBeAdded, token);
-        if (goal.getExpenseIds() == null || goal.getExpenseIds().isEmpty()) {
-            goal.setExpenseIds(expenseId.toString());
-        } else {
-            goal.setExpenseIds(goal.getExpenseIds() + "," + expenseId.toString());
-        }
-        return updatedGoalDtoConversion(goalRepository.save(goal));
+        goal.setRecurringAmount(goal.getCurrentAmount());
+
+        GoalModel savedGoal = goalRepository.save(goal);
+        functionCallToTransactionServiceToSaveExpense(savedGoal, BigDecimal.ZERO, token);
+        return updatedGoalDtoConversion(savedGoal);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public GoalDetailsDto addAmount(Long id, BigDecimal amount, String authHeader) {
-        GoalModel goalModel = goalRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(GOAL_NOT_FOUND));
-        goalModel.setCurrentAmount(goalModel.getCurrentAmount().add(amount));
-        goalModel.setUpdatedAt(LocalDateTime.now());
-        return save(goalModel, amount, authHeader);
+//        GoalModel goalModel = goalRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(GOAL_NOT_FOUND));
+//        goalModel.setCurrentAmount(goalModel.getCurrentAmount().add(amount));
+//        goalModel.setUpdatedAt(LocalDateTime.now());
+//        return save(goalModel, amount, authHeader);
+        return null;
     }
 
     @Override
@@ -127,29 +124,30 @@ public class GoalServiceImpl implements GoalService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteGoalById(Long id, String authHeader) {
-        try {
-            GoalModel goalModel = goalRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(GOAL_NOT_FOUND));
-            goalModel.setDeleted(Boolean.TRUE);
-            goalModel.setUpdatedAt(LocalDateTime.now());
-            goalRepository.save(goalModel);
-            functionCallToExpenseServiceToDeleteExpense(goalModel.getExpenseIds(), authHeader);
-        } catch (HttpClientErrorException.NotFound e) {
-            e.printStackTrace();
-        }
+//        try {
+//            GoalModel goalModel = goalRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(GOAL_NOT_FOUND));
+//            goalModel.setDeleted(Boolean.TRUE);
+//            goalModel.setUpdatedAt(LocalDateTime.now());
+//            goalRepository.save(goalModel);
+//            functionCallToExpenseServiceToDeleteExpense(goalModel.getExpenseIds(), authHeader);
+//        } catch (HttpClientErrorException.NotFound e) {
+//            e.printStackTrace();
+//        }
     }
 
-    private Long functionCallToTransactionServiceToSaveExpense(GoalModel goal, BigDecimal amountToBeAdded, String token){
-        ExpenseModelDto expenseModelDto = new ExpenseModelDto();
-        expenseModelDto.setDescription(goal.getGoalName());
-        expenseModelDto.setCategoryId(commonService.getCategoryWiseList(List.of(CategoryType.EXPENSE.name())).stream().filter(category -> category.getCategory().equalsIgnoreCase("Goal")).findFirst().get().getCategoryId());
+    private void functionCallToTransactionServiceToSaveExpense(GoalModel goal, BigDecimal amountToBeAdded, String token){
+        GoalExpenseRelationRequestDto goalExpenseRelationRequestDto = new GoalExpenseRelationRequestDto();
+        goalExpenseRelationRequestDto.setDescription(goal.getGoalName());
+        goalExpenseRelationRequestDto.setCategoryId(commonService.getCategoryWiseList(List.of(CategoryType.EXPENSE.name())).stream().filter(category -> category.getCategory().equalsIgnoreCase("Goal")).findFirst().get().getCategoryId());
         if(amountToBeAdded.compareTo(BigDecimal.ZERO) == 0){
-            expenseModelDto.setAmount(goal.getCurrentAmount());
+            goalExpenseRelationRequestDto.setAmount(goal.getCurrentAmount());
         } else {
-            expenseModelDto.setAmount(amountToBeAdded);
+            goalExpenseRelationRequestDto.setAmount(amountToBeAdded);
         }
-        expenseModelDto.setDate(LocalDateTime.now());
-        expenseModelDto.setRecurring(true);
-        return externalApiCallService.externalApiCallToTransactionServiceToSaveExpense(token, "/expense/saveExpense", expenseModelDto).getId();
+        goalExpenseRelationRequestDto.setDate(LocalDateTime.now());
+        goalExpenseRelationRequestDto.setRecurring(Boolean.TRUE);
+        goalExpenseRelationRequestDto.setGoalId(goal.getId());
+        externalApiCallService.externalApiCallToTransactionServiceToSaveExpense(token, "/expense/goal-expense-relation/add", goalExpenseRelationRequestDto);
     }
 
     private void functionCallToExpenseServiceToDeleteExpense(String expenseIds, String authHeader){

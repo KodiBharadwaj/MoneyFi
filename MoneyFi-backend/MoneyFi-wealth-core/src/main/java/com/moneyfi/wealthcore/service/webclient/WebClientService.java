@@ -1,5 +1,6 @@
 package com.moneyfi.wealthcore.service.webclient;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -11,6 +12,7 @@ import java.net.URI;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class WebClientService {
 
     private final WebClient webClient;
@@ -20,6 +22,7 @@ public class WebClientService {
     }
 
     public <T, R> R exchange(HttpMethod method, String url, Map<String, String> queryParams, T body, String token, ParameterizedTypeReference<R> responseType) {
+        log.info("Payload received: {}", body);
         WebClient.RequestBodySpec request = webClient.method(method)
                 .uri(uriBuilder -> {
                     URI uri = URI.create(url);

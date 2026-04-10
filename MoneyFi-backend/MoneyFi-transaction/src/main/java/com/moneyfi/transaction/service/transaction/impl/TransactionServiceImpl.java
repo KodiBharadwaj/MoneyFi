@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.service.transaction.impl;
 
+import com.moneyfi.constants.dto.CategoryResponseDto;
 import com.moneyfi.constants.enums.ActiveStatus;
 import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.transaction.exceptions.GenericException;
@@ -152,9 +153,9 @@ public class TransactionServiceImpl implements TransactionService {
                                 .description(expense.getDescription())
                                 .date(expense.getDate() == null ? null : Date.from(expense.getDate().atZone(ZoneId.systemDefault()).toInstant()))
                                 .category(getCategoryNameFromCacheOrDb(expense.getCategoryId(), TransactionServiceType.EXPENSE.name()))
-                                .recurring(expense.isRecurring())
+                                .recurring(expense.getRecurring())
                                 .description(expense.getDescription())
-                                .activeStatus(expense.isDeleted() ? ActiveStatus.DELETED.name() : expense.getCreatedAt().equals(expense.getUpdatedAt()) ? ActiveStatus.ACTIVE.name() : ActiveStatus.EDITED.name())
+                                .activeStatus(expense.getIsDeleted() ? ActiveStatus.DELETED.name() : expense.getCreatedAt().equals(expense.getUpdatedAt()) ? ActiveStatus.ACTIVE.name() : ActiveStatus.EDITED.name())
                                 .build()
                         )
                         .toList()
@@ -163,9 +164,33 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public List<Integer> getCategoryIdsBasedOnTransactionType(String transactionType){
-        List<Integer> categoryIds = CachingService.getCategoryIdsFromCache(transactionType, redisTemplate);
+        List<Integer> categoryIds = CachingService.getCategoryIdsFromCache(transactionType, redisTemplate).stream().map(CategoryResponseDto::getCategoryId).toList();
         if(categoryIds.isEmpty()) categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(transactionType);
         return categoryIds;
+    }
+
+    @Override
+    public Integer getCategoryWiseList(String type) {
+        List<CategoryResponseDto> responseList = CachingService.getCategoryIdsFromCache(type, redisTemplate);
+
+        if (responseList == null || responseList.isEmpty()) {
+            List<String> categories = transactionRepository.getCategoriesBasedOnTransactionType(type);
+            if (categories != null) {
+                for (String category : categories) {
+                    String[] parts = category.split("-");
+                    String categoryName = parts[0];
+                    Integer categoryId = Integer.parseInt(parts[1]);
+                    if ("Goal".equalsIgnoreCase(categoryName)) return categoryId;
+                }
+            }
+            return null;
+        }
+
+        return responseList.stream()
+                .filter(category -> "Goal".equalsIgnoreCase(category.getCategory()))
+                .map(CategoryResponseDto::getCategoryId)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override

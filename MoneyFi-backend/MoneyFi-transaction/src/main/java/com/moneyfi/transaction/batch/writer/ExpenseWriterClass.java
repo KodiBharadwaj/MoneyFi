@@ -1,0 +1,29 @@
+package com.moneyfi.transaction.batch.writer;
+
+import com.moneyfi.transaction.model.expense.ExpenseModel;
+import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
+import org.springframework.batch.item.database.JdbcBatchItemWriter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import javax.sql.DataSource;
+
+@Configuration
+public class ExpenseWriterClass {
+
+    @Bean
+    public JdbcBatchItemWriter<ExpenseModel> expenseWriter(DataSource dataSource) {
+        JdbcBatchItemWriter<ExpenseModel> writer = new JdbcBatchItemWriter<>();
+        writer.setDataSource(dataSource);
+
+        writer.setSql("""
+                    INSERT INTO expense_table 
+                    (user_id, amount, category_id, date, recurring, is_deleted, description, entry_mode, created_at, updated_at)
+                    VALUES 
+                    (:userId, :amount, :categoryId, :date, :recurring, :isDeleted, :description, :entryMode, :createdAt, :updatedAt)
+                """);
+
+        writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
+        return writer;
+    }
+}

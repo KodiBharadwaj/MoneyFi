@@ -1,6 +1,6 @@
 package com.moneyfi.wealthcore.service.api;
 
-import com.moneyfi.wealthcore.service.goal.dto.response.ExpenseModelDto;
+import com.moneyfi.constants.dto.GoalExpenseRelationRequestDto;
 import com.moneyfi.wealthcore.service.webclient.WebClientService;
 import com.moneyfi.wealthcore.utils.constants.StringUrls;
 import lombok.RequiredArgsConstructor;
@@ -43,14 +43,14 @@ public class ExternalApiCallService {
         );
     }
 
-    public ExpenseModelDto externalApiCallToTransactionServiceToSaveExpense(String token, String continuationUrl, ExpenseModelDto expenseModelDto) {
-        return webClientService.exchange(
+    public void externalApiCallToTransactionServiceToSaveExpense(String token, String continuationUrl, GoalExpenseRelationRequestDto goalExpenseRelationRequestDto) {
+        webClientService.exchange(
                 HttpMethod.POST,
                 StringUrls.EUREKA_TRANSACTION_SERVICE_URL + continuationUrl,
                 null,
-                expenseModelDto,
+                goalExpenseRelationRequestDto,
                 token,
-                new ParameterizedTypeReference<ExpenseModelDto>() {}
+                new ParameterizedTypeReference<Void>() {}
         );
     }
 
