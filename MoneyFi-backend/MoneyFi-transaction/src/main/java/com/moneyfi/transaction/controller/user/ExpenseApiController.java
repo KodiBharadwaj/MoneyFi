@@ -8,6 +8,7 @@ import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import com.moneyfi.transaction.service.transaction.dto.response.TransactionPagedResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,16 +24,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/transaction/expense")
 @PreAuthorize("hasRole('USER')")
+@RequiredArgsConstructor
 public class ExpenseApiController {
 
     private final ExpenseService expenseService;
     private final JwtService jwtService;
-
-    public ExpenseApiController(ExpenseService expenseService,
-                                JwtService jwtService){
-        this.expenseService = expenseService;
-        this.jwtService = jwtService;
-    }
 
     @Operation(summary = "Method to add the expense transaction")
     @PostMapping("/saveExpense")

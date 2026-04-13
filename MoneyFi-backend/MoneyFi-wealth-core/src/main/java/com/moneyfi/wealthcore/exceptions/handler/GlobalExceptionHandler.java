@@ -1,10 +1,8 @@
-package com.moneyfi.user.exceptions.handler;
+package com.moneyfi.wealthcore.exceptions.handler;
 
-import com.moneyfi.user.exceptions.CloudinaryImageException;
-import com.moneyfi.user.exceptions.CustomInternalServerErrorException;
-import com.moneyfi.user.exceptions.ResourceNotFoundException;
-import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
-import com.moneyfi.user.service.user.dto.response.ErrorResponse;
+import com.moneyfi.wealthcore.exceptions.ResourceNotFoundException;
+import com.moneyfi.wealthcore.exceptions.ScenarioNotPossibleException;
+import com.moneyfi.wealthcore.service.budget.dto.response.ErrorResponse;
 import jakarta.ws.rs.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
 
-import static com.moneyfi.user.util.constants.StringConstants.SOMETHING_WENT_WRONG;
+import static com.moneyfi.wealthcore.utils.constants.StringConstants.SOMETHING_WENT_WRONG;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -27,11 +25,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({ResourceNotFoundException.class})
     public ResponseEntity<ErrorResponse> handleResourceNotFoundExceptionFunction(ResourceNotFoundException exception) {
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage()), HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler({CustomInternalServerErrorException.class, CloudinaryImageException.class})
-    public ResponseEntity<ErrorResponse> handleHttpServerErrorExceptionFunction(Exception exception) {
-        return new ResponseEntity<>(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), exception.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

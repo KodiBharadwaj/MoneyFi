@@ -1,11 +1,7 @@
-package com.moneyfi.user.exceptions.handler;
+package com.moneyfi.transaction.exceptions;
 
-import com.moneyfi.user.exceptions.CloudinaryImageException;
-import com.moneyfi.user.exceptions.CustomInternalServerErrorException;
-import com.moneyfi.user.exceptions.ResourceNotFoundException;
-import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
-import com.moneyfi.user.service.user.dto.response.ErrorResponse;
-import jakarta.ws.rs.BadRequestException;
+import com.moneyfi.transaction.service.income.dto.response.ErrorResponse;
+import com.moneyfi.transaction.service.transaction.dto.response.GmailSyncErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,24 +10,24 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
 
-import static com.moneyfi.user.util.constants.StringConstants.SOMETHING_WENT_WRONG;
+import static com.moneyfi.transaction.utils.constants.StringConstants.SOMETHING_WENT_WRONG;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({ScenarioNotPossibleException.class, BadRequestException.class})
-    public ResponseEntity<ErrorResponse> handleScenarioNotFoundExceptionFunction(Exception exception) {
-        return new ResponseEntity<>(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()), HttpStatus.BAD_REQUEST);
-    }
-
     @ExceptionHandler({ResourceNotFoundException.class})
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundExceptionFunction(ResourceNotFoundException exception) {
+    public ResponseEntity<ErrorResponse> handleToggleDeactivationException(ResourceNotFoundException exception) {
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage()), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler({CustomInternalServerErrorException.class, CloudinaryImageException.class})
-    public ResponseEntity<ErrorResponse> handleHttpServerErrorExceptionFunction(Exception exception) {
-        return new ResponseEntity<>(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), exception.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    @ExceptionHandler({ScenarioNotPossibleException.class})
+    public ResponseEntity<ErrorResponse> handleScenarioNotFoundExceptionFunction(ScenarioNotPossibleException exception) {
+        return new ResponseEntity<>(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(GenericException.class)
+    public ResponseEntity<List<GmailSyncErrorResponse>> handleGenericException(GenericException ex) {
+        return ResponseEntity.badRequest().body(ex.getErrorList());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

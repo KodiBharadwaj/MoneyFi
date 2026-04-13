@@ -152,13 +152,13 @@ export class GoalsComponent {
           if(goalData.currentAmount < this.availableBalance){
             this.addGoalLoading = true;
             this.httpClient.post<inputGoal>(`${this.baseUrl}/api/v1/wealth-core/goal/save`, goalData).subscribe({
-              next: (newGoal) => {
+              next: () => {
                 // const newGoalConverted = this.modelConverterFunction(newGoal); 
                 // this.goals.push(newGoalConverted); 
                 this.addGoalLoading = false;
                 this.loadGoals();
                 this.loadGoalTileData();
-                this.toastr.success('Goal ' + newGoal.goalName + ' added successfully');
+                this.toastr.success('Goal added successfully');
               },
               error: (err) => {
                 this.addGoalLoading = false;
