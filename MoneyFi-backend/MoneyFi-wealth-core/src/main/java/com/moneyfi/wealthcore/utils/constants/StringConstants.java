@@ -23,6 +23,7 @@ public class StringConstants {
     public static final String USER_ID = "userId";
     public static final String TOTAL_GOAL_AMOUNT = "totalGoalAmount";
     public static final String TOTAL_GOAL_TARGET_AMOUNT = "totalGoalTargetAmount";
+    public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     public static final String TOTAL_AVAILABLE_INCOME = "availableIncome";
 
     public static String makeUsernamePrivate(String username){

@@ -28,6 +28,7 @@ public class StringConstants {
     public static final String CATEGORY_ID = "categoryId";
     public static final String DESCRIPTION = "description";
     public static final String TRANSACTION_DATE = "transactionDate";
+    public static final String SOMETHING_WENT_WRONG = "Something went wrong";
 
     public static final String INCOME_ALREADY_PRESENT_MESSAGE = "Income with this source and category is already there";
 

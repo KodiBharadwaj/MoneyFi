@@ -59,6 +59,7 @@ public class StringConstants {
     public static final String SAME_PASSWORD_NOT_ALLOWED_MESSAGE = "New password cannot be same as old password";
     public static final String LOGOUT_SUCCESS_MESSAGE = "Logged out successfully";
     public static final String LOGOUT_FAILURE_MESSAGE = "Logout failed!";
+    public static final String SOMETHING_WENT_WRONG = "Something went wrong";
 
 
     public static final ObjectMapper objectMapper = new ObjectMapper();

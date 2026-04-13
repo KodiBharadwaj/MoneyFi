@@ -60,6 +60,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @Transactional
     public void addGoalExpenseTransaction(GoalExpenseRelationRequestDto requestDto, Long userId) {
         log.info("checking dto: {}", requestDto);
         ExpenseModel savedExpense = save(ExpenseModel.builder()
@@ -71,6 +72,8 @@ public class ExpenseServiceImpl implements ExpenseService {
                 .description(requestDto.getDescription())
                 .build()
         );
+        log.info("Expense saved with id: {}", savedExpense.getId());
+
         ExpenseGoalRelation expenseGoalRelation = ExpenseGoalRelation.builder()
                 .expense(savedExpense)
                 .goalId(requestDto.getGoalId())

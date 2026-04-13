@@ -47,7 +47,7 @@ public class UserController {
     @Operation(summary = "Api to change password for logged in user")
     @PostMapping("/change-password")
     public void changePassword(Authentication authentication,
-                               @RequestBody ChangePasswordDto changePasswordDto) {
+                               @Valid @RequestBody ChangePasswordDto changePasswordDto) {
         Long userId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         changePasswordDto.setUserId(userId);
         userAuthService.changePassword(changePasswordDto);

@@ -11,6 +11,11 @@ CREATE TABLE dbo.user_role_table (
     CONSTRAINT UQ_user_role_table_role_name UNIQUE (role_name)
 );
 
+-- Reason codes and reason names table
+CREATE TABLE reason_code_table (
+    id INT NOT NULL,
+    name VARCHAR(100) NOT NULL
+);
 
 
 
@@ -21,8 +26,8 @@ INSERT INTO dbo.user_role_table (role_id, role_name)
 VALUES (1, 'ADMIN'), (2, 'USER'), (3,'DEVELOPER'), (4,'MAINTAINER');
 
 -- To add maintainer default login credentials
-INSERT INTO dbo.user_auth_table (username, password, is_deleted, is_blocked, role_id, otp_count, login_code_value)
-VALUES ('maintainer@moneyfi-access.com', '$2a$12$N1G9aEHD8QGhZBj3QC3TDOLpkOMMC2mDrka/YPjqEo2U0mhLwYVVy', 0, 0, 4, 0, 4)
+INSERT INTO dbo.user_auth_table (username, password, is_deleted, is_blocked, role_id, otp_count, login_code_value, last_reset)
+VALUES ('maintainer@moneyfi-access.com', '$2a$12$N1G9aEHD8QGhZBj3QC3TDOLpkOMMC2mDrka/YPjqEo2U0mhLwYVVy', 0, 0, 4, 0, 4, GETDATE());
 
 
 -- Credentials for monitor service as client
