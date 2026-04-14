@@ -1,0 +1,2 @@
+INSERT INTO dbo.user_auth_table (username, password, is_deleted, is_blocked, role_id, otp_count, login_code_value, last_reset)
+VALUES ('maintainer@moneyfi-access.com', '$2a$12$N1G9aEHD8QGhZBj3QC3TDOLpkOMMC2mDrka/YPjqEo2U0mhLwYVVy', 0, 0, 4, 0, 4, GETDATE());
