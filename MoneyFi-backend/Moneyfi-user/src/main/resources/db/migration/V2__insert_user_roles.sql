@@ -1,7 +1,3 @@
--- V1__create_user_roles.sql
-CREATE TABLE dbo.user_role_table (
-    role_id INT NOT NULL,
-    role_name VARCHAR(50) NOT NULL,
-    CONSTRAINT PK_user_role_table PRIMARY KEY (role_id),
-    CONSTRAINT UQ_user_role_table_role_name UNIQUE (role_name)
-);
+-- V2__insert_user_roles.sql
+INSERT INTO dbo.user_role_table (role_id, role_name)
+VALUES (1, 'ADMIN'), (2, 'USER'), (3,'DEVELOPER'), (4,'MAINTAINER');
