@@ -2,6 +2,17 @@ spring:
   application:
     name: MoneyFi-api-gateway
 
+  boot:
+    admin:
+      client:
+        url: ${MONITOR_SERVICE_URL}
+        username: admin        # <-- must match monitor server
+        password: admin123     # <-- must match monitor server
+        instance:
+          metadata:
+            user.name: client
+            user.password: client123
+
   cloud:
     gateway:
       globalcors:
