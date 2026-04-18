@@ -1,5 +1,6 @@
-package com.moneyfi.transaction.service.general;
+package com.moneyfi.transaction.batch.service;
 
+import com.moneyfi.constants.enums.TransactionServiceType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -8,10 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import static com.moneyfi.transaction.utils.constants.StringConstants.TIME;
+
 @Service
 @Slf4j
-public class ManualBatchScheduling {
-
+public class TriggerBatchJobImpl implements TriggerBatchJob {
     @Autowired
     private JobLauncher jobLauncher;
 
@@ -27,32 +29,35 @@ public class ManualBatchScheduling {
     @Qualifier("goalJob")
     private Job goalJob;
 
-    public void enableRecurringSyncUsingSpringBatch(String type) {
-        if (type.equalsIgnoreCase("income")) {
+    public void triggerBatchJob(String type) {
+        if (type.equalsIgnoreCase(TransactionServiceType.INCOME.name())) {
             try {
                 log.info("Running Adding Recurring Incomes Job...");
+
                 jobLauncher.run(incomeJob, new JobParametersBuilder()
-                        .addLong("time", System.currentTimeMillis())
+                        .addLong(TIME, System.currentTimeMillis())
                         .toJobParameters());
             } catch (Exception e) {
                 log.error("Recurring Incomes job failed", e);
                 e.printStackTrace();
             }
-        } else if (type.equalsIgnoreCase("expense")) {
+        } else if (type.equalsIgnoreCase(TransactionServiceType.EXPENSE.name())) {
             try {
                 log.info("Running Adding Recurring Expenses Job...");
+
                 jobLauncher.run(expenseJob, new JobParametersBuilder()
-                        .addLong("time", System.currentTimeMillis() + 1)
+                        .addLong(TIME, System.currentTimeMillis() + 1)
                         .toJobParameters());
             } catch (Exception e) {
                 log.error("Recurring Expenses job failed", e);
                 e.printStackTrace();
             }
-        } else if (type.equalsIgnoreCase("goal")) {
+        } else if (type.equalsIgnoreCase(TransactionServiceType.GOAL.name())) {
             try {
                 log.info("Running Adding Recurring Goal Job...");
+
                 jobLauncher.run(goalJob, new JobParametersBuilder()
-                        .addLong("time", System.currentTimeMillis() + 1)
+                        .addLong(TIME, System.currentTimeMillis() + 1)
                         .toJobParameters());
             } catch (Exception e) {
                 log.error("Recurring Expenses job failed", e);

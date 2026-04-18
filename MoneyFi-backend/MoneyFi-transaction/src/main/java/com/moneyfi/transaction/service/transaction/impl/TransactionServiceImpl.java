@@ -41,6 +41,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.moneyfi.transaction.utils.constants.StringConstants.*;
@@ -164,7 +165,9 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public List<Integer> getCategoryIdsBasedOnTransactionType(String transactionType){
-        List<Integer> categoryIds = CachingService.getCategoryIdsFromCache(transactionType, redisTemplate).stream().map(CategoryResponseDto::getCategoryId).toList();
+        List<Integer> categoryIds = Optional.ofNullable(CachingService.getCategoryIdsFromCache(transactionType, redisTemplate)).orElse(List.of()).stream()
+                .map(CategoryResponseDto::getCategoryId)
+                .toList();
         if(categoryIds.isEmpty()) categoryIds = transactionRepository.getCategoryIdsBasedOnTransactionType(transactionType);
         return categoryIds;
     }

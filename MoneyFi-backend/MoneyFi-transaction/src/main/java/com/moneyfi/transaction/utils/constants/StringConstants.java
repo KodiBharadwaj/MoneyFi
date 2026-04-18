@@ -21,6 +21,7 @@ public class StringConstants {
     public static final String OFFSET = "offset";
     public static final String LIMIT = "limit";
     public static final String ALL = "ALL";
+    public static final String TIME = "time";
 
     public static final String MONTHLY = "MONTHLY";
     public static final String YEARLY = "YEARLY";
