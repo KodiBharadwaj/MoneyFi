@@ -1,35 +1,33 @@
 package com.moneyfi.notification.config.rabbitmq;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.core.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-@Configuration
-@Profile("local-rabbitmq")
-public class RabbitMqConfig {
+import static com.moneyfi.notification.util.constants.StringConstants.LOCAL_PROFILE_RABBIT_MQ;
 
+@Configuration
+@Profile(LOCAL_PROFILE_RABBIT_MQ)
+public class RabbitMqLocalConfig {
     @Value("${rabbitmq.queue}")
-    private String queueName;
+    private String queue;
 
     @Value("${rabbitmq.exchange}")
-    private String exchangeName;
+    private String exchange;
 
     @Value("${rabbitmq.routing-key}")
     private String routingKey;
 
     @Bean
     public Queue passwordChangedQueue() {
-        return new Queue(queueName, true);
+        return new Queue(queue, true);
     }
 
     @Bean
     public TopicExchange notificationExchange() {
-        return new TopicExchange(exchangeName);
+        return new TopicExchange(exchange);
     }
 
     @Bean

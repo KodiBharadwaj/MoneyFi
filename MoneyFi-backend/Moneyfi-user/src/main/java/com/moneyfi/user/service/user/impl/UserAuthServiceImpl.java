@@ -56,8 +56,6 @@ import static com.moneyfi.user.util.constants.StringConstants.*;
 @RequiredArgsConstructor
 public class UserAuthServiceImpl implements UserAuthService {
 
-    @Value("${spring.profiles.active:}")
-    private String activeProfile;
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")

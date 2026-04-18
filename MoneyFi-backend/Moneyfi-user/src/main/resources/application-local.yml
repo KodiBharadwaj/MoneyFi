@@ -1,14 +1,9 @@
 spring:
-  boot:
-    admin:
-      client:
-        url: ${MONITOR_SERVICE_URL}
-        username: admin        # <-- must match monitor server
-        password: admin123     # <-- must match monitor server
-        instance:
-          metadata:
-            user.name: client
-            user.password: client123
+  rabbitmq:
+      host: localhost
+      port: 5672
+      username: guest
+      password: guest
 
 management:
   endpoints:
@@ -19,11 +14,6 @@ management:
     health:
       show-details: always
 
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
 rabbitmq:
   exchange: rabbit.mq.exchange
   routing-key: rabbit.mq.routing.key
@@ -36,23 +26,3 @@ rabbitmq:
     port: 8161
     user: artemis
     password: artemis
-
-cloud:
-  aws:
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
-    region:
-      static: ${AWS_REGION}
-    stack:
-      auto: false
-
-application:
-  bucket:
-    name: ${AWS_S3_BUCKET_NAME}
-
-cloudinary:
-  credentials:
-    cloud-name: ${CLOUDINARY_CLOUD_NAME}
-    api-key: ${CLOUDINARY_API_KEY}
-    api-secret: ${CLOUDINARY_API_SECRET}

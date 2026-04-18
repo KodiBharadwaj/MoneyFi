@@ -11,6 +11,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import static com.moneyfi.user.util.constants.StringConstants.LOCAL_PROFILE;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -27,7 +29,7 @@ public class EventPublisherService {
     @Order(1)
     public void sendUserNotification(NotificationQueueDto notificationQueueDto) {
         try {
-            if ("local".equalsIgnoreCase(activeProfile)) {
+            if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
                 artemisQueueProducer.sendMessage(notificationQueueDto);
             } else {
                 rabbitMqQueuePublisher.publish(notificationQueueDto);

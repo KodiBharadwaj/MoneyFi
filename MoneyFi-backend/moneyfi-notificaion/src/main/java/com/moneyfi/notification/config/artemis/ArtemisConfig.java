@@ -6,8 +6,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jms.core.JmsTemplate;
 
+import static com.moneyfi.notification.util.constants.StringConstants.LOCAL_PROFILE_ARTEMIS;
+
 @Configuration
-@Profile("local-artemis")
+@Profile(LOCAL_PROFILE_ARTEMIS)
 public class ArtemisConfig {
 
     @Bean

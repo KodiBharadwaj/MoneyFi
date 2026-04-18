@@ -12,7 +12,7 @@ import java.util.Map;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 
 @Configuration
-@Profile("local")
+@Profile({LOCAL_PROFILE, PROD_PROFILE})
 public class CloudinaryConfig {
 
     @Value("${cloudinary.credentials.cloud-name}")

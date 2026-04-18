@@ -11,4 +11,5 @@ public class StringConstants {
     public static final String EMAIL_SENT_SUCCESS_MESSAGE = "Email sent successfully!";
     public static final String LOCAL_PROFILE_ARTEMIS = "local-artemis";
     public static final String LOCAL_PROFILE_RABBIT_MQ = "local-rabbitmq";
+    public static final String PROD_PROFILE_RABBIT_MQ = "prod-rabbitmq";
 }

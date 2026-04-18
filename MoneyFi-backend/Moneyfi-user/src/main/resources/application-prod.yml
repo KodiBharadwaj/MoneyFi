@@ -1,31 +1,14 @@
 spring:
-
-cloud:
-  aws:
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
-    region:
-      static: ${AWS_REGION}
-    stack:
-      auto: false
-
-application:
-  bucket:
-    name: ${AWS_S3_BUCKET_NAME}
-
   rabbitmq:
-    uri: ${RABBITMQ_URI}
+    host: ${CLOUD_RABBITMQ_HOST_NAME}
+    port: ${CLOUD_RABBITMQ_PORT}
+    username: ${CLOUD_RABBITMQ_USERNAME}
+    password: ${CLOUD_RABBITMQ_PASSWORD}
+    virtual-host: ${CLOUD_RABBITMQ_VIRTUAL_HOST}
+    ssl:
+      enabled: true
 
 rabbitmq:
   exchange: rabbit.mq.exchange
   routing-key: rabbit.mq.routing.key
   queue: rabbit.mq.queue
-
-  #Artemis Configuration
-  artemis:
-    mode: native
-    host: localhost
-    port: 8161
-    user: artemis
-    password: artemis

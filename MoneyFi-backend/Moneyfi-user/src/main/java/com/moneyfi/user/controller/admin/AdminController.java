@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.service.admin.AdminService;
 import com.moneyfi.user.service.admin.dto.request.*;
 import com.moneyfi.user.service.admin.dto.response.*;
+import com.moneyfi.user.service.general.rabbitmq.RabbitMqQueuePublisher;
 import com.moneyfi.user.service.user.UserAuthService;
 import com.moneyfi.user.service.user.UserCommonService;
 import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;

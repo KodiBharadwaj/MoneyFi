@@ -9,8 +9,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
+import static com.moneyfi.notification.util.constants.StringConstants.LOCAL_PROFILE_ARTEMIS;
+
 @Component
-@Profile("local-artemis")
+@Profile(LOCAL_PROFILE_ARTEMIS)
 @RequiredArgsConstructor
 public class ArtemisQueueConsumer {
 
