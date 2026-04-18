@@ -42,8 +42,8 @@ public class UserAuthController {
 
     @Operation(summary = "Api to verify otp during user creation")
     @GetMapping("/{email}/{inputOtp}/check-otp/signup")
-    public ResponseEntity<Boolean> checkEnteredOtp(@NotBlank @Email @PathVariable("email") String email,
-                                                   @NotBlank @PathVariable("inputOtp") String inputOtp){
+    public ResponseEntity<Boolean> checkEnteredOtp(@NotBlank @Email @PathVariable(value = "email") String email,
+                                                   @NotBlank @PathVariable(value = "inputOtp") String inputOtp){
         return ResponseEntity.ok(userAuthService.checkEnteredOtpDuringSignup(email, inputOtp));
     }
 
@@ -60,7 +60,7 @@ public class UserAuthController {
 
     @Operation(summary = "Api to check the eligibility for next otp")
     @GetMapping("/{email}/otp-send/check")
-    public ResponseEntity<RemainingTimeCountDto> checkOtpActiveMethod(@NotBlank @Email @PathVariable("email") String email){
+    public ResponseEntity<RemainingTimeCountDto> checkOtpActiveMethod(@NotBlank @Email @PathVariable(value = "email") String email){
         return ResponseEntity.ok(userAuthService.checkOtpActiveMethod(email));
     }
 

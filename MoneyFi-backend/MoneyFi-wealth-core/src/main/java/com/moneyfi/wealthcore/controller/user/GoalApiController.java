@@ -31,7 +31,7 @@ public class GoalApiController {
     @Operation(summary = "Api to add a goal")
     @PostMapping("/save")
     public ResponseEntity<Void> saveGoal(@RequestHeader("Authorization") String authHeader,
-                                         @Valid @RequestBody GoalModel goal) {
+                                         @RequestBody GoalModel goal) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         goalService.save(goal, userId, authHeader);
         return ResponseEntity.ok().build();
@@ -50,7 +50,7 @@ public class GoalApiController {
     public ResponseEntity<List<GoalDetailsDto>> getAllGoals(@RequestHeader("Authorization") String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         List<GoalDetailsDto> list = goalService.getAllGoals(userId);
-        return ResponseEntity.status(HttpStatus.OK).body(list); // 200
+        return ResponseEntity.status(HttpStatus.OK).body(list);
     }
 
     @Operation(summary = "Api to get total current amount of a particular goal")

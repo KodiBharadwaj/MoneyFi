@@ -3,6 +3,7 @@ package com.moneyfi.wealthcore.controller.common;
 import com.moneyfi.constants.dto.CategoryResponseDto;
 import com.moneyfi.wealthcore.service.common.CommonService;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,14 +15,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/wealth-core/common")
+@RequiredArgsConstructor
 public class CommonController {
     
     private final CommonService commonService;
     
-    public CommonController(CommonService commonService) {
-        this.commonService = commonService;
-    }
-
     @Operation(summary = "Api to get the category list based on type")
     @PostMapping("/category-list/get")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")

@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -25,6 +26,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/user-service/gmail-sync")
 @PreAuthorize("hasRole('USER')")
 @RequiredArgsConstructor
+@Validated
 public class GmailSyncController {
 
     private final GmailSyncService gmailSyncService;

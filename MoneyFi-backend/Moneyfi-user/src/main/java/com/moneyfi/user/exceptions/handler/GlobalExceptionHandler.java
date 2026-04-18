@@ -1,10 +1,9 @@
 package com.moneyfi.user.exceptions.handler;
 
-import com.moneyfi.user.exceptions.CloudinaryImageException;
-import com.moneyfi.user.exceptions.CustomInternalServerErrorException;
-import com.moneyfi.user.exceptions.ResourceNotFoundException;
-import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
+import com.moneyfi.user.exceptions.*;
 import com.moneyfi.user.service.user.dto.response.ErrorResponse;
+import jakarta.persistence.NoResultException;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +23,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler({ResourceNotFoundException.class})
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundExceptionFunction(ResourceNotFoundException exception) {
+    @ExceptionHandler({ResourceNotFoundException.class, NoResultException.class})
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundExceptionFunction(Exception exception) {
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage()), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler({CustomInternalServerErrorException.class, CloudinaryImageException.class})
+    @ExceptionHandler({CustomInternalServerErrorException.class, CloudinaryImageException.class, QueryValidationException.class})
     public ResponseEntity<ErrorResponse> handleHttpServerErrorExceptionFunction(Exception exception) {
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), exception.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -40,6 +39,18 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .toList();
+        return new ResponseEntity<>(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), errors.toString()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
+        List<String> errors = ex.getConstraintViolations().stream()
+                .map(cv -> {
+                    String field = cv.getPropertyPath().toString();
+                    field = field.substring(field.lastIndexOf('.') + 1);
+                    return field + ": " + cv.getMessage();
+                })
                 .toList();
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), errors.toString()), HttpStatus.BAD_REQUEST);
     }

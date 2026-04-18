@@ -1,10 +1,12 @@
 package com.moneyfi.user.repository.admin.impl;
 
 import com.moneyfi.user.exceptions.QueryValidationException;
+import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.repository.admin.AdminRepository;
 import com.moneyfi.user.service.admin.dto.response.*;
 import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.hibernate.query.NativeQuery;
@@ -104,11 +106,12 @@ public class AdminRepositoryImpl implements AdminRepository {
                     .setParameter("username", username)
                     .unwrap(NativeQuery.class)
                     .setResultTransformer(Transformers.aliasToBean(UserProfileAndRequestDetailsDto.class));
-
             return (UserProfileAndRequestDetailsDto) query.getSingleResult();
-        } catch (Exception e){
+        } catch (NoResultException e) {
+            throw new ResourceNotFoundException("User not found with username: " + username);
+        } catch (Exception e) {
             e.printStackTrace();
-            throw new QueryValidationException("Error occurred while fetching user complete details for admin");
+            throw new QueryValidationException("Error occurred while fetching user details");
         }
     }
 

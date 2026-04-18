@@ -183,7 +183,7 @@ public class UserController {
     @Operation(summary = "Api to block/delete account based on user request")
     @PostMapping("/deactivate-account")
     public ResponseEntity<String> blockOrDeleteAccountByUserRequest(Authentication authentication,
-                                                                    @RequestBody AccountBlockOrDeleteRequestDto request) {
+                                                                    @RequestBody @Valid AccountBlockOrDeleteRequestDto request) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         return userCommonService.blockOrDeleteAccountByUserRequest(username, request);
     }

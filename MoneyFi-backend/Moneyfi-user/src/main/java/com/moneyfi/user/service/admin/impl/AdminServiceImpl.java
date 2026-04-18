@@ -269,6 +269,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status) {
+        AdminValidations.validateYear(year);
         return adminRepository.getUserMonthlyCountInAYear(year, status);
     }
 
