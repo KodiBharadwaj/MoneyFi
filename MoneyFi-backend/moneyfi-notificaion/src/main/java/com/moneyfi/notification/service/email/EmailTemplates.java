@@ -50,11 +50,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendUserNameToUser(String email){
@@ -72,11 +73,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendUserRaiseDefectEmailToAdmin(UserRaisedDefectDto userRaisedDefectDto) {
@@ -149,11 +151,12 @@ public class EmailTemplates {
                 + "<br>"
                 + "<p style='font-size: 16px;'>Comment: </p>"
                 + "<p style='font-size: 16px;'>" + message + "</p>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(ADMIN_EMAIL, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(ADMIN_EMAIL, subject, body));
+//        }
+        emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
     }
 
     public void sendAccountStatementAsEmail(StatementAnalysisDto statementAnalysisDto) {
@@ -227,11 +230,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendBlockAlertMailToUser(String email, String reason, String name, byte[] file) {
@@ -248,11 +252,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmailWithAttachment(email, subject, body, file, "reason-attachment.jpg");
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmailWithAttachment(email, subject, body, file, "reason-attachment.jpg");
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmailWithAttachment(email, subject, body, file, "reason-attachment.jpg");
     }
 
     public void sendUserGmailSyncApprovedMail(String name, String email, int gmailSyncRequestCount) {
@@ -269,11 +274,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendUserGmailSyncCountIncreaseRequestRejection(String name, String email) {
@@ -290,11 +296,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendContactUsDetailsEmailToAdmin(String email, String phoneNumber, String name, String description) {
@@ -313,11 +320,12 @@ public class EmailTemplates {
                 + "<br>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendNameChangeRequestApprovedMailToUser(String name, String email, String referenceNumber) {
@@ -334,11 +342,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendNameChangeRequestRejectionMailToUser(String name, String email, String referenceNumber) {
@@ -355,11 +364,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendAccountUnblockOrRetrievalSuccessfulMailToUser(String name, String email, String referenceNumber, String mode) {
@@ -376,11 +386,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendAccountUnblockOrRetrievalFailureMailToUser(String name, String email, String referenceNumber, String mode, String declineReason) {
@@ -397,11 +408,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendPasswordChangeAlertMail(String name, String email){
@@ -419,11 +431,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendOtpEmailToUserForSignup(String email, String name, String verificationCode){
@@ -441,11 +454,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendOtpToUserForAccountBlock(String email, String name, String verificationCode, String type){
@@ -469,11 +483,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendOtpForForgotPassword(String userName, String email, String verificationCode){
@@ -492,11 +507,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendAnniversaryCongratulationsMailToUser(String email, String name, int numberOfYears){
@@ -513,11 +529,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendBirthdayWishEmailToUsers(String email, String name){
@@ -533,11 +550,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     public void sendEmailForSuccessfulUserCreation(String email, String name){
@@ -554,11 +572,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-            emailFilter.sendEmail(email, subject, body);
-        } else {
-            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-        }
+//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+//            emailFilter.sendEmail(email, subject, body);
+//        } else {
+//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
+//        }
+        emailFilter.sendEmail(email, subject, body);
     }
 
     private SimpleMailMessage functionToSetAwsSesObjectValues(String email, String subject, String body) {
