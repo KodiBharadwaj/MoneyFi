@@ -21,6 +21,7 @@ export class KeepAliveService implements OnDestroy {
       this.http.get('https://moneyfi-wealth-core.onrender.com').subscribe();
       this.http.get('https://moneyfi-user.onrender.com').subscribe();
       this.http.get('https://moneyfi-monitor.onrender.com').subscribe();
+      this.http.get('https://moneyfi-notification.onrender.com/').subscribe();
       const token = sessionStorage.getItem('moneyfi.auth');
       if (!token) {
         this.stopPinging();
