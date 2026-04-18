@@ -19,11 +19,11 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 
-import static com.moneyfi.user.util.constants.StringConstants.UPLOAD_PROFILE_PICTURE;
+import static com.moneyfi.user.util.constants.StringConstants.*;
 
 @Slf4j
 @Service
-@Profile("local")
+@Profile({LOCAL_PROFILE, PROD_PROFILE})
 public class CloudinaryServiceImpl implements CloudinaryService {
 
     private final Cloudinary cloudinary;

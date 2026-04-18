@@ -572,10 +572,10 @@ public class AdminServiceImpl implements AdminService {
     }
 
     private void functionCallToUploadExelTemplateToCloud(MultipartFile file, String fileName) {
-        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
+        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
             cloudinaryService.uploadExcelTemplateToCloudinary(file, fileName);
         } else {
-            awsServices.uploadExcelTemplateToS3(file, fileName);
+            /** awsServices.uploadExcelTemplateToS3(file, fileName); */
         }
     }
 

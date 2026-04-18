@@ -408,17 +408,18 @@ public class UserCommonServiceImpl implements UserCommonService {
 
     @Override
     public String uploadUserProfilePictureToS3(String username, Long userId, MultipartFile file) {
-        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
+        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
             cloudinaryService.uploadPictureToCloudinary(file, userId, username, UPLOAD_PROFILE_PICTURE);
             return "Upload Successful";
         } else {
-            return awsServices.uploadPictureToS3(userId, username, file, UPLOAD_PROFILE_PICTURE);
+            /** return awsServices.uploadPictureToS3(userId, username, file, UPLOAD_PROFILE_PICTURE); */
+            return null;
         }
     }
 
     @Override
     public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username, Long userId) {
-        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
+        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
             byte[] imageBytes = cloudinaryService.getImageFromCloudinary(userId, username, UPLOAD_PROFILE_PICTURE);
             ByteArrayResource resource = new ByteArrayResource(imageBytes);
             return ResponseEntity.ok()
@@ -426,13 +427,14 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .contentLength(imageBytes.length)
                     .body(resource);
         } else {
-            return awsServices.fetchUserProfilePictureFromS3(userId, username);
+            /** return awsServices.fetchUserProfilePictureFromS3(userId, username); */
+            return null;
         }
     }
 
     @Override
     public ResponseEntity<ByteArrayResource> getUserRaisedDefectImage(String username, String type, Long defectId) {
-        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
+        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
             String imageType = "";
             if ("DEFECT".equalsIgnoreCase(type)) imageType = UPLOAD_USER_RAISED_REPORT_PICTURE;
             else if ("REQUEST".equalsIgnoreCase(type)) imageType = GMAIL_SYNC_COUNT_INCREASE_REQUEST;
@@ -444,16 +446,18 @@ public class UserCommonServiceImpl implements UserCommonService {
                     .contentLength(imageBytes.length)
                     .body(resource);
         } else {
-            return awsServices.fetchUserProfilePictureFromS3(defectId, username);
+            /** return awsServices.fetchUserProfilePictureFromS3(defectId, username); */
+            return null;
         }
     }
 
     @Override
     public ResponseEntity<String> deleteProfilePictureFromS3(String username, Long userId) {
-        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
+        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
             return cloudinaryService.deleteProfilePictureFromCloudinary(userId, username);
         } else {
-            return awsServices.deleteProfilePictureFromS3(userId, username);
+            /** return awsServices.deleteProfilePictureFromS3(userId, username); */
+            return null;
         }
     }
 
@@ -678,10 +682,10 @@ public class UserCommonServiceImpl implements UserCommonService {
         saveUserNotificationsForParticularUsers(username, scheduleNotificationRepository.save(scheduleNotification).getId());
 
         if (ObjectUtils.isNotEmpty(image)) {
-            if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
+            if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
                 cloudinaryService.uploadPictureToCloudinary(image, savedRequest.getId(), username, GMAIL_SYNC_COUNT_INCREASE_REQUEST);
             } else {
-                awsServices.uploadPictureToS3(savedRequest.getId(), username, image, GMAIL_SYNC_COUNT_INCREASE_REQUEST);
+                /** awsServices.uploadPictureToS3(savedRequest.getId(), username, image, GMAIL_SYNC_COUNT_INCREASE_REQUEST); */
             }
         }
         applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userProfile.getName() + "<|>" + username + "<|>" + "request Gmail Sync Count Increase" + "<|>" + referenceNumber));

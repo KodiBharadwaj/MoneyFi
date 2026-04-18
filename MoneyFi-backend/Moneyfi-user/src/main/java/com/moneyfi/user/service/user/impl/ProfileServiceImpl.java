@@ -157,10 +157,10 @@ public class ProfileServiceImpl implements ProfileService {
         contactUsHistRepository.save(userDefectHist);
 
         if (userDefectRequestDto.getFile() != null && !userDefectRequestDto.getFile().isEmpty()) {
-            if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
+            if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
                 cloudinaryService.uploadPictureToCloudinary(userDefectRequestDto.getFile(), savedDefect.getId(), userDefectRequestDto.getEmail().trim(), UPLOAD_USER_RAISED_REPORT_PICTURE);
             } else {
-                awsServices.uploadPictureToS3(savedDefect.getId(), userDefectRequestDto.getEmail().trim(), userDefectRequestDto.getFile(), UPLOAD_USER_RAISED_REPORT_PICTURE);
+                /** awsServices.uploadPictureToS3(savedDefect.getId(), userDefectRequestDto.getEmail().trim(), userDefectRequestDto.getFile(), UPLOAD_USER_RAISED_REPORT_PICTURE); */
             }
         }
         applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userDefectRequestDto.getName() + "<|>" + userDefect.getEmail() + "<|>" + "resolve issue" + "<|>" + referenceNumber));
@@ -239,10 +239,11 @@ public class ProfileServiceImpl implements ProfileService {
         if ("profile-template".equalsIgnoreCase(fileType)) fileName = StringConstants.PROFILE_TEMPLATE_EXCEL_NAME;
 
         try {
-            if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
+            if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
                 return cloudinaryService.getExcelTemplateFromCloudinary(fileName);
             } else {
-                return awsServices.fetchExcelTemplateFromS3(fileName);
+                /** return awsServices.fetchExcelTemplateFromS3(fileName); */
+                return null;
             }
         } catch (Exception e) {
             ExcelTemplate template = excelTemplateRepository.findByName(fileName).orElseThrow(() -> new ResourceNotFoundException(TEMPLATE_NOT_FOUND_MESSAGE));

@@ -2,7 +2,7 @@ spring:
   application:
     name: MoneyFi-user
   profiles:
-    active: ${PROFILE:local}
+    active: ${PROFILE}
   security:
     oauth2:
       client:
@@ -33,6 +33,17 @@ spring:
         format_sql: true
         highlight_sql: true
 
+  boot:
+    admin:
+      client:
+        url: ${MONITOR_SERVICE_URL}
+        username: admin        # <-- must match monitor server
+        password: admin123     # <-- must match monitor server
+        instance:
+          metadata:
+            user.name: client
+            user.password: client123
+
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -60,6 +71,26 @@ eureka:
       defaultZone: ${EUREKA_URL}
   instance:
     prefer-ip-address: true
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+    region:
+      static: ${AWS_REGION}
+    stack:
+      auto: false
+
+application:
+  bucket:
+    name: ${AWS_S3_BUCKET_NAME}
+
+cloudinary:
+  credentials:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME}
+    api-key: ${CLOUDINARY_API_KEY}
+    api-secret: ${CLOUDINARY_API_SECRET}
 
 
   jackson:
