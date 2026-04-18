@@ -4,9 +4,12 @@ import com.moneyfi.wealthcore.security.JwtService;
 import com.moneyfi.wealthcore.service.budget.dto.response.SpendingAnalysisResponseDto;
 import com.moneyfi.wealthcore.service.wealthcore.WealthCoreService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -14,22 +17,18 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/api/v1/wealth-core")
 @PreAuthorize("hasRole('USER')")
+@Validated
+@RequiredArgsConstructor
 public class WealthCoreApiController {
 
     private final WealthCoreService wealthCoreService;
     private final JwtService jwtService;
 
-    public WealthCoreApiController(WealthCoreService wealthCoreService,
-                                   JwtService jwtService){
-        this.wealthCoreService = wealthCoreService;
-        this.jwtService = jwtService;
-    }
-
     @Operation(summary = "Api to get the user spending analysis in a particular time period")
     @GetMapping("/spending-analysis")
     public SpendingAnalysisResponseDto getUserSpendingAnalysisByBudgetCategories(@RequestHeader("Authorization") String authHeader,
-                                                                                 @RequestParam LocalDate fromDate,
-                                                                                 @RequestParam LocalDate toDate){
+                                                                                 @NotNull @RequestParam LocalDate fromDate,
+                                                                                 @NotNull @RequestParam LocalDate toDate){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return wealthCoreService.getUserSpendingAnalysisByBudgetCategories(userId, fromDate, toDate, authHeader);
     }
@@ -37,8 +36,8 @@ public class WealthCoreApiController {
     @Operation(summary = "Api to get the user spending analysis in pdf format in a particular time period")
     @GetMapping("/spending-analysis/report")
     public ResponseEntity<byte[]> getUserSpendingAnalysisByBudgetCategoriesPdf(@RequestHeader("Authorization") String authHeader,
-                                                                               @RequestParam LocalDate fromDate,
-                                                                               @RequestParam LocalDate toDate){
+                                                                               @NotNull @RequestParam LocalDate fromDate,
+                                                                               @NotNull @RequestParam LocalDate toDate){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         byte[] pdfBytes = wealthCoreService.getUserSpendingAnalysisByBudgetCategoriesPdf(userId, fromDate, toDate, authHeader);
         return ResponseEntity.ok()
@@ -50,8 +49,8 @@ public class WealthCoreApiController {
     @Operation(summary = "Api to get the user spending analysis in pdf format and send email to user in a particular time period")
     @GetMapping("/spending-analysis/report-email")
     public ResponseEntity<String> getUserSpendingAnalysisByBudgetCategoriesPdfEmail(@RequestHeader("Authorization") String authHeader,
-                                                                                    @RequestParam LocalDate fromDate,
-                                                                                    @RequestParam LocalDate toDate){
+                                                                                    @NotNull @RequestParam LocalDate fromDate,
+                                                                                    @NotNull @RequestParam LocalDate toDate){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return wealthCoreService.getUserSpendingAnalysisByBudgetCategoriesPdfEmail(userId, fromDate, toDate, authHeader);
     }

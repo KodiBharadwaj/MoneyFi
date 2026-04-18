@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserFeedbackRequestDto {
+    @NotBlank
     private String email;
     @NotBlank
     private String message;
+    @NotBlank
     private String name;
 }

@@ -10,6 +10,8 @@ import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.user.service.user.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -19,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +33,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/user-service/admin")
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
+@Validated
 public class AdminController {
 
     private final AdminService adminService;
@@ -45,30 +49,30 @@ public class AdminController {
 
     @Operation(summary = "Api to get active user grid details")
     @GetMapping("/user-details/grid")
-    public List<UserGridDto> getUserDetailsGridForAdmin(@RequestParam("status") String status){
+    public List<UserGridDto> getUserDetailsGridForAdmin(@NotBlank @RequestParam(value = "status") String status){
         return adminService.getUserDetailsGridForAdmin(status);
     }
 
     @Operation(summary = "Api to get active user defects raised details")
     @GetMapping("/user-defects/grid")
-    public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(@RequestParam("status") String status){
+    public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(@NotBlank @RequestParam(value = "status") String status){
         return adminService.getUserRaisedDefectsForAdmin(status);
     }
 
     @Operation(summary = "Api to get defect/user raised report image")
     @GetMapping("/user-defects/image")
-    public ResponseEntity<ByteArrayResource> fetchUserRaisedDefectImage(@RequestParam String username,
-                                                                        @RequestParam String type,
-                                                                        @RequestParam Long id) {
+    public ResponseEntity<ByteArrayResource> fetchUserRaisedDefectImage(@NotBlank @RequestParam String username,
+                                                                        @NotBlank @RequestParam String type,
+                                                                        @NotNull @RequestParam Long id) {
         return userCommonService.getUserRaisedDefectImage(username, type, id);
     }
 
     @Operation(summary = "Api to change the user defect status in contact us table")
     @PutMapping("/{defectId}/update-defect-status")
     public void updateDefectStatus(Authentication authentication,
-                                   @PathVariable("defectId") Long defectId,
+                                   @NotNull @PathVariable(value = "defectId") Long defectId,
                                    @RequestBody Map<String, String> body,
-                                   @RequestParam String reason) {
+                                   @NotBlank @RequestParam String reason) {
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.updateDefectStatus(defectId, body.get("status"), reason, adminUserId);
     }
@@ -76,7 +80,7 @@ public class AdminController {
     @Operation(summary = "Api to unblock/retrieve/name change of the user account with respective details")
     @PostMapping("/user-requests/action")
     public boolean accountReactivationAndNameChangeRequest(Authentication authentication,
-                                                           @RequestBody UserRequestsApprovalDto requestDto){
+                                                           @RequestBody @Valid UserRequestsApprovalDto requestDto){
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         return adminService.accountReactivationAndNameChangeRequest(requestDto.getEmail(), requestDto.getReferenceNumber(), requestDto.getRequestStatus(), adminUserId, requestDto.getApproveStatus(), requestDto.getDeclineReason(), requestDto.getGmailSyncRequestCount());
     }
@@ -84,8 +88,8 @@ public class AdminController {
     @Operation(summary = "Api to block the user's account by admin")
     @PostMapping(value = "/user-account/block", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void blockTheUserAccountByAdmin(Authentication authentication,
-                                                             @RequestParam String email,
-                                                             @RequestParam String reason,
+                                                             @NotBlank @RequestParam String email,
+                                                             @NotBlank @RequestParam String reason,
                                                              @RequestParam(required = true) MultipartFile file) throws JsonProcessingException {
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.blockTheUserAccountByAdmin(email, reason, file, adminUserId);
@@ -93,7 +97,7 @@ public class AdminController {
 
     @Operation(summary = "Api to get user grid details as excel report")
     @GetMapping("/user-details/excel")
-    public ResponseEntity<byte[]> getUserDetailsExcelForAdmin(@RequestParam("status") String status){
+    public ResponseEntity<byte[]> getUserDetailsExcelForAdmin(@NotBlank @RequestParam(value = "status") String status){
         byte[] excelData = adminService.getUserDetailsExcelForAdmin(status);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+status+"_user_list.xlsx")
@@ -103,7 +107,7 @@ public class AdminController {
 
     @Operation(summary = "Api to get the user requests for admin")
     @GetMapping("/fetch-user-requests/grid")
-    public List<UserRequestsGridDto> getUserRequestsGridForAdmin(@RequestParam("status") String status){
+    public List<UserRequestsGridDto> getUserRequestsGridForAdmin(@NotBlank @RequestParam(value = "status") String status){
         return adminService.getUserRequestsGridForAdmin(status);
     }
 
@@ -116,43 +120,43 @@ public class AdminController {
     @Operation(summary = "Api to update the user feedback by admin")
     @PutMapping("/user-feedback/update")
     public void updateUserFeedback(Authentication authentication,
-                                   @RequestParam("id") Long feedbackId){
+                                   @NotNull @RequestParam(value = "id") Long feedbackId){
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.updateUserFeedback(feedbackId, adminUserId);
     }
 
     @Operation(summary = "Api to the user count in every month for chart")
     @GetMapping("/{year}/user-monthly-count/chart")
-    public Map<Integer, Integer> getUserMonthlyCountInAYear(@PathVariable("year") int year,
-                                                            @RequestParam("status") String status){
+    public Map<Integer, Integer> getUserMonthlyCountInAYear(@NotNull @PathVariable(value = "year") int year,
+                                                            @NotBlank @RequestParam(value = "status") String status){
         return adminService.getUserMonthlyCountInAYear(year, status);
     }
 
     @Operation(summary = "Api to get the user profile details for admin")
     @GetMapping("/user-profile-details")
     public ResponseEntity<UserProfileAndRequestDetailsDto> getCompleteUserDetailsForAdmin(Authentication authentication,
-                                                                                          @RequestParam("username") String username){
+                                                                                          @NotBlank @RequestParam(value = "username") String username){
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         return ResponseEntity.ok(adminService.getCompleteUserDetailsForAdmin(username, adminUserId));
     }
 
     @Operation(summary = "Api to fetch the user profile picture from aws s3")
     @GetMapping("/profile-picture/get")
-    public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(@RequestParam("username") String username) {
+    public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(@NotBlank @RequestParam(value = "username") String username) {
         return userCommonService.fetchUserProfilePictureFromS3(username, profileService.getProfileDetailsOfUser(username).getUserId());
     }
 
     @Operation(summary = "Api to add the reason dropdown names")
     @PostMapping("/reasons/add")
     public void addReasonsForUserReasonDialog(Authentication authentication,
-                                              @RequestBody ReasonDetailsRequestDto requestDto){
+                                              @RequestBody @Valid ReasonDetailsRequestDto requestDto){
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.addReasonsForUserReasonDialog(requestDto, adminUserId);
     }
 
     @Operation(summary = "Api to get the reason based on reason code")
     @GetMapping("/reasons/get")
-    public ResponseEntity<List<ReasonListResponseDto>> getAllReasonsBasedOnReasonCode(@RequestParam("code") int reasonCode){
+    public ResponseEntity<List<ReasonListResponseDto>> getAllReasonsBasedOnReasonCode(@NotNull @RequestParam(value = "code") int reasonCode){
         List<ReasonListResponseDto> responseList = adminService.getAllReasonsBasedOnReasonCode(reasonCode);
         if(!responseList.isEmpty()){
             return ResponseEntity.status(HttpStatus.OK).body(responseList);
@@ -164,7 +168,7 @@ public class AdminController {
     @Operation(summary = "Api to update the reason string")
     @PutMapping("/reasons/update")
     public void updateReasonsForUserReasonDialogByReasonCode(Authentication authentication,
-                                                             @RequestBody ReasonUpdateRequestDto requestDto){
+                                                             @RequestBody @Valid ReasonUpdateRequestDto requestDto){
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.updateReasonsForUserReasonDialogByReasonCode(requestDto, adminUserId);
     }
@@ -172,7 +176,7 @@ public class AdminController {
     @Operation(summary = "Api to delete the reason names by admin - soft delete")
     @DeleteMapping("/reasons/delete")
     public void deleteReasonByReasonIdByAdmin(Authentication authentication,
-                                              @RequestParam("id") int reasonId){
+                                              @NotNull @RequestParam(value = "id") int reasonId){
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.deleteReasonByReasonId(reasonId, adminUserId);
     }
@@ -195,8 +199,8 @@ public class AdminController {
     @Operation(summary = "Api to get all the schedules for admin screen")
     @GetMapping("/schedule-notifications/get")
     public ResponseEntity<List<AdminSchedulesResponseDto>> getAllActiveSchedulesOfAdmin(Authentication authentication,
-                                                                                        @RequestParam(value = "status") String status,
-                                                                                        @RequestParam(value = "mode") String operationMode){
+                                                                                        @NotBlank @RequestParam(value = "status") String status,
+                                                                                        @NotBlank @RequestParam(value = "mode") String operationMode){
         String adminUsername = ((UserDetails) authentication.getPrincipal()).getUsername();
         return ResponseEntity.ok(adminService.getAllActiveSchedulesOfAdmin(status, operationMode, adminUsername));
     }
@@ -204,7 +208,7 @@ public class AdminController {
     @Operation(summary = "Api to cancel the user scheduling")
     @PutMapping("/schedule-notification/cancel")
     public void cancelTheUserScheduling(Authentication authentication,
-                                        @RequestParam("id") Long scheduleId){
+                                        @NotNull @RequestParam(value = "id") Long scheduleId){
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.cancelTheUserScheduling(scheduleId, adminUserId);
     }
@@ -212,7 +216,7 @@ public class AdminController {
     @Operation(summary = "Api to soft delete the user scheduling")
     @DeleteMapping("/schedule-notification/delete")
     public void deleteUserScheduling(Authentication authentication,
-                                     @RequestParam("id") Long scheduleId){
+                                     @NotNull @RequestParam(value = "id") Long scheduleId){
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.deleteUserScheduling(scheduleId, adminUserId);
     }
@@ -228,9 +232,9 @@ public class AdminController {
     @Operation(summary = "Api to upload excel templates into cloud and database(only when fallback occurs)")
     @PostMapping("/excel-template/upload")
     public void uploadTemplateExcel(Authentication authentication,
-                                    @RequestParam("type") String type,
-                                    @RequestParam("operation") String operation,
-                                    @RequestParam("file") MultipartFile file) throws IOException {
+                                    @NotBlank @RequestParam(value = "type") String type,
+                                    @NotBlank @RequestParam(value = "operation") String operation,
+                                    @RequestParam(value = "file") MultipartFile file) throws IOException {
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.uploadExcelTemplate(adminUserId, type, operation, file);
     }

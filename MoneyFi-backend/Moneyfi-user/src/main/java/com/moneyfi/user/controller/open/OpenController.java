@@ -33,8 +33,8 @@ public class OpenController {
 
     @Operation(summary = "Api to send reference number to user for account retrieval/name change")
     @GetMapping("/{requestStatus}/{email}/reference-number-request")
-    public Map<Boolean, String> requestReferenceNumber(@NotBlank @PathVariable("requestStatus") String requestStatus,
-                                                       @NotBlank @Email @PathVariable("email") String email){
+    public Map<Boolean, String> requestReferenceNumber(@NotBlank @PathVariable(value = "requestStatus") String requestStatus,
+                                                       @NotBlank @Email @PathVariable(value = "email") String email){
         return userCommonService.sendReferenceRequestNumberEmail(requestStatus, email);
     }
 

@@ -1,10 +1,12 @@
 package com.moneyfi.user.controller.open;
 
 import com.moneyfi.user.service.user.UserAuthService;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,6 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/user-service/Oauth")
 @RequiredArgsConstructor
+@Validated
 public class OAuthProcessController {
 
     @Value("${spring.security.oauth2.client.registration.facebook.client-id}")
@@ -34,7 +37,7 @@ public class OAuthProcessController {
     }
 
     @GetMapping("/github/popup-callback")
-    public String handleGithubPopup(@RequestParam("code") String code) {
+    public String handleGithubPopup(@NotBlank @RequestParam(value = "code") String code) {
         return userAuthService.loginViaGithubOAuth(code);
     }
 

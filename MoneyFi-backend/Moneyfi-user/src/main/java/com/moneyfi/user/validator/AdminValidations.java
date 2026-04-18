@@ -38,4 +38,14 @@ public class AdminValidations {
             }
         }
     }
+
+    public static void validateYear(int year) {
+        int currentYear = java.time.Year.now().getValue();
+        if (year < 1000 || year > 9999) {
+            throw new ScenarioNotPossibleException("Please enter valid year");
+        }
+        if (year > currentYear) {
+            throw new ScenarioNotPossibleException("Future year not allowed");
+        }
+    }
 }

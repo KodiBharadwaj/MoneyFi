@@ -2,11 +2,13 @@ package com.moneyfi.user.controller.common;
 
 import com.moneyfi.user.service.user.UserAuthService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -14,6 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/user-service/common")
 @RequiredArgsConstructor
+@Validated
 public class CommonController {
 
     private final UserAuthService userAuthService;
@@ -33,7 +36,7 @@ public class CommonController {
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<String> updateUserSessionExpirationTime(Authentication authentication,
                                                                   @RequestHeader("Authorization") String authHeader,
-                                                                  @RequestParam long minutes) {
+                                                                  @NotNull @RequestParam long minutes) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         return ResponseEntity.ok(userAuthService.updateUserSessionExpirationTime(minutes, username, authHeader.substring(7)));
     }
