@@ -2,7 +2,7 @@ spring:
   application:
     name: MoneyFi-notification
   profiles:
-    active: ${PROFILE:local-artemis}
+    active: ${PROFILE}
 
 email:
   filter:

@@ -1,6 +1,5 @@
 spring:
   rabbitmq:
-#    uri: ${RABBITMQ_URI}
     host: localhost
     port: 5672
     username: guest
