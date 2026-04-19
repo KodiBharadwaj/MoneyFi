@@ -1,6 +1,7 @@
 package com.moneyfi.user.service.general.caching;
 
 import com.moneyfi.constants.dto.CategoryResponseDto;
+import com.moneyfi.user.service.user.dto.response.ProfileDetailsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -39,5 +40,10 @@ public class UserCacheService {
                     .toList();
         }
         return List.of();
+    }
+
+    @CachePut(value = "UserProfileDetails", key = "#username")
+    public ProfileDetailsDto updateUserProfileDetails(String username, ProfileDetailsDto profileDetailsDto) {
+        return profileDetailsDto;
     }
 }

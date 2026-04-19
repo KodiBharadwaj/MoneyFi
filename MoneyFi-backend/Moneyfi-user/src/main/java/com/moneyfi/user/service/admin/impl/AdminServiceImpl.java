@@ -697,6 +697,7 @@ public class AdminServiceImpl implements AdminService {
             requestUserHist.setMessage("Admin has been approved Name change Request");
             methodToUpdateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
             userCacheService.updateUserNameCache(user.getId(), requestDetailsHist.getName());
+            userCacheService.updateUserProfileDetails(user.getUsername(), commonServiceRepository.getProfileDetailsOfUser(user.getUsername()));
 
             ScheduleNotification scheduleNotification = new ScheduleNotification();
             scheduleNotification.setSubject("Admin has been approved Name change Request");
