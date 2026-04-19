@@ -55,7 +55,7 @@ public class EmailFilter {
             message.setContent(body, "text/html; charset=UTF-8");  // Change to HTML content
             // Send the email
             Transport.send(message);
-            log.info(StringConstants.EMAIL_SENT_SUCCESS_MESSAGE);
+            log.info(StringConstants.EMAIL_SENT_SUCCESS_MESSAGE + " with Java SMTP");
             return true;
         } catch (MessagingException e) {
             e.printStackTrace();
@@ -101,7 +101,7 @@ public class EmailFilter {
             message.setContent(multipart);
             // Send email
             Transport.send(message);
-            log.info(StringConstants.EMAIL_SENT_SUCCESS_MESSAGE);
+            log.info(StringConstants.EMAIL_SENT_SUCCESS_MESSAGE + " with Java SMTP");
             return true;
         } catch (MessagingException e) {
             e.printStackTrace();
