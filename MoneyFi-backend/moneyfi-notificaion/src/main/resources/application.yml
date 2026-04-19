@@ -5,6 +5,10 @@ spring:
     active: ${PROFILE}
 
 email:
+  brevo:
+    api-key: ${BREVO_API_KEY}
+    from-email: ${BREVO_FROM_EMAIL}
+
   filter:
     from:
       email : ${ADMIN_EMAIL}

@@ -27,10 +27,14 @@ public class EmailTemplates {
     private final EmailFilter emailFilter;
     private final AwsSesService awsSesService;
 
+    private final BrevoEmailService brevoEmailService;
+
     public EmailTemplates(@Autowired(required = false) EmailFilter emailFilter,
-                          @Autowired(required = false) AwsSesService awsSesService){
+                          @Autowired(required = false) AwsSesService awsSesService,
+                          @Autowired(required = false) BrevoEmailService brevoEmailService){
         this.emailFilter = emailFilter;
         this.awsSesService = awsSesService;
+        this.brevoEmailService = brevoEmailService;
     }
 
     public void sendUserReportStatusMailToUser(String name, String referenceNumber, String description, String email){
@@ -50,12 +54,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendUserNameToUser(String email){
@@ -73,12 +77,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendUserRaiseDefectEmailToAdmin(UserRaisedDefectDto userRaisedDefectDto) {
@@ -96,17 +100,32 @@ public class EmailTemplates {
                 + "<p style='font-size: 16px;'>Please login for more details</p>"
                 + "</body>"
                 + "</html>";
-        if (userRaisedDefectDto.getImageBase64() != null && !userRaisedDefectDto.getImageBase64().isBlank()) {
-            try {
-                byte[] imageBytes = Base64.getDecoder().decode(userRaisedDefectDto.getImageBase64());
-                String fileName = userRaisedDefectDto.getFileName() != null ? userRaisedDefectDto.getFileName() : "attachment.jpg";
-                emailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, fileName);
-            } catch (Exception e) {
-                log.error("Failed to decode image attachment", e);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            if (userRaisedDefectDto.getImageBase64() != null && !userRaisedDefectDto.getImageBase64().isBlank()) {
+                try {
+                    byte[] imageBytes = Base64.getDecoder().decode(userRaisedDefectDto.getImageBase64());
+                    String fileName = userRaisedDefectDto.getFileName() != null ? userRaisedDefectDto.getFileName() : "attachment.jpg";
+                    emailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, fileName);
+                } catch (Exception e) {
+                    log.error("Failed to decode image attachment", e);
+                    emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
+                }
+            } else {
                 emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
             }
         } else {
-            emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
+            if (userRaisedDefectDto.getImageBase64() != null && !userRaisedDefectDto.getImageBase64().isBlank()) {
+                try {
+                    byte[] imageBytes = Base64.getDecoder().decode(userRaisedDefectDto.getImageBase64());
+                    String fileName = userRaisedDefectDto.getFileName() != null ? userRaisedDefectDto.getFileName() : "attachment.jpg";
+                    brevoEmailService.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, fileName);
+                } catch (Exception e) {
+                    log.error("Failed to decode image attachment", e);
+                    brevoEmailService.sendEmail(ADMIN_EMAIL, subject, body);
+                }
+            } else {
+                brevoEmailService.sendEmail(ADMIN_EMAIL, subject, body);
+            }
         }
     }
 
@@ -126,17 +145,32 @@ public class EmailTemplates {
                 + "<p style='font-size: 16px;'>Please login for more details</p>"
                 + "</body>"
                 + "</html>";
-        if (gmailSyncIncreaseRequestDto.getImageBase64() != null && !gmailSyncIncreaseRequestDto.getImageBase64().isBlank()) {
-            try {
-                byte[] imageBytes = Base64.getDecoder().decode(gmailSyncIncreaseRequestDto.getImageBase64());
-                String fileName = gmailSyncIncreaseRequestDto.getFileName() != null ? gmailSyncIncreaseRequestDto.getFileName() : "attachment.jpg";
-                emailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, fileName);
-            } catch (Exception e) {
-                log.error("Failed to decode image attachment", e);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            if (gmailSyncIncreaseRequestDto.getImageBase64() != null && !gmailSyncIncreaseRequestDto.getImageBase64().isBlank()) {
+                try {
+                    byte[] imageBytes = Base64.getDecoder().decode(gmailSyncIncreaseRequestDto.getImageBase64());
+                    String fileName = gmailSyncIncreaseRequestDto.getFileName() != null ? gmailSyncIncreaseRequestDto.getFileName() : "attachment.jpg";
+                    emailFilter.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, fileName);
+                } catch (Exception e) {
+                    log.error("Failed to decode image attachment", e);
+                    emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
+                }
+            } else {
                 emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
             }
         } else {
-            emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
+            if (gmailSyncIncreaseRequestDto.getImageBase64() != null && !gmailSyncIncreaseRequestDto.getImageBase64().isBlank()) {
+                try {
+                    byte[] imageBytes = Base64.getDecoder().decode(gmailSyncIncreaseRequestDto.getImageBase64());
+                    String fileName = gmailSyncIncreaseRequestDto.getFileName() != null ? gmailSyncIncreaseRequestDto.getFileName() : "attachment.jpg";
+                    brevoEmailService.sendEmailWithAttachment(ADMIN_EMAIL, subject, body, imageBytes, fileName);
+                } catch (Exception e) {
+                    log.error("Failed to decode image attachment", e);
+                    brevoEmailService.sendEmail(ADMIN_EMAIL, subject, body);
+                }
+            } else {
+                brevoEmailService.sendEmail(ADMIN_EMAIL, subject, body);
+            }
         }
     }
 
@@ -151,12 +185,12 @@ public class EmailTemplates {
                 + "<br>"
                 + "<p style='font-size: 16px;'>Comment: </p>"
                 + "<p style='font-size: 16px;'>" + message + "</p>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(ADMIN_EMAIL, subject, body));
-//        }
-        emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(ADMIN_EMAIL, subject, body);
+        } else {
+            brevoEmailService.sendEmail(ADMIN_EMAIL, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(ADMIN_EMAIL, subject, body)); */
+        }
     }
 
     public void sendAccountStatementAsEmail(StatementAnalysisDto statementAnalysisDto) {
@@ -183,7 +217,12 @@ public class EmailTemplates {
         } else {
             fileNamePart = name;
         }
-        emailFilter.sendEmailWithAttachment(statementAnalysisDto.getUsername(), subject, body, statementAnalysisDto.getPdfByte(), fileNamePart+"_statement.pdf");
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmailWithAttachment(statementAnalysisDto.getUsername(), subject, body, statementAnalysisDto.getPdfByte(), fileNamePart + "_statement.pdf");
+        } else {
+            brevoEmailService.sendEmailWithAttachment(statementAnalysisDto.getUsername(), subject, body, statementAnalysisDto.getPdfByte(), fileNamePart + "_statement.pdf");
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendSpendingAnalysisEmail(StatementAnalysisDto statementAnalysisDto) {
@@ -210,7 +249,12 @@ public class EmailTemplates {
         } else {
             fileNamePart = name;
         }
-        emailFilter.sendEmailWithAttachment(statementAnalysisDto.getUsername(), subject, body, statementAnalysisDto.getPdfByte(), fileNamePart + "_spending_analysis.pdf");
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmailWithAttachment(statementAnalysisDto.getUsername(), subject, body, statementAnalysisDto.getPdfByte(), fileNamePart + "_spending_analysis.pdf");
+        } else {
+            brevoEmailService.sendEmailWithAttachment(statementAnalysisDto.getUsername(), subject, body, statementAnalysisDto.getPdfByte(), fileNamePart + "_spending_analysis.pdf");
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendReferenceNumberEmailToUser(String name, String email, String description, String referenceNumber) {
@@ -230,12 +274,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendBlockAlertMailToUser(String email, String reason, String name, byte[] file) {
@@ -252,12 +296,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmailWithAttachment(email, subject, body, file, "reason-attachment.jpg");
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmailWithAttachment(email, subject, body, file, "reason-attachment.jpg");
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmailWithAttachment(email, subject, body, file, "reason-attachment.jpg");
+        } else {
+            brevoEmailService.sendEmailWithAttachment(email, subject, body, file, "reason-attachment.jpg");
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendUserGmailSyncApprovedMail(String name, String email, int gmailSyncRequestCount) {
@@ -274,12 +318,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendUserGmailSyncCountIncreaseRequestRejection(String name, String email) {
@@ -296,12 +340,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendContactUsDetailsEmailToAdmin(String email, String phoneNumber, String name, String description) {
@@ -320,12 +364,12 @@ public class EmailTemplates {
                 + "<br>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendNameChangeRequestApprovedMailToUser(String name, String email, String referenceNumber) {
@@ -342,12 +386,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendNameChangeRequestRejectionMailToUser(String name, String email, String referenceNumber) {
@@ -364,12 +408,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendAccountUnblockOrRetrievalSuccessfulMailToUser(String name, String email, String referenceNumber, String mode) {
@@ -386,12 +430,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendAccountUnblockOrRetrievalFailureMailToUser(String name, String email, String referenceNumber, String mode, String declineReason) {
@@ -408,12 +452,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendPasswordChangeAlertMail(String name, String email){
@@ -431,12 +475,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendOtpEmailToUserForSignup(String email, String name, String verificationCode){
@@ -454,12 +498,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendOtpToUserForAccountBlock(String email, String name, String verificationCode, String type){
@@ -483,12 +527,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendOtpForForgotPassword(String userName, String email, String verificationCode){
@@ -507,12 +551,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendAnniversaryCongratulationsMailToUser(String email, String name, int numberOfYears){
@@ -529,12 +573,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendBirthdayWishEmailToUsers(String email, String name){
@@ -550,12 +594,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     public void sendEmailForSuccessfulUserCreation(String email, String name){
@@ -572,12 +616,12 @@ public class EmailTemplates {
                 + "<p style='font-size: 14px;'>Team MoneyFi</p>"
                 + "</body>"
                 + "</html>";
-//        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
-//            emailFilter.sendEmail(email, subject, body);
-//        } else {
-//            awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body));
-//        }
-        emailFilter.sendEmail(email, subject, body);
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(email, subject, body);
+        } else {
+            brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
     }
 
     private SimpleMailMessage functionToSetAwsSesObjectValues(String email, String subject, String body) {
