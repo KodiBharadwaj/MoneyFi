@@ -73,7 +73,7 @@ export class UserConfigurationComponent implements AfterViewInit{
 
   changeMyName() {
     
-    this.http.get(`${this.baseUrl}/api/v1/common/get-username`, { responseType: 'text' }).subscribe({
+    this.http.get(`${this.baseUrl}/api/v1/user-service/common/get-username`, { responseType: 'text' }).subscribe({
       next: (data: string) => {
         this.username = data;
         this.callNameChangeRequestMethod(this.username);
