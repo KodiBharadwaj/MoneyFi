@@ -39,7 +39,8 @@ export class UserConfigurationComponent implements AfterViewInit{
   deleteReasons: string[] = [];
   isDownloading = false;
   isUploading = false;
-  loadingResendOtp = false;
+  loadingResendBlockOtp = false;
+  loadingResendDeleteOtp = false; 
 
   ngAfterViewInit() {
     this.route.fragment.subscribe(fragment => {
@@ -156,31 +157,64 @@ export class UserConfigurationComponent implements AfterViewInit{
 
   email: string = '';
   resendOtp(type: string) {
-    this.loadingResendOtp = true;
+
+    if (type === 'BLOCK') {
+      this.loadingResendBlockOtp = true;
+    } else {
+      this.loadingResendDeleteOtp = true;
+    }
+
     this.http.get(`${this.baseUrl}/api/v1/user-service/common/get-username`, { responseType: 'text' }).subscribe({
       next: (data: string) => {
+
         this.email = data;
 
-        this.http.get(`${this.baseUrl}/api/v1/user-service/auth/otp-resend?username=${this.email}&type=${type}`).subscribe({
+        this.http.get(
+          `${this.baseUrl}/api/v1/user-service/auth/otp-resend?username=${this.email}&type=${type}`
+        ).subscribe({
+
           next: response => {
+
             this.toastr.success('OTP sent to your email');
-            this.loadingResendOtp = false;
+
+            if (type === 'BLOCK') {
+              this.loadingResendBlockOtp = false;
+            } else {
+              this.loadingResendDeleteOtp = false;
+            }
           },
+
           error: err => {
-            this.loadingResendOtp = false;
+
+            if (type === 'BLOCK') {
+              this.loadingResendBlockOtp = false;
+            } else {
+              this.loadingResendDeleteOtp = false;
+            }
+
             try {
               const errorObj =
-                typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+                typeof err.error === 'string'
+                  ? JSON.parse(err.error)
+                  : err.error;
+
               this.toastr.error(errorObj.message);
+
             } catch (e) {
               console.error('Failed to parse error:', err.error);
             }
           }
         });
-
       },
+
       error: (err) => {
-        this.loadingResendOtp = false;
+
+        if (type === 'BLOCK') {
+          this.loadingResendBlockOtp = false;
+        } else {
+          this.loadingResendDeleteOtp = false;
+        }
+
         console.error('Error fetching username', err);
       }
     });
