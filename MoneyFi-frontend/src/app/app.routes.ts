@@ -35,6 +35,7 @@ import { GmailSyncSummaryComponent } from './gmail-sync-summary/gmail-sync-summa
 import { MaintainerHomeComponent } from './maintainer-home/maintainer-home.component';
 import { AdminExcelTemplatesComponent } from './admin/admin-excel-templates/admin-excel-templates.component';
 import { AdminLayoutComponent } from './admin/admin-layout/admin-layout.component';
+import { AdminTriggersComponent } from './admin/admin-triggers/admin-triggers.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -62,6 +63,7 @@ export const routes: Routes = [
       { path: 'configuration/reasons', component: AdminReasonsComponent },
       { path: 'configuration/categories', component: AdminCategoriesListComponent },
       { path: 'configuration/manage-templates', component: AdminExcelTemplatesComponent },
+      { path: 'configuration/manage-triggers', component: AdminTriggersComponent },
     ]
   },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard],children:[
