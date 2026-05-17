@@ -28,12 +28,15 @@ public class GoalReaderClass {
                     WHERE g.deleted = 0
                       AND g.current_amount < g.target_amount
                       AND (
-                            DAY(g.created_at) = DAY(GETDATE())
-                            OR (
-                                DAY(g.created_at) > DAY(EOMONTH(GETDATE()))
-                                AND DAY(GETDATE()) = DAY(EOMONTH(GETDATE()))
-                            )
-                          )
+                               (
+                                   DAY(g.created_at) <= DAY(GETDATE())
+                                   AND DAY(g.created_at) <= DAY(EOMONTH(GETDATE()))
+                               )
+                               OR (
+                                   DAY(g.created_at) > DAY(EOMONTH(GETDATE()))
+                                   AND DAY(GETDATE()) = DAY(EOMONTH(GETDATE()))
+                               )
+                           )
                       AND NOT EXISTS (
                             SELECT 1
                             FROM expense_goal_relation_table egr

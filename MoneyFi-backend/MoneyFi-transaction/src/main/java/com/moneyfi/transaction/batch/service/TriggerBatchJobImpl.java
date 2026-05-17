@@ -29,8 +29,8 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
     @Qualifier("goalJob")
     private Job goalJob;
 
-    public void triggerBatchJob(String type) {
-        if (type.equalsIgnoreCase(TransactionServiceType.INCOME.name())) {
+    public void triggerBatchJob(TransactionServiceType type) {
+        if (type.name().equalsIgnoreCase(TransactionServiceType.INCOME.name())) {
             try {
                 log.info("Running Adding Recurring Incomes Job...");
 
@@ -41,7 +41,7 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
                 log.error("Recurring Incomes job failed", e);
                 e.printStackTrace();
             }
-        } else if (type.equalsIgnoreCase(TransactionServiceType.EXPENSE.name())) {
+        } else if (type.name().equalsIgnoreCase(TransactionServiceType.EXPENSE.name())) {
             try {
                 log.info("Running Adding Recurring Expenses Job...");
 
@@ -52,7 +52,7 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
                 log.error("Recurring Expenses job failed", e);
                 e.printStackTrace();
             }
-        } else if (type.equalsIgnoreCase(TransactionServiceType.GOAL.name())) {
+        } else if (type.name().equalsIgnoreCase(TransactionServiceType.GOAL.name())) {
             try {
                 log.info("Running Adding Recurring Goal Job...");
 

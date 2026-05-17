@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.controller.user;
 
+import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.transaction.batch.service.TriggerBatchJob;
 import com.moneyfi.transaction.security.JwtService;
 import com.moneyfi.transaction.exceptions.GenericException;
@@ -11,7 +12,6 @@ import com.moneyfi.transaction.service.transaction.dto.request.ParsedTransaction
 import com.moneyfi.transaction.service.transaction.dto.response.GmailSyncTransactionsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -95,7 +95,7 @@ public class TransactionApiController {
 
     /** Test api */
     @GetMapping(value = "batch-sync")
-    public void enableRecurringSyncUsingSpringBatch(@NotBlank @RequestParam(value = "type") String type) {
+    public void enableRecurringSyncUsingSpringBatch(@NotNull TransactionServiceType type) {
         triggerBatchJob.triggerBatchJob(type);
     }
 }

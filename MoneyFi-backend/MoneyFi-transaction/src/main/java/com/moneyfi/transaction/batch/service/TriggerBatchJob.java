@@ -1,7 +1,7 @@
 package com.moneyfi.transaction.batch.service;
 
-import jakarta.validation.constraints.NotBlank;
+import com.moneyfi.constants.enums.TransactionServiceType;
 
 public interface TriggerBatchJob {
-    void triggerBatchJob(@NotBlank String type);
+    void triggerBatchJob(TransactionServiceType type);
 }
