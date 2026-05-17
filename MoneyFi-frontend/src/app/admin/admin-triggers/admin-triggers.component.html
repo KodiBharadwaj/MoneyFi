@@ -1,0 +1,25 @@
+<div class="container">
+
+    <h2>Trigger Schedules</h2>
+
+    <div class="button-container">
+
+        <button (click)="triggerBatch('INCOME')" [disabled]="loading">
+            Trigger Income Batch
+        </button>
+
+        <button (click)="triggerBatch('EXPENSE')" [disabled]="loading">
+            Trigger Expense Batch
+        </button>
+
+        <button (click)="triggerBatch('GOAL')" [disabled]="loading">
+            Trigger Goal Batch
+        </button>
+
+    </div>
+
+    <p class="message" *ngIf="message">
+        {{ message }}
+    </p>
+
+</div>

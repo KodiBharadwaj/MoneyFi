@@ -30,12 +30,12 @@ public class BatchScheduler {
 
     @Scheduled(cron = "0 0 0 1 * *")
     public void runMonthlyBatchJob() throws Exception {
-        triggerBatchJob.triggerBatchJob(TransactionServiceType.INCOME);
-        triggerBatchJob.triggerBatchJob(TransactionServiceType.EXPENSE);
+        triggerBatchJob.triggerBatchJob(TransactionServiceType.INCOME, null);
+        triggerBatchJob.triggerBatchJob(TransactionServiceType.EXPENSE, null);
     }
 
     @Scheduled(cron = "0 0 0 * * *")
     public void runDailyBatchJob() throws Exception {
-        triggerBatchJob.triggerBatchJob(TransactionServiceType.GOAL);
+        triggerBatchJob.triggerBatchJob(TransactionServiceType.GOAL, null);
     }
 }

@@ -1,6 +1,10 @@
 package com.moneyfi.transaction.batch.service;
 
 import com.moneyfi.constants.enums.TransactionServiceType;
+import com.moneyfi.transaction.batch.config.AuditContext;
+import com.moneyfi.transaction.batch.entity.BatchJobDetailsAddon;
+import com.moneyfi.transaction.batch.repository.BatchJobDetailsAddonRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -13,6 +17,7 @@ import static com.moneyfi.transaction.utils.constants.StringConstants.TIME;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class TriggerBatchJobImpl implements TriggerBatchJob {
     @Autowired
     private JobLauncher jobLauncher;
@@ -29,7 +34,9 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
     @Qualifier("goalJob")
     private Job goalJob;
 
-    public void triggerBatchJob(TransactionServiceType type) {
+    private final BatchJobDetailsAddonRepository batchJobDetailsAddonRepository;
+
+    public void triggerBatchJob(TransactionServiceType type, Long adminUserId) {
         if (type.name().equalsIgnoreCase(TransactionServiceType.INCOME.name())) {
             try {
                 log.info("Running Adding Recurring Incomes Job...");
@@ -62,6 +69,23 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
             } catch (Exception e) {
                 log.error("Recurring Expenses job failed", e);
                 e.printStackTrace();
+            }
+        }
+
+        if (adminUserId != null) {
+            try {
+                log.info("Admin user id: {}", adminUserId);
+
+                AuditContext.setCurrentUser(adminUserId);
+
+                batchJobDetailsAddonRepository.save(
+                        BatchJobDetailsAddon.builder()
+                                .jobType(type.name())
+                                .build()
+                );
+
+            } finally {
+                AuditContext.clear();
             }
         }
     }

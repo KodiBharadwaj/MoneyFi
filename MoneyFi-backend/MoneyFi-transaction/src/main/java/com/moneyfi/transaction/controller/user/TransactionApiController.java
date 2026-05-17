@@ -1,7 +1,5 @@
 package com.moneyfi.transaction.controller.user;
 
-import com.moneyfi.constants.enums.TransactionServiceType;
-import com.moneyfi.transaction.batch.service.TriggerBatchJob;
 import com.moneyfi.transaction.security.JwtService;
 import com.moneyfi.transaction.exceptions.GenericException;
 import com.moneyfi.transaction.service.income.dto.request.AccountStatementRequestDto;
@@ -36,7 +34,6 @@ public class TransactionApiController {
 
     private final JwtService jwtService;
     private final TransactionService transactionService;
-    private final TriggerBatchJob triggerBatchJob;
 
     @Operation(summary = "Api to get the overview page tile details")
     @GetMapping("/overview-details/{month}/{year}")
@@ -91,11 +88,5 @@ public class TransactionApiController {
                                                                                        @NotNull @RequestParam LocalDate date){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return ResponseEntity.ok(transactionService.getGmailSyncAddedTransactions(userId, date));
-    }
-
-    /** Test api */
-    @GetMapping(value = "batch-sync")
-    public void enableRecurringSyncUsingSpringBatch(@NotNull TransactionServiceType type) {
-        triggerBatchJob.triggerBatchJob(type);
     }
 }
