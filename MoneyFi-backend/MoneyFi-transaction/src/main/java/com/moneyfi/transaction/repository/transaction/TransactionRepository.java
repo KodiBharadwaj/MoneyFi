@@ -26,4 +26,6 @@ public interface TransactionRepository {
     void updateGmailProcessedAsVerified(List<Long> gmailProsessedIdList);
 
     List<String> getCategoriesBasedOnTransactionType(String name);
+
+    Long getUserIdFromUsername(String username);
 }
