@@ -2,22 +2,31 @@ package com.moneyfi.transaction.batch.reader;
 
 import com.moneyfi.transaction.batch.dto.GoalModelDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.support.SqlPagingQueryProviderFactoryBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @Slf4j
 public class GoalReaderClass {
 
     @Bean
-    public JdbcPagingItemReader<GoalModelDto> goalReader(DataSource dataSource) {
+    @StepScope
+    public JdbcPagingItemReader<GoalModelDto> goalReader(DataSource dataSource, @Value("#{jobParameters['userId']}") Long userId) {
         JdbcPagingItemReader<GoalModelDto> reader = new JdbcPagingItemReader<>();
         reader.setDataSource(dataSource);
         reader.setPageSize(100);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("userId", userId);
+        log.info("User Id: {}", userId);
 
         SqlPagingQueryProviderFactoryBean queryProvider = new SqlPagingQueryProviderFactoryBean();
         queryProvider.setDataSource(dataSource);
@@ -27,6 +36,7 @@ public class GoalReaderClass {
                     FROM goal_table g
                     WHERE g.deleted = 0
                       AND g.current_amount < g.target_amount
+                      AND (:userId IS NULL OR g.user_id = :userId)
                       AND (
                                (
                                    DAY(g.created_at) <= DAY(GETDATE())
@@ -51,6 +61,7 @@ public class GoalReaderClass {
 
         try {
             reader.setQueryProvider(queryProvider.getObject());
+            reader.setParameterValues(params);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
