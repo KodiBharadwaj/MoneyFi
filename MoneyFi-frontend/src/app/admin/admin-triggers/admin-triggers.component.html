@@ -2,21 +2,33 @@
 
     <h2>Trigger Schedules</h2>
 
-    <div class="button-container">
+    <div class="batch-row" *ngFor="let batch of batches">
 
-        <button (click)="triggerBatch('INCOME')" [disabled]="loading">
-            Trigger Income Batch
+        <button
+            (click)="triggerBatch(batch.type, batch.recipientType, batch.username)"
+            [disabled]="loading">
+
+            Trigger {{ batch.label }} Batch
         </button>
 
-        <button (click)="triggerBatch('EXPENSE')" [disabled]="loading">
-            Trigger Expense Batch
-        </button>
+        <select [(ngModel)]="batch.recipientType">
+            <option value="ALL">All Users</option>
+            <option value="SPECIFIC">Specific</option>
+        </select>
 
-        <button (click)="triggerBatch('GOAL')" [disabled]="loading">
-            Trigger Goal Batch
-        </button>
+        <input
+            type="text"
+            placeholder="Enter username"
+            [disabled]="batch.recipientType !== 'SPECIFIC'"
+            [(ngModel)]="batch.username"
+            list="usersList"
+        />
 
     </div>
+
+    <datalist id="usersList">
+        <option *ngFor="let user of allUsers" [value]="user"></option>
+    </datalist>
 
     <p class="message" *ngIf="message">
         {{ message }}

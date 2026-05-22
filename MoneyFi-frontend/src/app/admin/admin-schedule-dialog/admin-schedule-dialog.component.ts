@@ -11,6 +11,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { environment } from '../../../environments/environment';
 import { ToastrService } from 'ngx-toastr';
+import { AdminCommonServiceService } from '../admin-common-service.service';
 
 @Component({
   selector: 'app-admin-schedule-dialog',
@@ -26,7 +27,7 @@ import { ToastrService } from 'ngx-toastr';
     MatDatepickerModule,
     MatNativeDateModule
   ],
-  standalone : true,
+  standalone: true,
   styleUrl: './admin-schedule-dialog.component.css'
 })
 export class AdminScheduleDialogComponent implements OnInit {
@@ -36,7 +37,7 @@ export class AdminScheduleDialogComponent implements OnInit {
   showSuggestions = false;
   isSubmitting = false;
 
-  selectedUsers: string[] = []; 
+  selectedUsers: string[] = [];
   scheduleIdToUpdate: number = 0;
 
   baseUrl = environment.BASE_URL;
@@ -46,8 +47,9 @@ export class AdminScheduleDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<AdminScheduleDialogComponent>,
     private http: HttpClient,
     private toastr: ToastrService,
+    private adminCommonService: AdminCommonServiceService,
     @Inject(MAT_DIALOG_DATA) public data: any
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.scheduleForm = this.fb.group({
@@ -57,13 +59,13 @@ export class AdminScheduleDialogComponent implements OnInit {
       scheduleFromTime: ['', Validators.required],
       scheduleToDate: ['', Validators.required],
       scheduleToTime: ['', Validators.required],
-      recipients: ['All', Validators.required] 
+      recipients: ['All', Validators.required]
     });
 
-     this.http.get<string[]>(`${this.baseUrl}/api/v1/user-service/admin/get-usernames`)
+    this.adminCommonService.getUsernames()
       .subscribe(data => {
         this.allUsers = data;
-        this.patchReuseData(); // <-- important
+        this.patchReuseData();
       });
   }
 
@@ -279,7 +281,7 @@ export class AdminScheduleDialogComponent implements OnInit {
           }
         }
       });
-    }
+  }
 
   close() {
     this.dialogRef.close();
