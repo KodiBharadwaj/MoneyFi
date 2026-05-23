@@ -58,7 +58,7 @@ export class AdminTriggersComponent {
     username?: string
   ): void {
 
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('moneyfi.auth');
 
     let url =
       `${this.baseUrl}/api/v1/transaction/admin/batch-sync?type=${type}`;
