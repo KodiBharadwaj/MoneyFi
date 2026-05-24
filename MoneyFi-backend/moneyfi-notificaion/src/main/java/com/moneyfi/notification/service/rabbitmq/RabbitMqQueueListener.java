@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.thirdparty.jackson.core.JsonProcessingException;
 
 import static com.moneyfi.notification.util.constants.StringConstants.LOCAL_PROFILE_RABBIT_MQ;
 import static com.moneyfi.notification.util.constants.StringConstants.PROD_PROFILE_RABBIT_MQ;
@@ -22,7 +23,7 @@ public class RabbitMqQueueListener {
     private final EmailTemplates emailTemplates;
 
     @RabbitListener(queues = "${rabbitmq.queue}")
-    public void handleRabbitQueueEventListener(String notificationQueueDtoJson) {
+    public void handleRabbitQueueEventListener(String notificationQueueDtoJson) throws JsonProcessingException {
         log.info("checking listener input: {}", notificationQueueDtoJson);
         NotificationQueueDto notificationQueueDto = StringConstants.objectMapper.readValue(notificationQueueDtoJson, NotificationQueueDto.class);
         EmailTemplateInjector.functionToRouteBasedOnRequest(notificationQueueDto, emailTemplates);

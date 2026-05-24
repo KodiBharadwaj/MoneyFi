@@ -1,11 +1,16 @@
 package com.moneyfi.transaction.service.external.api;
 
+import com.moneyfi.constants.dto.BatchInfoForEmailDto;
 import com.moneyfi.transaction.service.webclient.WebClientService;
 import com.moneyfi.transaction.utils.constants.StringUrls;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -16,12 +21,13 @@ public class ExternalApiCallService {
 
     public void externalCallToUserServiceToSendPdf(byte[] pdfBytes, String authHeader) {
         String token = authHeader.substring(7);
-        webClientService.postRequest(
+        webClientService.exchange(
+                HttpMethod.POST,
                 StringUrls.ACCOUNT_STATEMENT_USER_SERVICE_URL,
+                null,
                 pdfBytes,
                 token,
-                MediaType.APPLICATION_OCTET_STREAM,
-                Void.class
+                new ParameterizedTypeReference<Void>() {}
         );
     }
     /**
@@ -44,4 +50,15 @@ public class ExternalApiCallService {
             }
         }
      */
+
+    public void externalCallToUserServiceToSendEmailToUser(List<BatchInfoForEmailDto> batchInfoForEmailDto, String token) {
+        webClientService.exchange(
+                HttpMethod.POST,
+                StringUrls.BATCH_INFO_EMAIL_USER_SERVICE_URL,
+                null,
+                batchInfoForEmailDto,
+                token,
+                new ParameterizedTypeReference<Void>() {}
+        );
+    }
 }

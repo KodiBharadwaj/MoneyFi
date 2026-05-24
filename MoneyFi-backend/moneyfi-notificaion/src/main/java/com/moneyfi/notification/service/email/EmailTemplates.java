@@ -1,5 +1,6 @@
 package com.moneyfi.notification.service.email;
 
+import com.moneyfi.constants.dto.BatchInfoForEmailDto;
 import com.moneyfi.notification.service.dto.emaildto.StatementAnalysisDto;
 import com.moneyfi.notification.service.dto.emaildto.GmailSyncIncreaseRequestDto;
 import com.moneyfi.notification.service.dto.emaildto.UserRaisedDefectDto;
@@ -10,6 +11,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
+import java.util.List;
 
 import static com.moneyfi.notification.util.constants.StringConstants.LOCAL_PROFILE_ARTEMIS;
 import static com.moneyfi.notification.util.constants.StringConstants.LOCAL_PROFILE_RABBIT_MQ;
@@ -620,6 +622,41 @@ public class EmailTemplates {
             emailFilter.sendEmail(email, subject, body);
         } else {
             brevoEmailService.sendEmail(email, subject, body);
+            /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
+        }
+    }
+
+    public void sendEmailForSuccessfulBatchTransactionInsertion(List<BatchInfoForEmailDto> batchInfoList){
+        StringBuilder transactionRows = new StringBuilder();
+        for (BatchInfoForEmailDto batchInfo : batchInfoList) {
+            transactionRows.append(
+                    "<p style='font-size: 16px;'>"
+                            + batchInfo.getTransactionType() + " | "
+                            + batchInfo.getDescription() + " | "
+                            + batchInfo.getAmount()
+                            + "</p>"
+            );
+        }
+
+        BatchInfoForEmailDto batchInfoForEmailDto = batchInfoList.get(0);
+        String subject = "Transaction successfully added";
+        String body = "<html>"
+                + "<body>"
+                + "<p style='font-size: 16px;'>Hello " + batchInfoForEmailDto.getName() + ",</p>"
+                + "<p style='font-size: 16px;'>Below are the transactions added by admin. Login to your account for more details.</p>"
+                + "<p style='font-size: 16px;'>Transaction Type | Description | Amount</p>"
+                + transactionRows
+                + "<hr>"
+                + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL + "</p>"
+                + "<br>"
+                + "<p style='font-size: 14px;'>Best regards,</p>"
+                + "<p style='font-size: 14px;'>Team MoneyFi</p>"
+                + "</body>"
+                + "</html>";
+        if (LOCAL_PROFILE_ARTEMIS.equalsIgnoreCase(activeProfile) || LOCAL_PROFILE_RABBIT_MQ.equalsIgnoreCase(activeProfile)) {
+            emailFilter.sendEmail(batchInfoForEmailDto.getUsername(), subject, body);
+        } else {
+            brevoEmailService.sendEmail(batchInfoForEmailDto.getUsername(), subject, body);
             /** awsSesService.sendEmailToUserUsingAwsSes(functionToSetAwsSesObjectValues(email, subject, body)); */
         }
     }

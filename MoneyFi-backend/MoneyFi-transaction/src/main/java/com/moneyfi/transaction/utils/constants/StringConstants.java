@@ -8,6 +8,11 @@ public class StringConstants {
     private StringConstants() {}
 
     public static final String USER_ID = "userId";
+    public static final String ADMIN_USER_ID = "adminUserId";
+    public static final String BATCH_AUTO_TRIGGER = "AUTO_TRIGGER";
+    public static final String BATCH_MANUAL_TRIGGER = "MANUAL_TRIGGER";
+    public static final String ADMIN = "ADMIN";
+    public static final String UNDERSCORE = "_";
     public static final String MONTH = "month";
     public static final String YEAR = "year";
     public static final String DELETE_STATUS = "deleteStatus";

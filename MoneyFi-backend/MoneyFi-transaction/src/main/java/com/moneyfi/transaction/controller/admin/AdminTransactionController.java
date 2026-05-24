@@ -30,6 +30,6 @@ public class AdminTransactionController {
                                                     @RequestParam(required = false) String username) {
         log.info("checking username: {}", username);
         Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        triggerBatchJob.triggerBatchJob(type, adminUserId, username);
+        triggerBatchJob.triggerBatchJob(type, adminUserId, username, authHeader.substring(7));
     }
 }
