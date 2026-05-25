@@ -1,8 +1,9 @@
-package com.moneyfi.transaction.batch.listener.income;
+package com.moneyfi.transaction.batch.listener.expense;
 
 import com.moneyfi.constants.dto.BatchInfoForEmailDto;
 import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.transaction.batch.service.general.BatchAuthTokenStore;
+import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.model.income.IncomeModel;
 import com.moneyfi.transaction.service.external.api.ExternalApiCallService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class IncomeJobListener implements JobExecutionListener {
+public class ExpenseJobListener implements JobExecutionListener {
 
     private final ExternalApiCallService externalApiCallService;
     private final BatchAuthTokenStore batchAuthTokenStore;
@@ -40,19 +41,19 @@ public class IncomeJobListener implements JobExecutionListener {
         }
 
         for (StepExecution stepExecution : jobExecution.getStepExecutions()) {
-            List<IncomeModel> incomes = (List<IncomeModel>) stepExecution.getExecutionContext().get(PROCESSED_INCOMES);
+            List<ExpenseModel> expenses = (List<ExpenseModel>) stepExecution.getExecutionContext().get(PROCESSED_EXPENSES);
 
-            if (incomes == null) {
+            if (expenses == null) {
                 continue;
             }
 
             List<BatchInfoForEmailDto> batchInfoList = new ArrayList<>();
-            for (IncomeModel income : incomes) {
+            for (ExpenseModel expense : expenses) {
                 BatchInfoForEmailDto dto = new BatchInfoForEmailDto();
                 dto.setUserId(userId);
-                dto.setTransactionType(TransactionServiceType.INCOME.name());
-                dto.setDescription(income.getSource());
-                dto.setAmount(income.getAmount());
+                dto.setTransactionType(TransactionServiceType.EXPENSE.name());
+                dto.setDescription(expense.getDescription());
+                dto.setAmount(expense.getAmount());
                 batchInfoList.add(dto);
             }
 

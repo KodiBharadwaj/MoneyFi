@@ -1,5 +1,6 @@
-package com.moneyfi.transaction.batch.listener.income;
+package com.moneyfi.transaction.batch.listener.expense;
 
+import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.model.income.IncomeModel;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.StepExecution;
@@ -10,14 +11,13 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.moneyfi.transaction.utils.constants.StringConstants.PROCESSED_INCOMES;
-import static com.moneyfi.transaction.utils.constants.StringConstants.USER_ID;
+import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 
 @Component
-public class IncomeWriteListener implements ItemWriteListener<IncomeModel> {
+public class ExpenseWriteListener implements ItemWriteListener<ExpenseModel> {
 
     @Override
-    public void afterWrite(Chunk<? extends IncomeModel> items) {
+    public void afterWrite(Chunk<? extends ExpenseModel> items) {
         StepExecution stepExecution = StepSynchronizationManager.getContext().getStepExecution();
 
         Long userId = stepExecution.getJobParameters().getLong(USER_ID);
@@ -25,13 +25,13 @@ public class IncomeWriteListener implements ItemWriteListener<IncomeModel> {
             return;
         }
 
-        List<IncomeModel> incomes = (List<IncomeModel>) stepExecution.getExecutionContext().get(PROCESSED_INCOMES);
+        List<ExpenseModel> expenses = (List<ExpenseModel>) stepExecution.getExecutionContext().get(PROCESSED_EXPENSES);
 
-        if (incomes == null) {
-            incomes = new ArrayList<>();
+        if (expenses == null) {
+            expenses = new ArrayList<>();
         }
 
-        incomes.addAll(items.getItems());
-        stepExecution.getExecutionContext().put(PROCESSED_INCOMES, incomes);
+        expenses.addAll(items.getItems());
+        stepExecution.getExecutionContext().put(PROCESSED_EXPENSES, expenses);
     }
 }

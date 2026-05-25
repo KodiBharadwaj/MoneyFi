@@ -27,6 +27,10 @@ public class StringConstants {
     public static final String LIMIT = "limit";
     public static final String ALL = "ALL";
     public static final String TIME = "time";
+    public static final String PROCESSED_INCOMES = "processedIncomes";
+    public static final String PROCESSED_EXPENSES = "processedExpenses";
+    public static final String PROCESSED_GOALS = "processedGoals";
+    public static final String REQUEST_ID = "requestId";
 
     public static final String MONTHLY = "MONTHLY";
     public static final String YEARLY = "YEARLY";

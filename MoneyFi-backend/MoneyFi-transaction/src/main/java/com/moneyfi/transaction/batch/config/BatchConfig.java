@@ -2,6 +2,10 @@ package com.moneyfi.transaction.batch.config;
 
 import com.moneyfi.transaction.batch.dto.GoalModelDto;
 import com.moneyfi.transaction.batch.dto.GoalProcessingResult;
+import com.moneyfi.transaction.batch.listener.expense.ExpenseJobListener;
+import com.moneyfi.transaction.batch.listener.expense.ExpenseWriteListener;
+import com.moneyfi.transaction.batch.listener.goal.GoalJobListener;
+import com.moneyfi.transaction.batch.listener.goal.GoalWriteListener;
 import com.moneyfi.transaction.batch.listener.income.IncomeJobListener;
 import com.moneyfi.transaction.batch.listener.income.IncomeWriteListener;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
@@ -29,6 +33,12 @@ public class BatchConfig {
     private final IncomeWriteListener incomeWriteListener;
     private final IncomeJobListener incomeJobListener;
 
+    private final ExpenseJobListener expenseJobListener;
+    private final ExpenseWriteListener expenseWriteListener;
+
+    private final GoalJobListener goalJobListener;
+    private final GoalWriteListener goalWriteListener;
+
     @Bean
     public Job incomeJob(JobRepository jobRepository, Step incomeStep) {
         return new JobBuilder("recurring-income-job", jobRepository).start(incomeStep)
@@ -55,6 +65,7 @@ public class BatchConfig {
     public Job expenseJob(JobRepository jobRepository, Step expenseStep) {
         return new JobBuilder("recurring-expense-job", jobRepository)
                 .start(expenseStep)
+                .listener(expenseJobListener)
                 .build();
     }
 
@@ -67,6 +78,7 @@ public class BatchConfig {
                 .reader(expenseReader)
                 .processor(expenseProcessor)
                 .writer(expenseWriter)
+                .listener(expenseWriteListener)
                 .build();
     }
 
@@ -74,6 +86,7 @@ public class BatchConfig {
     public Job goalJob(JobRepository jobRepository, Step goalStep) {
         return new JobBuilder("recurring-goal-job", jobRepository)
                 .start(goalStep)
+                .listener(goalJobListener)
                 .build();
     }
 
@@ -86,6 +99,7 @@ public class BatchConfig {
                 .reader(goalReader)
                 .processor(goalProcessor)
                 .writer(goalWriter)
+                .listener(goalWriteListener)
                 .build();
     }
 }

@@ -1,7 +1,9 @@
-package com.moneyfi.transaction.batch.listener.income;
+package com.moneyfi.transaction.batch.listener.goal;
 
 import com.moneyfi.constants.dto.BatchInfoForEmailDto;
 import com.moneyfi.constants.enums.TransactionServiceType;
+import com.moneyfi.transaction.batch.dto.GoalModelDto;
+import com.moneyfi.transaction.batch.dto.GoalProcessingResult;
 import com.moneyfi.transaction.batch.service.general.BatchAuthTokenStore;
 import com.moneyfi.transaction.model.income.IncomeModel;
 import com.moneyfi.transaction.service.external.api.ExternalApiCallService;
@@ -21,7 +23,7 @@ import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class IncomeJobListener implements JobExecutionListener {
+public class GoalJobListener implements JobExecutionListener {
 
     private final ExternalApiCallService externalApiCallService;
     private final BatchAuthTokenStore batchAuthTokenStore;
@@ -40,19 +42,20 @@ public class IncomeJobListener implements JobExecutionListener {
         }
 
         for (StepExecution stepExecution : jobExecution.getStepExecutions()) {
-            List<IncomeModel> incomes = (List<IncomeModel>) stepExecution.getExecutionContext().get(PROCESSED_INCOMES);
+            List<GoalProcessingResult> goals = (List<GoalProcessingResult>) stepExecution.getExecutionContext().get(PROCESSED_GOALS);
 
-            if (incomes == null) {
+            if (goals == null) {
                 continue;
             }
 
             List<BatchInfoForEmailDto> batchInfoList = new ArrayList<>();
-            for (IncomeModel income : incomes) {
+            for (GoalProcessingResult goalProcessingDto : goals) {
+                GoalModelDto goal = goalProcessingDto.getGoal();
                 BatchInfoForEmailDto dto = new BatchInfoForEmailDto();
                 dto.setUserId(userId);
-                dto.setTransactionType(TransactionServiceType.INCOME.name());
-                dto.setDescription(income.getSource());
-                dto.setAmount(income.getAmount());
+                dto.setTransactionType(TransactionServiceType.GOAL.name());
+                dto.setDescription(goal.getGoalName());
+                dto.setAmount(goal.getRecurringAmount());
                 batchInfoList.add(dto);
             }
 

@@ -83,7 +83,7 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
 
         JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
         jobParametersBuilder.addLong(TIME, time);
-        jobParametersBuilder.addString("requestId", requestId);
+        jobParametersBuilder.addString(REQUEST_ID, requestId);
         if (userId != null) jobParametersBuilder.addLong(USER_ID, userId);
         if (adminUserId != null) jobParametersBuilder.addString(ADMIN_USER_ID, ADMIN + UNDERSCORE + adminUserId);
         else jobParametersBuilder.addString(ADMIN_USER_ID, BATCH_AUTO_TRIGGER);
