@@ -1,8 +1,11 @@
 package com.moneyfi.transaction.batch.reader;
 
 import com.moneyfi.transaction.model.expense.ExpenseModel;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.support.SqlPagingQueryProviderFactoryBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -13,10 +16,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
+@Slf4j
 public class ExpenseReaderClass {
 
     @Bean
-    public JdbcPagingItemReader<ExpenseModel> expenseReader(DataSource dataSource) throws Exception {
+    @StepScope
+    public JdbcPagingItemReader<ExpenseModel> expenseReader(DataSource dataSource, @Value("#{jobParameters['userId']}") Long userId) throws Exception {
         JdbcPagingItemReader<ExpenseModel> reader = new JdbcPagingItemReader<>();
         reader.setDataSource(dataSource);
         reader.setPageSize(1000);
@@ -28,6 +33,8 @@ public class ExpenseReaderClass {
         Map<String, Object> params = new HashMap<>();
         params.put("startLastMonth", firstDayOfLastMonth);
         params.put("startThisMonth", firstDayOfThisMonth);
+        params.put("userId", userId);
+        log.info("User Id: {}", userId);
 
         SqlPagingQueryProviderFactoryBean queryProvider = new SqlPagingQueryProviderFactoryBean();
         queryProvider.setDataSource(dataSource);
@@ -41,6 +48,7 @@ public class ExpenseReaderClass {
         queryProvider.setWhereClause("""
                     WHERE et.recurring = 1
                       AND et.is_deleted = 0
+                      AND (:userId IS NULL OR et.user_id = :userId)
                       AND clt.category NOT IN ('Goal')
                       AND CAST(et.date AS DATE) >= :startLastMonth
                       AND CAST(et.date AS DATE) < :startThisMonth

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.thirdparty.jackson.core.JsonProcessingException;
 
 import static com.moneyfi.notification.util.constants.StringConstants.LOCAL_PROFILE_ARTEMIS;
 
@@ -19,7 +20,7 @@ public class ArtemisQueueConsumer {
     private final EmailTemplates emailTemplates;
 
     @JmsListener(destination = "artemis.queue.name")
-    public void receiveMessage(String message) {
+    public void receiveMessage(String message) throws JsonProcessingException {
         System.out.println("Received from Artemis: " + message);
         NotificationQueueDto notificationQueueDto = StringConstants.objectMapper.readValue(message, NotificationQueueDto.class);
         EmailTemplateInjector.functionToRouteBasedOnRequest(notificationQueueDto, emailTemplates);

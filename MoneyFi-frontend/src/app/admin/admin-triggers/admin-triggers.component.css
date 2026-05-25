@@ -1,46 +1,63 @@
 .container {
-    width: 400px;
-    margin: 60px auto;
-    padding: 30px;
-    border-radius: 10px;
-    background-color: #f5f5f5;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    padding: 24px;
 }
 
 h2 {
-    margin-bottom: 25px;
-    color: #333;
+    margin-bottom: 24px;
 }
 
-.button-container {
+.batch-row {
     display: flex;
-    flex-direction: column;
-    gap: 15px;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
 }
 
-button {
-    padding: 12px;
+.batch-row button {
+    min-width: 220px;
+    padding: 10px 16px;
     border: none;
     border-radius: 6px;
+    cursor: pointer;
     background-color: #1976d2;
     color: white;
-    font-size: 15px;
-    cursor: pointer;
-    transition: 0.3s;
+    font-size: 14px;
+    transition: 0.2s;
 }
 
-button:hover {
-    background-color: #1259a7;
+.batch-row button:hover:not(:disabled) {
+    opacity: 0.9;
 }
 
-button:disabled {
-    background-color: gray;
+.batch-row button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.batch-row select,
+.batch-row input {
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.batch-row select {
+    width: 140px;
+}
+
+.batch-row input {
+    width: 220px;
+}
+
+.batch-row input:disabled {
+    background-color: #f5f5f5;
     cursor: not-allowed;
 }
 
 .message {
     margin-top: 20px;
-    font-weight: bold;
+    font-weight: 500;
     color: green;
 }

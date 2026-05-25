@@ -324,4 +324,20 @@ public class TransactionRepositoryImpl implements TransactionRepository {
             throw new QueryValidationException("Income Category Ids not found");
         }
     }
+
+    @Override
+    public Long getUserIdFromUsername(String username) {
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec [getUserAuthDetailsByUsername] " +
+                                    "@username = :username ")
+                    .setParameter("username", username.trim());
+            Object[] result = (Object[]) query.getSingleResult();
+
+            return ((Number) result[0]).longValue();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("user id not found for " + username);
+        }
+    }
 }

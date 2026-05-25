@@ -8,6 +8,11 @@ public class StringConstants {
     private StringConstants() {}
 
     public static final String USER_ID = "userId";
+    public static final String ADMIN_USER_ID = "adminUserId";
+    public static final String BATCH_AUTO_TRIGGER = "AUTO_TRIGGER";
+    public static final String BATCH_MANUAL_TRIGGER = "MANUAL_TRIGGER";
+    public static final String ADMIN = "ADMIN";
+    public static final String UNDERSCORE = "_";
     public static final String MONTH = "month";
     public static final String YEAR = "year";
     public static final String DELETE_STATUS = "deleteStatus";
@@ -22,6 +27,10 @@ public class StringConstants {
     public static final String LIMIT = "limit";
     public static final String ALL = "ALL";
     public static final String TIME = "time";
+    public static final String PROCESSED_INCOMES = "processedIncomes";
+    public static final String PROCESSED_EXPENSES = "processedExpenses";
+    public static final String PROCESSED_GOALS = "processedGoals";
+    public static final String REQUEST_ID = "requestId";
 
     public static final String MONTHLY = "MONTHLY";
     public static final String YEARLY = "YEARLY";

@@ -10,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/transaction/admin")
@@ -29,8 +26,10 @@ public class AdminTransactionController {
     @Operation(summary = "Api to trigger batch")
     @GetMapping(value = "batch-sync")
     public void enableRecurringSyncUsingSpringBatch(@NotBlank @RequestHeader("Authorization") String authHeader,
-                                                    @NotNull TransactionServiceType type) {
+                                                    @NotNull TransactionServiceType type,
+                                                    @RequestParam(required = false) String username) {
+        log.info("checking username: {}", username);
         Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        triggerBatchJob.triggerBatchJob(type, adminUserId);
+        triggerBatchJob.triggerBatchJob(type, adminUserId, username, authHeader.substring(7));
     }
 }

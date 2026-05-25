@@ -1,5 +1,6 @@
 package com.moneyfi.notification.service;
 
+import com.moneyfi.constants.dto.BatchInfoForEmailDto;
 import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.notification.service.dto.NotificationQueueDto;
 import com.moneyfi.notification.service.dto.emaildto.AdminBlockUserDto;
@@ -9,13 +10,18 @@ import com.moneyfi.notification.service.dto.emaildto.UserRaisedDefectDto;
 import com.moneyfi.notification.service.email.EmailTemplates;
 import com.moneyfi.notification.util.constants.StringConstants;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.thirdparty.jackson.core.JsonProcessingException;
+import tools.jackson.core.type.TypeReference;
+
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 public class EmailTemplateInjector {
 
     private EmailTemplateInjector() {}
 
-    public static void functionToRouteBasedOnRequest(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+    public static void functionToRouteBasedOnRequest(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) throws JsonProcessingException {
         if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_FEEDBACK_MAIL.name())) {
             functionCallForSendingFeedBackMailToAdmin(notificationQueueDto, emailTemplates);
         } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_DEFECT_STATUS_MAIL.name())) {
@@ -64,7 +70,14 @@ public class EmailTemplateInjector {
             functionCallToSendUserBirthdayMail(notificationQueueDto, emailTemplates);
         } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_ACCOUNT_CREATION_MAIL.name())) {
             functionCallToSendUserAccountCreationMail(notificationQueueDto, emailTemplates);
+        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_BATCH_INFO_EMAIL.name())) {
+            functionCallToSendBatchInfoEmailToUser(notificationQueueDto, emailTemplates);
         }
+    }
+
+    private static void functionCallToSendBatchInfoEmailToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) throws JsonProcessingException {
+        List<BatchInfoForEmailDto> batchInfoList = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), new TypeReference<List<BatchInfoForEmailDto>>() {});
+        emailTemplates.sendEmailForSuccessfulBatchTransactionInsertion(batchInfoList);
     }
 
     private static void functionCallToSendUserAccountCreationMail(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {

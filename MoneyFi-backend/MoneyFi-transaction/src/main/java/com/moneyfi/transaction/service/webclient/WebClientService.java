@@ -1,11 +1,19 @@
 package com.moneyfi.transaction.service.webclient;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
+import java.util.Map;
 
 @Service
+@Slf4j
 public class WebClientService {
 
     private final WebClient webClient;
@@ -14,13 +22,23 @@ public class WebClientService {
         this.webClient = webClient;
     }
 
-    public <T, R> R postRequest(String url, T body, String token, MediaType contentType, Class<R> responseType) {
-        return webClient.post()
-                .uri(url)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .contentType(contentType)
-                .bodyValue(body)
-                .retrieve()
+    public <T, R> R exchange(HttpMethod method, String url, Map<String, String> queryParams, T body, String token, ParameterizedTypeReference<R> responseType) {
+        log.info("Payload received: {}", body);
+        WebClient.RequestBodySpec request = webClient.method(method)
+                .uri(uriBuilder -> {
+                    URI uri = URI.create(url);
+                    UriComponentsBuilder builder = UriComponentsBuilder.fromUri(uri);
+                    if (queryParams != null) {
+                        queryParams.forEach(builder::queryParam);
+                    }
+                    return builder.build().toUri();
+                })
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+
+        if (body != null && method != HttpMethod.GET) {
+            request.bodyValue(body);
+        }
+        return request.retrieve()
                 .onStatus(
                         status -> !status.is2xxSuccessful(),
                         clientResponse -> clientResponse.bodyToMono(String.class)
