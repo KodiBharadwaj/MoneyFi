@@ -48,3 +48,7 @@ springdoc:
     server-url: /
   swagger-ui:
     enabled: true
+
+server:
+  port:
+    8100

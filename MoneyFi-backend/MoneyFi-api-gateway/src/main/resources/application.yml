@@ -32,6 +32,12 @@ spring:
           uri: lb://MoneyFi-user
           predicates:
             - Path=/api/v1/user-service/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 2
+                redis-rate-limiter.burstCapacity: 120
 
         # Swagger docs for user service
         - id: user-service-docs
@@ -45,6 +51,12 @@ spring:
           uri: lb://MoneyFi-Transaction
           predicates:
             - Path=/api/v1/transaction/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 2
+                redis-rate-limiter.burstCapacity: 120
 
         # Swagger docs for user service
         - id: transaction-service-docs
@@ -58,6 +70,12 @@ spring:
           uri: lb://MoneyFi-wealth-core
           predicates:
             - Path=/api/v1/wealth-core/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 2
+                redis-rate-limiter.burstCapacity: 120
 
         # Swagger docs for user service
         - id: wealth-core-service-docs
@@ -66,6 +84,11 @@ spring:
             - Path=/wealth-core-service/v3/api-docs
           filters:
             - RewritePath=/wealth-core-service/v3/api-docs, /v3/api-docs
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 jwt:
   secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
@@ -82,6 +105,15 @@ eureka:
 
 server:
   port: 8765
+
+#Actuator configuration
+management:
+  endpoints:
+    health:
+      show-details: always
+    web:
+      exposure:
+        include: health,info,metrics
 
 springdoc:
   swagger-ui:

@@ -104,9 +104,19 @@ logging:
 server:
   port: 8500
 
+#Swagger ui configuration
 springdoc:
   api-docs:
     enabled: true
     server-url: /
   swagger-ui:
     enabled: true
+
+#Actuator configuration
+management:
+  endpoints:
+    health:
+      show-details: always
+    web:
+      exposure:
+        include: health,info,metrics

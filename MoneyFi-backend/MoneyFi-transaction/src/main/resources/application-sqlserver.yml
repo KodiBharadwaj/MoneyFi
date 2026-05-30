@@ -24,10 +24,6 @@ eureka:
   instance:
     prefer-ip-address: true
 
-server:
-  port:
-    8100
-
 account:
   statement:
     admin:

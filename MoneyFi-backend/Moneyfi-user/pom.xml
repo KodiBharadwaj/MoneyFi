@@ -236,6 +236,12 @@
 			<scope>compile</scope>
 		</dependency>
 
+		<!-- Actuator dependency for health check -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<dependencyManagement>
