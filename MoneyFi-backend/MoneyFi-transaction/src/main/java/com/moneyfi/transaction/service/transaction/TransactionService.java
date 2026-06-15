@@ -39,4 +39,6 @@ public interface TransactionService {
     List<IncomeDeletedDto> getDeletedIncomesInAMonth(Long userId, int month, int year);
 
     List<ExpenseDetailsDto> getAllExpensesByDate(Long userId, TransactionsListRequestDto requestDto);
+
+    List<String> findAllUsernamesOfUsers();
 }

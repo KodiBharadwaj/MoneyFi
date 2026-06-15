@@ -211,6 +211,11 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionRepository.getAllExpensesByDate(userId, requestDto);
     }
 
+    @Override
+    public List<String> findAllUsernamesOfUsers() {
+        return transactionRepository.findAllUsernamesOfUsers();
+    }
+
     private String getCategoryNameFromCacheOrDb(Integer categoryId, String type) {
         String category = CachingService.getCategoryNamesFromCache(categoryId, type, redisTemplate);
         if (StringUtils.isNotBlank(category)) {

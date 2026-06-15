@@ -2,12 +2,14 @@ package com.moneyfi.transaction.batch.config;
 
 import com.moneyfi.transaction.batch.dto.GoalModelDto;
 import com.moneyfi.transaction.batch.dto.GoalProcessingResult;
+import com.moneyfi.transaction.batch.dto.UserNotification;
 import com.moneyfi.transaction.batch.listener.expense.ExpenseJobListener;
 import com.moneyfi.transaction.batch.listener.expense.ExpenseWriteListener;
 import com.moneyfi.transaction.batch.listener.goal.GoalJobListener;
 import com.moneyfi.transaction.batch.listener.goal.GoalWriteListener;
 import com.moneyfi.transaction.batch.listener.income.IncomeJobListener;
 import com.moneyfi.transaction.batch.listener.income.IncomeWriteListener;
+import com.moneyfi.transaction.batch.reader.UserSchedulingNotificationReader;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.model.income.IncomeModel;
 import lombok.RequiredArgsConstructor;
@@ -100,6 +102,24 @@ public class BatchConfig {
                 .processor(goalProcessor)
                 .writer(goalWriter)
                 .listener(goalWriteListener)
+                .build();
+    }
+
+    @Bean
+    public Job userSchedulingNotificationJob(JobRepository jobRepository, Step userSchedulingNotificationStep){
+        return new JobBuilder("user-scheduling-notification-job", jobRepository)
+                .start(userSchedulingNotificationStep)
+                .build();
+    }
+
+    @Bean
+    public Step userSchedulingNotificationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, JdbcPagingItemReader<String> reader,
+                                               ItemProcessor<String, UserNotification> processor, ItemWriter<UserNotification> writer) {
+        return new StepBuilder("user-scheduling-notification-step", jobRepository)
+                .<String, UserNotification>chunk(10, transactionManager)
+                .reader(reader)
+                .processor(processor)
+                .writer(writer)
                 .build();
     }
 }

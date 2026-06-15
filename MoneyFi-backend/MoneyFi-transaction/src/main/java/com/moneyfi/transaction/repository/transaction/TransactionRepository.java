@@ -28,4 +28,6 @@ public interface TransactionRepository {
     List<String> getCategoriesBasedOnTransactionType(String name);
 
     Long getUserIdFromUsername(String username);
+
+    List<String> findAllUsernamesOfUsers();
 }
