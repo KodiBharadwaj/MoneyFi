@@ -24,6 +24,9 @@ spring:
 jwt:
   secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
 
+application:
+  time-zone: ${DEFAULT_TIME_ZONE:Asia/Kolkata}
+
 management:
   endpoints:
     web:
