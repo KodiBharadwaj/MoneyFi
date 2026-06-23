@@ -32,4 +32,12 @@ public class AdminTransactionController {
         Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         triggerBatchJob.triggerBatchJob(type, adminUserId, username, authHeader.substring(7));
     }
+
+    @Operation(summary = "Api to trigger batch to get usernames of all users to send via kafka to user service for java sse notification")
+    @GetMapping(value = "/batch-scheduling")
+    public void sendUsernamesToUserServiceViaKafkaForScheduleNotification(@NotBlank @RequestHeader("Authorization") String authHeader,
+                                                                          @RequestParam @NotNull Long scheduleId) {
+        Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        triggerBatchJob.triggerBatchForSchedulingNotification(adminUserId, scheduleId);
+    }
 }

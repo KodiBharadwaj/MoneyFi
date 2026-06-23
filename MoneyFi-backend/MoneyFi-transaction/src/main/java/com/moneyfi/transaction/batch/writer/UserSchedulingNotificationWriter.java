@@ -1,23 +1,25 @@
 package com.moneyfi.transaction.batch.writer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneyfi.transaction.batch.dto.UserNotification;
-import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
-import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.RequiredArgsConstructor;
+import org.springframework.batch.item.Chunk;
+import org.springframework.batch.item.ItemWriter;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Component;
 
-import javax.sql.DataSource;
+import java.util.ArrayList;
 
-@Configuration
-public class UserSchedulingNotificationWriter {
+@Component
+@RequiredArgsConstructor
+public class UserSchedulingNotificationWriter implements ItemWriter<UserNotification> {
 
-    @Bean
-    public JdbcBatchItemWriter<UserNotification> writer(DataSource dataSource) {
-        JdbcBatchItemWriter<UserNotification> writer = new JdbcBatchItemWriter<>();
-        writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
-        writer.setSql("INSERT INTO user_notifications (user_id, message, created_at) VALUES (:userId, :message, :createdAt)");
-        writer.setDataSource(dataSource);
-        return writer;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
+
+    @Override
+    public void write(Chunk<? extends UserNotification> chunk) throws JsonProcessingException {
+        kafkaTemplate.send("user-scheduling-notification-topic", objectMapper.writeValueAsString(new ArrayList<>(chunk.getItems())));
     }
 }
-

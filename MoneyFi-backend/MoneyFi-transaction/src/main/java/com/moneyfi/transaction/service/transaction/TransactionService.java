@@ -40,5 +40,5 @@ public interface TransactionService {
 
     List<ExpenseDetailsDto> getAllExpensesByDate(Long userId, TransactionsListRequestDto requestDto);
 
-    List<String> findAllUsernamesOfUsers();
+    List<String> findAllUsernamesOfUsers(int offset, int pageSize);
 }

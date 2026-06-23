@@ -10,6 +10,7 @@ import com.moneyfi.transaction.batch.listener.goal.GoalWriteListener;
 import com.moneyfi.transaction.batch.listener.income.IncomeJobListener;
 import com.moneyfi.transaction.batch.listener.income.IncomeWriteListener;
 import com.moneyfi.transaction.batch.reader.UserSchedulingNotificationReader;
+import com.moneyfi.transaction.batch.writer.UserSchedulingNotificationWriter;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.model.income.IncomeModel;
 import lombok.RequiredArgsConstructor;
@@ -113,12 +114,12 @@ public class BatchConfig {
     }
 
     @Bean
-    public Step userSchedulingNotificationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, JdbcPagingItemReader<String> reader,
-                                               ItemProcessor<String, UserNotification> processor, ItemWriter<UserNotification> writer) {
+    public Step userSchedulingNotificationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, UserSchedulingNotificationReader reader,
+                                               ItemProcessor<String, UserNotification> scheduleNotificationProcessor, UserSchedulingNotificationWriter writer) {
         return new StepBuilder("user-scheduling-notification-step", jobRepository)
-                .<String, UserNotification>chunk(10, transactionManager)
+                .<String, UserNotification>chunk(100, transactionManager)
                 .reader(reader)
-                .processor(processor)
+                .processor(scheduleNotificationProcessor)
                 .writer(writer)
                 .build();
     }

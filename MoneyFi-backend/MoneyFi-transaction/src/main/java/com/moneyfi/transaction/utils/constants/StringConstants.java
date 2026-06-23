@@ -27,6 +27,7 @@ public class StringConstants {
     public static final String LIMIT = "limit";
     public static final String ALL = "ALL";
     public static final String TIME = "time";
+    public static final String SCHEDULE_ID = "scheduleId";
     public static final String PROCESSED_INCOMES = "processedIncomes";
     public static final String PROCESSED_EXPENSES = "processedExpenses";
     public static final String PROCESSED_GOALS = "processedGoals";

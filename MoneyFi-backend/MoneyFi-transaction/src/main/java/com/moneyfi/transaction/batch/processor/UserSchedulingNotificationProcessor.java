@@ -12,7 +12,7 @@ public class UserSchedulingNotificationProcessor {
 
     @Bean
     @StepScope
-    public ItemProcessor<String, UserNotification> processor(@Value("#{jobParameters['scheduleId']}") Long scheduleId) {
+    public ItemProcessor<String, UserNotification> scheduleNotificationProcessor(@Value("#{jobParameters['scheduleId']}") Long scheduleId) {
         return username -> {
             return UserNotification.builder().username(username).scheduleId(scheduleId).isRead(Boolean.FALSE).build();
         };

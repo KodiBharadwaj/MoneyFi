@@ -212,8 +212,8 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<String> findAllUsernamesOfUsers() {
-        return transactionRepository.findAllUsernamesOfUsers();
+    public List<String> findAllUsernamesOfUsers(int offset, int pageSize) {
+        return transactionRepository.findAllUsernamesOfUsers(offset, pageSize);
     }
 
     private String getCategoryNameFromCacheOrDb(Integer categoryId, String type) {

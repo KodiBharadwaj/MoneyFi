@@ -29,5 +29,5 @@ public interface TransactionRepository {
 
     Long getUserIdFromUsername(String username);
 
-    List<String> findAllUsernamesOfUsers();
+    List<String> findAllUsernamesOfUsers(int offset, int pageSize);
 }

@@ -49,6 +49,12 @@ springdoc:
   swagger-ui:
     enabled: true
 
+  #  Kafka producer configuration setup
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
 server:
   port:
     8100

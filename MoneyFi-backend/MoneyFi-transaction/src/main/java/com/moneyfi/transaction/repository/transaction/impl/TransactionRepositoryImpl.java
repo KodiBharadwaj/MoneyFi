@@ -341,17 +341,17 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         }
     }
 
-    @Override
-    public List<String> findAllUsernamesOfUsers() {
-        List<String> usernames = new ArrayList<>();
-        try {
-            Query query = entityManager.createNativeQuery(
-                    "exec getUsernamesOfAllActiveUsers " );
-            usernames.addAll(query.getResultList());
-            return usernames;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new QueryValidationException("Error occurred while fetching usernames");
-        }
+    public List<String> findAllUsernamesOfUsers(int offset, int pageSize)
+    {
+        Query query =
+                entityManager.createNativeQuery(
+                        "exec getUsernamesOfAllUsersForSpringBatch "
+                                + "@offset=:offset,"
+                                + "@pageSize=:pageSize");
+
+        query.setParameter("offset", offset);
+        query.setParameter("pageSize", pageSize);
+
+        return query.getResultList();
     }
 }

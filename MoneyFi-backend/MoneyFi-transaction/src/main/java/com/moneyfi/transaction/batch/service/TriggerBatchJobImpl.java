@@ -39,6 +39,10 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
     @Qualifier("goalJob")
     private Job goalJob;
 
+    @Autowired
+    @Qualifier("userSchedulingNotificationJob")
+    private Job scheduleNotificationJob;
+
     private final TransactionRepository transactionRepository;
     private final BatchAuthTokenStore batchAuthTokenStore;
 
@@ -53,7 +57,7 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
         if (type.name().equalsIgnoreCase(TransactionServiceType.INCOME.name())) {
             try {
                 log.info("Running Adding Recurring Incomes Job...");
-                jobLauncher.run(incomeJob, addJobParameters(userId, adminUserId, System.currentTimeMillis(), token));
+                jobLauncher.run(incomeJob, addJobParameters(userId, adminUserId, System.currentTimeMillis(), token).toJobParameters());
             } catch (Exception e) {
                 log.error("Recurring Incomes job failed", e);
                 e.printStackTrace();
@@ -61,7 +65,7 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
         } else if (type.name().equalsIgnoreCase(TransactionServiceType.EXPENSE.name())) {
             try {
                 log.info("Running Adding Recurring Expenses Job...");
-                jobLauncher.run(expenseJob, addJobParameters(userId, adminUserId, System.currentTimeMillis() + 1, token));
+                jobLauncher.run(expenseJob, addJobParameters(userId, adminUserId, System.currentTimeMillis() + 1, token).toJobParameters());
             } catch (Exception e) {
                 log.error("Recurring Expenses job failed", e);
                 e.printStackTrace();
@@ -69,7 +73,7 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
         } else if (type.name().equalsIgnoreCase(TransactionServiceType.GOAL.name())) {
             try {
                 log.info("Running Adding Recurring Goal Job...");
-                jobLauncher.run(goalJob, addJobParameters(userId, adminUserId, System.currentTimeMillis(), token));
+                jobLauncher.run(goalJob, addJobParameters(userId, adminUserId, System.currentTimeMillis(), token).toJobParameters());
             } catch (Exception e) {
                 log.error("Recurring Expenses job failed", e);
                 e.printStackTrace();
@@ -77,7 +81,18 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
         }
     }
 
-    private JobParameters addJobParameters(Long userId, Long adminUserId, Long time, String token) {
+    @Override
+    public void triggerBatchForSchedulingNotification(Long adminUserId, Long scheduleId) {
+        try {
+            log.info("Running fetching usernames job for user schedule notifications...");
+            jobLauncher.run(scheduleNotificationJob, addJobParameters(adminUserId, System.currentTimeMillis(), scheduleId).toJobParameters());
+        } catch (Exception e) {
+            log.error("Schedule Notification job failed", e);
+            e.printStackTrace();
+        }
+    }
+
+    private JobParametersBuilder addJobParameters(Long userId, Long adminUserId, Long time, String token) {
         String requestId = UUID.randomUUID().toString();
         if (userId != null && token != null) batchAuthTokenStore.put(requestId, token);
 
@@ -87,6 +102,10 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
         if (userId != null) jobParametersBuilder.addLong(USER_ID, userId);
         if (adminUserId != null) jobParametersBuilder.addString(ADMIN_USER_ID, ADMIN + UNDERSCORE + adminUserId);
         else jobParametersBuilder.addString(ADMIN_USER_ID, BATCH_AUTO_TRIGGER);
-        return jobParametersBuilder.toJobParameters();
+        return jobParametersBuilder;
+    }
+
+    private JobParametersBuilder addJobParameters(Long adminUserId, Long time, Long scheduleId) {
+        return addJobParameters(null, adminUserId, time, null).addLong(SCHEDULE_ID, scheduleId);
     }
 }
