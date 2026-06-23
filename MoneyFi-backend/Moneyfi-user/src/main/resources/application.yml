@@ -86,6 +86,8 @@ application:
   bucket:
     name: ${AWS_S3_BUCKET_NAME}
 
+  time-zone: ${DEFAULT_TIME_ZONE:Asia/Kolkata}
+
 cloudinary:
   credentials:
     cloud-name: ${CLOUDINARY_CLOUD_NAME}
