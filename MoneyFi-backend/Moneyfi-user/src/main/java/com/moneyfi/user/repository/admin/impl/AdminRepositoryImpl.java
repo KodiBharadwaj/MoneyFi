@@ -61,11 +61,11 @@ public class AdminRepositoryImpl implements AdminRepository {
         try {
             Query query = entityManager.createNativeQuery(
                             "exec getUserGridDetailsByStatusForAdmin " +
-                            "@status = :status, " +
-                            "@offset = :offset, " +
-                            "@limit = :limit, " +
-                            "@search = :search, " +
-                            "@searchBy = :searchBy ")
+                                    "@status = :status, " +
+                                    "@offset = :offset, " +
+                                    "@limit = :limit, " +
+                                    "@search = :search, " +
+                                    "@searchBy = :searchBy ")
                     .setParameter("status", status)
                     .setParameter("offset", offset)
                     .setParameter("limit", limit)
@@ -74,7 +74,7 @@ public class AdminRepositoryImpl implements AdminRepository {
                     .unwrap(NativeQuery.class)
                     .setResultTransformer(Transformers.aliasToBean(UserGridDto.class));
             userGridDetails.addAll(query.getResultList());
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching fetching " + status.toLowerCase() + " user grid details");
         }

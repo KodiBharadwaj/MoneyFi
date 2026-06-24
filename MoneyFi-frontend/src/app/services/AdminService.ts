@@ -11,14 +11,40 @@ export class AdminService {
   constructor(private http: HttpClient) {}
 
   getUserCounts(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/api/v1/user-service/admin/overview-user-details`);
-  }
-
-  getUsersByStatus(status: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/api/v1/user-service/admin/user-details/grid?status=${status}`);
+    return this.http.get(
+      `${this.baseUrl}/api/v1/user-service/admin/overview-user-details`,
+    );
   }
 
   getUserRequestsByStatus(status: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/api/v1/user-service/admin/fetch-user-requests/grid?status=${status}`);
+    return this.http.get<any[]>(
+      `${this.baseUrl}/api/v1/user-service/admin/fetch-user-requests/grid?status=${status}`,
+    );
+  }
+
+  getUsersByStatus(
+    status: string,
+    offset: number,
+    limit: number,
+    search: string,
+    searchBy: string,
+  ) {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/user-service/admin/user-details/grid`,
+
+      {
+        params: {
+          status,
+
+          offset,
+
+          limit,
+
+          search,
+
+          searchBy,
+        },
+      },
+    );
   }
 }

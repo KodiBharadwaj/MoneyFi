@@ -11,8 +11,8 @@ import { HttpClient } from '@angular/common/http';
   selector: 'app-admin-users',
   templateUrl: './admin-users.component.html',
   styleUrls: ['./admin-users.component.css'],
-  imports : [CommonModule, FormsModule, RouterModule],
-  standalone : true
+  imports: [CommonModule, FormsModule, RouterModule],
+  standalone: true,
 })
 export class AdminUsersComponent implements OnInit, OnDestroy {
   status: string = '';
@@ -25,81 +25,143 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
   isLoading = false;
   isGridLoading = false;
 
+  totalUsers = 0;
 
-  constructor(private router: ActivatedRoute, private adminService: AdminService, private toastr:ToastrService, private httpClient:HttpClient,
+  offset = 0;
+  limit = 10;
+
+  currentPage = 1;
+  totalPages = 0;
+
+  search = '';
+  searchBy = '';
+
+  constructor(
+    private router: ActivatedRoute,
+    private adminService: AdminService,
+    private toastr: ToastrService,
+    private httpClient: HttpClient,
   ) {}
 
   baseUrl = environment.BASE_URL;
 
   ngOnInit(): void {
-    this.router.paramMap.subscribe(params => {
+    this.router.paramMap.subscribe((params) => {
       this.status = params.get('status') || '';
-      this.fetchUsers(this.status);
+
+      this.fetchUsers();
     });
   }
-
-  fetchUsers(status: string) {
-    this.isGridLoading = true;
-    this.adminService.getUsersByStatus(status).subscribe({
-      next : (data) => {
-      this.users = data;
-      this.isGridLoading = false;
-    },
-      error: (err) => {
-        console.error('Failed to fetch users', err);
-        this.isGridLoading = false;
-      }
-    });
-  }
-
-  // Filter function
-  filteredUsers() {
-    let filtered = this.users.filter(user =>
-      (!this.nameFilter || user.name?.toLowerCase().includes(this.nameFilter.toLowerCase())) &&
-      (!this.usernameFilter || user.username?.toLowerCase().includes(this.usernameFilter.toLowerCase())) &&
-      (!this.phoneFilter || user.phone?.toString().includes(this.phoneFilter))
-    );
-
-    return this.isAscending
-      ? filtered
-      : [...filtered].reverse();
-  }
-
 
   // Toggle order
   toggleOrder() {
     this.isAscending = !this.isAscending;
   }
 
-  showUserDialog=false;
-  userProfile:any;
-  profileImageUrl:any;
+  showUserDialog = false;
+  userProfile: any;
+  profileImageUrl: any;
 
-  openUserProfile(username:string){
+  openUserProfile(username: string) {
+    this.showUserDialog = true;
 
-    this.showUserDialog=true;
-
-    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/user-profile-details?username=${username}`)
-    .subscribe((data:any)=>{
-        this.userProfile=data;
-    });
+    this.httpClient
+      .get(
+        `${this.baseUrl}/api/v1/user-service/admin/user-profile-details?username=${username}`,
+      )
+      .subscribe((data: any) => {
+        this.userProfile = data;
+      });
 
     this.loadProfileImage(username);
   }
 
+  onSearch(searchBy: string, value: string) {
+    this.searchBy = searchBy;
+    this.search = value;
+
+    this.currentPage = 1;
+    this.offset = 0;
+
+    this.fetchUsers();
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+
+      this.offset = (this.currentPage - 1) * this.limit;
+
+      this.fetchUsers();
+    }
+  }
+
+  previousPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+
+      this.offset = (this.currentPage - 1) * this.limit;
+
+      this.fetchUsers();
+    }
+  }
+
+  changeLimit() {
+    this.currentPage = 1;
+
+    this.offset = 0;
+
+    this.fetchUsers();
+  }
+
+  fetchUsers() {
+    this.isGridLoading = true;
+
+    this.adminService
+      .getUsersByStatus(
+        this.status,
+        this.offset,
+        this.limit,
+        this.search,
+        this.searchBy,
+      )
+      .subscribe({
+        next: (res) => {
+          this.users = res.data;
+
+          this.totalUsers = res.totalCount;
+
+          this.totalPages = Math.ceil(this.totalUsers / this.limit);
+
+          this.isGridLoading = false;
+        },
+
+        error: () => {
+          this.isGridLoading = false;
+        },
+      });
+  }
+
   profileImage = '';
   isImageLoading: boolean = false;
-  loadProfileImage(username:string): void {
+  loadProfileImage(username: string): void {
     this.isImageLoading = true;
 
-    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/profile-picture/get?username=${username}`, { responseType: 'blob' })
+    this.httpClient
+      .get(
+        `${this.baseUrl}/api/v1/user-service/admin/profile-picture/get?username=${username}`,
+        { responseType: 'blob' },
+      )
       .subscribe({
         next: (blob) => {
           if (blob.size > 0) {
             const reader = new FileReader();
             reader.onload = (e: any) => {
               this.profileImage = e.target.result; // base64 string
-              sessionStorage.setItem('moneyfi.user.profile.image', this.profileImage);
+              sessionStorage.setItem(
+                'moneyfi.user.profile.image',
+                this.profileImage,
+              );
               this.isImageLoading = false;
             };
             reader.readAsDataURL(blob);
@@ -110,25 +172,29 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
         error: (err) => {
           this.isImageLoading = false;
           console.error('Error fetching profile picture:', err);
-        }
+        },
       });
   }
 
-  closeUserDialog(){
-    this.showUserDialog=false;
+  closeUserDialog() {
+    this.showUserDialog = false;
     this.profileImage = '';
   }
 
   getHistory(history: any) {
     return Object.entries(history).map(([key, value]: any) => ({
       status: key,
-      time: value.requestUpdateTime
+      time: value.requestUpdateTime,
     }));
   }
 
   selectedImage: string | null = null;
-  viewImage(username: string, defectId: number, type:string): void {
-    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/user-defects/image?username=${username}&type=${type}&id=${defectId}`, { responseType: 'blob' })
+  viewImage(username: string, defectId: number, type: string): void {
+    this.httpClient
+      .get(
+        `${this.baseUrl}/api/v1/user-service/admin/user-defects/image?username=${username}&type=${type}&id=${defectId}`,
+        { responseType: 'blob' },
+      )
       .subscribe({
         next: (blob) => {
           const reader = new FileReader();
@@ -156,107 +222,120 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
             const message = err.error?.message || 'Something went wrong';
             this.toastr.error(message);
           }
-        }
+        },
       });
   }
-
 
   showBlockDialog = false;
   blockReason = '';
 
-  openBlockDialog(){
+  openBlockDialog() {
     this.showBlockDialog = true;
   }
 
-  closeBlockDialog(){
+  closeBlockDialog() {
     this.showBlockDialog = false;
   }
 
-
   selectedFile!: File;
   fileError = false;
-  onFileSelected(event:any){
+  onFileSelected(event: any) {
     const file = event.target.files[0];
 
-    if(file){
+    if (file) {
       this.selectedFile = file;
       this.fileError = false;
     }
   }
 
-  blockUser(){
-    if(!this.blockReason || !this.selectedFile){
+  blockUser() {
+    if (!this.blockReason || !this.selectedFile) {
       this.fileError = !this.selectedFile;
-      alert("Please provide reason and upload evidence file");
+      alert('Please provide reason and upload evidence file');
       return;
     }
     const formData = new FormData();
-    formData.append("email", this.userProfile.username);
-    formData.append("reason", this.blockReason);
+    formData.append('email', this.userProfile.username);
+    formData.append('reason', this.blockReason);
 
-    if(this.selectedFile){
-      formData.append("file", this.selectedFile);
+    if (this.selectedFile) {
+      formData.append('file', this.selectedFile);
     }
 
-    this.httpClient.post(`${this.baseUrl}/api/v1/user-service/admin/user-account/block`, formData ).subscribe({
-        next: (res)=>{
+    this.httpClient
+      .post(
+        `${this.baseUrl}/api/v1/user-service/admin/user-account/block`,
+        formData,
+      )
+      .subscribe({
+        next: (res) => {
           this.toastr.success('User Blocked Successfully');
           this.closeBlockDialog();
         },
-        error: (err)=>{
+        error: (err) => {
           try {
-            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            const errorObj =
+              typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
             this.toastr.error(errorObj.message);
           } catch (e) {
             console.error('Failed to parse error:', err.error);
           }
-        }
-    });
+        },
+      });
   }
-
   generateReport() {
     this.isLoading = true;
-    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/user-details/excel?status=${this.status}`, { responseType: 'blob' }).subscribe({
-      next: (response) => {
-        // Trigger File Download
-        const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `user_list.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.isLoading = false;
-        console.error('Failed to generate report:', error);
-        // alert("Failed to generate the report. Please try again.");
-        console.log(error.status)
-        console.log(error.error?.message);
 
-        if(error.status === 401){
-            if (error.error === 'TokenExpired') {
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              // this.route.navigate(['/']);
-            } else if(error.error === 'Token is blacklisted'){
-              alert('Your session has expired. Please login again.');
-              sessionStorage.removeItem('moneyfi.auth');
-              // this.route.navigate(['/']);
-            }
-            else if(error.error === 'AuthorizationFailed'){
-              alert('Service Unavailable!! Please try later');
-            }
-          } else if (error.status === 503){
-            alert('Service Unavailable!! Please try later');
-          } else if (error.status === 404 && error?.message === 'No user data found to generate excel'){
-            this.toastr.error('Failed to generate report due to no data');
-          }
-      }
-    });
+    this.httpClient
+      .get(
+        `${this.baseUrl}/api/v1/user-service/admin/user-details/excel`,
+
+        {
+          responseType: 'blob',
+
+          params: {
+            status: this.status,
+
+            offset: this.offset,
+
+            limit: this.limit,
+
+            search: this.search,
+
+            searchBy: this.searchBy,
+          },
+        },
+      )
+
+      .subscribe({
+        next: (response) => {
+          const blob = new Blob(
+            [response],
+
+            {
+              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            },
+          );
+
+          const url = window.URL.createObjectURL(blob);
+
+          const a = document.createElement('a');
+
+          a.href = url;
+
+          a.download = 'user_list.xlsx';
+
+          a.click();
+
+          window.URL.revokeObjectURL(url);
+
+          this.isLoading = false;
+        },
+
+        error: () => {
+          this.isLoading = false;
+        },
+      });
   }
 
   ngOnDestroy(): void {

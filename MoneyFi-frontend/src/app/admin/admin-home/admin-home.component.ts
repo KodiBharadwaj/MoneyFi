@@ -148,14 +148,6 @@ export class AdminHomeComponent implements OnInit {
     });
   }
 
-  fetchGrid(type: string) {
-    this.selectedTile = type;
-    this.showGrid = true;
-    this.adminService.getUsersByStatus(type).subscribe(users => {
-      this.gridData = users;
-    });
-  }
-
   navigateTo(route: string) {
     console.log('Navigate to:', route);
   }

@@ -1,6 +1,15 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,14 +34,13 @@ import { AdminCommonServiceService } from '../admin-common-service.service';
     MatButtonModule,
     MatDialogModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
   ],
   standalone: true,
-  styleUrl: './admin-schedule-dialog.component.css'
+  styleUrl: './admin-schedule-dialog.component.css',
 })
 export class AdminScheduleDialogComponent implements OnInit {
   scheduleForm!: FormGroup;
-  allUsers: string[] = [];
   searchResults: string[] = [];
   showSuggestions = false;
   isSubmitting = false;
@@ -48,8 +56,8 @@ export class AdminScheduleDialogComponent implements OnInit {
     private http: HttpClient,
     private toastr: ToastrService,
     private adminCommonService: AdminCommonServiceService,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) { }
+    @Inject(MAT_DIALOG_DATA) public data: any,
+  ) {}
 
   ngOnInit(): void {
     this.scheduleForm = this.fb.group({
@@ -59,14 +67,9 @@ export class AdminScheduleDialogComponent implements OnInit {
       scheduleFromTime: ['', Validators.required],
       scheduleToDate: ['', Validators.required],
       scheduleToTime: ['', Validators.required],
-      recipients: ['All', Validators.required]
+      recipients: ['All', Validators.required],
     });
-
-    this.adminCommonService.getUsernames()
-      .subscribe(data => {
-        this.allUsers = data;
-        this.patchReuseData();
-      });
+    this.patchReuseData();
   }
 
   private patchReuseData() {
@@ -79,7 +82,7 @@ export class AdminScheduleDialogComponent implements OnInit {
     this.scheduleForm.patchValue({
       subject: schedule.subject,
       description: schedule.description,
-      recipients: schedule.recipients // All | Specific
+      recipients: schedule.recipients, // All | Specific
     });
 
     // Specific users
@@ -100,7 +103,7 @@ export class AdminScheduleDialogComponent implements OnInit {
         scheduleFromDate: this.formatDate(from),
         scheduleFromTime: this.formatTime(from),
         scheduleToDate: this.formatDate(to),
-        scheduleToTime: this.formatTime(to)
+        scheduleToTime: this.formatTime(to),
       });
       this.scheduleIdToUpdate = this.data.scheduleId;
     }
@@ -114,7 +117,6 @@ export class AdminScheduleDialogComponent implements OnInit {
     return date.toTimeString().slice(0, 5);
   }
 
-
   onRecipientChange(event: Event) {
     const value = (event.target as HTMLSelectElement).value;
     if (value === 'All') {
@@ -124,21 +126,33 @@ export class AdminScheduleDialogComponent implements OnInit {
 
   searchUsers(event: Event) {
     const input = event.target as HTMLInputElement;
-    const query = input.value.trim().toLowerCase();
 
-    if (!query) {
+    const query = input.value.trim();
+
+    if (query.length < 2) {
       this.searchResults = [];
+
+      this.showSuggestions = false;
+
       return;
     }
 
-    this.searchResults = this.allUsers
-      .filter(user =>
-        user.toLowerCase().includes(query) &&
-        !this.selectedUsers.includes(user) // exclude already picked
-      )
-      .slice(0, 10);
+    this.adminCommonService
+      .getUsernames(
+        0,
 
-    this.showSuggestions = this.searchResults.length > 0;
+        10,
+
+        query,
+      )
+
+      .subscribe((data) => {
+        this.searchResults = data.filter(
+          (user) => !this.selectedUsers.includes(user),
+        );
+
+        this.showSuggestions = this.searchResults.length > 0;
+      });
   }
 
   addUser(user: string) {
@@ -160,7 +174,7 @@ export class AdminScheduleDialogComponent implements OnInit {
   }
 
   onBlur() {
-    setTimeout(() => this.showSuggestions = false, 200);
+    setTimeout(() => (this.showSuggestions = false), 200);
   }
 
   submit() {
@@ -171,7 +185,7 @@ export class AdminScheduleDialogComponent implements OnInit {
       scheduleFromTime,
       scheduleToDate,
       scheduleToTime,
-      recipients
+      recipients,
     } = this.scheduleForm.value;
 
     this.isSubmitting = true;
@@ -182,9 +196,16 @@ export class AdminScheduleDialogComponent implements OnInit {
       dateObj.setHours(hour, minute, 0, 0);
       const pad = (n: number) => n.toString().padStart(2, '0');
       return (
-        dateObj.getFullYear() + '-' + pad(dateObj.getMonth() + 1) +
-        '-' + pad(dateObj.getDate()) + 'T' +
-        pad(dateObj.getHours()) + ':' + pad(dateObj.getMinutes()) + ':' +
+        dateObj.getFullYear() +
+        '-' +
+        pad(dateObj.getMonth() + 1) +
+        '-' +
+        pad(dateObj.getDate()) +
+        'T' +
+        pad(dateObj.getHours()) +
+        ':' +
+        pad(dateObj.getMinutes()) +
+        ':' +
         pad(dateObj.getSeconds())
       );
     };
@@ -212,7 +233,7 @@ export class AdminScheduleDialogComponent implements OnInit {
       description,
       recipients: recipientsValue,
       scheduleFrom,
-      scheduleTo
+      scheduleTo,
     };
 
     const updatePayload = {
@@ -221,39 +242,52 @@ export class AdminScheduleDialogComponent implements OnInit {
       description,
       recipients: recipientsValue,
       scheduleFrom,
-      scheduleTo
+      scheduleTo,
     };
 
     // EDIT mode → update
     if (this.data?.mode === 'EDIT') {
       updatePayload.scheduleId = this.data.schedule.scheduleId;
 
-      this.http.put(
-        `${this.baseUrl}/api/v1/user-service/admin/schedule-notification/update`,
-        updatePayload
-      ).subscribe({
-        next: () => {
-          this.toastr.success('Schedule updated');
-          this.dialogRef.close({ success: true });
-        },
-        error: (err) => {
-          try {
-            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-            this.toastr.error(errorObj.message);
-          } catch (e) {
-            console.error('Failed to parse error:', err.error);
-          }
-        }
-      });
+      this.http
+        .put(
+          `${this.baseUrl}/api/v1/user-service/admin/schedule-notification/update`,
+          updatePayload,
+        )
+        .subscribe({
+          next: () => {
+            this.toastr.success('Schedule updated');
+            this.dialogRef.close({ success: true });
+          },
+          error: (err) => {
+            try {
+              const errorObj =
+                typeof err.error === 'string'
+                  ? JSON.parse(err.error)
+                  : err.error;
+              this.toastr.error(errorObj.message);
+            } catch (e) {
+              console.error('Failed to parse error:', err.error);
+            }
+          },
+        });
 
       return;
     }
 
-    this.http.post(`${this.baseUrl}/api/v1/user-service/admin/schedule-notification`, payload, { responseType: 'text' as 'json' })
+    this.http
+      .post(
+        `${this.baseUrl}/api/v1/user-service/admin/schedule-notification`,
+        payload,
+        { responseType: 'text' as 'json' },
+      )
       .subscribe({
         next: () => {
           this.isSubmitting = false;
-          this.dialogRef.close({ success: true, message: 'Notification set successfully' });
+          this.dialogRef.close({
+            success: true,
+            message: 'Notification set successfully',
+          });
         },
         error: (errorResponse) => {
           this.isSubmitting = false;
@@ -279,7 +313,7 @@ export class AdminScheduleDialogComponent implements OnInit {
           } else {
             this.toastr.error('Something went wrong! Please try later');
           }
-        }
+        },
       });
   }
 

@@ -4,9 +4,7 @@
 
     <div class="batch-row" *ngFor="let batch of batches">
 
-        <button
-            (click)="triggerBatch(batch.type, batch.recipientType, batch.username)"
-            [disabled]="loading">
+        <button (click)="triggerBatch(batch.type, batch.recipientType, batch.username)" [disabled]="loading">
 
             Trigger {{ batch.label }} Batch
         </button>
@@ -16,19 +14,32 @@
             <option value="SPECIFIC">Specific</option>
         </select>
 
-        <input
-            type="text"
-            placeholder="Enter username"
-            [disabled]="batch.recipientType !== 'SPECIFIC'"
-            [(ngModel)]="batch.username"
-            list="usersList"
-        />
+        <div class="autocomplete-container">
+
+            <input type="text" placeholder="Enter username" [disabled]="batch.recipientType !== 'SPECIFIC'"
+                [(ngModel)]="batch.username" (input)="searchUsers(batch)" (focus)="onFocus(batch)"
+                (blur)="onBlur(batch)" />
+
+
+            <div class="suggestions" *ngIf="batch.showSuggestions">
+
+
+                <div class="suggestion" *ngFor="let user of batch.suggestions" (mousedown)="selectUser(batch,user)">
+
+
+
+                    {{user}}
+
+
+                </div>
+
+
+            </div>
+
+
+        </div>
 
     </div>
-
-    <datalist id="usersList">
-        <option *ngFor="let user of allUsers" [value]="user"></option>
-    </datalist>
 
     <p class="message" *ngIf="message">
         {{ message }}

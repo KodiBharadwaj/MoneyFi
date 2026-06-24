@@ -1,6 +1,7 @@
 package com.moneyfi.user.controller.admin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.moneyfi.constants.dto.PaginatedResponseDto;
 import com.moneyfi.user.service.admin.AdminService;
 import com.moneyfi.user.service.admin.dto.request.*;
 import com.moneyfi.user.service.admin.dto.response.*;
@@ -49,9 +50,14 @@ public class AdminController {
 
     @Operation(summary = "Api to get active user grid details")
     @GetMapping("/user-details/grid")
-    public List<UserGridDto> getUserDetailsGridForAdmin(@NotBlank @RequestParam(value = "status") String status,
-                                                        @Valid @ModelAttribute PaginationRequestDto requestDto){
-        return adminService.getUserDetailsGridForAdmin(status, requestDto.getOffset(), requestDto.getLimit(), requestDto.getSearch(), requestDto.getSearchBy());
+    public ResponseEntity<PaginatedResponseDto<UserGridDto>> getUserDetailsGridForAdmin(@NotBlank @RequestParam(value = "status") String status,
+                                                                                        @Valid @ModelAttribute PaginationRequestDto requestDto) {
+        List<UserGridDto> userGridDtoList = adminService.getUserDetailsGridForAdmin(status, requestDto.getOffset(), requestDto.getLimit(), requestDto.getSearch(), requestDto.getSearchBy());
+        return ResponseEntity.ok(PaginatedResponseDto.<UserGridDto>builder()
+                .data(userGridDtoList)
+                .totalCount(!userGridDtoList.isEmpty() ? userGridDtoList.get(0).getTotalUsers() : 0L)
+                .build()
+        );
     }
 
     @Operation(summary = "Api to get user grid details as excel report")

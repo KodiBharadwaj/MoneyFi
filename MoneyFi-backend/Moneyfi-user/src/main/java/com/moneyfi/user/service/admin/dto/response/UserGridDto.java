@@ -1,6 +1,7 @@
 package com.moneyfi.user.service.admin.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,4 +22,6 @@ public class UserGridDto {
     @JsonFormat(pattern = DATE_TIME_PATTERN)
     private Timestamp createdDateTime;
     private Date dateOfBirth;
+    @JsonIgnore
+    private Long totalUsers;
 }
