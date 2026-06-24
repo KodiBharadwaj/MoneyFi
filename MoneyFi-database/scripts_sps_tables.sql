@@ -2147,7 +2147,11 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 CREATE   procedure [dbo].[getUserGridDetailsByStatusForAdmin] (
-	@status VARCHAR(20)
+	@status VARCHAR(20),
+	@offset BIGINT,
+	@limit BIGINT,
+	@search VARCHAR(MAX),
+	@searchBy VARCHAR(100)
 	)
 AS
 BEGIN
@@ -2162,9 +2166,22 @@ BEGIN
 	FROM user_auth_table uat WITH (NOLOCK) 
 	INNER JOIN user_profile_details_table updt WITH (NOLOCK) ON updt.user_id = uat.id
 	INNER JOIN user_role_table urt WITH (NOLOCK) ON urt.role_id = uat.role_id
-	--WHERE uat.is_blocked = 0
-	--	AND uat.is_deleted = 0
 		AND urt.role_name IN ('USER')
+		AND (
+			@search IS NULL
+			OR (
+				@searchBy = 'username'
+				AND uat.username LIKE CONCAT('%', @search, '%')
+			)
+			OR (
+				@searchBy = 'phone'
+				AND updt.phone LIKE CONCAT('%', @search, '%')
+			)
+			OR (
+				@searchBy = 'name'
+				AND updt.name LIKE CONCAT('%', @search, '%')
+			)
+		)
 	WHERE (@status = 'ALL'
 		OR (@status = 'ACTIVE' AND uat.is_blocked = 0 AND uat.is_deleted = 0 )
 		OR (@status = 'BLOCKED' AND uat.is_blocked = 1 AND uat.is_deleted = 0 )
@@ -2172,6 +2189,8 @@ BEGIN
 	)
 
 	ORDER BY createdDateTime DESC
+	OFFSET @offset ROWS
+	FETCH NEXT @limit ROWS ONLY
 END
 GO
 /****** Object:  StoredProcedure [dbo].[getUserIdFromUsernameAndToken]    Script Date: 13-04-2026 23:29:47 ******/
@@ -2235,7 +2254,11 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create   procedure [dbo].[getUsernamesOfAllActiveUsers] 
+create   procedure [dbo].[getUsernamesOfAllActiveUsers] (
+	@offset BIGINT,
+	@limit BIGINT,
+	@search VARCHAR(MAX)
+	)
 AS
 BEGIN
 	
@@ -2246,12 +2269,14 @@ BEGIN
 	INNER JOIN user_auth_table uat WITH (NOLOCK) ON uat.id = updt.user_id
 	INNER JOIN user_role_table urt WITH (NOLOCK) ON urt.role_id = uat.role_id
 		AND urt.role_name IN ('USER')
+		AND (@search IS NULL OR uat.username LIKE CONCAT('%', @search, '%'))
 	WHERE uat.is_blocked = 0
 		AND uat.is_deleted = 0
 	
 	ORDER BY updt.created_date
+	OFFSET @offset ROWS
+	FETCH NEXT @limit ROWS ONLY
 END
-GO
 /****** Object:  StoredProcedure [dbo].[getUserRaisedDefectsForAdmin]    Script Date: 13-04-2026 23:29:48 ******/
 SET ANSI_NULLS ON
 GO

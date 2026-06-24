@@ -104,17 +104,17 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<UserGridDto> getUserDetailsGridForAdmin(String status) {
+    public List<UserGridDto> getUserDetailsGridForAdmin(String status, Long offset, Long limit, String search, String searchBy) {
         AtomicInteger i = new AtomicInteger(1);
-        return adminRepository.getUserDetailsGridForAdmin(status).stream()
+        return adminRepository.getUserDetailsGridForAdmin(status, offset, limit, search, searchBy).stream()
                 .peek(user -> user.setSlNo(i.getAndIncrement()))
                 .toList();
     }
 
     @Override
-    public byte[] getUserDetailsExcelForAdmin(String status) {
-        List<UserGridDto> userGridDtoList = getUserDetailsGridForAdmin(status);
-        if(userGridDtoList.isEmpty()){
+    public byte[] getUserDetailsExcelForAdmin(String status, Long offset, Long limit, String search, String searchBy) {
+        List<UserGridDto> userGridDtoList = getUserDetailsGridForAdmin(status, offset, limit, search, searchBy);
+        if (userGridDtoList.isEmpty()) {
             throw new ResourceNotFoundException("No user data found to generate excel");
         }
         return generateExcelReport(userGridDtoList);
@@ -433,8 +433,9 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<String> getUsernamesOfAllUsers() {
-        return commonServiceRepository.findAllUsernamesOfUsers();
+    public List<String> getUsernamesOfAllUsers(Long offset, Long limit, String search) {
+        if (StringUtils.isBlank(search)) throw new ScenarioNotPossibleException("Please enter a character to proceed");
+        return commonServiceRepository.findAllUsernamesOfUsers(offset, limit, search);
     }
 
     @Override
@@ -587,7 +588,7 @@ public class AdminServiceImpl implements AdminService {
              * For more traffic of users, It is advisable to use direct insert queries.
              * Else For more efficient approach, we can use Kafka or any messaging queue to handle such huge number of people scenarios.
              */
-            userCommonService.saveUserNotificationsForAllUsers(getUsernamesOfAllUsers(), scheduleId);
+            userCommonService.saveUserNotificationsForAllUsers(getUsernamesOfAllUsers(0L, Long.MAX_VALUE, "."), scheduleId);
         }
     }
 

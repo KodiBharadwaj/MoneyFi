@@ -11,7 +11,7 @@ public interface AdminRepository {
 
     List<UserRequestsGridDto> getUserRequestsGridForAdmin(String requestReason);
 
-    List<UserGridDto> getUserDetailsGridForAdmin(String status);
+    List<UserGridDto> getUserDetailsGridForAdmin(String status, Long offset, Long limit, String search, String searchBy);
 
     Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status);
 

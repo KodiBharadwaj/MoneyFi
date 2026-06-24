@@ -28,9 +28,9 @@ public interface AdminService {
 
     void blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) throws JsonProcessingException;
 
-    List<UserGridDto> getUserDetailsGridForAdmin(String status);
+    List<UserGridDto> getUserDetailsGridForAdmin(String status, Long offset, Long limit, String search, String searchBy);
 
-    byte[] getUserDetailsExcelForAdmin(String status);
+    byte[] getUserDetailsExcelForAdmin(String status, Long offset, Long limit, String search, String searchBy);
 
     Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status);
 
@@ -48,7 +48,7 @@ public interface AdminService {
 
     void deleteReasonByReasonId(int reasonId, Long adminUserId);
 
-    List<String> getUsernamesOfAllUsers();
+    List<String> getUsernamesOfAllUsers(Long offset, Long limit, String search);
 
     void scheduleNotification(@Valid ScheduleNotificationRequestDto requestDto, Long adminUserId);
 

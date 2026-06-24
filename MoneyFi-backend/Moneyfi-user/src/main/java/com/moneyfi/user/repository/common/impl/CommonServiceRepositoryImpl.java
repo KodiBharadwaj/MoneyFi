@@ -84,11 +84,17 @@ public class CommonServiceRepositoryImpl implements CommonServiceRepository {
     }
 
     @Override
-    public List<String> findAllUsernamesOfUsers() {
+    public List<String> findAllUsernamesOfUsers(Long offset, Long limit, String search) {
         List<String> usernames = new ArrayList<>();
         try {
             Query query = entityManager.createNativeQuery(
-                            "exec getUsernamesOfAllActiveUsers " );
+                            "exec getUsernamesOfAllActiveUsers " +
+                                    "@offset = :offset, " +
+                                    "@limit = :limit, " +
+                                    "@search = :search ")
+                            .setParameter("offset", offset)
+                            .setParameter("limit", limit)
+                            .setParameter("search", search);
             usernames.addAll(query.getResultList());
             return usernames;
         } catch (Exception e) {

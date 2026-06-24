@@ -56,13 +56,21 @@ public class AdminRepositoryImpl implements AdminRepository {
     }
 
     @Override
-    public List<UserGridDto> getUserDetailsGridForAdmin(String status) {
+    public List<UserGridDto> getUserDetailsGridForAdmin(String status, Long offset, Long limit, String search, String searchBy) {
         List<UserGridDto> userGridDetails = new ArrayList<>();
         try {
             Query query = entityManager.createNativeQuery(
                             "exec getUserGridDetailsByStatusForAdmin " +
-                            "@status = :status")
+                            "@status = :status, " +
+                            "@offset = :offset, " +
+                            "@limit = :limit, " +
+                            "@search = :search, " +
+                            "@searchBy = :searchBy ")
                     .setParameter("status", status)
+                    .setParameter("offset", offset)
+                    .setParameter("limit", limit)
+                    .setParameter("search", search)
+                    .setParameter("searchBy", searchBy)
                     .unwrap(NativeQuery.class)
                     .setResultTransformer(Transformers.aliasToBean(UserGridDto.class));
             userGridDetails.addAll(query.getResultList());

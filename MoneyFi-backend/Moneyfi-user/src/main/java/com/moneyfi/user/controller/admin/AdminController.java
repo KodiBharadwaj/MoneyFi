@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.service.admin.AdminService;
 import com.moneyfi.user.service.admin.dto.request.*;
 import com.moneyfi.user.service.admin.dto.response.*;
-import com.moneyfi.user.service.general.rabbitmq.RabbitMqQueuePublisher;
 import com.moneyfi.user.service.user.UserAuthService;
 import com.moneyfi.user.service.user.UserCommonService;
 import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;
@@ -50,8 +49,20 @@ public class AdminController {
 
     @Operation(summary = "Api to get active user grid details")
     @GetMapping("/user-details/grid")
-    public List<UserGridDto> getUserDetailsGridForAdmin(@NotBlank @RequestParam(value = "status") String status){
-        return adminService.getUserDetailsGridForAdmin(status);
+    public List<UserGridDto> getUserDetailsGridForAdmin(@NotBlank @RequestParam(value = "status") String status,
+                                                        @Valid @ModelAttribute PaginationRequestDto requestDto){
+        return adminService.getUserDetailsGridForAdmin(status, requestDto.getOffset(), requestDto.getLimit(), requestDto.getSearch(), requestDto.getSearchBy());
+    }
+
+    @Operation(summary = "Api to get user grid details as excel report")
+    @GetMapping("/user-details/excel")
+    public ResponseEntity<byte[]> getUserDetailsExcelForAdmin(@NotBlank @RequestParam(value = "status") String status,
+                                                              @Valid @ModelAttribute PaginationRequestDto requestDto){
+        byte[] excelData = adminService.getUserDetailsExcelForAdmin(status, requestDto.getOffset(), requestDto.getLimit(), requestDto.getSearch(), requestDto.getSearchBy());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+status+"_user_list.xlsx")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(excelData);
     }
 
     @Operation(summary = "Api to get active user defects raised details")
@@ -94,16 +105,6 @@ public class AdminController {
                                                              @RequestParam(required = true) MultipartFile file) throws JsonProcessingException {
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.blockTheUserAccountByAdmin(email, reason, file, adminUserId);
-    }
-
-    @Operation(summary = "Api to get user grid details as excel report")
-    @GetMapping("/user-details/excel")
-    public ResponseEntity<byte[]> getUserDetailsExcelForAdmin(@NotBlank @RequestParam(value = "status") String status){
-        byte[] excelData = adminService.getUserDetailsExcelForAdmin(status);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+status+"_user_list.xlsx")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(excelData);
     }
 
     @Operation(summary = "Api to get the user requests for admin")
@@ -184,8 +185,8 @@ public class AdminController {
 
     @Operation(summary = "Api to get all the usernames of all the users for the admin")
     @GetMapping("/get-usernames")
-    public ResponseEntity<List<String>> getUsernamesOfAllUsers(){
-        List<String> usernamesList = adminService.getUsernamesOfAllUsers();
+    public ResponseEntity<List<String>> getUsernamesOfAllUsers(@Valid @ModelAttribute PaginationRequestDto requestDto){
+        List<String> usernamesList = adminService.getUsernamesOfAllUsers(requestDto.getOffset(), requestDto.getLimit(), requestDto.getSearch());
         return ResponseEntity.ok(usernamesList);
     }
 
