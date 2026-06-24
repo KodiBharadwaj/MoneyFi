@@ -11,8 +11,8 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 - 🎯 Set monthly budgets and savings goals
 - 📊 Visual indicators and insights for better decisions
 - 🔐 OTP-based signup, secure authentication, jwt authorization
-- 🔑 Google Login & GitHub Login (OAuth 2.0 integration)
-- 📥 Export/download reports and email them securely
+- 🔑 Google Login & GitHub Login (OAuth 2.0 integration) along with Rate Limiting
+- 📥 Export/download reports and email them securely, Bulk load handling efficiently
 - 📧 Google Email transaction sync (automatic transaction detection from emails)
 - 📨 Smart email alerts for transactions, budgets & important activities
 - 📄 Account statement generation with password-protected PDF delivery via email
@@ -29,18 +29,18 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 | Layer         | Technology                     |
 |---------------|--------------------------------|
 | Frontend      | Angular (TypeScript)                        |
-| Backend       | Java, Spring Boot (Microservices) |
-| Database      | Microsoft SQL Server (Stored Procedures, Triggers) |
-| DB Backend Interaction | JPA, JPQL, JDBC, Java Persistance Context, ORM Mapping |
-| Email Service | AWS SES, Spring Mail           |
+| Backend       | Java, Spring Boot (Microservices), Spring Security, Spring Batch, REST APIs |
+| Database      | Microsoft SQL Server (Stored Procedures, Triggers), Flyway inclusion |
+| DB Backend Interaction | JPA/Hibernate, JPQL, JDBC, Java Persistance Context, ORM Mapping |
+| Email Service | AWS SES, Spring Mail, Brevo Email Service           |
 | File Storage  | AWS S3, Cloudinary             |
-| Service Communications  | Kafka, Rest Template |
-| Queue Communications | Rabbit MQ, Artemis       |
+| Service Communications  | Rest Template, Webclient, Feign Client|
+| Queue Communications and Streaming | Rabbit MQ, Apache Artemis, Apache Kafka |
 | Caching | Redis(Distributed), Caffeine(In memory), UI Caching                    |
 | Realtime Notifications | Java SSE (Server Side Emitter) |
 | Reporting     | Apache POI (Excel), iText (PDF) |
 | Cloud         | AWS, GCP                        |
-| Security Login  | Spring Security Login, JWT, Google Oauth, Github Oauth |
+| Security Login  | Spring Security Login, JWT, Google Oauth 2.0, Github Oauth |
 | Free Sources Used | Render(Backend), Netlify(UI), Free Hosting(DB) |
 | Other Tech Used   | Docker, Gemini Api, Eureka, SonarQube, Feign, Git, Github, Postgres, Swagger, Github Packages |
 | Tools Used   | Intellij Idea, VS code, SSMS, Postman, PG Admin, Redis Insight, Docker Desktop |
