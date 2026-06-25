@@ -1,6 +1,7 @@
 package com.moneyfi.user.service.admin.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.moneyfi.constants.dto.PaginatedRequestDto;
 import com.moneyfi.constants.enums.ActiveStatus;
 import com.moneyfi.constants.enums.LoginMode;
 import com.moneyfi.constants.enums.NotificationQueueEnum;
@@ -149,7 +150,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<UserRequestsGridDto> getUserRequestsGridForAdmin(String status) {
+    public List<UserRequestsGridDto> getUserRequestsGridForAdmin(String status, PaginatedRequestDto requestDto) {
         String requestReason = null;
         if (status.equalsIgnoreCase("Rename")) {
             requestReason = RequestReason.NAME_CHANGE_REQUEST.name();
@@ -162,7 +163,7 @@ public class AdminServiceImpl implements AdminService {
         } else {
             requestReason = ALL;
         }
-        List<UserRequestsGridDto> userRequestsGridDtoList = adminRepository.getUserRequestsGridForAdmin(requestReason);
+        List<UserRequestsGridDto> userRequestsGridDtoList = adminRepository.getUserRequestsGridForAdmin(requestReason, requestDto);
         userRequestsGridDtoList.forEach(userGrid -> {
             if ((status.equalsIgnoreCase("Rename") || status.equalsIgnoreCase(ALL))
                     && userGrid.getRequestType().equalsIgnoreCase("Name Change")) {
@@ -184,8 +185,8 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status) {
-        return adminRepository.getUserRaisedDefectsForAdmin().stream()
+    public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status, PaginatedRequestDto requestDto) {
+        return adminRepository.getUserRaisedDefectsForAdmin(requestDto).stream()
                 .peek(defect -> {
                     if (defect.getDefectStatus().equalsIgnoreCase(RaiseRequestStatus.COMPLETED.name()) ||
                                 defect.getDefectStatus().equalsIgnoreCase(RaiseRequestStatus.IGNORED.name())) {
@@ -298,9 +299,9 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<UserFeedbackResponseDto> getUserFeedbackListForAdmin() {
+    public List<UserFeedbackResponseDto> getUserFeedbackListForAdmin(PaginatedRequestDto requestDto) {
         AtomicInteger i = new AtomicInteger(1);
-        return adminRepository.getUserFeedbackListForAdmin().stream()
+        return adminRepository.getUserFeedbackListForAdmin(requestDto).stream()
                 .peek(feedback -> {
                     feedback.setRating(Integer.parseInt(feedback.getDescription().substring(0,1)));
                     feedback.setMessage(feedback.getDescription().substring(2));

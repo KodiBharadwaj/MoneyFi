@@ -1,6 +1,7 @@
 package com.moneyfi.user.controller.admin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.moneyfi.constants.dto.PaginatedRequestDto;
 import com.moneyfi.constants.dto.PaginatedResponseDto;
 import com.moneyfi.user.service.admin.AdminService;
 import com.moneyfi.user.service.admin.dto.request.*;
@@ -9,6 +10,7 @@ import com.moneyfi.user.service.user.UserAuthService;
 import com.moneyfi.user.service.user.UserCommonService;
 import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.user.service.user.ProfileService;
+import com.moneyfi.user.util.constants.StringConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -30,6 +32,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static com.moneyfi.constants.constants.CommonConstants.STATUS;
+
 @RestController
 @RequestMapping("/api/v1/user-service/admin")
 @PreAuthorize("hasRole('ADMIN')")
@@ -50,20 +54,20 @@ public class AdminController {
 
     @Operation(summary = "Api to get active user grid details")
     @GetMapping("/user-details/grid")
-    public ResponseEntity<PaginatedResponseDto<UserGridDto>> getUserDetailsGridForAdmin(@NotBlank @RequestParam(value = "status") String status,
-                                                                                        @Valid @ModelAttribute PaginationRequestDto requestDto) {
-        List<UserGridDto> userGridDtoList = adminService.getUserDetailsGridForAdmin(status, requestDto.getOffset(), requestDto.getLimit(), requestDto.getSearch(), requestDto.getSearchBy());
-        return ResponseEntity.ok(PaginatedResponseDto.<UserGridDto>builder()
-                .data(userGridDtoList)
-                .totalCount(!userGridDtoList.isEmpty() ? userGridDtoList.get(0).getTotalUsers() : 0L)
-                .build()
+    public ResponseEntity<PaginatedResponseDto<UserGridDto>> getUserDetailsGridForAdmin(@NotBlank @RequestParam(value = STATUS) String status,
+                                                                                        @ModelAttribute PaginatedRequestDto requestDto) {
+        return ResponseEntity.ok(
+                StringConstants.returnPaginatedBuilder(
+                        adminService.getUserDetailsGridForAdmin(status, requestDto.getOffset(), requestDto.getLimit(), requestDto.getSearch(), requestDto.getSearchBy()),
+                        UserGridDto::getTotalCount
+                )
         );
     }
 
     @Operation(summary = "Api to get user grid details as excel report")
     @GetMapping("/user-details/excel")
-    public ResponseEntity<byte[]> getUserDetailsExcelForAdmin(@NotBlank @RequestParam(value = "status") String status,
-                                                              @Valid @ModelAttribute PaginationRequestDto requestDto){
+    public ResponseEntity<byte[]> getUserDetailsExcelForAdmin(@NotBlank @RequestParam(value = STATUS) String status,
+                                                              @ModelAttribute PaginatedRequestDto requestDto){
         byte[] excelData = adminService.getUserDetailsExcelForAdmin(status, requestDto.getOffset(), requestDto.getLimit(), requestDto.getSearch(), requestDto.getSearchBy());
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+status+"_user_list.xlsx")
@@ -73,8 +77,37 @@ public class AdminController {
 
     @Operation(summary = "Api to get active user defects raised details")
     @GetMapping("/user-defects/grid")
-    public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(@NotBlank @RequestParam(value = "status") String status){
-        return adminService.getUserRaisedDefectsForAdmin(status);
+    public ResponseEntity<PaginatedResponseDto<UserDefectResponseDto>> getUserRaisedDefectsForAdmin(@NotBlank @RequestParam(value = STATUS) String status,
+                                                                                                    @ModelAttribute PaginatedRequestDto requestDto) {
+        return ResponseEntity.ok(
+                StringConstants.returnPaginatedBuilder(
+                        adminService.getUserRaisedDefectsForAdmin(status, requestDto),
+                        UserDefectResponseDto::getTotalCount
+                )
+        );
+    }
+
+    @Operation(summary = "Api to get the user requests for admin")
+    @GetMapping("/fetch-user-requests/grid")
+    public ResponseEntity<PaginatedResponseDto<UserRequestsGridDto>> getUserRequestsGridForAdmin(@NotBlank @RequestParam(value = STATUS) String status,
+                                                                                                 @ModelAttribute PaginatedRequestDto requestDto) {
+        return ResponseEntity.ok(
+                StringConstants.returnPaginatedBuilder(
+                        adminService.getUserRequestsGridForAdmin(status, requestDto),
+                        UserRequestsGridDto::getTotalCount
+                )
+        );
+    }
+
+    @Operation(summary = "Api to get the user feedback list to the admin")
+    @GetMapping("/user-feedback/get")
+    public ResponseEntity<PaginatedResponseDto<UserFeedbackResponseDto>> getUserFeedbackListForAdmin(@ModelAttribute PaginatedRequestDto requestDto) {
+        return ResponseEntity.ok(
+                StringConstants.returnPaginatedBuilder(
+                        adminService.getUserFeedbackListForAdmin(requestDto),
+                        UserFeedbackResponseDto::getTotalCount
+                )
+        );
     }
 
     @Operation(summary = "Api to get defect/user raised report image")
@@ -92,7 +125,7 @@ public class AdminController {
                                    @RequestBody Map<String, String> body,
                                    @NotBlank @RequestParam String reason) {
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        adminService.updateDefectStatus(defectId, body.get("status"), reason, adminUserId);
+        adminService.updateDefectStatus(defectId, body.get(STATUS), reason, adminUserId);
     }
 
     @Operation(summary = "Api to unblock/retrieve/name change of the user account with respective details")
@@ -113,18 +146,6 @@ public class AdminController {
         adminService.blockTheUserAccountByAdmin(email, reason, file, adminUserId);
     }
 
-    @Operation(summary = "Api to get the user requests for admin")
-    @GetMapping("/fetch-user-requests/grid")
-    public List<UserRequestsGridDto> getUserRequestsGridForAdmin(@NotBlank @RequestParam(value = "status") String status){
-        return adminService.getUserRequestsGridForAdmin(status);
-    }
-
-    @Operation(summary = "Api to get the user feedback list to the admin")
-    @GetMapping("/user-feedback/get")
-    public List<UserFeedbackResponseDto> getUserFeedbackListForAdmin(){
-        return adminService.getUserFeedbackListForAdmin();
-    }
-
     @Operation(summary = "Api to update the user feedback by admin")
     @PutMapping("/user-feedback/update")
     public void updateUserFeedback(Authentication authentication,
@@ -136,7 +157,7 @@ public class AdminController {
     @Operation(summary = "Api to the user count in every month for chart")
     @GetMapping("/{year}/user-monthly-count/chart")
     public Map<Integer, Integer> getUserMonthlyCountInAYear(@NotNull @PathVariable(value = "year") int year,
-                                                            @NotBlank @RequestParam(value = "status") String status){
+                                                            @NotBlank @RequestParam(value = STATUS) String status){
         return adminService.getUserMonthlyCountInAYear(year, status);
     }
 
@@ -191,7 +212,7 @@ public class AdminController {
 
     @Operation(summary = "Api to get all the usernames of all the users for the admin")
     @GetMapping("/get-usernames")
-    public ResponseEntity<List<String>> getUsernamesOfAllUsers(@Valid @ModelAttribute PaginationRequestDto requestDto){
+    public ResponseEntity<List<String>> getUsernamesOfAllUsers(@ModelAttribute PaginatedRequestDto requestDto){
         List<String> usernamesList = adminService.getUsernamesOfAllUsers(requestDto.getOffset(), requestDto.getLimit(), requestDto.getSearch());
         return ResponseEntity.ok(usernamesList);
     }
@@ -207,7 +228,7 @@ public class AdminController {
     @Operation(summary = "Api to get all the schedules for admin screen")
     @GetMapping("/schedule-notifications/get")
     public ResponseEntity<List<AdminSchedulesResponseDto>> getAllActiveSchedulesOfAdmin(Authentication authentication,
-                                                                                        @NotBlank @RequestParam(value = "status") String status,
+                                                                                        @NotBlank @RequestParam(value = STATUS) String status,
                                                                                         @NotBlank @RequestParam(value = "mode") String operationMode){
         String adminUsername = ((UserDetails) authentication.getPrincipal()).getUsername();
         return ResponseEntity.ok(adminService.getAllActiveSchedulesOfAdmin(status, operationMode, adminUsername));

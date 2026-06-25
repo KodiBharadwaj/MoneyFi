@@ -1,6 +1,7 @@
 package com.moneyfi.user.service.admin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.moneyfi.constants.dto.PaginatedRequestDto;
 import com.moneyfi.user.service.admin.dto.request.AdminScheduleRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonDetailsRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonUpdateRequestDto;
@@ -18,9 +19,9 @@ public interface AdminService {
 
     AdminOverviewPageDto getAdminOverviewPageDetails();
 
-    List<UserRequestsGridDto> getUserRequestsGridForAdmin(String status);
+    List<UserRequestsGridDto> getUserRequestsGridForAdmin(String status, PaginatedRequestDto requestDto);
 
-    List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status);
+    List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status, PaginatedRequestDto requestDto);
 
     void updateDefectStatus(Long defectId, String status, String reason, Long adminUserId);
 
@@ -36,7 +37,7 @@ public interface AdminService {
 
     UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username, Long adminUserId);
 
-    List<UserFeedbackResponseDto> getUserFeedbackListForAdmin();
+    List<UserFeedbackResponseDto> getUserFeedbackListForAdmin(PaginatedRequestDto requestDto);
 
     void updateUserFeedback(Long feedbackId, Long adminUserId);
 

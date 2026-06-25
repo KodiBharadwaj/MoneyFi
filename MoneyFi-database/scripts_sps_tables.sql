@@ -2151,7 +2151,12 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-create   procedure [dbo].[getUserFeedbackListForAdmin]
+create   procedure [dbo].[getUserFeedbackListForAdmin] (
+	@offset BIGINT,
+	@limit BIGINT,
+	@sortOrder VARCHAR(5),
+	@sortBy VARCHAR(50)
+)
 
 AS
 BEGIN
@@ -2161,13 +2166,17 @@ BEGIN
     SELECT cut.id AS feedbackId
 		,cuth.message AS description
 		,cut.start_time AS timeOfFeedback
+		,CAST(COUNT(*) OVER() AS BIGINT) AS totalCount
 	FROM contact_us_table cut WITH (NOLOCK) 
 	INNER JOIN contact_us_table_hist cuth WITH (NOLOCK) ON cuth.contact_us_id = cut.id
 	WHERE cut.request_reason = 'USER_FEEDBACK_UPDATE'
 	AND cut.request_status = 'SUBMITTED'
 	AND cut.is_request_active = 1
 	AND cut.is_verified = 0
-	ORDER BY cut.start_time DESC
+	ORDER BY cut.start_time ASC
+
+	OFFSET @offset ROWS
+	FETCH NEXT @limit ROWS ONLY;
 END
 GO
 /****** Object:  StoredProcedure [dbo].[getUserGridDetailsByStatusForAdmin]    Script Date: 24-06-2026 23:41:52 ******/
@@ -2193,7 +2202,7 @@ BEGIN
 		,updt.phone AS phone
 		,updt.created_date AS createdDateTime
 		,updt.date_of_birth AS dateOfBirth
-		,CAST(COUNT(*) OVER() AS BIGINT) AS totalUsers
+		,CAST(COUNT(*) OVER() AS BIGINT) AS totalCount
 	FROM user_auth_table uat WITH (NOLOCK) 
 	INNER JOIN user_profile_details_table updt WITH (NOLOCK) ON updt.user_id = uat.id
 	INNER JOIN user_role_table urt WITH (NOLOCK) ON urt.role_id = uat.role_id
@@ -2338,7 +2347,12 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-create   procedure [dbo].[getUserRaisedDefectsForAdmin] 
+create   procedure [dbo].[getUserRaisedDefectsForAdmin] (
+	@offset BIGINT,
+	@limit BIGINT,
+	@sortOrder VARCHAR(5),
+	@sortBy VARCHAR(50)
+)
 AS
 BEGIN
 	
@@ -2359,15 +2373,18 @@ BEGIN
 		,cut.reference_number AS referenceNumber
 		,cuth.message AS description
 		,cut.request_status AS defectStatus
+		,CAST(COUNT(*) OVER() AS BIGINT) AS totalCount
 	FROM contact_us_table cut WITH (NOLOCK) 
 	INNER JOIN contact_us_table_hist cuth WITH (NOLOCK) ON cuth.contact_us_id = cut.id
 	INNER JOIN @maxTime mt ON mt.latestTime = cuth.updated_time
 	LEFT JOIN user_auth_table uat WITH (NOLOCK) ON uat.username = cut.email
 	LEFT JOIN user_profile_details_table updt WITH (NOLOCK) ON updt.user_id = uat.id
 	WHERE cut.request_reason = 'USER_DEFECT_UPDATE'
-	ORDER BY cuth.updated_time DESC;
+	ORDER BY cuth.updated_time ASC
+
+	OFFSET @offset ROWS
+	FETCH NEXT @limit ROWS ONLY;
 END
-GO
 /****** Object:  StoredProcedure [dbo].[getUserRequestsGridForAdmin]    Script Date: 24-06-2026 23:41:52 ******/
 SET ANSI_NULLS ON
 GO
@@ -2375,7 +2392,11 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 CREATE   procedure [dbo].[getUserRequestsGridForAdmin] (
-	@requestReason VARCHAR(50)
+	@requestReason VARCHAR(50),
+	@offset BIGINT,
+	@limit BIGINT,
+	@sortOrder VARCHAR(5),
+	@sortBy VARCHAR(50)
 	)
 	
 AS
@@ -2404,6 +2425,7 @@ BEGIN
 		,cntUs.reference_number AS referenceNumber
 		,cuth.message AS description
 		,cntUs.start_time AS requestedOn
+		,CAST(COUNT(*) OVER() AS BIGINT) AS totalCount
 	FROM contact_us_table cntUs WITH (NOLOCK) 
 	INNER JOIN contact_us_table_hist cuth WITH (NOLOCK) ON cuth.contact_us_id = cntUs.id
 	INNER JOIN user_auth_table uat WITH (NOLOCK) ON	uat.username = cntUs.email
@@ -2436,7 +2458,10 @@ BEGIN
 		AND cntUs.is_verified = 0
 		AND cntUs.is_request_active = 1
 		AND cuth.request_status = 'SUBMITTED'
-	ORDER BY cuth.updated_time DESC
+	ORDER BY cuth.updated_time ASC
+
+	OFFSET @offset ROWS
+	FETCH NEXT @limit ROWS ONLY
 END
 GO
 /****** Object:  StoredProcedure [dbo].[getUsersByUsingUserProfileDetails]    Script Date: 24-06-2026 23:41:52 ******/

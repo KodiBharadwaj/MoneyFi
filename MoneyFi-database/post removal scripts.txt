@@ -2,3 +2,7 @@ delete from expense_table where category_id in (select id from category_list_tab
 
 
 drop table goal_table;
+
+
+
+[getUserRaisedDefectsForAdmin], getUserRequestsGridForAdmin, getUserFeedbackListForAdmin This sp need to updated. Just added input parameters. Need to refractor business.
