@@ -18,6 +18,7 @@ public class StringConstants {
     public static final String DELETE_STATUS = "deleteStatus";
     public static final String DATE = "date";
     public static final String AMOUNT = "amount";
+    public static final String DESCRIPTION = "description";
     public static final String TYPE = "type";
     public static final String DESC = "desc";
     public static final String SOURCE = "source";
@@ -36,7 +37,6 @@ public class StringConstants {
     public static final String YEARLY = "YEARLY";
 
     public static final String CATEGORY_ID = "categoryId";
-    public static final String DESCRIPTION = "description";
     public static final String TRANSACTION_DATE = "transactionDate";
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
 

@@ -5,4 +5,4 @@ drop table goal_table;
 
 
 
-[getUserRaisedDefectsForAdmin], getUserRequestsGridForAdmin, getUserFeedbackListForAdmin This sp need to updated. Just added input parameters. Need to refractor business.
+getUserRequestsGridForAdmin,  This sp need to updated. Just added input parameters. Need to refractor business.

@@ -3,20 +3,17 @@
   <div class="filters">
     <div class="filter-field">
       <label for="name">Name:</label>
-      <!-- <input id="name" type="text" placeholder="Filter by Name" [(ngModel)]="nameFilter" /> -->
-      <input [(ngModel)]="nameFilter" (input)="onSearch('name',nameFilter)">
+      <input placeholder="Filter by Name"  [(ngModel)]="nameFilter" (input)="onSearch('name',nameFilter)">
     </div>
 
     <div class="filter-field">
       <label for="username">Username:</label>
-      <!-- <input id="username" type="text" placeholder="Filter by Username" [(ngModel)]="usernameFilter" /> -->
-      <input [(ngModel)]="usernameFilter" (input)="onSearch('username',usernameFilter)">
+      <input placeholder="Filter by Username" [(ngModel)]="usernameFilter" (input)="onSearch('username',usernameFilter)">
     </div>
 
     <div class="filter-field">
       <label for="phone">Phone:</label>
-      <!-- <input id="phone" type="text" placeholder="Filter by Phone" [(ngModel)]="phoneFilter" /> -->
-      <input [(ngModel)]="phoneFilter" (input)="onSearch('phone',phoneFilter)">
+      <input placeholder="Filter by Phone" [(ngModel)]="phoneFilter" (input)="onSearch('phone',phoneFilter)">
     </div>
 
     <div>

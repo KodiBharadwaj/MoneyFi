@@ -90,3 +90,33 @@
 @keyframes spin {
   100% { transform: rotate(360deg); }
 }
+
+
+
+.pagination-footer {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-top: 25px;
+
+  padding: 15px;
+}
+
+.middle {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+}
+
+.middle button {
+  padding: 8px 14px;
+}
+
+.right select {
+  padding: 6px 10px;
+}

@@ -18,7 +18,7 @@ public interface AdminRepository {
 
     UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username);
 
-    List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(PaginatedRequestDto requestDto);
+    List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status, PaginatedRequestDto requestDto);
 
     List<UserFeedbackResponseDto> getUserFeedbackListForAdmin(PaginatedRequestDto requestDto);
 
