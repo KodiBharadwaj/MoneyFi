@@ -2,12 +2,15 @@ package com.moneyfi.user.dto.export;
 
 import com.moneyfi.constants.annotation.ExcelColumn;
 import com.moneyfi.constants.annotation.ExcelSheet;
-import io.opencensus.common.Timestamp;
+import lombok.Builder;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
+@Builder
 @ExcelSheet(name = "User Grid Details")
 public class UserDetailsGridExportDto {
+
     @ExcelColumn(header = "Sl No")
     private int slNo;
 

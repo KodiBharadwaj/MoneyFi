@@ -8,6 +8,7 @@ import com.moneyfi.constants.enums.LoginMode;
 import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.constants.enums.ReasonEnum;
 import com.moneyfi.constants.service.ExcelGenerationService;
+import com.moneyfi.user.dto.export.UserDetailsGridExportDto;
 import com.moneyfi.user.exceptions.FileUploadException;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
@@ -45,14 +46,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -129,16 +128,27 @@ public class AdminServiceImpl implements AdminService {
         Path outputPath = Files.createTempFile("users-", ".xlsx");
 
         try (OutputStream outputStream = Files.newOutputStream(outputPath);
-             Stream<UserGridDto> stream = userGridDtoList.stream()) {
-
-            ExcelStreamRequestDto<UserGridDto> request =
-                    ExcelStreamRequestDto.<UserGridDto>builder()
-                            .fileName("Users.xlsx")
-                            .sheetName("User Details Report")
-                            .classType(UserGridDto.class)
-                            .dataStream(stream)
-                            .build();
+             Stream<UserDetailsGridExportDto> stream =
+                     userGridDtoList.stream().map(dto ->
+                             UserDetailsGridExportDto.builder()
+                                     .slNo(dto.getSlNo())
+                                     .name(dto.getName())
+                                     .username(dto.getUsername())
+                                     .phone(dto.getPhone())
+                                     .createdDateTime(dto.getCreatedDateTime())
+                                     .dateOfBirth(dto.getDateOfBirth())
+                                     .build()
+                     )
+        ) {
+            ExcelStreamRequestDto<UserDetailsGridExportDto> request = ExcelStreamRequestDto.<UserDetailsGridExportDto>builder()
+                    .fileName("Users.xlsx")
+                    .sheetName("User Details Report")
+                    .classType(UserDetailsGridExportDto.class)
+                    .dataStream(stream)
+                    .build();
             excelGenerationService.generateExcelReport(request, outputStream);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return Files.readAllBytes(outputPath);
     }
@@ -623,67 +633,6 @@ public class AdminServiceImpl implements AdminService {
              */
             userCommonService.saveUserNotificationsForAllUsers(getUsernamesOfAllUsers(0L, Long.MAX_VALUE, "."), scheduleId);
         }
-    }
-
-    private byte[] generateExcelReport(List<UserGridDto> userGridDtoList) {
-        try (Workbook workbook = new XSSFWorkbook()) {
-            Sheet sheet = workbook.createSheet("User Details Report");
-
-            Row headerRow = sheet.createRow(0);
-            String[] headers = {"S No", "Name", "Username", "Phone", "Created Time", "Date of Birth"};
-            for (int i = 0; i < headers.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                cell.setCellStyle(createHeaderStyle(workbook));
-            }
-            CellStyle dateStyle = createDateStyle(workbook);
-            int rowIndex = 1;
-            for (UserGridDto data : userGridDtoList) {
-                Row row = sheet.createRow(rowIndex++);
-                row.createCell(0).setCellValue(data.getSlNo());
-                row.createCell(1).setCellValue(data.getName());
-                row.createCell(2).setCellValue(data.getUsername());
-                row.createCell(3).setCellValue(data.getPhone() != null ? data.getPhone() : "-");
-
-                Cell dateCell = row.createCell(4);
-                dateCell.setCellValue(data.getCreatedDateTime());
-                dateCell.setCellStyle(dateStyle);
-
-                Cell dateCell2 = row.createCell(5);
-                dateCell2.setCellValue(data.getDateOfBirth());
-                dateCell2.setCellStyle(dateStyle);
-            }
-            for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            workbook.write(outputStream);
-            return outputStream.toByteArray();
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new ResourceNotFoundException("Error in generating excel report");
-        }
-    }
-
-    private CellStyle createDateStyle(Workbook workbook) {
-        CellStyle dateStyle = workbook.createCellStyle();
-        CreationHelper createHelper = workbook.getCreationHelper();
-        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy"));
-        return dateStyle;
-    }
-
-    private CellStyle createHeaderStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        Font font = workbook.createFont();
-        font.setBold(true);
-        style.setFont(font);
-        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        return style;
     }
 
     private void functionCallToChangeDetails(UserAuthModel user, ProfileModel userProfile, String email, ContactUs contactUs, String requestStatus, Long adminUserId, int gmailSyncRequestCount) throws JsonProcessingException {
