@@ -2,10 +2,12 @@ package com.moneyfi.user.service.admin.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.constants.dto.PaginatedRequestDto;
+import com.moneyfi.constants.dto.excel.ExcelStreamRequestDto;
 import com.moneyfi.constants.enums.ActiveStatus;
 import com.moneyfi.constants.enums.LoginMode;
 import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.constants.enums.ReasonEnum;
+import com.moneyfi.constants.service.ExcelGenerationService;
 import com.moneyfi.user.exceptions.FileUploadException;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
@@ -52,6 +54,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -60,6 +65,7 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import static com.moneyfi.constants.constants.CommonConstants.*;
 import static com.moneyfi.user.util.constants.StringConstants.*;
@@ -96,6 +102,7 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final UserAuthHistRepository userAuthHistRepository;
     private final GmailSyncRepository gmailSyncRepository;
+    private final ExcelGenerationService excelGenerationService;
 
     @Override
     public AdminOverviewPageDto getAdminOverviewPageDetails() {
@@ -113,12 +120,27 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public byte[] getUserDetailsExcelForAdmin(String status, Long offset, Long limit, String search, String searchBy) {
+    public byte[] getUserDetailsExcelForAdmin(String status, Long offset, Long limit, String search, String searchBy) throws IOException {
         List<UserGridDto> userGridDtoList = getUserDetailsGridForAdmin(status, offset, limit, search, searchBy);
         if (userGridDtoList.isEmpty()) {
             throw new ResourceNotFoundException("No user data found to generate excel");
         }
-        return generateExcelReport(userGridDtoList);
+
+        Path outputPath = Files.createTempFile("users-", ".xlsx");
+
+        try (OutputStream outputStream = Files.newOutputStream(outputPath);
+             Stream<UserGridDto> stream = userGridDtoList.stream()) {
+
+            ExcelStreamRequestDto<UserGridDto> request =
+                    ExcelStreamRequestDto.<UserGridDto>builder()
+                            .fileName("Users.xlsx")
+                            .sheetName("User Details Report")
+                            .classType(UserGridDto.class)
+                            .dataStream(stream)
+                            .build();
+            excelGenerationService.generateExcelReport(request, outputStream);
+        }
+        return Files.readAllBytes(outputPath);
     }
 
     @Override

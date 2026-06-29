@@ -67,7 +67,7 @@ public class AdminController {
     @Operation(summary = "Api to get user grid details as excel report")
     @GetMapping("/user-details/excel")
     public ResponseEntity<byte[]> getUserDetailsExcelForAdmin(@NotBlank @RequestParam(value = STATUS) String status,
-                                                              @ModelAttribute PaginatedRequestDto requestDto){
+                                                              @ModelAttribute PaginatedRequestDto requestDto) throws IOException {
         byte[] excelData = adminService.getUserDetailsExcelForAdmin(status, requestDto.getOffset(), requestDto.getLimit(), requestDto.getSearch(), requestDto.getSearchBy());
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+status+"_user_list.xlsx")

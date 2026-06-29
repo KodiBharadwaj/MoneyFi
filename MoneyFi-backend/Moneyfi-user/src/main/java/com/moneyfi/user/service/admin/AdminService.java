@@ -31,7 +31,7 @@ public interface AdminService {
 
     List<UserGridDto> getUserDetailsGridForAdmin(String status, Long offset, Long limit, String search, String searchBy);
 
-    byte[] getUserDetailsExcelForAdmin(String status, Long offset, Long limit, String search, String searchBy);
+    byte[] getUserDetailsExcelForAdmin(String status, Long offset, Long limit, String search, String searchBy) throws IOException;
 
     Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status);
 
