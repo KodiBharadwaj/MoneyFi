@@ -9,6 +9,7 @@ import { ExpensesComponent } from '../../expenses/expenses.component';
 import { BudgetsComponent } from '../../budgets/budgets.component';
 import { GoalsComponent } from '../../goals/goals.component';
 import { OverviewComponent } from '../../overview/overview.component';
+import { FormsModule } from '@angular/forms';
 
 interface UserFeedbackResponseDto {
   id:number;
@@ -29,6 +30,7 @@ interface UserFeedbackResponseDto {
     OverviewComponent,
     ConfirmLogoutDialogComponent,
     RouterModule,
+    FormsModule
   ],
   templateUrl: './admin-user-feedback.component.html',
   styleUrl: './admin-user-feedback.component.css'
@@ -46,12 +48,22 @@ export class AdminUserFeedbackComponent implements OnInit{
   loading: boolean = true;
   buttonLoadingId: number | null = null; // track which button is loading
 
+  offset = 0;
+  limit = 10;
+  totalCount = 0;
+
 
   fetchFeedbacks() {
-    this.httpClient.get<UserFeedbackResponseDto[]>(`${this.baseUrl}/api/v1/user-service/admin/user-feedback/get`).subscribe({
+    this.httpClient.get<any>(`${this.baseUrl}/api/v1/user-service/admin/user-feedback/get`, {
+      params : {
+          offset: this.offset,
+          limit: this.limit,
+      }
+    }).subscribe({
       next: (data) => {
-        this.feedbacks = data;
+        this.feedbacks = data.data;
         this.loading = false;
+        this.totalCount = data.totalCount;
       },
       error: (err) => {
         console.error('Error fetching feedbacks', err);
@@ -80,5 +92,31 @@ export class AdminUserFeedbackComponent implements OnInit{
         this.buttonLoadingId = null; // stop loading even on error
       }
     });
+  }
+
+  nextPage() {
+    if (this.offset + this.limit < this.totalCount) {
+      this.offset += this.limit;
+
+      this.fetchFeedbacks();
+    }
+  }
+
+  previousPage() {
+    if (this.offset > 0) {
+      this.offset -= this.limit;
+
+      this.fetchFeedbacks();
+    }
+  }
+
+  changeLimit() {
+    this.offset = 0;
+
+    this.fetchFeedbacks();
+  }
+
+  get endRecord(): number {
+    return Math.min(this.offset + this.limit, this.totalCount);
   }
 }

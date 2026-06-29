@@ -112,6 +112,10 @@ public class ExpenseServiceImpl implements ExpenseService {
                 comparator = Comparator.comparing(ExpenseDetailsDto::getAmount, Comparator.nullsLast(BigDecimal::compareTo));
                 break;
 
+            case DESCRIPTION:
+                comparator = Comparator.comparing(ExpenseDetailsDto::getDescription, Comparator.nullsLast(String::compareToIgnoreCase));
+                break;
+
             case TYPE:
                 comparator = Comparator.comparing(ExpenseDetailsDto::isRecurring, Comparator.nullsLast(Boolean::compareTo));
                 break;

@@ -136,15 +136,17 @@ public class AdminRepositoryImpl implements AdminRepository {
     }
 
     @Override
-    public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(PaginatedRequestDto requestDto) {
+    public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status, PaginatedRequestDto requestDto) {
         List<UserDefectResponseDto> userDefectResponseDtosList = new ArrayList<>();
         try {
             Query query = entityManager.createNativeQuery(
                             "exec getUserRaisedDefectsForAdmin " +
+                                    "@status = :status, " +
                                     "@offset = :offset, " +
                                     "@limit = :limit, " +
                                     "@sortOrder = :sortOrder, " +
                                     "@sortBy = :sortBy ")
+                    .setParameter(STATUS, status)
                     .setParameter(OFFSET, requestDto.getOffset())
                     .setParameter(LIMIT, requestDto.getLimit())
                     .setParameter(SORT_ORDER, requestDto.getSortOrder())

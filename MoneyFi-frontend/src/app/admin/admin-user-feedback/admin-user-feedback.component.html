@@ -1,5 +1,5 @@
 <!-- <main class="main-content" -->
-  <div class="feedback-container">
+<div class="feedback-container">
     <h2>User Feedbacks</h2>
 
     <!-- Loader -->
@@ -13,42 +13,93 @@
     <!-- Feedback Table -->
     <table *ngIf="!loading && feedbacks.length > 0" class="feedback-table">
         <thead>
-        <tr>
-            <th>ID</th>
-            <th>Rating</th>
-            <th>Message</th>
-            <th>Time</th>
-            <th>Action</th>
-        </tr>
+            <tr>
+                <th>ID</th>
+                <th>Rating</th>
+                <th>Message</th>
+                <th>Time</th>
+                <th>Action</th>
+            </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let feedback of feedbacks">
-            <td>{{ feedback.id }}</td>
-            <td>
-            <span class="rating">
-                <ng-container *ngFor="let star of getStars(feedback.rating)">
-                ⭐
-                </ng-container>
-            </span>
-            </td>
-            <td>{{ feedback.message }}</td>
-            <td>{{ feedback.timeOfFeedback | date:'medium' }}</td>
-            <td>
-            <button class="seen-btn" 
-                    [disabled]="buttonLoadingId === feedback.feedbackId"
-                    (click)="markAsSeen(feedback.feedbackId)">
-                
-                <!-- Show loader if this button is loading -->
-                <ng-container *ngIf="buttonLoadingId === feedback.feedbackId; else seenText">
-                <span class="spinner"></span> Processing...
-                </ng-container>
-                
-                <ng-template #seenText>
-                Seen
-                </ng-template>
-            </button>
-            </td>
-        </tr>
+            <tr *ngFor="let feedback of feedbacks">
+                <td>{{ offset + feedback.id }}</td>
+                <td>
+                    <span class="rating">
+                        <ng-container *ngFor="let star of getStars(feedback.rating)">
+                            ⭐
+                        </ng-container>
+                    </span>
+                </td>
+                <td>{{ feedback.message }}</td>
+                <td>{{ feedback.timeOfFeedback | date:'medium' }}</td>
+                <td>
+                    <button class="seen-btn" [disabled]="buttonLoadingId === feedback.feedbackId"
+                        (click)="markAsSeen(feedback.feedbackId)">
+
+                        <!-- Show loader if this button is loading -->
+                        <ng-container *ngIf="buttonLoadingId === feedback.feedbackId; else seenText">
+                            <span class="spinner"></span> Processing...
+                        </ng-container>
+
+                        <ng-template #seenText>
+                            Seen
+                        </ng-template>
+                    </button>
+                </td>
+            </tr>
         </tbody>
     </table>
-  </div>
+</div>
+
+
+
+
+<div class="pagination-footer">
+
+    <div class="left">
+
+        Total : {{totalCount}}
+
+    </div>
+
+
+    <div class="middle">
+
+        <button (click)="previousPage()" [disabled]="offset == 0">
+
+            Previous
+
+        </button>
+
+
+        <span>
+            {{ offset + 1 }} - {{ endRecord }}
+        </span>
+
+        <button (click)="nextPage()" [disabled]="offset + limit >= totalCount">
+
+            Next
+
+        </button>
+
+    </div>
+
+
+
+    <div class="right">
+
+
+        <select [(ngModel)]="limit" (change)="changeLimit()">
+
+            <option [value]="10">10</option>
+
+            <option [value]="20">20</option>
+
+            <option [value]="50">50</option>
+
+        </select>
+
+    </div>
+
+</div>
