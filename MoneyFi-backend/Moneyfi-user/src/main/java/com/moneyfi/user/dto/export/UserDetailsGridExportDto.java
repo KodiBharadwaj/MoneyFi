@@ -11,21 +11,21 @@ import java.util.Date;
 @ExcelSheet(name = "User Grid Details")
 public class UserDetailsGridExportDto {
 
-    @ExcelColumn(header = "Sl No")
+    @ExcelColumn(header = "Sl No", order = 1)
     private int slNo;
 
-    @ExcelColumn(header = "Name of User")
+    @ExcelColumn(header = "Name of User", order = 2)
     private String name;
 
-    @ExcelColumn(header = "username")
+    @ExcelColumn(header = "username", order = 3)
     private String username;
 
-    @ExcelColumn(header = "Phone Number")
+    @ExcelColumn(header = "Phone Number", order = 4)
     private String phone;
 
-    @ExcelColumn(header = "Date of Creation")
+    @ExcelColumn(header = "Date of Creation", order = 5)
     private Timestamp createdDateTime;
 
-    @ExcelColumn(header = "Date of Birth")
+    @ExcelColumn(header = "Date of Birth", order = 6)
     private Date dateOfBirth;
 }

@@ -1,6 +1,7 @@
 package com.moneyfi.user.controller.admin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.moneyfi.constants.dto.ExcelResponseDto;
 import com.moneyfi.constants.dto.PaginatedRequestDto;
 import com.moneyfi.constants.dto.PaginatedResponseDto;
 import com.moneyfi.user.service.admin.AdminService;
@@ -68,11 +69,11 @@ public class AdminController {
     @GetMapping("/user-details/excel")
     public ResponseEntity<byte[]> getUserDetailsExcelForAdmin(@NotBlank @RequestParam(value = STATUS) String status,
                                                               @ModelAttribute PaginatedRequestDto requestDto) throws IOException {
-        byte[] excelData = adminService.getUserDetailsExcelForAdmin(status, requestDto.getOffset(), requestDto.getLimit(), requestDto.getSearch(), requestDto.getSearchBy());
+        ExcelResponseDto excelData = adminService.getUserDetailsExcelForAdmin(status, requestDto.getOffset(), requestDto.getLimit(), requestDto.getSearch(), requestDto.getSearchBy());
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+status+"_user_list.xlsx")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + excelData.getExcelName() + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(excelData);
+                .body(excelData.getExcelBytes());
     }
 
     @Operation(summary = "Api to get active user defects raised details")

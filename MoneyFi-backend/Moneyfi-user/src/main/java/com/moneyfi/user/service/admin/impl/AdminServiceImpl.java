@@ -1,6 +1,8 @@
 package com.moneyfi.user.service.admin.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.moneyfi.constants.constants.CommonConstants;
+import com.moneyfi.constants.dto.ExcelResponseDto;
 import com.moneyfi.constants.dto.PaginatedRequestDto;
 import com.moneyfi.constants.dto.excel.ExcelStreamRequestDto;
 import com.moneyfi.constants.enums.ActiveStatus;
@@ -79,6 +81,9 @@ public class AdminServiceImpl implements AdminService {
     @Value("${spring.profiles.active:}")
     private String activeProfile;
 
+    @Value("${excel.export.output-dir:./exports}")
+    private String outputDirectory;
+
     @Autowired
     private UserCacheService userCacheService;
 
@@ -119,13 +124,15 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public byte[] getUserDetailsExcelForAdmin(String status, Long offset, Long limit, String search, String searchBy) throws IOException {
+    public ExcelResponseDto getUserDetailsExcelForAdmin(String status, Long offset, Long limit, String search, String searchBy) throws IOException {
         List<UserGridDto> userGridDtoList = getUserDetailsGridForAdmin(status, offset, limit, search, searchBy);
         if (userGridDtoList.isEmpty()) {
             throw new ResourceNotFoundException("No user data found to generate excel");
         }
 
-        Path outputPath = Files.createTempFile("users-", ".xlsx");
+        String fileName = CommonConstants.functionToGenerateFileNameForReports(StringUtils.capitalize(status.toLowerCase()) + "-users-grid", LocalDateTime.now());
+
+        Path outputPath = CommonConstants.prepareOutputPath(fileName, outputDirectory);
 
         try (OutputStream outputStream = Files.newOutputStream(outputPath);
              Stream<UserDetailsGridExportDto> stream =
@@ -141,7 +148,7 @@ public class AdminServiceImpl implements AdminService {
                      )
         ) {
             ExcelStreamRequestDto<UserDetailsGridExportDto> request = ExcelStreamRequestDto.<UserDetailsGridExportDto>builder()
-                    .fileName("Users.xlsx")
+                    .fileName(fileName)
                     .sheetName("User Details Report")
                     .classType(UserDetailsGridExportDto.class)
                     .dataStream(stream)
@@ -150,7 +157,9 @@ public class AdminServiceImpl implements AdminService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return Files.readAllBytes(outputPath);
+        byte[] excelBytes = Files.readAllBytes(outputPath);
+        CommonConstants.deleteLocalFile(outputPath);
+        return ExcelResponseDto.builder().excelBytes(excelBytes).excelName(fileName).build();
     }
 
     @Override

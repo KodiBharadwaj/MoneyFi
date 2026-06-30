@@ -1,6 +1,7 @@
 package com.moneyfi.user.service.admin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.moneyfi.constants.dto.ExcelResponseDto;
 import com.moneyfi.constants.dto.PaginatedRequestDto;
 import com.moneyfi.user.service.admin.dto.request.AdminScheduleRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonDetailsRequestDto;
@@ -31,7 +32,7 @@ public interface AdminService {
 
     List<UserGridDto> getUserDetailsGridForAdmin(String status, Long offset, Long limit, String search, String searchBy);
 
-    byte[] getUserDetailsExcelForAdmin(String status, Long offset, Long limit, String search, String searchBy) throws IOException;
+    ExcelResponseDto getUserDetailsExcelForAdmin(String status, Long offset, Long limit, String search, String searchBy) throws IOException;
 
     Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status);
 
