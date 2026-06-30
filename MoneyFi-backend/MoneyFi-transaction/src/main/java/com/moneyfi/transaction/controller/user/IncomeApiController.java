@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.controller.user;
 
+import com.moneyfi.constants.dto.ExcelResponseDto;
 import com.moneyfi.transaction.security.JwtService;
 import com.moneyfi.transaction.service.income.dto.request.IncomeSaveRequest;
 import com.moneyfi.transaction.service.income.dto.request.IncomeUpdateRequest;
@@ -21,10 +22,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+
+import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
 
 @RestController
 @RequestMapping("/api/v1/transaction/income")
@@ -38,7 +42,7 @@ public class IncomeApiController {
 
     @Operation(summary = "Api to save income details of user")
     @PostMapping("/save")
-    public void saveIncome(@RequestHeader("Authorization") String authHeader,
+    public void saveIncome(@RequestHeader(AUTHORIZATION) String authHeader,
                            @RequestBody @Valid IncomeSaveRequest incomeSaveRequest) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         incomeService.saveIncome(incomeSaveRequest, userId);
@@ -46,14 +50,14 @@ public class IncomeApiController {
 
     @Operation(summary = "Api to get all the income details of a user")
     @GetMapping("/get")
-    public ResponseEntity<List<IncomeModel>> getAllIncomes(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<List<IncomeModel>> getAllIncomes(@RequestHeader(AUTHORIZATION) String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return ResponseEntity.ok(incomeService.getAllIncomes(userId));
     }
 
     @Operation(summary = "Api to get all the income details")
     @PostMapping("/get-incomes")
-    public ResponseEntity<TransactionPagedResponse<IncomeDetailsDto>> getAllIncomesByDate(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<TransactionPagedResponse<IncomeDetailsDto>> getAllIncomesByDate(@RequestHeader(AUTHORIZATION) String authHeader,
                                                                                           @RequestBody @Valid TransactionsListRequestDto requestDto){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         List<IncomeDetailsDto> incomes = incomeService.getAllIncomesByDate(userId, requestDto);
@@ -65,20 +69,21 @@ public class IncomeApiController {
         );
     }
 
-    @Operation(summary = "Api to generate Excel report for monthly incomes of a user")
+    @Operation(summary = "Income Excel Report", description = "Api to generate Excel report for monthly incomes of a user")
     @PostMapping("/get-incomes/excel-report")
-    public ResponseEntity<byte[]> getIncomesReportExcel(@RequestHeader("Authorization") String authHeader,
-                                                        @RequestBody @Valid TransactionsListRequestDto requestDto) {
+    public ResponseEntity<byte[]> getIncomesReportExcel(@RequestHeader(AUTHORIZATION) String authHeader,
+                                                        @RequestBody @Valid TransactionsListRequestDto requestDto) throws IOException {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        ExcelResponseDto excelResponse = incomeService.getIncomesReportExcel(userId, requestDto);
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Monthly income report.xlsx")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + excelResponse.getExcelName() + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(incomeService.getIncomesReportExcel(userId, requestDto));
+                .body(excelResponse.getExcelBytes());
     }
 
     @Operation(summary = "Api to get monthly deleted incomes")
     @GetMapping("/{month}/{year}/deleted-incomes-list/get")
-    public ResponseEntity<List<IncomeDeletedDto>> getDeletedIncomesInAMonth(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<List<IncomeDeletedDto>> getDeletedIncomesInAMonth(@RequestHeader(AUTHORIZATION) String authHeader,
                                                                             @NotNull @PathVariable(value = "month") int month,
                                                                             @NotNull @PathVariable(value = "year") int year) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
@@ -87,7 +92,7 @@ public class IncomeApiController {
 
     @Operation(summary = "Api to get the total income amount in a particular month and in a particular year")
     @GetMapping("/totalIncome/{month}/{year}")
-    public BigDecimal getTotalIncomeByMonthAndYear(@RequestHeader("Authorization") String authHeader,
+    public BigDecimal getTotalIncomeByMonthAndYear(@RequestHeader(AUTHORIZATION) String authHeader,
                                                    @NotNull @PathVariable(value = "month") int month,
                                                    @NotNull @PathVariable(value = "year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
@@ -96,7 +101,7 @@ public class IncomeApiController {
 
     @Operation(summary = "Api to get the list of total income amount of all months in a particular year")
     @GetMapping("/monthlyTotalIncomesList/{year}")
-    public List<BigDecimal> getMonthlyTotals(@RequestHeader("Authorization") String authHeader,
+    public List<BigDecimal> getMonthlyTotals(@RequestHeader(AUTHORIZATION) String authHeader,
                                              @NotNull @PathVariable(value = "year") int year) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return incomeService.getMonthlyIncomes(userId, year);
@@ -104,7 +109,7 @@ public class IncomeApiController {
 
     @Operation(summary = "Api to check a particular income can be editable")
     @PostMapping("/incomeUpdateCheck")
-    public boolean incomeUpdateCheckFunction(@RequestHeader("Authorization") String authHeader,
+    public boolean incomeUpdateCheckFunction(@RequestHeader(AUTHORIZATION) String authHeader,
                                              @RequestBody IncomeModel incomeModel){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return incomeService.incomeUpdateCheckFunction(incomeModel, userId);
@@ -112,7 +117,7 @@ public class IncomeApiController {
 
     @Operation(summary = "Api to check the particular income can be deleted")
     @PostMapping("/incomeDeleteCheck")
-    public boolean incomeDeleteCheckFunction(@RequestHeader("Authorization") String authHeader,
+    public boolean incomeDeleteCheckFunction(@RequestHeader(AUTHORIZATION) String authHeader,
                                              @RequestBody IncomeModel incomeModel){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         incomeModel.setUserId(userId);
@@ -121,7 +126,7 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to revert the income back from deleted to normal list")
     @GetMapping("/incomeRevert/{id}")
-    public boolean incomeRevertFunction(@RequestHeader("Authorization") String authHeader,
+    public boolean incomeRevertFunction(@RequestHeader(AUTHORIZATION) String authHeader,
                                         @NotNull @PathVariable(value = "id") Long incomeId){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return incomeService.incomeRevertFunction(incomeId, userId);
@@ -129,14 +134,14 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to find the available balance for a user")
     @GetMapping("/availableBalance")
-    public BigDecimal getAvailableBalanceOfUser(@RequestHeader("Authorization") String authHeader){
+    public BigDecimal getAvailableBalanceOfUser(@RequestHeader(AUTHORIZATION) String authHeader){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return incomeService.getAvailableBalanceOfUser(userId);
     }
 
     @Operation(summary = "Api to get the total income in a specified date range")
     @GetMapping("/total-income/specified-range")
-    public List<Object[]> getTotalIncomeInSpecifiedRange(@RequestHeader("Authorization") String authHeader,
+    public List<Object[]> getTotalIncomeInSpecifiedRange(@RequestHeader(AUTHORIZATION) String authHeader,
                                                          @NotNull @RequestParam LocalDate fromDate,
                                                          @NotNull @RequestParam LocalDate toDate){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
@@ -145,7 +150,7 @@ public class IncomeApiController {
 
     @Operation(summary = "Api to update the income details")
     @PutMapping("/update/{id}")
-    public void updateIncome(@RequestHeader("Authorization") String authHeader,
+    public void updateIncome(@RequestHeader(AUTHORIZATION) String authHeader,
                              @NotNull @PathVariable(value = "id") Long id,
                              @RequestBody @Valid IncomeUpdateRequest IncomeUpdateRequest) {
 
@@ -155,7 +160,7 @@ public class IncomeApiController {
 
     @Operation(summary = "Method to delete the particular income. Here which is typically soft delete only")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteIncomeById(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<Void> deleteIncomeById(@RequestHeader(AUTHORIZATION) String authHeader,
                                                  @NotNull @PathVariable(value = "id") Long id) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         boolean isDeleted = incomeService.deleteIncomeById(id, userId);

@@ -43,7 +43,8 @@ public class StringConstants {
     public static final String INCOME_ALREADY_PRESENT_MESSAGE = "Income with this source and category is already there";
 
 
-    public static final String INCOME_NOT_FOUND = "Income Details not found";
+    public static final String INCOME_DETAILS_NOT_FOUND = "Income Details not found";
+    public static final String EXPENSE_DETAILS_NOT_FOUND = "Expense Details not found";
     public static final String CATEGORY_ID_INVALID = "Please send valid category";
     public static final String CATEGORY_NOT_ALIGN_MESSAGE = "Category not aligns with transaction type";
     public static final String USER_ID_EMPTY = "User id is empty";

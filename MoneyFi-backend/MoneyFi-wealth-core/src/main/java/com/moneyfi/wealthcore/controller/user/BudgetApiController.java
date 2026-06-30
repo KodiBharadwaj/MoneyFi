@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
+
 @RestController
 @RequestMapping("/api/v1/wealth-core/budget")
 @PreAuthorize("hasRole('USER')")
@@ -30,7 +32,7 @@ public class BudgetApiController {
 
     @Operation(summary = "Api to add the budget")
     @PostMapping("/save")
-    public void saveBudget(@RequestHeader("Authorization") String authHeader,
+    public void saveBudget(@RequestHeader(AUTHORIZATION) String authHeader,
                            @RequestBody @Valid List<AddBudgetDto> budgetList) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         budgetService.saveBudget(budgetList, userId);
@@ -38,7 +40,7 @@ public class BudgetApiController {
 
     @Operation(summary = "Api to get budget of a user")
     @GetMapping("/{category}/{month}/{year}/get")
-    public ResponseEntity<List<BudgetDetailsDto>> getAllBudgetsByUserIdAndCategory(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<List<BudgetDetailsDto>> getAllBudgetsByUserIdAndCategory(@RequestHeader(AUTHORIZATION) String authHeader,
                                                                                    @NotBlank @PathVariable(value = "category") String category,
                                                                                    @NotNull @PathVariable(value = "month") int month,
                                                                                    @NotNull @PathVariable(value = "year") int year) {
@@ -48,7 +50,7 @@ public class BudgetApiController {
 
     @Operation(summary = "Api to get the budget status/progress")
     @GetMapping("/budgetProgress/{month}/{year}")
-    public BigDecimal budgetProgress(@RequestHeader("Authorization") String authHeader,
+    public BigDecimal budgetProgress(@RequestHeader(AUTHORIZATION) String authHeader,
                                      @NotNull @PathVariable(value = "month") int month,
                                      @NotNull @PathVariable(value = "year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
@@ -57,7 +59,7 @@ public class BudgetApiController {
 
     @Operation(summary = "Api to update the budget")
     @PutMapping("/update")
-    public void updateBudget(@RequestHeader("Authorization") String authHeader,
+    public void updateBudget(@RequestHeader(AUTHORIZATION) String authHeader,
                              @RequestBody List<BudgetModel> budgetList) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         budgetService.updateBudget(userId, budgetList);
@@ -65,7 +67,7 @@ public class BudgetApiController {
 
     @Operation(summary = "Api to delete the budget")
     @DeleteMapping("/delete")
-    public void deleteBudget(@RequestHeader("Authorization") String authHeader) {
+    public void deleteBudget(@RequestHeader(AUTHORIZATION) String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         budgetService.deleteBudget(userId);
     }

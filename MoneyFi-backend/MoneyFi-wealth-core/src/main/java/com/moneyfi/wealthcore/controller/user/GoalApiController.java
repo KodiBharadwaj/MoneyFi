@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
+
 @RestController
 @RequestMapping("/api/v1/wealth-core/goal")
 @PreAuthorize("hasRole('USER')")
@@ -30,7 +32,7 @@ public class GoalApiController {
 
     @Operation(summary = "Api to add a goal")
     @PostMapping("/save")
-    public ResponseEntity<Void> saveGoal(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<Void> saveGoal(@RequestHeader(AUTHORIZATION) String authHeader,
                                          @RequestBody GoalModel goal) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         goalService.save(goal, userId, authHeader);
@@ -39,7 +41,7 @@ public class GoalApiController {
 
     @Operation(summary = "Api to add amount to a particular goal")
     @PostMapping("/{id}/addAmount/{amount}")
-    public GoalDetailsDto addAmount(@RequestHeader("Authorization") String authHeader,
+    public GoalDetailsDto addAmount(@RequestHeader(AUTHORIZATION) String authHeader,
                                     @NotNull @PathVariable(value = "id") Long id,
                                     @NotNull @PathVariable(value = "amount") BigDecimal amount){
         return goalService.addAmount(id, amount, authHeader);
@@ -47,7 +49,7 @@ public class GoalApiController {
 
     @Operation(summary = "Api to get a goal")
     @GetMapping("/getGoalDetails")
-    public ResponseEntity<List<GoalDetailsDto>> getAllGoals(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<List<GoalDetailsDto>> getAllGoals(@RequestHeader(AUTHORIZATION) String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         List<GoalDetailsDto> list = goalService.getAllGoals(userId);
         return ResponseEntity.status(HttpStatus.OK).body(list);
@@ -55,28 +57,28 @@ public class GoalApiController {
 
     @Operation(summary = "Api to get total current amount of a particular goal")
     @GetMapping("/totalCurrentGoalIncome")
-    public BigDecimal getCurrentTotalGoalIncome(@RequestHeader("Authorization") String authHeader){
+    public BigDecimal getCurrentTotalGoalIncome(@RequestHeader(AUTHORIZATION) String authHeader){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return goalService.getCurrentTotalGoalIncome(userId);
     }
 
     @Operation(summary = "Api to get total target amount of a particular goal")
     @GetMapping("/totalTargetGoalIncome")
-    public BigDecimal getTargetTotalGoalIncome(@RequestHeader("Authorization") String authHeader){
+    public BigDecimal getTargetTotalGoalIncome(@RequestHeader(AUTHORIZATION) String authHeader){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return goalService.getTargetTotalGoalIncome(userId);
     }
 
     @Operation(summary = "Api to get goal details tiles in goal ui")
     @GetMapping("/goal-tile-details")
-    public GoalTileDetailsDto getGoalTileDetails(@RequestHeader("Authorization") String authHeader){
+    public GoalTileDetailsDto getGoalTileDetails(@RequestHeader(AUTHORIZATION) String authHeader){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return goalService.getGoalTileDetails(userId);
     }
 
     @Operation(summary = "Api to update goal details")
     @PutMapping("/{id}")
-    public ResponseEntity<GoalDetailsDto> updateGoal(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<GoalDetailsDto> updateGoal(@RequestHeader(AUTHORIZATION) String authHeader,
                                                      @NotNull @PathVariable(value = "id") Long id,
                                                      @RequestBody GoalModel goal) {
         return goalService.updateByGoalName(id, goal, authHeader);
@@ -84,7 +86,7 @@ public class GoalApiController {
 
     @Operation(summary = "Api to delete goal by id")
     @DeleteMapping("/{id}")
-    public void deleteById(@RequestHeader("Authorization") String authHeader,
+    public void deleteById(@RequestHeader(AUTHORIZATION) String authHeader,
                            @NotNull @PathVariable(value = "id") Long id) {
         goalService.deleteGoalById(id, authHeader);
     }

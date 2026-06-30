@@ -1,6 +1,11 @@
 package com.moneyfi.transaction.service.income.impl;
 
+import com.moneyfi.constants.constants.CommonConstants;
+import com.moneyfi.constants.dto.ExcelResponseDto;
+import com.moneyfi.constants.dto.excel.ExcelStreamRequestDto;
 import com.moneyfi.constants.enums.TransactionServiceType;
+import com.moneyfi.constants.service.ExcelGenerationService;
+import com.moneyfi.transaction.dto.export.IncomeDetailsGridExportDto;
 import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
 import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.transaction.service.income.IncomeService;
@@ -17,22 +22,24 @@ import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.validator.IncomeValidator;
 import com.moneyfi.transaction.validator.TransactionValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 
@@ -41,9 +48,13 @@ import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 @RequiredArgsConstructor
 public class IncomeServiceImpl implements IncomeService {
 
+    @Value("${excel.export.output-dir:./exports}")
+    private String outputDirectory;
+
     private final IncomeRepository incomeRepository;
     private final IncomeDeletedRepository incomeDeletedRepository;
     private final TransactionService transactionService;
+    private final ExcelGenerationService excelGenerationService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -114,84 +125,47 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public byte[] getIncomesReportExcel(Long userId, TransactionsListRequestDto requestDto) {
-        List<IncomeDetailsDto> monthlyIncomeList = getAllIncomesByDate(userId, requestDto);
-        if (monthlyIncomeList.isEmpty()) {
-            throw new ResourceNotFoundException(INCOME_NOT_FOUND);
+    public ExcelResponseDto getIncomesReportExcel(Long userId, TransactionsListRequestDto requestDto) throws IOException {
+        List<IncomeDetailsDto> incomesList = getAllIncomesByDate(userId, requestDto);
+        if (incomesList.isEmpty()) {
+            throw new ResourceNotFoundException(INCOME_DETAILS_NOT_FOUND);
         }
-        return generateExcelReport(monthlyIncomeList);
+
+        String fileName = CommonConstants.functionToGenerateFileNameForReports("Income-details-grid", LocalDateTime.now());
+
+        Path outputPath = CommonConstants.prepareOutputPath(fileName, outputDirectory);
+
+        try (OutputStream outputStream = Files.newOutputStream(outputPath);
+             Stream<IncomeDetailsGridExportDto> stream =
+                     incomesList.stream().map(dto ->
+                             IncomeDetailsGridExportDto.builder()
+                                     .id(dto.getId())
+                                     .amount(dto.getAmount())
+                                     .source(dto.getSource())
+                                     .date(dto.getDate())
+                                     .category(dto.getCategory())
+                                     .description(dto.getDescription())
+                                     .build()
+                     )
+        ) {
+            ExcelStreamRequestDto<IncomeDetailsGridExportDto> request = ExcelStreamRequestDto.<IncomeDetailsGridExportDto>builder()
+                    .fileName(fileName)
+                    .sheetName("Income Details Report")
+                    .classType(IncomeDetailsGridExportDto.class)
+                    .dataStream(stream)
+                    .build();
+            excelGenerationService.generateExcelReport(request, outputStream);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        byte[] excelBytes = Files.readAllBytes(outputPath);
+        CommonConstants.deleteLocalFile(outputPath);
+        return ExcelResponseDto.builder().excelBytes(excelBytes).excelName(fileName).build();
     }
 
     @Override
     public List<IncomeDeletedDto> getDeletedIncomesInAMonth(Long userId, int month, int year) {
         return transactionService.getDeletedIncomesInAMonth(userId, month, year);
-    }
-
-    private byte[] generateExcelReport(List<IncomeDetailsDto> incomeList){
-        try(Workbook workbook = new XSSFWorkbook()){
-            Sheet sheet = workbook.createSheet("Monthly Income Report");
-
-            Row headerRow = sheet.createRow(0);
-            String[] headers = {"Category", "Source", "Amount", "Date", "Recurring", "Description"};
-            for(int i=0; i< headers.length; i++){
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                cell.setCellStyle(createHeaderStyle(workbook));
-            }
-
-            CellStyle dateStyle = createDateStyle(workbook);
-
-            int rowIndex = 1;
-            for (IncomeDetailsDto data : incomeList) {
-                Row row = sheet.createRow(rowIndex++);
-                row.createCell(0).setCellValue(data.getCategory());
-                row.createCell(1).setCellValue(data.getSource());
-                row.createCell(2).setCellValue(data.getAmount().doubleValue());
-                // Format Date Properly
-                Cell dateCell = row.createCell(3);
-                dateCell.setCellValue(data.getDate());
-                dateCell.setCellStyle(dateStyle);
-
-                row.createCell(4).setCellValue(data.isRecurring() ? YES : NO);
-                row.createCell(5).setCellValue(data.getDescription());
-            }
-
-            for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            workbook.write(outputStream);
-            return outputStream.toByteArray();
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new ResourceNotFoundException(ERROR_GENERATION_EXCEL);
-        }
-    }
-
-    private CellStyle createDateStyle(Workbook workbook) {
-        CellStyle dateStyle = workbook.createCellStyle();
-        CreationHelper createHelper = workbook.getCreationHelper();
-        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy"));
-        return dateStyle;
-    }
-
-    private CellStyle createHeaderStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        Font font = workbook.createFont();
-
-        font.setBold(true);
-        style.setFont(font);
-
-        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-
-        return style;
     }
 
     @Override
@@ -301,7 +275,7 @@ public class IncomeServiceImpl implements IncomeService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateBySource(Long id, Long userId, IncomeUpdateRequest incomeUpdateRequest) {
-        IncomeModel incomeModel = incomeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(INCOME_NOT_FOUND));
+        IncomeModel incomeModel = incomeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(INCOME_DETAILS_NOT_FOUND));
         IncomeValidator.validateIncomeUpdateRequest(incomeUpdateRequest);
 
         List<Integer> categoryIds = transactionService.getCategoryIdsBasedOnTransactionType(TransactionServiceType.INCOME.name());
@@ -323,7 +297,7 @@ public class IncomeServiceImpl implements IncomeService {
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteIncomeById(Long id, Long userId) {
         try {
-            IncomeModel income = incomeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(INCOME_NOT_FOUND));
+            IncomeModel income = incomeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(INCOME_DETAILS_NOT_FOUND));
             LocalDateTime currentTime = LocalDateTime.now();
             income.setUpdatedAt(currentTime);
             income.setIsDeleted(Boolean.TRUE);

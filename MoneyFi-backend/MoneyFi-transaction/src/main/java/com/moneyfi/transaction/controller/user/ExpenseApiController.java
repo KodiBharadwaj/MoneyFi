@@ -1,5 +1,6 @@
 package com.moneyfi.transaction.controller.user;
 
+import com.moneyfi.constants.dto.ExcelResponseDto;
 import com.moneyfi.constants.dto.GoalExpenseRelationRequestDto;
 import com.moneyfi.transaction.security.JwtService;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
@@ -19,10 +20,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+
+import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
 
 @RestController
 @RequestMapping("/api/v1/transaction/expense")
@@ -36,7 +40,7 @@ public class ExpenseApiController {
 
     @Operation(summary = "Method to add the expense transaction")
     @PostMapping("/saveExpense")
-    public ResponseEntity<ExpenseModel> saveExpense(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<ExpenseModel> saveExpense(@RequestHeader(AUTHORIZATION) String authHeader,
                                                     @RequestBody ExpenseModel expense) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         expense.setUserId(userId);
@@ -51,7 +55,7 @@ public class ExpenseApiController {
 
     @Operation(summary = "Method to get all the expenses of a particular user")
     @GetMapping("/getExpenses")
-    public ResponseEntity<List<ExpenseModel>> getAllExpenses(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<List<ExpenseModel>> getAllExpenses(@RequestHeader(AUTHORIZATION) String authHeader) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         List<ExpenseModel> list = expenseService.getAllExpenses(userId);
         return ResponseEntity.status(HttpStatus.OK).body(list);
@@ -59,7 +63,7 @@ public class ExpenseApiController {
 
     @Operation(summary = "Api to get all the expense details")
     @PostMapping("/get-expenses")
-    public ResponseEntity<TransactionPagedResponse<ExpenseDetailsDto>> getAllExpensesByDate(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<TransactionPagedResponse<ExpenseDetailsDto>> getAllExpensesByDate(@RequestHeader(AUTHORIZATION) String authHeader,
                                                                                             @RequestBody @Valid TransactionsListRequestDto requestDto) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         List<ExpenseDetailsDto> expenses = expenseService.getAllExpensesByDate(userId, requestDto);
@@ -73,19 +77,20 @@ public class ExpenseApiController {
 
     @Operation(summary = "Api to generate Excel report for the expenses of a user")
     @PostMapping("/get-expenses/excel-report")
-    public ResponseEntity<byte[]> getExpenseReportExcel(@RequestHeader("Authorization") String authHeader,
-                                                        @RequestBody @Valid TransactionsListRequestDto requestDto) {
+    public ResponseEntity<byte[]> getExpenseReportExcel(@RequestHeader(AUTHORIZATION) String authHeader,
+                                                        @RequestBody @Valid TransactionsListRequestDto requestDto) throws IOException {
 
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
+        ExcelResponseDto excelResponse = expenseService.getExpenseReportExcel(userId, requestDto);
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Monthly expense report.xlsx")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + excelResponse.getExcelName() + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(expenseService.getExpenseReportExcel(userId, requestDto));
+                .body(excelResponse.getExcelBytes());
     }
 
     @Operation(summary = "Method to get the total expense amount in a particular month and in a particular year")
     @GetMapping("/totalExpense/{month}/{year}")
-    public BigDecimal getTotalExpenseByMonthAndYear(@RequestHeader("Authorization") String authHeader,
+    public BigDecimal getTotalExpenseByMonthAndYear(@RequestHeader(AUTHORIZATION) String authHeader,
                                                     @NotNull @PathVariable(value = "month") int month,
                                                     @NotNull @PathVariable(value = "year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
@@ -94,7 +99,7 @@ public class ExpenseApiController {
 
     @Operation(summary = "Method to get the list of total expense amount of all months in a particular year")
     @GetMapping("/monthlyTotalExpensesList/{year}")
-    public List<BigDecimal> getMonthlyTotals(@RequestHeader("Authorization") String authHeader,
+    public List<BigDecimal> getMonthlyTotals(@RequestHeader(AUTHORIZATION) String authHeader,
                                              @NotNull @PathVariable(value = "year") int year) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return expenseService.getMonthlyExpenses(userId, year);
@@ -102,7 +107,7 @@ public class ExpenseApiController {
 
     @Operation(summary = "Method to get the list of total saving amount of all months in a particular year")
     @GetMapping("/monthlySavingsInYear/{year}")
-    public List<BigDecimal> getMonthlySavingsList(@RequestHeader("Authorization") String authHeader,
+    public List<BigDecimal> getMonthlySavingsList(@RequestHeader(AUTHORIZATION) String authHeader,
                                                   @NotNull @PathVariable(value = "year") int year) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return expenseService.getMonthlySavingsList(userId, year);
@@ -111,7 +116,7 @@ public class ExpenseApiController {
 
     @Operation(summary = "Method to find the total savings/remaining amount in a month")
     @GetMapping("/{month}/{year}")
-    public BigDecimal getTotalSavingsByMonthAndDate(@RequestHeader("Authorization") String authHeader,
+    public BigDecimal getTotalSavingsByMonthAndDate(@RequestHeader(AUTHORIZATION) String authHeader,
                                                     @NotNull @PathVariable(value = "month") int month,
                                                     @NotNull @PathVariable(value = "year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
@@ -120,7 +125,7 @@ public class ExpenseApiController {
 
     @Operation(summary = "Method to get the list of cumulative savings monthly wise in a year")
     @GetMapping("/monthlyCumulativeSavingsInYear/{year}")
-    public List<BigDecimal> getCumulativeMonthlySavings(@RequestHeader("Authorization") String authHeader,
+    public List<BigDecimal> getCumulativeMonthlySavings(@RequestHeader(AUTHORIZATION) String authHeader,
                                                         @NotNull @PathVariable(value = "year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return expenseService.getCumulativeMonthlySavings(userId, year);
@@ -128,7 +133,7 @@ public class ExpenseApiController {
 
     @Operation(summary = "Api to get the total expense in a specified period")
     @GetMapping("/total-expenses/specified-range")
-    public List<Object[]> getTotalExpensesInSpecifiedRange(@RequestHeader("Authorization") String authHeader,
+    public List<Object[]> getTotalExpensesInSpecifiedRange(@RequestHeader(AUTHORIZATION) String authHeader,
                                                            @NotNull @RequestParam LocalDate fromDate,
                                                            @NotNull @RequestParam LocalDate toDate){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
@@ -137,7 +142,7 @@ public class ExpenseApiController {
 
     @Operation(summary = "Method to update the expense details")
     @PutMapping("/{id}")
-    public ResponseEntity<ExpenseDetailsDto> updateExpense(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<ExpenseDetailsDto> updateExpense(@RequestHeader(AUTHORIZATION) String authHeader,
                                                            @NotNull @PathVariable(value = "id") Long id,
                                                            @RequestBody ExpenseModel expense) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
@@ -157,7 +162,7 @@ public class ExpenseApiController {
 
     @Operation(summary = "Api to add goal transaction as expense")
     @PostMapping("/goal-expense-relation/add")
-    public void addGoalExpenseTransaction(@RequestHeader("Authorization") String authHeader,
+    public void addGoalExpenseTransaction(@RequestHeader(AUTHORIZATION) String authHeader,
                                           @RequestBody GoalExpenseRelationRequestDto requestDto) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         expenseService.addGoalExpenseTransaction(requestDto, userId);
