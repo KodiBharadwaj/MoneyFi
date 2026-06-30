@@ -119,23 +119,25 @@ public class UserAuthServiceImpl implements UserAuthService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<Map<String, String>> login(UserLoginDetailsRequestDto requestDto) {
-        UserAuthModel userAuthModel = new UserAuthModel();
-        userAuthModel.setUsername(requestDto.getUsername().trim());
-        userAuthModel.setPassword(requestDto.getPassword());
-        userAuthModel.setRoleId(StringConstants.functionToGetRoleIdBasedOnRoleName(requestDto.getRole()));
+        String username = requestDto.getUsername().trim();
+        String password = requestDto.getPassword();
+        String role = requestDto.getRole().trim().toUpperCase();
+
+        int roleId = StringConstants.functionToGetRoleIdBasedOnRoleName(role);
+        if (roleId == 0) throw new BadCredentialsException("Bad role is provided");
 
         Map<String, String> userRoleToken = new HashMap<>();
-        makeOldSessionInActiveOfUserForNewLogin(userAuthModel.getUsername());
+
+        if (StringUtils.isBlank(username) || StringUtils.isBlank(password)) {
+            userRoleToken.put(ERROR, USERNAME_PASSWORD_REQUIRED);
+            return ResponseEntity.badRequest().body(userRoleToken);
+        }
+
         try {
-            if (userAuthModel.getUsername() == null || userAuthModel.getUsername().isEmpty() ||
-                    userAuthModel.getPassword() == null || userAuthModel.getPassword().isEmpty()) {
-                userRoleToken.put(ERROR, USERNAME_PASSWORD_REQUIRED);
-                return ResponseEntity.badRequest().body(userRoleToken);
-            }
-            UserAuthModel existingUser = userRepository.getUserDetailsByUsername(userAuthModel.getUsername()).orElse(null);
-            if (existingUser == null) {
-                userRoleToken.put(ERROR, USER_NOT_FOUND_SIGNUP);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userRoleToken);
+            UserAuthModel existingUser = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_SIGNUP));
+            if (roleId != existingUser.getRoleId()) {
+                userRoleToken.put(ERROR, USER_NOT_AUTHORIZED);
+                return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(userRoleToken);
             } else if (existingUser.isBlocked()) {
                 userRoleToken.put(ERROR, ACCOUNT_BLOCKED);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
@@ -145,12 +147,13 @@ public class UserAuthServiceImpl implements UserAuthService {
             }
             try {
                 Authentication authentication = authenticationManager
-                        .authenticate(new UsernamePasswordAuthenticationToken(userAuthModel.getUsername(), userAuthModel.getPassword()));
+                        .authenticate(new UsernamePasswordAuthenticationToken(username, password));
                 if (authentication.isAuthenticated()) {
                     JwtToken token = jwtService.generateToken(existingUser, SESSION_LOGIN_MINUTES);
-                    functionToPreventMultipleLogins(userAuthModel, token);
-                    makeGmailAuthInactiveForUser(getUserIdByUsername(requestDto.getUsername().trim()));
-                    userRoleToken.put(userRoleAssociation.get(existingUser.getRoleId()), token.getJwtToken());
+                    makeOldSessionInActiveOfUserForNewLogin(username);
+                    functionToPreventMultipleLogins(existingUser, token);
+                    makeGmailAuthInactiveForUser(existingUser.getId());
+                    userRoleToken.put(role, token.getJwtToken());
                     return ResponseEntity.ok(userRoleToken);
                 }
             } catch (BadCredentialsException ex) {
@@ -337,9 +340,9 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String updatePasswordOnUserForgotMode(String email, String password){
-        UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(()-> new ResourceNotFoundException(USER_NOT_FOUND));
-        if(encoder.matches(password, user.getPassword())) {
+    public String updatePasswordOnUserForgotMode(String email, String password) {
+        UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        if (encoder.matches(password, user.getPassword())) {
             throw new ScenarioNotPossibleException(SAME_PASSWORD_NOT_ALLOWED_MESSAGE);
         }
         user.setPassword(encoder.encode(password));

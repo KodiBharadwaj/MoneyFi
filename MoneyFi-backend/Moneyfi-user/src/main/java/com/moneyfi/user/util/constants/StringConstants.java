@@ -45,6 +45,7 @@ public class StringConstants {
     public static final String ERROR = "error";
     public static final String USERNAME_PASSWORD_REQUIRED = "Username and password are required";
     public static final String USER_NOT_FOUND_SIGNUP = "User not found. Please sign up";
+    public static final String USER_NOT_AUTHORIZED = "User is not authorized";
     public static final String ACCOUNT_BLOCKED = "Account Blocked! Please contact admin";
     public static final String ACCOUNT_DELETED = "Account Deleted! Please contact admin";
     public static final String INVALID_CREDENTIALS = "Invalid Credentials Entered";
