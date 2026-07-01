@@ -20,7 +20,6 @@ public class StringConstants {
     public static final String FROM_DATE = "fromDate";
     public static final String TO_DATE = "toDate";
 
-    public static final String USER_ID = "userId";
     public static final String TOTAL_GOAL_AMOUNT = "totalGoalAmount";
     public static final String TOTAL_GOAL_TARGET_AMOUNT = "totalGoalTargetAmount";
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";

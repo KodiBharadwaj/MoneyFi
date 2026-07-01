@@ -1,7 +1,6 @@
 package com.moneyfi.transaction.batch.listener.expense;
 
 import com.moneyfi.transaction.model.expense.ExpenseModel;
-import com.moneyfi.transaction.model.income.IncomeModel;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.scope.context.StepSynchronizationManager;
@@ -12,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.moneyfi.transaction.utils.constants.StringConstants.*;
+import static com.moneyfi.constants.constants.CommonConstants.USER_ID;
 
 @Component
 public class ExpenseWriteListener implements ItemWriteListener<ExpenseModel> {

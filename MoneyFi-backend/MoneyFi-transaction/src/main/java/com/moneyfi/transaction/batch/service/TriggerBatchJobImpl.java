@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 import static com.moneyfi.transaction.utils.constants.StringConstants.*;
+import static com.moneyfi.constants.constants.CommonConstants.USER_ID;
 
 @Service
 @Slf4j

@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.moneyfi.transaction.utils.constants.StringConstants.PROCESSED_INCOMES;
-import static com.moneyfi.transaction.utils.constants.StringConstants.USER_ID;
+import static com.moneyfi.constants.constants.CommonConstants.USER_ID;
 
 @Component
 public class IncomeWriteListener implements ItemWriteListener<IncomeModel> {

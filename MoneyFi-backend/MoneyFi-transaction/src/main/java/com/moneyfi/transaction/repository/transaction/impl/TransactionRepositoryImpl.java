@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.moneyfi.transaction.utils.constants.StringConstants.*;
-import static com.moneyfi.transaction.utils.constants.StringConstants.YEAR;
+import static com.moneyfi.constants.constants.CommonConstants.USER_ID;
 
 @Repository
 public class TransactionRepositoryImpl implements TransactionRepository {
@@ -332,6 +332,24 @@ public class TransactionRepositoryImpl implements TransactionRepository {
                             "exec [getUserAuthDetailsByUsername] " +
                                     "@username = :username ")
                     .setParameter("username", username.trim());
+            Object[] result = (Object[]) query.getSingleResult();
+
+            return ((Number) result[0]).longValue();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("user id not found for " + username);
+        }
+    }
+
+    @Override
+    public Long getUserIdFromUsernameAndToken(String username, String token) {
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec [getUserIdFromUsernameAndToken] " +
+                                    "@username = :username, " +
+                                    "@token = :token ")
+                    .setParameter("username", username)
+                    .setParameter("token", token);
             Object[] result = (Object[]) query.getSingleResult();
 
             return ((Number) result[0]).longValue();
