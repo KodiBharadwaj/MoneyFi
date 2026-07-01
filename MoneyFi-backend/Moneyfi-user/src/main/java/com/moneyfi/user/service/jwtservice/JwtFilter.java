@@ -20,6 +20,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collection;
 
+import static com.moneyfi.constants.constants.CommonConstants.*;
+
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
@@ -31,12 +33,12 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
+        String authHeader = request.getHeader(AUTHORIZATION);
         String token = null;
         String username = null;
 
         try {
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            if (authHeader != null && authHeader.startsWith(BEARER + SPACE)) {
                 token = authHeader.substring(7);
                 username = jwtService.extractUserName(token);
             }
@@ -44,7 +46,7 @@ public class JwtFilter extends OncePerRequestFilter {
             // Check if token is blacklisted
             if (token != null && commonService.isTokenBlacklisted(token, username)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Token is blacklisted");
+                response.getWriter().write(TOKEN_BLACKLISTED_MESSAGE);
                 return;
             }
 

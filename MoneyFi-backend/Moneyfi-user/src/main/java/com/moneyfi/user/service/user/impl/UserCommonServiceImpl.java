@@ -15,6 +15,7 @@ import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.repository.general.*;
 import com.moneyfi.user.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.user.service.general.aws.AwsServices;
+import com.moneyfi.user.service.general.caching.UserCacheService;
 import com.moneyfi.user.service.general.cloudinary.CloudinaryService;
 import com.moneyfi.user.service.user.CommonService;
 import com.moneyfi.user.service.user.UserCommonService;
@@ -80,6 +81,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final SessionTokenRepository sessionTokenRepository;
     private final TokenBlackListRepository tokenBlacklistRepository;
     private final GmailSyncRepository gmailSyncRepository;
+    private final UserCacheService userCacheService;
 
     public UserCommonServiceImpl(CloudinaryService cloudinaryService,
                                  AwsServices awsServices,
@@ -98,7 +100,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  SessionTokenRepository sessionTokenRepository,
                                  TokenBlackListRepository tokenBlacklistRepository,
                                  UserAuthHistRepository userAuthHistRepository,
-                                 GmailSyncRepository gmailSyncRepository){
+                                 GmailSyncRepository gmailSyncRepository,
+                                 UserCacheService userCacheService){
         this.cloudinaryService = cloudinaryService;
         this.awsServices = awsServices;
         this.profileRepository = profileRepository;
@@ -117,6 +120,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.tokenBlacklistRepository = tokenBlacklistRepository;
         this.userAuthHistRepository = userAuthHistRepository;
         this.gmailSyncRepository = gmailSyncRepository;
+        this.userCacheService = userCacheService;
     }
 
     private static final String REFERENCE_NUMBER_SENT = "Reference already sent, Please submit your details";
@@ -713,7 +717,7 @@ public class UserCommonServiceImpl implements UserCommonService {
 
     @Override
     public SessionTokenModel saveSessionTokenModel(SessionTokenModel sessionTokenModel) {
-        return sessionTokenRepository.save(sessionTokenModel);
+        return userCacheService.saveSessionTokenModel(sessionTokenModel, sessionTokenRepository);
     }
 
     @Override

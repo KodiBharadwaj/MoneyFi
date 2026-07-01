@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -23,13 +24,25 @@ public class JwtService {
     private String jwtSecret;
 
     private final TransactionRepository transactionRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     public Long extractUserIdFromToken(String token, LocalDateTime time) {
         log.info("Security check filter enabled: {}", time);
+
         try {
-            return transactionRepository.getUserIdFromUsernameAndToken(getUsernameFromToken(token).trim(), token);
+            String username = getUsernameFromToken(token).trim();
+            String redisKey = REDIS_BLACKLIST_TOKEN_PREFIX_KEY + DOUBLE_COLON + username + COLON + token;
+
+            if (!redisTemplate.hasKey(redisKey)) {
+                throw new IllegalArgumentException(TOKEN_BLACKLISTED_MESSAGE);
+            }
+
+            return transactionRepository.getUserIdFromUsernameAndToken(username, token);
+
         } catch (DataAccessException ex) {
             throw new IllegalArgumentException(TOKEN_BLACKLISTED_MESSAGE);
+        } catch (IllegalArgumentException ex) {
+            throw ex;
         } catch (Exception e) {
             throw new ResourceNotFoundException(USER_VALIDATION_FAILED_MESSAGE);
         }

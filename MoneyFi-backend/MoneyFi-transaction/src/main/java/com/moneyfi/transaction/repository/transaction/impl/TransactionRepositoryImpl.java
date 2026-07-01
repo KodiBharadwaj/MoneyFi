@@ -350,9 +350,8 @@ public class TransactionRepositoryImpl implements TransactionRepository {
                                     "@token = :token ")
                     .setParameter("username", username)
                     .setParameter("token", token);
-            Object[] result = (Object[]) query.getSingleResult();
-
-            return ((Number) result[0]).longValue();
+            Object result = query.getSingleResult();
+            return ((Number) result).longValue();
         } catch (Exception e) {
             e.printStackTrace();
             throw new QueryValidationException("user id not found for " + username);

@@ -25,7 +25,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (
         error.status === 401 &&
         !sessionGuard.sessionExpiredHandled &&
-        (error.error === 'TokenExpired' || error.error === 'Token is blacklisted')
+        (error.error === 'TokenExpired' || error.error === 'Token is Blacklisted')
       ) {
         sessionGuard.sessionExpiredHandled = true;
         alert('Your session has expired. Please login again.');

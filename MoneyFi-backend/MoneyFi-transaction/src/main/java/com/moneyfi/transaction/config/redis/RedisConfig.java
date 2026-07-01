@@ -1,4 +1,4 @@
-package com.moneyfi.transaction.config.redis.cache;
+package com.moneyfi.transaction.config.redis;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
