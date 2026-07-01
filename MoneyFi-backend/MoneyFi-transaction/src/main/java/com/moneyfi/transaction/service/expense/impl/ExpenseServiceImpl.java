@@ -1,7 +1,13 @@
 package com.moneyfi.transaction.service.expense.impl;
 
+import com.moneyfi.constants.constants.CommonConstants;
+import com.moneyfi.constants.dto.ExcelResponseDto;
 import com.moneyfi.constants.dto.GoalExpenseRelationRequestDto;
+import com.moneyfi.constants.dto.excel.ExcelStreamRequestDto;
 import com.moneyfi.constants.enums.TransactionServiceType;
+import com.moneyfi.constants.service.ExcelGenerationService;
+import com.moneyfi.transaction.dto.export.ExpenseDetailsGridExportDto;
+import com.moneyfi.transaction.dto.export.IncomeDetailsGridExportDto;
 import com.moneyfi.transaction.exceptions.ResourceNotFoundException;
 import com.moneyfi.transaction.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.transaction.model.expense.ExpenseGoalRelation;
@@ -16,18 +22,19 @@ import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.validator.TransactionValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -35,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 
@@ -43,9 +51,13 @@ import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 @RequiredArgsConstructor
 public class ExpenseServiceImpl implements ExpenseService {
 
+    @Value("${excel.export.output-dir:./exports}")
+    private String outputDirectory;
+
     private final ExpenseRepository expenseRepository;
     private final TransactionService transactionService;
     private final ExpenseGoalRelationRepository expenseGoalRelationRepository;
+    private final ExcelGenerationService excelGenerationService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -112,6 +124,10 @@ public class ExpenseServiceImpl implements ExpenseService {
                 comparator = Comparator.comparing(ExpenseDetailsDto::getAmount, Comparator.nullsLast(BigDecimal::compareTo));
                 break;
 
+            case DESCRIPTION:
+                comparator = Comparator.comparing(ExpenseDetailsDto::getDescription, Comparator.nullsLast(String::compareToIgnoreCase));
+                break;
+
             case TYPE:
                 comparator = Comparator.comparing(ExpenseDetailsDto::isRecurring, Comparator.nullsLast(Boolean::compareTo));
                 break;
@@ -125,9 +141,43 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public byte[] getExpenseReportExcel(Long userId, TransactionsListRequestDto requestDto) {
-        List<ExpenseDetailsDto> monthlyExpenseList = getAllExpensesByDate(userId, requestDto);
-        return generateExcelReport(monthlyExpenseList);
+    public ExcelResponseDto getExpenseReportExcel(Long userId, TransactionsListRequestDto requestDto) throws IOException {
+        List<ExpenseDetailsDto> expenseList = getAllExpensesByDate(userId, requestDto);
+        if (expenseList.isEmpty()) {
+            throw new ResourceNotFoundException(EXPENSE_DETAILS_NOT_FOUND);
+        }
+
+        String fileName = CommonConstants.functionToGenerateFileNameForReports("Expense-details-grid", LocalDateTime.now());
+
+        Path outputPath = CommonConstants.prepareOutputPath(fileName, outputDirectory);
+
+        try (OutputStream outputStream = Files.newOutputStream(outputPath);
+             Stream<ExpenseDetailsGridExportDto> stream =
+                     expenseList.stream().map(dto ->
+                             ExpenseDetailsGridExportDto.builder()
+                                     .id(dto.getId())
+                                     .category(dto.getCategory())
+                                     .amount(dto.getAmount())
+                                     .date(dto.getDate())
+                                     .recurring(dto.isRecurring())
+                                     .description(dto.getDescription())
+                                     .deleted(dto.isDeleted())
+                                     .build()
+                     )
+        ) {
+            ExcelStreamRequestDto<ExpenseDetailsGridExportDto> request = ExcelStreamRequestDto.<ExpenseDetailsGridExportDto>builder()
+                    .fileName(fileName)
+                    .sheetName("Expense Details Report")
+                    .classType(ExpenseDetailsGridExportDto.class)
+                    .dataStream(stream)
+                    .build();
+            excelGenerationService.generateExcelReport(request, outputStream);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        byte[] excelBytes = Files.readAllBytes(outputPath);
+        CommonConstants.deleteLocalFile(outputPath);
+        return ExcelResponseDto.builder().excelBytes(excelBytes).excelName(fileName).build();
     }
 
     @Override
@@ -308,71 +358,5 @@ public class ExpenseServiceImpl implements ExpenseService {
         BeanUtils.copyProperties(updatedExpense, expenseDetailsDto);
         expenseDetailsDto.setDate(Date.valueOf(updatedExpense.getDate().toLocalDate()));
         return expenseDetailsDto;
-    }
-
-    private byte[] generateExcelReport(List<ExpenseDetailsDto> expenseList){
-        try(Workbook workbook = new XSSFWorkbook()){
-            Sheet sheet = workbook.createSheet("Monthly Expense Report");
-
-            Row headerRow = sheet.createRow(0);
-            String[] headers = {"Category", "Description", "Amount", "Date", "Recurring"};
-            for(int i=0; i< headers.length; i++){
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                cell.setCellStyle(createHeaderStyle(workbook));
-            }
-
-            CellStyle dateStyle = createDateStyle(workbook);
-
-            int rowIndex = 1;
-            for (ExpenseDetailsDto data : expenseList) {
-                Row row = sheet.createRow(rowIndex++);
-                row.createCell(0).setCellValue(data.getCategory());
-                row.createCell(1).setCellValue(data.getDescription());
-                row.createCell(2).setCellValue(data.getAmount().doubleValue());
-                Cell dateCell = row.createCell(3);
-                dateCell.setCellValue(data.getDate());
-                dateCell.setCellStyle(dateStyle);
-
-                row.createCell(4).setCellValue(data.isRecurring()?"Yes":"No");
-            }
-
-            for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            workbook.write(outputStream);
-            return outputStream.toByteArray();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new ResourceNotFoundException("Error in creating the Excel Report");
-        }
-    }
-
-    private CellStyle createDateStyle(Workbook workbook) {
-        CellStyle dateStyle = workbook.createCellStyle();
-        CreationHelper createHelper = workbook.getCreationHelper();
-        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy"));
-        return dateStyle;
-    }
-
-    private CellStyle createHeaderStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        Font font = workbook.createFont();
-
-        font.setBold(true);
-        style.setFont(font);
-
-        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-
-        return style;
     }
 }

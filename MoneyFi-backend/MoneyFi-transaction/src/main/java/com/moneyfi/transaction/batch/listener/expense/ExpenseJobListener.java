@@ -4,7 +4,6 @@ import com.moneyfi.constants.dto.BatchInfoForEmailDto;
 import com.moneyfi.constants.enums.TransactionServiceType;
 import com.moneyfi.transaction.batch.service.general.BatchAuthTokenStore;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
-import com.moneyfi.transaction.model.income.IncomeModel;
 import com.moneyfi.transaction.service.external.api.ExternalApiCallService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.moneyfi.transaction.utils.constants.StringConstants.*;
+import static com.moneyfi.constants.constants.CommonConstants.USER_ID;
 
 @Component
 @RequiredArgsConstructor

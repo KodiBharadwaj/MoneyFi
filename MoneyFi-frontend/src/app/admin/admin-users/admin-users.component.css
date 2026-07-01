@@ -479,3 +479,83 @@ h2 {
   cursor:not-allowed;
   opacity:0.7;
 }
+
+
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-top: 16px;
+  padding: 12px 16px;
+
+  border-top: 1px solid #e0e0e0;
+  background-color: #fafafa;
+
+  font-size: 14px;
+}
+
+
+.pagination-container > div:nth-child(1) {
+  font-weight: 600;
+  color: #555;
+}
+
+
+.pagination-container > div:nth-child(2) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+
+.pagination-container button {
+  width: 34px;
+  height: 34px;
+
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+
+  background: white;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+
+.pagination-container button:hover:not(:disabled) {
+  background-color: #1976d2;
+  color: white;
+  border-color: #1976d2;
+}
+
+
+.pagination-container button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+
+.pagination-container span {
+  font-weight: 500;
+  color: #444;
+}
+
+
+.pagination-container select {
+  padding: 6px 10px;
+
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+
+  background: white;
+  cursor: pointer;
+
+  outline: none;
+}
+
+
+.pagination-container select:focus {
+  border-color: #1976d2;
+}

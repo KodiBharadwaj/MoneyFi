@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.moneyfi.transaction.utils.constants.StringConstants.*;
+import static com.moneyfi.constants.constants.CommonConstants.USER_ID;
 
 @Component
 @RequiredArgsConstructor

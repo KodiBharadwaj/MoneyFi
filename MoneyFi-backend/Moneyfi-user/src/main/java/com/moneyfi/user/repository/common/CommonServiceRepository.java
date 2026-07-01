@@ -14,7 +14,7 @@ public interface CommonServiceRepository {
 
     List<UserNotificationResponseDto> getUserNotifications(String username, String status);
 
-    List<String> findAllUsernamesOfUsers();
+    List<String> findAllUsernamesOfUsers(Long offset, Long limit, String search);
 
     List<String> getCategoriesBasedOnTransactionType(String name);
 

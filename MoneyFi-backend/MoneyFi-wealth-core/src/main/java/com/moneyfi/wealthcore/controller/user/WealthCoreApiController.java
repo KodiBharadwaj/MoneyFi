@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
+import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
+
 @RestController
 @RequestMapping("/api/v1/wealth-core")
 @PreAuthorize("hasRole('USER')")
@@ -26,7 +28,7 @@ public class WealthCoreApiController {
 
     @Operation(summary = "Api to get the user spending analysis in a particular time period")
     @GetMapping("/spending-analysis")
-    public SpendingAnalysisResponseDto getUserSpendingAnalysisByBudgetCategories(@RequestHeader("Authorization") String authHeader,
+    public SpendingAnalysisResponseDto getUserSpendingAnalysisByBudgetCategories(@RequestHeader(AUTHORIZATION) String authHeader,
                                                                                  @NotNull @RequestParam LocalDate fromDate,
                                                                                  @NotNull @RequestParam LocalDate toDate){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
@@ -35,7 +37,7 @@ public class WealthCoreApiController {
 
     @Operation(summary = "Api to get the user spending analysis in pdf format in a particular time period")
     @GetMapping("/spending-analysis/report")
-    public ResponseEntity<byte[]> getUserSpendingAnalysisByBudgetCategoriesPdf(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<byte[]> getUserSpendingAnalysisByBudgetCategoriesPdf(@RequestHeader(AUTHORIZATION) String authHeader,
                                                                                @NotNull @RequestParam LocalDate fromDate,
                                                                                @NotNull @RequestParam LocalDate toDate){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
@@ -48,7 +50,7 @@ public class WealthCoreApiController {
 
     @Operation(summary = "Api to get the user spending analysis in pdf format and send email to user in a particular time period")
     @GetMapping("/spending-analysis/report-email")
-    public ResponseEntity<String> getUserSpendingAnalysisByBudgetCategoriesPdfEmail(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<String> getUserSpendingAnalysisByBudgetCategoriesPdfEmail(@RequestHeader(AUTHORIZATION) String authHeader,
                                                                                     @NotNull @RequestParam LocalDate fromDate,
                                                                                     @NotNull @RequestParam LocalDate toDate){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));

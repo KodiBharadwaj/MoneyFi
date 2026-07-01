@@ -15,8 +15,8 @@ import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.SchedulingNotificationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.moneyfi.constants.constants.CommonConstants.*;
 import static com.moneyfi.user.util.constants.StringConstants.functionToGetNameOfUserWithUserId;
 import static com.moneyfi.user.util.constants.StringConstants.objectMapper;
 
@@ -35,6 +36,7 @@ import static com.moneyfi.user.util.constants.StringConstants.objectMapper;
 public class CommonServiceImpl implements CommonService {
 
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
+    private final RedisTemplate<String, Object> redisTemplate;
 
     private final ProfileRepository profileRepository;
     private final CommonServiceRepository commonServiceRepository;
@@ -83,9 +85,13 @@ public class CommonServiceImpl implements CommonService {
         });
     }
 
-    @Cacheable(value = "blackListToken", key = "#username + ':' + #token")
     public boolean isTokenBlacklisted(String token, String username) {
-        return !(tokenBlacklistRepository.findByUsernameAndToken(username, token).isEmpty());
+        String key = REDIS_BLACKLIST_TOKEN_PREFIX_KEY + DOUBLE_COLON + username + COLON + token;
+
+        if (redisTemplate.hasKey(key)) {
+            return false;
+        }
+        return !tokenBlacklistRepository.findByUsernameAndToken(username, token).isEmpty();
     }
 
     private void sendLatestNotificationSeamlessly(String username, Long scheduleId) {

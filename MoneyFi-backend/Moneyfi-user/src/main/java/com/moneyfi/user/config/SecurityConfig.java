@@ -34,6 +34,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
+import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
+import static com.moneyfi.constants.constants.CommonConstants.BEARER;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -120,9 +123,9 @@ public class SecurityConfig {
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName,
                                 new SecurityScheme()
-                                        .name("Authorization")
+                                        .name(AUTHORIZATION)
                                         .type(SecurityScheme.Type.HTTP)
-                                        .scheme("bearer")
+                                        .scheme(BEARER.toLowerCase())
                                         .bearerFormat("JWT")
                         )
                 );

@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
+
 @RestController
 @RequestMapping("/api/v1/wealth-core/admin")
 @PreAuthorize("hasRole('ADMIN')")
@@ -32,7 +34,7 @@ public class AdminApiController {
 
     @Operation(summary = "Api to save the category list")
     @PostMapping("/category-list/save")
-    public void saveCategoryWiseList(@RequestHeader("Authorization") String authHeader,
+    public void saveCategoryWiseList(@RequestHeader(AUTHORIZATION) String authHeader,
                                      @Valid @RequestBody CategoryRequestDto requestDto) {
         Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         adminService.saveCategoryWiseList(adminUserId, requestDto);
@@ -40,7 +42,7 @@ public class AdminApiController {
 
     @Operation(summary = "Api to update the category list")
     @PutMapping("/category-list/{categoryId}/update")
-    public void updateCategoryWiseList(@RequestHeader("Authorization") String authHeader,
+    public void updateCategoryWiseList(@RequestHeader(AUTHORIZATION) String authHeader,
                                        @NotNull @PathVariable(value = "categoryId") Integer categoryId,
                                        @Valid @RequestBody CategoryRequestDto requestDto) {
         Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
@@ -49,7 +51,7 @@ public class AdminApiController {
 
     @Operation(summary = "Api to delete the category list")
     @DeleteMapping("/category-list/{categoryId}/delete")
-    public void deleteCategoryWiseList(@RequestHeader("Authorization") String authHeader,
+    public void deleteCategoryWiseList(@RequestHeader(AUTHORIZATION) String authHeader,
                                        @NotNull @PathVariable(value = "categoryId") Integer categoryId) {
         Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         adminService.deleteCategoryWiseList(adminUserId, categoryId);

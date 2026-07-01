@@ -1,6 +1,7 @@
 package com.moneyfi.user.service.admin.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.moneyfi.user.dto.ReusableTotalCountDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,7 @@ import static com.moneyfi.user.util.constants.StringConstants.DATE_TIME_PATTERN;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserGridDto {
+public class UserGridDto extends ReusableTotalCountDto {
     private int slNo;
     private String name;
     private String username;

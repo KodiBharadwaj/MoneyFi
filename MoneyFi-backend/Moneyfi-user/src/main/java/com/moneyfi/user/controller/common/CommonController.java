@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
+
 @RestController
 @RequestMapping("/api/v1/user-service/common")
 @RequiredArgsConstructor
@@ -24,7 +26,7 @@ public class CommonController {
     @Operation(summary = "Api to logout/making the token blacklist")
     @PostMapping("/logout")
     @PreAuthorize("hasAnyRole('USER','ADMIN','MAINTAINER')")
-    public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader(AUTHORIZATION) String token) {
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
@@ -35,7 +37,7 @@ public class CommonController {
     @GetMapping("/extend-session")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<String> updateUserSessionExpirationTime(Authentication authentication,
-                                                                  @RequestHeader("Authorization") String authHeader,
+                                                                  @RequestHeader(AUTHORIZATION) String authHeader,
                                                                   @NotNull @RequestParam long minutes) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         return ResponseEntity.ok(userAuthService.updateUserSessionExpirationTime(minutes, username, authHeader.substring(7)));

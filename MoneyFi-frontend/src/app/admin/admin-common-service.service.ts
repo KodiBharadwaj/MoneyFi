@@ -4,17 +4,25 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AdminCommonServiceService {
-
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   baseUrl = environment.BASE_URL;
-
-  getUsernames(): Observable<string[]> {
+  getUsernames(offset: number, limit: number, search: string) {
     return this.http.get<string[]>(
-      `${this.baseUrl}/api/v1/user-service/admin/get-usernames`
+      `${this.baseUrl}/api/v1/user-service/admin/get-usernames`,
+
+      {
+        params: {
+          offset,
+
+          limit,
+
+          search,
+        },
+      },
     );
   }
 }

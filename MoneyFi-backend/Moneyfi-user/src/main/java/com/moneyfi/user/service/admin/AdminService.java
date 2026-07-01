@@ -1,6 +1,8 @@
 package com.moneyfi.user.service.admin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.moneyfi.constants.dto.ExcelResponseDto;
+import com.moneyfi.constants.dto.PaginatedRequestDto;
 import com.moneyfi.user.service.admin.dto.request.AdminScheduleRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonDetailsRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonUpdateRequestDto;
@@ -18,9 +20,9 @@ public interface AdminService {
 
     AdminOverviewPageDto getAdminOverviewPageDetails();
 
-    List<UserRequestsGridDto> getUserRequestsGridForAdmin(String status);
+    List<UserRequestsGridDto> getUserRequestsGridForAdmin(String status, PaginatedRequestDto requestDto);
 
-    List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status);
+    List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status, PaginatedRequestDto requestDto);
 
     void updateDefectStatus(Long defectId, String status, String reason, Long adminUserId);
 
@@ -28,15 +30,15 @@ public interface AdminService {
 
     void blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) throws JsonProcessingException;
 
-    List<UserGridDto> getUserDetailsGridForAdmin(String status);
+    List<UserGridDto> getUserDetailsGridForAdmin(String status, Long offset, Long limit, String search, String searchBy);
 
-    byte[] getUserDetailsExcelForAdmin(String status);
+    ExcelResponseDto getUserDetailsExcelForAdmin(String status, Long offset, Long limit, String search, String searchBy) throws IOException;
 
     Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status);
 
     UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username, Long adminUserId);
 
-    List<UserFeedbackResponseDto> getUserFeedbackListForAdmin();
+    List<UserFeedbackResponseDto> getUserFeedbackListForAdmin(PaginatedRequestDto requestDto);
 
     void updateUserFeedback(Long feedbackId, Long adminUserId);
 
@@ -48,7 +50,7 @@ public interface AdminService {
 
     void deleteReasonByReasonId(int reasonId, Long adminUserId);
 
-    List<String> getUsernamesOfAllUsers();
+    List<String> getUsernamesOfAllUsers(Long offset, Long limit, String search);
 
     void scheduleNotification(@Valid ScheduleNotificationRequestDto requestDto, Long adminUserId);
 

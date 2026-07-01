@@ -1,11 +1,13 @@
 package com.moneyfi.transaction.service.expense;
 
+import com.moneyfi.constants.dto.ExcelResponseDto;
 import com.moneyfi.constants.dto.GoalExpenseRelationRequestDto;
 import com.moneyfi.transaction.model.expense.ExpenseModel;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +22,7 @@ public interface ExpenseService {
 
     List<ExpenseDetailsDto> getAllExpensesByDate(Long userId, TransactionsListRequestDto requestDto);
 
-    byte[] getExpenseReportExcel(Long userId, TransactionsListRequestDto requestDto);
+    ExcelResponseDto getExpenseReportExcel(Long userId, TransactionsListRequestDto requestDto) throws IOException;
 
     List<BigDecimal> getMonthlyExpenses(Long userId, int year);
 

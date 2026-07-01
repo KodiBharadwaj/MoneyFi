@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.moneyfi.wealthcore.utils.constants.StringConstants.ALL;
-import static com.moneyfi.wealthcore.utils.constants.StringConstants.USER_ID;
+import static com.moneyfi.constants.constants.CommonConstants.USER_ID;
 
 @Repository
 public class WealthCoreRepositoryImpl implements WealthCoreRepository {
@@ -99,6 +99,23 @@ public class WealthCoreRepositoryImpl implements WealthCoreRepository {
         } catch (Exception e) {
             e.printStackTrace();
             throw new QueryValidationException("Error occurred while fetching goal data");
+        }
+    }
+
+    @Override
+    public Long getUserIdFromUsernameAndToken(String username, String token) {
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec [getUserIdFromUsernameAndToken] " +
+                                    "@username = :username, " +
+                                    "@token = :token ")
+                    .setParameter("username", username)
+                    .setParameter("token", token);
+            Object result = query.getSingleResult();
+            return ((Number) result).longValue();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("user id not found for " + username);
         }
     }
 }

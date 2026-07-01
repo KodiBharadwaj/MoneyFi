@@ -13,4 +13,6 @@ public interface WealthCoreRepository {
     UserDetailsForSpendingAnalysisDto getUserDetailsForAccountSpendingAnalysisStatement(Long userId);
 
     List<GoalDetailsDto> getAllGoalsByUserId(Long userId);
+
+    Long getUserIdFromUsernameAndToken(String username, String token);
 }

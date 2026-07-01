@@ -15,6 +15,7 @@ import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.repository.general.*;
 import com.moneyfi.user.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.user.service.general.aws.AwsServices;
+import com.moneyfi.user.service.general.caching.UserCacheService;
 import com.moneyfi.user.service.general.cloudinary.CloudinaryService;
 import com.moneyfi.user.service.user.CommonService;
 import com.moneyfi.user.service.user.UserCommonService;
@@ -28,6 +29,7 @@ import com.moneyfi.user.service.user.dto.response.UserRequestStatusDto;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.UserValidations;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -80,6 +82,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final SessionTokenRepository sessionTokenRepository;
     private final TokenBlackListRepository tokenBlacklistRepository;
     private final GmailSyncRepository gmailSyncRepository;
+    private final UserCacheService userCacheService;
 
     public UserCommonServiceImpl(CloudinaryService cloudinaryService,
                                  AwsServices awsServices,
@@ -98,7 +101,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  SessionTokenRepository sessionTokenRepository,
                                  TokenBlackListRepository tokenBlacklistRepository,
                                  UserAuthHistRepository userAuthHistRepository,
-                                 GmailSyncRepository gmailSyncRepository){
+                                 GmailSyncRepository gmailSyncRepository,
+                                 UserCacheService userCacheService){
         this.cloudinaryService = cloudinaryService;
         this.awsServices = awsServices;
         this.profileRepository = profileRepository;
@@ -117,6 +121,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.tokenBlacklistRepository = tokenBlacklistRepository;
         this.userAuthHistRepository = userAuthHistRepository;
         this.gmailSyncRepository = gmailSyncRepository;
+        this.userCacheService = userCacheService;
     }
 
     private static final String REFERENCE_NUMBER_SENT = "Reference already sent, Please submit your details";
@@ -621,7 +626,8 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    public QuoteResponseDto getTodayQuoteByExternalCall(String externalApiUrl) {
+    @Cacheable(value = "dailyQuoteResponse", key = "#userId")
+    public QuoteResponseDto getTodayQuoteByExternalCall(Long userId) {
         QuoteResponseDto quoteResponseDto = new QuoteResponseDto();
         try {
             String jsonStringResponse = externalRestTemplate.getForObject(DAILY_QUOTE_EXTERNAL_API_URL, String.class);
@@ -713,7 +719,7 @@ public class UserCommonServiceImpl implements UserCommonService {
 
     @Override
     public SessionTokenModel saveSessionTokenModel(SessionTokenModel sessionTokenModel) {
-        return sessionTokenRepository.save(sessionTokenModel);
+        return userCacheService.saveSessionTokenModel(sessionTokenModel, sessionTokenRepository);
     }
 
     @Override

@@ -52,7 +52,7 @@ public interface UserCommonService {
 
     Boolean getUsernameByDetails(ForgotUsernameDto userDetails);
 
-    QuoteResponseDto getTodayQuoteByExternalCall(String externalApiUrl) throws JsonProcessingException;
+    QuoteResponseDto getTodayQuoteByExternalCall(Long userId) throws JsonProcessingException;
 
     void userRequestToIncreaseGmailSyncDailyCount(@Valid GmailSyncCountIncreaseRequestDto request, MultipartFile image, String username) throws IOException;
 

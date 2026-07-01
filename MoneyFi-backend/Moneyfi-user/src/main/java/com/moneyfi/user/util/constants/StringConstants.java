@@ -1,6 +1,7 @@
 package com.moneyfi.user.util.constants;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.moneyfi.constants.dto.PaginatedResponseDto;
 import com.moneyfi.user.model.general.ProfileModel;
 import com.moneyfi.user.repository.general.ProfileRepository;
 import jakarta.validation.constraints.NotNull;
@@ -11,8 +12,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static com.moneyfi.constants.constants.CommonConstants.userRoleAssociation;
 
@@ -42,6 +45,7 @@ public class StringConstants {
     public static final String ERROR = "error";
     public static final String USERNAME_PASSWORD_REQUIRED = "Username and password are required";
     public static final String USER_NOT_FOUND_SIGNUP = "User not found. Please sign up";
+    public static final String USER_NOT_AUTHORIZED = "User is not authorized";
     public static final String ACCOUNT_BLOCKED = "Account Blocked! Please contact admin";
     public static final String ACCOUNT_DELETED = "Account Deleted! Please contact admin";
     public static final String INVALID_CREDENTIALS = "Invalid Credentials Entered";
@@ -121,6 +125,21 @@ public class StringConstants {
             name = userProfile.get().getName();
         }
         return name;
+    }
+
+    public static <T> PaginatedResponseDto<T> returnPaginatedBuilder(List<T> responseList, Function<T, Long> totalCountExtractor) {
+        return PaginatedResponseDto.<T>builder()
+                .data(responseList)
+                .totalCount(
+                        Optional.ofNullable(getTotalCountForPaginatedResponse(responseList))
+                                .map(totalCountExtractor)
+                                .orElse(0L)
+                )
+                .build();
+    }
+
+    private static <T> T getTotalCountForPaginatedResponse(List<T> responseList) {
+        return !responseList.isEmpty() ? responseList.get(0) : null;
     }
 
     public static MultipartFile convertImageUrlToMultipartFile(String imageUrl) throws Exception {

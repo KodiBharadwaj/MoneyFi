@@ -15,26 +15,22 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-admin-user-defects',
   standalone: true,
-    imports: [
-        CommonModule,
-        IncomeComponent,
-        ExpensesComponent,
-        BudgetsComponent,
-        GoalsComponent,
-        OverviewComponent,
-        ConfirmLogoutDialogComponent,
-        RouterModule,
-        FormsModule
-      ],
+  imports: [
+    CommonModule,
+    IncomeComponent,
+    ExpensesComponent,
+    BudgetsComponent,
+    GoalsComponent,
+    OverviewComponent,
+    ConfirmLogoutDialogComponent,
+    RouterModule,
+    FormsModule,
+  ],
   templateUrl: './admin-user-defects.component.html',
-  styleUrl: './admin-user-defects.component.css'
+  styleUrl: './admin-user-defects.component.css',
 })
-export class AdminUserDefectsComponent implements OnInit{
-
-  userDefects: any[] = []; // fetched from backend
+export class AdminUserDefectsComponent implements OnInit {
   filteredDefects: any[] = [];
-  selectedImage: string | null = null;
-  selectedStatus: string = 'New';
 
   selectedReason: string | null = null;
   reasons: string[] = [];
@@ -42,39 +38,80 @@ export class AdminUserDefectsComponent implements OnInit{
   defectIdForReason: number | null = null;
   customReason: string = '';
 
+  userDefects: any[] = [];
+
+  selectedImage: string | null = null;
+
+  selectedStatus = 'SUBMITTED';
+
+  statuses = [
+    { label: 'New', value: 'SUBMITTED' },
+    { label: 'Solved', value: 'COMPLETED' },
+    { label: 'Pend', value: 'PENDED' },
+    { label: 'Ignore', value: 'IGNORED' },
+    { label: 'All', value: 'ALL' },
+  ];
+
+  offset = 0;
+  limit = 10;
+  totalCount = 0;
+
+  isGridLoading = false;
+
   ngOnInit(): void {
     this.loadUserDefects();
   }
 
-  constructor(private httpClient:HttpClient, private toastr: ToastrService) {};
+  constructor(
+    private httpClient: HttpClient,
+    private toastr: ToastrService,
+  ) {}
 
   baseUrl = environment.BASE_URL;
 
-  isGridLoading = false;
   loadUserDefects(): void {
     this.isGridLoading = true;
-    this.httpClient.get<any[]>(`${this.baseUrl}/api/v1/user-service/admin/user-defects/grid?status=Active`)
+
+    const status =
+      this.selectedStatus;
+
+    this.httpClient
+      .get<any>(`${this.baseUrl}/api/v1/user-service/admin/user-defects/grid`, {
+        params: {
+          status,
+          offset: this.offset,
+          limit: this.limit,
+        },
+      })
       .subscribe({
-        next: (data) => {
-          this.userDefects = data;
-          this.filteredDefects = [...this.userDefects];
-          this.filterStatus('SUBMITTED');
+        next: (response) => {
+          this.userDefects = response.data;
+          this.totalCount = response.totalCount;
+
           this.isGridLoading = false;
         },
+
         error: (err) => {
           this.isGridLoading = false;
+
           try {
-            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            const errorObj =
+              typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+
             this.toastr.error(errorObj.message);
-          } catch (e) {
-            console.error('Failed to parse error:', err.error);
+          } catch {
+            this.toastr.error('Something went wrong');
           }
-        }
+        },
       });
   }
 
   viewImage(username: string, defectId: string): void {
-    this.httpClient.get(`${this.baseUrl}/api/v1/user-service/admin/user-defects/image?username=${username}&type=DEFECT&id=${defectId}`, { responseType: 'blob' })
+    this.httpClient
+      .get(
+        `${this.baseUrl}/api/v1/user-service/admin/user-defects/image?username=${username}&type=DEFECT&id=${defectId}`,
+        { responseType: 'blob' },
+      )
       .subscribe({
         next: (blob) => {
           const reader = new FileReader();
@@ -102,17 +139,42 @@ export class AdminUserDefectsComponent implements OnInit{
             const message = err.error?.message || 'Something went wrong';
             this.toastr.error(message);
           }
-        }
+        },
       });
   }
 
   filterStatus(status: string) {
     this.selectedStatus = status;
-    if (status === 'All') {
-      this.filteredDefects = [...this.userDefects];
-    } else {
-      this.filteredDefects = this.userDefects.filter(defect => defect.defectStatus === status);
+
+    this.offset = 0;
+
+    this.loadUserDefects();
+  }
+
+  nextPage() {
+    if (this.offset + this.limit < this.totalCount) {
+      this.offset += this.limit;
+
+      this.loadUserDefects();
     }
+  }
+
+  previousPage() {
+    if (this.offset > 0) {
+      this.offset -= this.limit;
+
+      this.loadUserDefects();
+    }
+  }
+
+  changeLimit() {
+    this.offset = 0;
+
+    this.loadUserDefects();
+  }
+
+  get endRecord(): number {
+    return Math.min(this.offset + this.limit, this.totalCount);
   }
 
   resetFilterManually() {
@@ -120,43 +182,47 @@ export class AdminUserDefectsComponent implements OnInit{
     this.filteredDefects = [...this.userDefects];
   }
 
-
   updateDefectStatus(defectId: number, status: string) {
     if (status === 'Ignore') {
       this.defectIdForReason = defectId;
       this.showReasonDialog = true; // open popup
       this.fetchIgnoreReasons();
     } else {
-        this.httpClient.put(`${this.baseUrl}/api/v1/user-service/admin/${defectId}/update-defect-status?reason=null`, { status }).subscribe({
-        next: () => {
-          // Update local defect
-          const defect = this.userDefects.find(d => d.id === defectId);
-          if (defect) {
-            defect.defectStatus = status;
-          }
-          this.filterStatus(this.selectedStatus); // Reapply current filter
-          this.loadUserDefects();
-        },
-        error: err => {
-          console.error('Failed to update defect status:', err);
-          try {
-          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-          this.toastr.error(errorObj.message);
-        } catch (e) {
-          console.error('Failed to parse error:', err.error);
-        }
-        }
-      });
+      this.httpClient
+        .put(
+          `${this.baseUrl}/api/v1/user-service/admin/${defectId}/update-defect-status?reason=null`,
+          { status },
+        )
+        .subscribe({
+          next: () => {
+            this.loadUserDefects();
+          },
+          error: (err) => {
+            console.error('Failed to update defect status:', err);
+            try {
+              const errorObj =
+                typeof err.error === 'string'
+                  ? JSON.parse(err.error)
+                  : err.error;
+              this.toastr.error(errorObj.message);
+            } catch (e) {
+              console.error('Failed to parse error:', err.error);
+            }
+          },
+        });
     }
   }
 
   fetchIgnoreReasons(): void {
-    this.httpClient.get<string[]>(`${this.baseUrl}/api/v1/user-service/open/reasons-dialog/get?code=8`)
+    this.httpClient
+      .get<
+        string[]
+      >(`${this.baseUrl}/api/v1/user-service/open/reasons-dialog/get?code=8`)
       .subscribe({
         next: (data) => {
           this.reasons = [...data, 'Other'];
         },
-        error: (err) => console.error('Failed to load reasons', err)
+        error: (err) => console.error('Failed to load reasons', err),
       });
   }
 
@@ -168,17 +234,19 @@ export class AdminUserDefectsComponent implements OnInit{
       finalReason = this.customReason.trim();
     }
 
-    this.httpClient.put(
-      `${this.baseUrl}/api/v1/user-service/admin/${this.defectIdForReason}/update-defect-status?reason=${encodeURIComponent(finalReason)}`,
-      { status: 'Ignore' }
-    ).subscribe({
-      next: () => {
-        this.showReasonDialog = false;
-        this.selectedReason = null;
-        this.customReason = '';
-        this.loadUserDefects(); // refresh UI
-      },
-      error: (err) => console.error('Failed to update with reason', err)
-    });
+    this.httpClient
+      .put(
+        `${this.baseUrl}/api/v1/user-service/admin/${this.defectIdForReason}/update-defect-status?reason=${encodeURIComponent(finalReason)}`,
+        { status: 'Ignore' },
+      )
+      .subscribe({
+        next: () => {
+          this.showReasonDialog = false;
+          this.selectedReason = null;
+          this.customReason = '';
+          this.loadUserDefects(); // refresh UI
+        },
+        error: (err) => console.error('Failed to update with reason', err),
+      });
   }
 }

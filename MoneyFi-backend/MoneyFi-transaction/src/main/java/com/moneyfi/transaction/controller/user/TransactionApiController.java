@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
+
 @RestController
 @RequestMapping("/api/v1/transaction")
 @PreAuthorize("hasRole('USER')")
@@ -37,7 +39,7 @@ public class TransactionApiController {
 
     @Operation(summary = "Api to get the overview page tile details")
     @GetMapping("/overview-details/{month}/{year}")
-    public OverviewPageDetailsDto getOverviewPageTileDetails(@RequestHeader("Authorization") String authHeader,
+    public OverviewPageDetailsDto getOverviewPageTileDetails(@RequestHeader(AUTHORIZATION) String authHeader,
                                                              @NotNull @PathVariable(value = "month") int month,
                                                              @NotNull @PathVariable(value = "year") int year){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
@@ -46,7 +48,7 @@ public class TransactionApiController {
 
     @Operation(summary = "Api to get overall transactions in the selected period")
     @PostMapping("/account-statement")
-    public List<AccountStatementResponseDto> getAccountStatementOfUser(@RequestHeader("Authorization") String authHeader,
+    public List<AccountStatementResponseDto> getAccountStatementOfUser(@RequestHeader(AUTHORIZATION) String authHeader,
                                                                        @RequestBody @Valid AccountStatementRequestDto inputDto){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return transactionService.getAccountStatementOfUser(userId, inputDto);
@@ -54,7 +56,7 @@ public class TransactionApiController {
 
     @Operation(summary = "Api to generate pdf for the account statement")
     @PostMapping("/account-statement/report")
-    public ResponseEntity<byte[]> generatePdfForAccountStatement(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<byte[]> generatePdfForAccountStatement(@RequestHeader(AUTHORIZATION) String authHeader,
                                                                  @RequestBody @Valid AccountStatementRequestDto inputDto) throws IOException {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         byte[] pdfBytes = transactionService.generatePdfForAccountStatement(userId, inputDto);
@@ -66,7 +68,7 @@ public class TransactionApiController {
 
     @Operation(summary = "Api to send account statement of a user as email")
     @PostMapping("/account-statement-report/email")
-    public ResponseEntity<String> sendAccountStatementEmailToUser(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<String> sendAccountStatementEmailToUser(@RequestHeader(AUTHORIZATION) String authHeader,
                                                                   @RequestBody @Valid AccountStatementRequestDto inputDto) {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return transactionService.sendAccountStatementEmailToUser(userId, inputDto, authHeader);
@@ -74,7 +76,7 @@ public class TransactionApiController {
 
     @Operation(summary = "Api to save income-expense transactions from moneyfi gmail sync")
     @PostMapping("/gmail-sync/bulk-save/{syncDate}")
-    public ResponseEntity<Void> saveBulk(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<Void> saveBulk(@RequestHeader(AUTHORIZATION) String authHeader,
                                          @NotNull @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate syncDate,
                                          @Valid @RequestBody List<ParsedTransaction> transactions) throws GenericException {
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
@@ -84,7 +86,7 @@ public class TransactionApiController {
 
     @Operation(summary = "Api to get gmail sync added transactions")
     @GetMapping("/gmail-sync-transactions")
-    public ResponseEntity<GmailSyncTransactionsResponse> getGmailSyncAddedTransactions(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<GmailSyncTransactionsResponse> getGmailSyncAddedTransactions(@RequestHeader(AUTHORIZATION) String authHeader,
                                                                                        @NotNull @RequestParam LocalDate date){
         Long userId = jwtService.extractUserIdFromToken(authHeader.substring(7));
         return ResponseEntity.ok(transactionService.getGmailSyncAddedTransactions(userId, date));
