@@ -29,6 +29,7 @@ import com.moneyfi.user.service.user.dto.response.UserRequestStatusDto;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.UserValidations;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -625,7 +626,8 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    public QuoteResponseDto getTodayQuoteByExternalCall(String externalApiUrl) {
+    @Cacheable(value = "dailyQuoteResponse", key = "#userId")
+    public QuoteResponseDto getTodayQuoteByExternalCall(Long userId) {
         QuoteResponseDto quoteResponseDto = new QuoteResponseDto();
         try {
             String jsonStringResponse = externalRestTemplate.getForObject(DAILY_QUOTE_EXTERNAL_API_URL, String.class);
