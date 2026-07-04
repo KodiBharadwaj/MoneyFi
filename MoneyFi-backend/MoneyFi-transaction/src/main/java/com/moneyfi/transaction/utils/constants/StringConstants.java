@@ -23,8 +23,6 @@ public class StringConstants {
     public static final String SOURCE = "source";
     public static final String REQUEST_TYPE = "requestType";
     public static final String CATEGORY = "category";
-    public static final String OFFSET = "offset";
-    public static final String LIMIT = "limit";
     public static final String ALL = "ALL";
     public static final String TIME = "time";
     public static final String PROCESSED_INCOMES = "processedIncomes";

@@ -24,12 +24,12 @@ public class ExpenseDetailsGridExportDto {
     private Date date;
 
     @ExcelColumn(header = "Is Recurring", order = 5)
-    private boolean recurring;
+    private String recurring;
 
     @ExcelColumn(header = "Description", order = 6)
     private String description;
 
-    @ExcelColumn(header = "Is Deleted", order = 6)
-    private boolean deleted;
+    @ExcelColumn(header = "Entry Type", order = 7)
+    private String entryType;
 
 }

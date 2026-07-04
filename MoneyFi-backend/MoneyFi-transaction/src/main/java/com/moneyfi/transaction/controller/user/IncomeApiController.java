@@ -55,7 +55,7 @@ public class IncomeApiController {
         return ResponseEntity.ok(incomeService.getAllIncomes(userId));
     }
 
-    @Operation(summary = "Api to get all the income details")
+    @Operation(summary = "Get Income Details", description = "Api to get all the income details")
     @PostMapping("/get-incomes")
     public ResponseEntity<TransactionPagedResponse<IncomeDetailsDto>> getAllIncomesByDate(@RequestHeader(AUTHORIZATION) String authHeader,
                                                                                           @RequestBody @Valid TransactionsListRequestDto requestDto){

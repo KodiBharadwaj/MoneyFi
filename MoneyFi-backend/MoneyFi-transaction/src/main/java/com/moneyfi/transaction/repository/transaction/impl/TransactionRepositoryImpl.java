@@ -23,8 +23,8 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.moneyfi.constants.constants.CommonConstants.*;
 import static com.moneyfi.transaction.utils.constants.StringConstants.*;
-import static com.moneyfi.constants.constants.CommonConstants.USER_ID;
 
 @Repository
 public class TransactionRepositoryImpl implements TransactionRepository {
@@ -56,8 +56,8 @@ public class TransactionRepositoryImpl implements TransactionRepository {
                     .setParameter(DELETE_STATUS, requestDto.isDeleteStatus())
                     .setParameter(REQUEST_TYPE, requestDto.getRequestType())
                     .setParameter(CATEGORY, requestDto.getCategory())
-                    .setParameter(OFFSET, requestDto.getStartIndex())
-                    .setParameter(LIMIT, requestDto.getThreshold())
+                    .setParameter(OFFSET, requestDto.getOffset())
+                    .setParameter(LIMIT, requestDto.getLimit())
                     .unwrap(NativeQuery.class)
                     .setResultTransformer(Transformers.aliasToBean(IncomeDetailsDto.class));
             incomesList.addAll(query.getResultList());
@@ -249,8 +249,8 @@ public class TransactionRepositoryImpl implements TransactionRepository {
                     .setParameter(DELETE_STATUS, requestDto.isDeleteStatus())
                     .setParameter(REQUEST_TYPE, requestDto.getRequestType())
                     .setParameter(CATEGORY, requestDto.getCategory())
-                    .setParameter(OFFSET, requestDto.getStartIndex())
-                    .setParameter(LIMIT, requestDto.getThreshold())
+                    .setParameter(OFFSET, requestDto.getOffset())
+                    .setParameter(LIMIT, requestDto.getLimit())
                     .unwrap(NativeQuery.class)
                     .setResultTransformer(Transformers.aliasToBean(ExpenseDetailsDto.class));
             expenseList.addAll(query.getResultList());
