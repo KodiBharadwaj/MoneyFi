@@ -33,9 +33,14 @@ public class TransactionValidator {
 
     public static void validateTransactionsListGetRequestDto(Long userId, TransactionsListRequestDto requestDto) {
         if(ObjectUtils.isEmpty(userId)) throw new ResourceNotFoundException("User not found");
+        validatePaginatedRequestDetails(requestDto);
         validateCategory(requestDto.getCategory());
         validateDate(String.valueOf(requestDto.getDate()));
         validateRequestType(requestDto.getRequestType());
+    }
+
+    private static void validatePaginatedRequestDetails(TransactionsListRequestDto requestDto) {
+        if (ObjectUtils.isEmpty(requestDto.getOffset()) || ObjectUtils.isEmpty(requestDto.getLimit())) throw new ScenarioNotPossibleException("Offset or Limit cannot be null");
     }
 
     private static void validateRequestType(String requestType) {

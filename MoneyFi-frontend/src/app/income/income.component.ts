@@ -140,8 +140,8 @@ export class IncomeComponent {
       category: this.selectedCategory === '' ? 'ALL' : this.selectedCategory,
       deleteStatus: false,
       date: this.getSelectedDate(),
-      startIndex: this.currentPage * this.pageSize,
-      threshold: this.pageSize,
+      offset: this.currentPage * this.pageSize,
+      limit: this.pageSize,
       sortBy: this.sortBy,
       sortOrder: this.sortOrder,
       requestType: this.selectedMonth === 0 ? 'YEARLY' : 'MONTHLY'
@@ -161,9 +161,16 @@ export class IncomeComponent {
         }
         this.loading = false;
       },
-      error: (error) => {
-        console.error('Failed to load income data:', error);
-        console.log(error.error);
+      error: (err) => {
+        console.error('Failed to load income data:', err);
+        try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            const message = errorObj?.message || errorObj?.error || 'Something went wrong';
+            this.toastr.error(message, 'Login Failed');
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+            // this.toastr.error('An error occurred', 'Login Failed');
+          }
       },
       complete: () => {
         this.loading = false;
@@ -239,8 +246,16 @@ export class IncomeComponent {
         }
         this.loading = false;
       },
-      error: (error) => {
-        console.error('Failed to load income data:', error);
+      error: (err) => {
+        console.error('Failed to load income data:', err);
+        try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            const message = errorObj?.message || errorObj?.error || 'Something went wrong';
+            this.toastr.error(message, 'Login Failed');
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+            // this.toastr.error('An error occurred', 'Login Failed');
+          }
       },
       complete: () => {
         this.loading = false;
@@ -438,8 +453,8 @@ export class IncomeComponent {
       category: this.selectedCategory === '' ? 'ALL' : this.selectedCategory,
       deleteStatus: false,
       date: this.getSelectedDate(),
-      startIndex: 0,
-      threshold: this.totalCount,
+      offset: 0,
+      limit: this.totalCount,
       sortBy: "",
       sortOrder: "",
       requestType: this.selectedMonth === 0 ? 'YEARLY' : 'MONTHLY'

@@ -18,6 +18,7 @@ import com.moneyfi.transaction.service.expense.ExpenseService;
 import com.moneyfi.transaction.service.expense.dto.response.ExpenseDetailsDto;
 import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import com.moneyfi.transaction.service.transaction.TransactionService;
+import com.moneyfi.transaction.utils.TransactionUtilService;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.validator.TransactionValidator;
 import lombok.RequiredArgsConstructor;
@@ -40,10 +41,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.moneyfi.transaction.utils.TransactionUtilService.EXPENSE_COMPARATORS;
 import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 
 @Service
@@ -109,35 +110,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         if (requestDto.getSortBy() == null || requestDto.getSortOrder() == null) {
             return expenses;
         }
-
-        Comparator<ExpenseDetailsDto> comparator;
-        switch (requestDto.getSortBy().toLowerCase()) {
-            case CATEGORY:
-                comparator = Comparator.comparing(ExpenseDetailsDto::getCategory, Comparator.nullsLast(String::compareToIgnoreCase));
-                break;
-
-            case DATE:
-                comparator = Comparator.comparing(ExpenseDetailsDto::getDate, Comparator.nullsLast(java.util.Date::compareTo));
-                break;
-
-            case AMOUNT:
-                comparator = Comparator.comparing(ExpenseDetailsDto::getAmount, Comparator.nullsLast(BigDecimal::compareTo));
-                break;
-
-            case DESCRIPTION:
-                comparator = Comparator.comparing(ExpenseDetailsDto::getDescription, Comparator.nullsLast(String::compareToIgnoreCase));
-                break;
-
-            case TYPE:
-                comparator = Comparator.comparing(ExpenseDetailsDto::isRecurring, Comparator.nullsLast(Boolean::compareTo));
-                break;
-
-            default: return expenses;
-        }
-        if (DESC.equalsIgnoreCase(requestDto.getSortOrder())) {
-            comparator = comparator.reversed();
-        }
-        return expenses.stream().sorted(comparator).toList();
+        return TransactionUtilService.returnSortedTransactionResponse(requestDto, expenses, EXPENSE_COMPARATORS);
     }
 
     @Override
@@ -159,9 +132,9 @@ public class ExpenseServiceImpl implements ExpenseService {
                                      .category(dto.getCategory())
                                      .amount(dto.getAmount())
                                      .date(dto.getDate())
-                                     .recurring(dto.isRecurring())
+                                     .recurring(dto.isRecurring() ? YES : NO)
                                      .description(dto.getDescription())
-                                     .deleted(dto.isDeleted())
+                                     .entryType(dto.getEntryType())
                                      .build()
                      )
         ) {

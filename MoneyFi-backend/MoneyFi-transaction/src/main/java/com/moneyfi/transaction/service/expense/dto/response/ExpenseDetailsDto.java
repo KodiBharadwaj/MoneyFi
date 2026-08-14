@@ -26,4 +26,6 @@ public class ExpenseDetailsDto {
     private Long totalCount;
     @JsonIgnore
     private BigDecimal totalAmount;
+    @JsonIgnore
+    private String entryType;
 }

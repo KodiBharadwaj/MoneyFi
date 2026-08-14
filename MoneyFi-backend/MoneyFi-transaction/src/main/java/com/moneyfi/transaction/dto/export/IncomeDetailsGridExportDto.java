@@ -27,9 +27,12 @@ public class IncomeDetailsGridExportDto {
     private String category;
 
     @ExcelColumn(header = "Is Recurring", order = 6)
-    private boolean recurring;
+    private String recurring;
 
     @ExcelColumn(header = "Description", order = 7)
     private String description;
+
+    @ExcelColumn(header = "Entry Type", order = 8)
+    private String entryType;
 
 }

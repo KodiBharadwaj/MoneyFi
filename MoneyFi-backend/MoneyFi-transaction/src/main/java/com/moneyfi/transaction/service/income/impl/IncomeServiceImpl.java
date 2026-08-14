@@ -18,6 +18,7 @@ import com.moneyfi.transaction.repository.income.IncomeRepository;
 import com.moneyfi.transaction.service.income.dto.request.TransactionsListRequestDto;
 import com.moneyfi.transaction.service.income.dto.response.*;
 import com.moneyfi.transaction.service.transaction.TransactionService;
+import com.moneyfi.transaction.utils.TransactionUtilService;
 import com.moneyfi.transaction.utils.enums.EntryModeEnum;
 import com.moneyfi.transaction.validator.IncomeValidator;
 import com.moneyfi.transaction.validator.TransactionValidator;
@@ -37,10 +38,10 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.moneyfi.transaction.utils.TransactionUtilService.INCOME_COMPARATORS;
 import static com.moneyfi.transaction.utils.constants.StringConstants.*;
 
 @Slf4j
@@ -93,35 +94,7 @@ public class IncomeServiceImpl implements IncomeService {
         if (requestDto.getSortBy() == null || requestDto.getSortOrder() == null) {
             return incomes;
         }
-
-        Comparator<IncomeDetailsDto> comparator;
-        switch (requestDto.getSortBy().toLowerCase()) {
-            case CATEGORY:
-                comparator = Comparator.comparing(IncomeDetailsDto::getCategory, Comparator.nullsLast(String::compareToIgnoreCase));
-                break;
-
-            case DATE:
-                comparator = Comparator.comparing(IncomeDetailsDto::getDate, Comparator.nullsLast(java.util.Date::compareTo));
-                break;
-
-            case AMOUNT:
-                comparator = Comparator.comparing(IncomeDetailsDto::getAmount, Comparator.nullsLast(BigDecimal::compareTo));
-                break;
-
-            case SOURCE:
-                comparator = Comparator.comparing(IncomeDetailsDto::getSource, Comparator.nullsLast(String::compareTo));
-                break;
-
-            case TYPE:
-                comparator = Comparator.comparing(IncomeDetailsDto::isRecurring, Comparator.nullsLast(Boolean::compareTo));
-                break;
-
-            default: return incomes;
-        }
-        if (DESC.equalsIgnoreCase(requestDto.getSortOrder())) {
-            comparator = comparator.reversed();
-        }
-        return incomes.stream().sorted(comparator).toList();
+        return TransactionUtilService.returnSortedTransactionResponse(requestDto, incomes, INCOME_COMPARATORS);
     }
 
     @Override
@@ -145,6 +118,8 @@ public class IncomeServiceImpl implements IncomeService {
                                      .date(dto.getDate())
                                      .category(dto.getCategory())
                                      .description(dto.getDescription())
+                                     .entryType(dto.getEntryType())
+                                     .recurring(dto.isRecurring() ? YES : NO)
                                      .build()
                      )
         ) {
