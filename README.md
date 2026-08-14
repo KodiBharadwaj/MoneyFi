@@ -34,7 +34,7 @@ MoneyFi is a full-stack personal finance management application that helps indiv
 | DB Backend Interaction | JPA, JPQL, JDBC, Java Persistance Context, ORM Mapping |
 | Email Service | AWS SES, Spring Mail           |
 | File Storage  | AWS S3, Cloudinary             |
-| Service Communications  | Kafka, Rest Template |
+| Service Communications  | Kafka, WebClient, Rest Template |
 | Queue Communications | Rabbit MQ, Artemis       |
 | Caching | Redis(Distributed), Caffeine(In memory), UI Caching                    |
 | Realtime Notifications | Java SSE (Server Side Emitter) |
