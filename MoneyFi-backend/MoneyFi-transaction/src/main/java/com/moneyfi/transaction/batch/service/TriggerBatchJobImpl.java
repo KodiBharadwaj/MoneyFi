@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 import static com.moneyfi.transaction.utils.constants.StringConstants.*;
@@ -43,7 +44,7 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
     private final TransactionRepository transactionRepository;
     private final BatchAuthTokenStore batchAuthTokenStore;
 
-    public void triggerBatchJob(TransactionServiceType type, Long adminUserId, String username, String token) {
+    public void triggerBatchJob(TransactionServiceType type, Long adminUserId, String username, String token, LocalDate date) {
         Long userId = null;
         if (StringUtils.isNotBlank(username)) {
             userId = transactionRepository.getUserIdFromUsername(username);
@@ -54,7 +55,7 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
         if (type.name().equalsIgnoreCase(TransactionServiceType.INCOME.name())) {
             try {
                 log.info("Running Adding Recurring Incomes Job...");
-                jobLauncher.run(incomeJob, addJobParameters(userId, adminUserId, System.currentTimeMillis(), token));
+                jobLauncher.run(incomeJob, addJobParameters(userId, adminUserId, System.currentTimeMillis(), token, date));
             } catch (Exception e) {
                 log.error("Recurring Incomes job failed", e);
                 e.printStackTrace();
@@ -62,7 +63,7 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
         } else if (type.name().equalsIgnoreCase(TransactionServiceType.EXPENSE.name())) {
             try {
                 log.info("Running Adding Recurring Expenses Job...");
-                jobLauncher.run(expenseJob, addJobParameters(userId, adminUserId, System.currentTimeMillis() + 1, token));
+                jobLauncher.run(expenseJob, addJobParameters(userId, adminUserId, System.currentTimeMillis() + 1, token, date));
             } catch (Exception e) {
                 log.error("Recurring Expenses job failed", e);
                 e.printStackTrace();
@@ -70,7 +71,7 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
         } else if (type.name().equalsIgnoreCase(TransactionServiceType.GOAL.name())) {
             try {
                 log.info("Running Adding Recurring Goal Job...");
-                jobLauncher.run(goalJob, addJobParameters(userId, adminUserId, System.currentTimeMillis(), token));
+                jobLauncher.run(goalJob, addJobParameters(userId, adminUserId, System.currentTimeMillis(), token, date));
             } catch (Exception e) {
                 log.error("Recurring Expenses job failed", e);
                 e.printStackTrace();
@@ -78,13 +79,19 @@ public class TriggerBatchJobImpl implements TriggerBatchJob {
         }
     }
 
-    private JobParameters addJobParameters(Long userId, Long adminUserId, Long time, String token) {
+    @Override
+    public void triggerBatchJob(TransactionServiceType type) {
+        triggerBatchJob(type, null, null, null, LocalDate.now());
+    }
+
+    private JobParameters addJobParameters(Long userId, Long adminUserId, Long time, String token, LocalDate date) {
         String requestId = UUID.randomUUID().toString();
         if (userId != null && token != null) batchAuthTokenStore.put(requestId, token);
 
         JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
         jobParametersBuilder.addLong(TIME, time);
         jobParametersBuilder.addString(REQUEST_ID, requestId);
+        jobParametersBuilder.addLocalDate(INPUT_DATE, date);
         if (userId != null) jobParametersBuilder.addLong(USER_ID, userId);
         if (adminUserId != null) jobParametersBuilder.addString(ADMIN_USER_ID, ADMIN + UNDERSCORE + adminUserId);
         else jobParametersBuilder.addString(ADMIN_USER_ID, BATCH_AUTO_TRIGGER);

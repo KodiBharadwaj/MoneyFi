@@ -21,13 +21,13 @@ public class IncomeReader {
 
     @Bean
     @StepScope
-    public JdbcPagingItemReader<IncomeModel> reader(DataSource dataSource, @Value("#{jobParameters['userId']}") Long userId) throws Exception {
+    public JdbcPagingItemReader<IncomeModel> reader(DataSource dataSource, @Value("#{jobParameters['userId']}") Long userId, @Value("#{jobParameters['inputDate']}") LocalDate inputDate) throws Exception {
         JdbcPagingItemReader<IncomeModel> reader = new JdbcPagingItemReader<>();
         reader.setDataSource(dataSource);
         reader.setPageSize(1000);
 
-        LocalDate now = LocalDate.now();
-        LocalDate firstDayOfThisMonth = now.withDayOfMonth(1);
+        log.info("Verifying input date: {}", inputDate);
+        LocalDate firstDayOfThisMonth = inputDate.withDayOfMonth(1);
         LocalDate firstDayOfLastMonth = firstDayOfThisMonth.minusMonths(1);
 
         Map<String, Object> params = new HashMap<>();

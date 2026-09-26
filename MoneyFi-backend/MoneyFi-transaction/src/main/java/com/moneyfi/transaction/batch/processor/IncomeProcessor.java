@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static com.moneyfi.transaction.utils.constants.StringConstants.*;
@@ -17,7 +18,8 @@ public class IncomeProcessor {
 
     @Bean
     @StepScope
-    public ItemProcessor<IncomeModel, IncomeModel> processor(@Value("#{jobParameters['adminUserId']}") String adminUserId) {
+    public ItemProcessor<IncomeModel, IncomeModel> processor(@Value("#{jobParameters['adminUserId']}") String adminUserId, @Value("#{jobParameters['inputDate']}") LocalDate inputDate) {
+        LocalDateTime transactionTime = inputDate.atStartOfDay();
         LocalDateTime currentTime = LocalDateTime.now();
         return income -> {
             return IncomeModel.builder()
@@ -25,7 +27,7 @@ public class IncomeProcessor {
                     .amount(income.getAmount())
                     .categoryId(income.getCategoryId())
                     .source(income.getSource())
-                    .date(currentTime)
+                    .date(transactionTime)
                     .recurring(Boolean.TRUE)
                     .isDeleted(Boolean.FALSE)
                     .description(income.getDescription())

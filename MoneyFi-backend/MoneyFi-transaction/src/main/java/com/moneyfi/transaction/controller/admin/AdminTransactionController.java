@@ -12,6 +12,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+
 @RestController
 @RequestMapping("/api/v1/transaction/admin")
 @PreAuthorize("hasRole('ADMIN')")
@@ -27,9 +29,10 @@ public class AdminTransactionController {
     @GetMapping(value = "batch-sync")
     public void enableRecurringSyncUsingSpringBatch(@NotBlank @RequestHeader("Authorization") String authHeader,
                                                     @NotNull TransactionServiceType type,
-                                                    @RequestParam(required = false) String username) {
+                                                    @RequestParam(required = false) String username,
+                                                    @RequestParam(required = false) LocalDate date) {
         log.info("checking username: {}", username);
         Long adminUserId = jwtService.extractUserIdFromToken(authHeader.substring(7));
-        triggerBatchJob.triggerBatchJob(type, adminUserId, username, authHeader.substring(7));
+        triggerBatchJob.triggerBatchJob(type, adminUserId, username, authHeader.substring(7), date != null ? date : LocalDate.now());
     }
 }
