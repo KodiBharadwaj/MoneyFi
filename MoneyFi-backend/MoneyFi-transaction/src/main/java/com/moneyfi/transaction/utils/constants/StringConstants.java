@@ -29,6 +29,7 @@ public class StringConstants {
     public static final String PROCESSED_EXPENSES = "processedExpenses";
     public static final String PROCESSED_GOALS = "processedGoals";
     public static final String REQUEST_ID = "requestId";
+    public static final String INPUT_DATE = "inputDate";
 
     public static final String MONTHLY = "MONTHLY";
     public static final String YEARLY = "YEARLY";
@@ -46,7 +47,6 @@ public class StringConstants {
     public static final String CATEGORY_NOT_ALIGN_MESSAGE = "Category not aligns with transaction type";
     public static final String USER_ID_EMPTY = "User id is empty";
     public static final String INVALID_INPUT = "Invalid input";
-    public static final String ERROR_GENERATION_EXCEL = "Error in generating excel report";
     public static final String YES = "Yes";
     public static final String NO = "No";
 

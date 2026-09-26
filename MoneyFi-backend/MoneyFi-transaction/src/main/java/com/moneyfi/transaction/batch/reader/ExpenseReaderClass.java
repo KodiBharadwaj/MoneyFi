@@ -21,13 +21,12 @@ public class ExpenseReaderClass {
 
     @Bean
     @StepScope
-    public JdbcPagingItemReader<ExpenseModel> expenseReader(DataSource dataSource, @Value("#{jobParameters['userId']}") Long userId) throws Exception {
+    public JdbcPagingItemReader<ExpenseModel> expenseReader(DataSource dataSource, @Value("#{jobParameters['userId']}") Long userId, @Value("#{jobParameters['inputDate']}") LocalDate inputDate) throws Exception {
         JdbcPagingItemReader<ExpenseModel> reader = new JdbcPagingItemReader<>();
         reader.setDataSource(dataSource);
         reader.setPageSize(1000);
 
-        LocalDate now = LocalDate.now();
-        LocalDate firstDayOfThisMonth = now.withDayOfMonth(1);
+        LocalDate firstDayOfThisMonth = inputDate.now().withDayOfMonth(1);
         LocalDate firstDayOfLastMonth = firstDayOfThisMonth.minusMonths(1);
 
         Map<String, Object> params = new HashMap<>();

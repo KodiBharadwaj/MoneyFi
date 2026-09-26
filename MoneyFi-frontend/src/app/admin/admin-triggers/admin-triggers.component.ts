@@ -15,13 +15,16 @@ export class AdminTriggersComponent {
   loading = false;
   message = '';
 
+  private readonly today = new Date().toLocaleDateString('en-CA');
+
   batches = [
     {
       type: 'INCOME',
       label: 'Income',
       recipientType: 'ALL',
       username: '',
-      suggestions: [],
+      date: this.today,
+      suggestions: [] as string[],
       showSuggestions: false,
     },
     {
@@ -29,7 +32,8 @@ export class AdminTriggersComponent {
       label: 'Expense',
       recipientType: 'ALL',
       username: '',
-      suggestions: [],
+      date: this.today,
+      suggestions: [] as string[],
       showSuggestions: false,
     },
     {
@@ -37,7 +41,8 @@ export class AdminTriggersComponent {
       label: 'Goal',
       recipientType: 'ALL',
       username: '',
-      suggestions: [],
+      date: this.today,
+      suggestions: [] as string[],
       showSuggestions: false,
     },
   ];
@@ -46,13 +51,22 @@ export class AdminTriggersComponent {
 
   baseUrl = environment.BASE_URL;
 
-  triggerBatch(type: string, recipientType: string, username?: string): void {
+  triggerBatch(
+    type: string,
+    recipientType: string,
+    username?: string,
+    date?: string
+  ): void {
     const token = sessionStorage.getItem('moneyfi.auth');
 
-    let url = `${this.baseUrl}/api/v1/transaction/admin/batch-sync?type=${type}`;
+    let url = `${this.baseUrl}/api/v1/transaction/admin/batch-sync?type=${encodeURIComponent(type)}`;
 
     if (recipientType === 'SPECIFIC' && username) {
       url += `&username=${encodeURIComponent(username)}`;
+    }
+
+    if (date) {
+      url += `&date=${encodeURIComponent(date)}`;
     }
 
     this.loading = true;
@@ -103,7 +117,6 @@ export class AdminTriggersComponent {
 
   selectUser(batch: any, username: string) {
     batch.username = username;
-
     batch.showSuggestions = false;
   }
 
