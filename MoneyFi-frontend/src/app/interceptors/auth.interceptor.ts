@@ -2,7 +2,7 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
-import { SessionGuardService } from './session-gurard.service';
+import { SessionGuardService } from '../session-gurard.service';
 import { ToastrService } from 'ngx-toastr';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
