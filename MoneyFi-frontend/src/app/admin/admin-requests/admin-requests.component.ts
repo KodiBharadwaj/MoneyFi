@@ -40,8 +40,8 @@ export class AdminRequestsComponent implements OnInit {
   fetchUsers(status: string) {
     this.isGridLoading = true;
     this.adminService.getUserRequestsByStatus(status).subscribe({
-      next : (data) => {
-      this.requests = data;
+      next : (data: any) => {
+      this.requests = data?.data;
       this.isGridLoading = false;
     },
       error: (err) => {

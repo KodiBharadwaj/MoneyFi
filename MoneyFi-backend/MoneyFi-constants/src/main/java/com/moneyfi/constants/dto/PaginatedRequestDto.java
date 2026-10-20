@@ -3,8 +3,8 @@ package com.moneyfi.constants.dto;
 import java.util.Objects;
 
 public class PaginatedRequestDto {
-    private Long offset;
-    private Long limit;
+    private long offset = 0L;
+    private long limit = 10L;
     private String search;
     private String searchBy;
     private String sortBy;
