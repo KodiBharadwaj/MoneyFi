@@ -1,8 +1,22 @@
 spring:
+  profiles:
+    active: ${PROFILE:local}
   application:
     name: MoneyFi-user
-  profiles:
-    active: ${PROFILE}
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_DRIVER:com.p6spy.engine.spy.P6SpyDriver}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+
   security:
     oauth2:
       client:
@@ -18,31 +32,16 @@ spring:
             client-secret: xxxxxxxxxxxxxxxxxxxxxxxxxx
             redirect-uri: "xxxxxxxxxxxxxxxxxxxxx"
 
-  datasource:
-    url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
-    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
-
-  jpa:
-    hibernate:
-      ddl-auto: none
-    show-sql: false
-    properties:
-      hibernate:
-        format_sql: true
-        highlight_sql: true
-
   boot:
     admin:
       client:
-        url: ${MONITOR_SERVICE_URL}
-        username: admin        # <-- must match monitor server
-        password: admin123     # <-- must match monitor server
+        url: ${MONITOR_SERVICE_URL:http://localhost:8760}
+        username: ${MONITOR_SERVICE_ADMIN_USERNAME:admin}
+        password: ${MONITOR_SERVICE_ADMIN_PASSWORD:admin123}
         instance:
           metadata:
-            user.name: client
-            user.password: client123
+            user.name: ${MONITOR_SERVICE_CLIENT_USERNAME:client}
+            user.password: ${MONITOR_SERVICE_CLIENT_PASSWORD:client123}
 
   flyway:
     enabled: true
@@ -52,7 +51,7 @@ spring:
   #Redis Configuration
   data:
     redis:
-      url: ${REDIS_URL}
+      url: ${REDIS_URL:redis://default@127.0.0.1:6379}
       timeout: 5s
   cache:
     type: redis
@@ -60,10 +59,10 @@ spring:
       time-to-live: 3600000
 
 jwt:
-  secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
+  secret: ${JWT_SECRET:ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf}
 
 cors:
-  allowed-origins: ${ALLOWED_ORIGINS}
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:4200}
 
 cloud:
   aws:
@@ -87,9 +86,8 @@ cloudinary:
     api-key: ${CLOUDINARY_API_KEY}
     api-secret: ${CLOUDINARY_API_SECRET}
 
-
   jackson:
-    time-zone: Asia/Kolkata
+    time-zone: ${DEFAULT_TIME_ZONE:Asia/Kolkata}
 
 logging:
   level:
@@ -98,12 +96,12 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [Request-Id=%X{requestId}] %logger{36} - %msg%n"
 
-server:
-  port: 8500
-
 springdoc:
   api-docs:
     enabled: true
     server-url: /
   swagger-ui:
     enabled: true
+
+server:
+  port: ${APPLICATION_PORT:8500}

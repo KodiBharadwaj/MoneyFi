@@ -2,16 +2,19 @@ spring:
   application:
     name: MoneyFi-api-gateway
 
+server:
+  port: ${APPLICATION_PORT:8765}
+
   boot:
     admin:
       client:
-        url: ${MONITOR_SERVICE_URL}
-        username: admin
-        password: ${MONITOR_PASSWORD:admin123}
+        url: ${MONITOR_SERVICE_URL:http://localhost:8760}
+        username: ${MONITOR_SERVICE_ADMIN_USERNAME:admin}
+        password: ${MONITOR_SERVICE_ADMIN_PASSWORD:admin123}
         instance:
           metadata:
-            user.name: client
-            user.password: ${MONITOR_CLIENT_PASSWORD:client123}
+            user.name: ${MONITOR_SERVICE_CLIENT_USERNAME:client}
+            user.password: ${MONITOR_SERVICE_CLIENT_PASSWORD:client123}
   cloud:
     gateway:
       globalcors:
@@ -67,13 +70,10 @@ spring:
             - RewritePath=/wealth-core-service/v3/api-docs, /v3/api-docs
 
 jwt:
-  secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
+  secret: ${JWT_SECRET:ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf}
 
 cors:
-  allowed-origins: ${ALLOWED_ORIGINS}
-
-server:
-  port: 8765
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:4200}
 
 springdoc:
   swagger-ui:
