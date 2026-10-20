@@ -44,6 +44,8 @@ logging:
   level:
     org.hibernate.SQL: OFF
     org.hibernate.orm.jdbc.bind: OFF
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [Request-Id=%X{requestId}] %logger{36} - %msg%n"
 
 springdoc:
   api-docs:
