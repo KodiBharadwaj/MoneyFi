@@ -4,7 +4,7 @@ import com.moneyfi.user.exceptions.*;
 import com.moneyfi.user.service.user.dto.response.ErrorResponse;
 import jakarta.persistence.NoResultException;
 import jakarta.validation.ConstraintViolationException;
-import org.apache.coyote.BadRequestException;
+import jakarta.ws.rs.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

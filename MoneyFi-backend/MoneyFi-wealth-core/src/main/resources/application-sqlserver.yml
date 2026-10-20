@@ -1,0 +1,35 @@
+spring:
+  application:
+    name:
+      MoneyFi-wealth-core
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL}
+  instance:
+    prefer-ip-address: true
+
+account:
+  statement:
+    admin:
+      pdf:
+        password: ${ADMIN_PDF_PASSWORD}
+
+server:
+  port:
+    8300
