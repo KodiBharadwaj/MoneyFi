@@ -2,9 +2,6 @@ spring:
   application:
     name: MoneyFi-api-gateway
 
-server:
-  port: ${APPLICATION_PORT:8765}
-
   boot:
     admin:
       client:
@@ -91,3 +88,6 @@ springdoc:
     enabled: true
 
   override-with-generic-response: false
+
+server:
+  port: ${APPLICATION_PORT:8765}
