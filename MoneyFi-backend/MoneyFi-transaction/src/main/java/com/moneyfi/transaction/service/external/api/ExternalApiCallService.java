@@ -5,17 +5,20 @@ import com.moneyfi.transaction.service.webclient.WebClientService;
 import com.moneyfi.transaction.utils.constants.StringUrls;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class ExternalApiCallService {
+
+    @Value("${service.urls.user-service}")
+    private String userServiceUrl;
 
     private final WebClientService webClientService;
 
@@ -23,7 +26,7 @@ public class ExternalApiCallService {
         String token = authHeader.substring(7);
         webClientService.exchange(
                 HttpMethod.POST,
-                StringUrls.ACCOUNT_STATEMENT_USER_SERVICE_URL,
+                userServiceUrl + StringUrls.ACCOUNT_STATEMENT_USER_SERVICE_URL,
                 null,
                 pdfBytes,
                 token,
@@ -54,7 +57,7 @@ public class ExternalApiCallService {
     public void externalCallToUserServiceToSendEmailToUser(List<BatchInfoForEmailDto> batchInfoForEmailDto, String token) {
         webClientService.exchange(
                 HttpMethod.POST,
-                StringUrls.BATCH_INFO_EMAIL_USER_SERVICE_URL,
+                userServiceUrl + StringUrls.BATCH_INFO_EMAIL_USER_SERVICE_URL,
                 null,
                 batchInfoForEmailDto,
                 token,

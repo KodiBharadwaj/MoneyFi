@@ -14,7 +14,6 @@ import com.moneyfi.user.repository.auth.*;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.repository.general.*;
 import com.moneyfi.user.repository.gmailsync.GmailSyncRepository;
-import com.moneyfi.user.service.general.aws.AwsServices;
 import com.moneyfi.user.service.general.caching.UserCacheService;
 import com.moneyfi.user.service.general.cloudinary.CloudinaryService;
 import com.moneyfi.user.service.user.CommonService;
@@ -65,7 +64,6 @@ public class UserCommonServiceImpl implements UserCommonService {
     private String activeProfile;
 
     private final CloudinaryService cloudinaryService;
-    private final AwsServices awsServices;
     private final ProfileRepository profileRepository;
     private final ContactUsRepository contactUsRepository;
     private final ContactUsHistRepository contactUsHistRepository;
@@ -85,7 +83,6 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final UserCacheService userCacheService;
 
     public UserCommonServiceImpl(CloudinaryService cloudinaryService,
-                                 AwsServices awsServices,
                                  ProfileRepository profileRepository,
                                  ContactUsRepository contactUsRepository,
                                  ContactUsHistRepository contactUsHistRepository,
@@ -104,7 +101,6 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  GmailSyncRepository gmailSyncRepository,
                                  UserCacheService userCacheService){
         this.cloudinaryService = cloudinaryService;
-        this.awsServices = awsServices;
         this.profileRepository = profileRepository;
         this.contactUsRepository = contactUsRepository;
         this.contactUsHistRepository = contactUsHistRepository;

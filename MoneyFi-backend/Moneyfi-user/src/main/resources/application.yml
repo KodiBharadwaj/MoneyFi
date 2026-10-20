@@ -65,13 +65,6 @@ jwt:
 cors:
   allowed-origins: ${ALLOWED_ORIGINS}
 
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_URL}
-  instance:
-    prefer-ip-address: true
-
 cloud:
   aws:
     credentials:

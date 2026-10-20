@@ -5,6 +5,7 @@ import com.moneyfi.wealthcore.service.webclient.WebClientService;
 import com.moneyfi.wealthcore.utils.constants.StringUrls;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -17,13 +18,19 @@ import java.util.Map;
 @Slf4j
 public class ExternalApiCallService {
 
+    @Value("${service.urls.user-service}")
+    private String userServiceUrl;
+
+    @Value("${service.urls.transaction-service}")
+    private String transactionServiceUrl;
+
     private final WebClientService webClientService;
 
     public List<Object[]> externalApiCallToTransactionService(String authHeader, Map<String, String> queryParams, String continuationUrl) {
         String token = authHeader.substring(7);
         return webClientService.exchange(
                 HttpMethod.GET,
-                StringUrls.EUREKA_TRANSACTION_SERVICE_URL + continuationUrl,
+                transactionServiceUrl + StringUrls.TRANSACTION_SERVICE_URL + continuationUrl,
                 queryParams,
                 null,
                 token,
@@ -35,7 +42,7 @@ public class ExternalApiCallService {
         String token = authHeader.substring(7);
         webClientService.exchange(
                 HttpMethod.POST,
-                StringUrls.USER_SERVICE_URL_CONTROLLER + continuationUrl,
+                userServiceUrl + StringUrls.USER_SERVICE_URL + continuationUrl,
                 null,
                 pdfBytes,
                 token,
@@ -46,7 +53,7 @@ public class ExternalApiCallService {
     public void externalApiCallToTransactionServiceToSaveExpense(String token, String continuationUrl, GoalExpenseRelationRequestDto goalExpenseRelationRequestDto) {
         webClientService.exchange(
                 HttpMethod.POST,
-                StringUrls.EUREKA_TRANSACTION_SERVICE_URL + continuationUrl,
+                transactionServiceUrl + StringUrls.TRANSACTION_SERVICE_URL + continuationUrl,
                 null,
                 goalExpenseRelationRequestDto,
                 token,
@@ -57,7 +64,7 @@ public class ExternalApiCallService {
     public void externalApiCallToTransactionServiceToDeleteExpense(String token, String continuationUrl, List<Long> expenseIdsList) {
         webClientService.exchange(
                 HttpMethod.DELETE,
-                StringUrls.EUREKA_TRANSACTION_SERVICE_URL + continuationUrl,
+                transactionServiceUrl + StringUrls.TRANSACTION_SERVICE_URL + continuationUrl,
                 null,
                 expenseIdsList,
                 token,
