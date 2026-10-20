@@ -1,8 +1,8 @@
 spring:
-  application:
-    name: MoneyFi-notification
   profiles:
     active: ${PROFILE}
+  application:
+    name: MoneyFi-notification
 
 email:
   brevo:
@@ -25,4 +25,4 @@ cloud:
       auto: false
 
 server:
-  port: 8600
+  port: ${APPLICATION_PORT:8600}

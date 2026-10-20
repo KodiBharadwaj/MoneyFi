@@ -4,25 +4,44 @@ spring:
   application:
     name:
       MoneyFi-Transaction
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_DRIVER:com.p6spy.engine.spy.P6SpyDriver}
+
+    jpa:
+      hibernate:
+        ddl-auto: none
+      show-sql: false
+      properties:
+        hibernate:
+          format_sql: true
+          highlight_sql: true
 
   boot:
     admin:
       client:
-        url: ${MONITOR_SERVICE_URL}
-        username: admin        # <-- must match monitor server
-        password: admin123     # <-- must match monitor server
+        url: ${MONITOR_SERVICE_URL:http://localhost:8760}
+        username: ${MONITOR_SERVICE_ADMIN_USERNAME:admin}
+        password: ${MONITOR_SERVICE_ADMIN_PASSWORD:admin123}
         instance:
           metadata:
-            user.name: client
-            user.password: client123
+            user.name: ${MONITOR_SERVICE_CLIENT_USERNAME:client}
+            user.password: ${MONITOR_SERVICE_CLIENT_PASSWORD:client123}
 
   #Redis Configuration
   data:
     redis:
-      url: ${REDIS_URL}
+      url: ${REDIS_URL:redis://default@127.0.0.1:6379}
+      timeout: 5s
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000
 
 jwt:
-  secret: ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf
+  secret: ${JWT_SECRET:ekhfjulewfsuydg342fhdarewugafhs69aufg7efesdaf}
 
 application:
   time-zone: ${DEFAULT_TIME_ZONE:Asia/Kolkata}
@@ -38,7 +57,7 @@ management:
 
 app:
   scheduler:
-    enabled: ${SCHEDULER_STATUS}
+    enabled: ${SCHEDULER_STATUS:true}
 
 logging:
   level:
@@ -54,6 +73,15 @@ springdoc:
   swagger-ui:
     enabled: true
 
+account:
+  statement:
+    admin:
+      pdf:
+        password: ${ADMIN_PDF_PASSWORD}
+
 service:
   urls:
     user-service: ${USER_SERVICE_URL:http://localhost:8500}
+
+server:
+  port: ${APPLICATION_PORT:8100}
