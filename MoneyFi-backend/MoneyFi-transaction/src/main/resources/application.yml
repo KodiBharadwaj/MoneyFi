@@ -53,3 +53,7 @@ springdoc:
     server-url: /
   swagger-ui:
     enabled: true
+
+service:
+  urls:
+    user-service: ${USER_SERVICE_URL:http://localhost:8500}

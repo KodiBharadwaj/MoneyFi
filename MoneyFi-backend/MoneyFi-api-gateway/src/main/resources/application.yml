@@ -6,13 +6,12 @@ spring:
     admin:
       client:
         url: ${MONITOR_SERVICE_URL}
-        username: admin        # <-- must match monitor server
-        password: admin123     # <-- must match monitor server
+        username: admin
+        password: ${MONITOR_PASSWORD:admin123}
         instance:
           metadata:
             user.name: client
-            user.password: client123
-
+            user.password: ${MONITOR_CLIENT_PASSWORD:client123}
   cloud:
     gateway:
       globalcors:
@@ -29,39 +28,39 @@ spring:
             allowCredentials: true
       routes:
         - id: MoneyFi-user
-          uri: lb://MoneyFi-user
+          uri: ${USER_SERVICE_URL:http://localhost:8500}
           predicates:
             - Path=/api/v1/user-service/**
 
         # Swagger docs for user service
         - id: user-service-docs
-          uri: lb://MoneyFi-user
+          uri: ${USER_SERVICE_URL:http://localhost:8500}
           predicates:
-          - Path=/user-service/v3/api-docs
+            - Path=/user-service/v3/api-docs
           filters:
             - RewritePath=/user-service/v3/api-docs, /v3/api-docs
 
         - id: MoneyFi-Transaction
-          uri: lb://MoneyFi-Transaction
+          uri: ${TRANSACTION_SERVICE_URL:http://localhost:8100}
           predicates:
             - Path=/api/v1/transaction/**
 
-        # Swagger docs for user service
+        # Swagger docs for transaction service
         - id: transaction-service-docs
-          uri: lb://MoneyFi-Transaction
+          uri: ${TRANSACTION_SERVICE_URL:http://localhost:8100}
           predicates:
             - Path=/transaction-service/v3/api-docs
           filters:
             - RewritePath=/transaction-service/v3/api-docs, /v3/api-docs
 
         - id: MoneyFi-wealth-core
-          uri: lb://MoneyFi-wealth-core
+          uri: ${WEALTH_CORE_SERVICE_URL:http://localhost:8300}
           predicates:
             - Path=/api/v1/wealth-core/**
 
-        # Swagger docs for user service
+        # Swagger docs for wealth-core service
         - id: wealth-core-service-docs
-          uri: lb://MoneyFi-wealth-core
+          uri: ${WEALTH_CORE_SERVICE_URL:http://localhost:8300}
           predicates:
             - Path=/wealth-core-service/v3/api-docs
           filters:
@@ -72,13 +71,6 @@ jwt:
 
 cors:
   allowed-origins: ${ALLOWED_ORIGINS}
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_URL}
-  instance:
-    prefer-ip-address: true
 
 server:
   port: 8765

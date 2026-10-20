@@ -17,13 +17,6 @@ spring:
         format_sql: true
         highlight_sql: true
 
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_URL}
-  instance:
-    prefer-ip-address: true
-
 server:
   port:
     8100
