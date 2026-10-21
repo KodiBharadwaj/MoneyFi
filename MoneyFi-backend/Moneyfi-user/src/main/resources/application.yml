@@ -103,5 +103,8 @@ springdoc:
   swagger-ui:
     enabled: true
 
+request:
+  gmail-sync-count: ${GMAIL_SYNC_COUNT:3}
+
 server:
   port: ${APPLICATION_PORT:8500}

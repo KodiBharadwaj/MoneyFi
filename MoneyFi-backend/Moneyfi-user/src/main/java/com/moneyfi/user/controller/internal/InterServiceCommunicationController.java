@@ -23,9 +23,9 @@ public class InterServiceCommunicationController {
     private final InterServiceCommunicationService interServiceCommunicationService;
 
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Api to send transaction update to user as email", description = "Send user's account generated secured statement as email")
+    @Operation(summary = "Api to send transaction update to user as email", description = "Email alert to user when missed recurring transactions are added by admin triggering")
     @PostMapping("/admin-inter/batch-info/email")
-    public ResponseEntity<Void> sendAccountStatementEmailToUser(@RequestBody List<BatchInfoForEmailDto> batchInfoList) {
+    public ResponseEntity<Void> sendBatchInformationEmailToUser(@RequestBody List<BatchInfoForEmailDto> batchInfoList) {
         interServiceCommunicationService.sendBatchInformationEmailToUser(batchInfoList);
         return ResponseEntity.ok().build();
     }

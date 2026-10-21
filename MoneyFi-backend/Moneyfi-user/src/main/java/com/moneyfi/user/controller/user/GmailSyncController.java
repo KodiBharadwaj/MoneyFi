@@ -42,7 +42,7 @@ public class GmailSyncController {
 
     @Operation(summary = "Api to check the status of user to sync email")
     @GetMapping(value = "/status", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GmailConsentResponse<Integer>> getStatus(Authentication authentication) {
+    public ResponseEntity<GmailConsentResponse> getStatus(Authentication authentication) {
         Long userId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         return ResponseEntity.ok(gmailSyncService.getGmailConsentStatus(userId));
     }

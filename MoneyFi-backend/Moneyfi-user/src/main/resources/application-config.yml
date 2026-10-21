@@ -1,2 +1,0 @@
-request:
-  gmail-sync-count: ${GMAIL_SYNC_COUNT:3}
