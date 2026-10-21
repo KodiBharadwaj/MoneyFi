@@ -1,13 +1,10 @@
 package com.moneyfi.user.service.admin.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
 public class UserRequestsApprovalDto {
     @NotBlank
     private String email;

@@ -71,6 +71,7 @@ public class CommonConstants {
     public static final String SPACE = " ";
     public static final String DOUBLE_COLON = "::";
     public static final String COLON = ":";
+    public static final String STRING_SEPARATOR = "<|>";
 
     public static final String REQUEST_ID_HEADER = "Request-Id";
     public static final String MDC_REQUEST_ID = "requestId";

@@ -35,11 +35,11 @@ import java.util.Map;
 
 import static com.moneyfi.constants.constants.CommonConstants.STATUS;
 
-@RestController
-@RequestMapping("/api/v1/user-service/admin")
-@PreAuthorize("hasRole('ADMIN')")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
+@RequestMapping("/api/v1/user-service/admin")
 public class AdminController {
 
     private final AdminService adminService;
@@ -47,7 +47,7 @@ public class AdminController {
     private final ProfileService profileService;
     private final UserAuthService userAuthService;
 
-    @Operation(summary = "Api to get the user count home page of admin")
+    @Operation(summary = "Api to get the user count home page of admin", description = "Admin home screen overview details count")
     @GetMapping("/overview-user-details")
     public ResponseEntity<AdminOverviewPageDto> getAdminOverviewPageDetails(){
         return ResponseEntity.ok(adminService.getAdminOverviewPageDetails());
@@ -129,7 +129,7 @@ public class AdminController {
         adminService.updateDefectStatus(defectId, body.get(STATUS), reason, adminUserId);
     }
 
-    @Operation(summary = "Api to unblock/retrieve/name change of the user account with respective details")
+    @Operation(summary = "Api to deal user requests", description = "To unblock/retrieve account/name change/gmail sync count increase request of the user account with respective details")
     @PostMapping("/user-requests/action")
     public boolean accountReactivationAndNameChangeRequest(Authentication authentication,
                                                            @RequestBody @Valid UserRequestsApprovalDto requestDto){
