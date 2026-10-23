@@ -36,6 +36,7 @@ import { MaintainerHomeComponent } from './maintainer-home/maintainer-home.compo
 import { AdminExcelTemplatesComponent } from './admin/admin-excel-templates/admin-excel-templates.component';
 import { AdminLayoutComponent } from './admin/admin-layout/admin-layout.component';
 import { AdminTriggersComponent } from './admin/admin-triggers/admin-triggers.component';
+import { AdminUserSessionTimeComponent } from './admin/admin-user-session-time/admin-user-session-time.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -64,6 +65,7 @@ export const routes: Routes = [
       { path: 'configuration/categories', component: AdminCategoriesListComponent },
       { path: 'configuration/manage-templates', component: AdminExcelTemplatesComponent },
       { path: 'configuration/manage-triggers', component: AdminTriggersComponent },
+      { path: 'configuration/user-session', component: AdminUserSessionTimeComponent },
     ]
   },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard],children:[

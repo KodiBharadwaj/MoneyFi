@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.constants.dto.ExcelResponseDto;
 import com.moneyfi.constants.dto.PaginatedRequestDto;
 import com.moneyfi.constants.dto.PaginatedResponseDto;
+import com.moneyfi.user.repository.admin.UserRequestsService;
 import com.moneyfi.user.service.admin.AdminService;
 import com.moneyfi.user.service.admin.dto.request.*;
 import com.moneyfi.user.service.admin.dto.response.*;
@@ -43,6 +44,7 @@ import static com.moneyfi.constants.constants.CommonConstants.STATUS;
 public class AdminController {
 
     private final AdminService adminService;
+    private final UserRequestsService userRequestsService;
     private final UserCommonService userCommonService;
     private final ProfileService profileService;
     private final UserAuthService userAuthService;
@@ -273,5 +275,14 @@ public class AdminController {
     @GetMapping("/get-excel-templates")
     public ResponseEntity<List<ExcelTemplateList>> getExcelTemplates() {
         return ResponseEntity.ok(adminService.getAllExcelTemplates());
+    }
+
+    @Operation(summary = "Api to change user session time", description = "Admin can change the individual user session duration time")
+    @GetMapping("/user-session-time")
+    public void changeUserSessionTime(Authentication authentication,
+                                      @NotBlank @RequestParam(value = "username") String username,
+                                      @NotNull @RequestParam(value = "time") Integer time) {
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        userRequestsService.changeUserSessionTime(adminUserId, username, time);
     }
 }

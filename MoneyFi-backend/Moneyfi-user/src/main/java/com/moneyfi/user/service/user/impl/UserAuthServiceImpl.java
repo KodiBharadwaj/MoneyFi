@@ -6,6 +6,7 @@ import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.auth.*;
 import com.moneyfi.user.model.general.ProfileModel;
 import com.moneyfi.user.model.gmailsync.GmailAuth;
+import com.moneyfi.user.repository.auth.UserSessionTimeRepository;
 import com.moneyfi.user.repository.general.ProfileRepository;
 import com.moneyfi.user.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.user.repository.auth.UserAuthHistRepository;
@@ -43,7 +44,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -66,6 +66,8 @@ public class UserAuthServiceImpl implements UserAuthService {
     private String githubClientSecret;
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
+    @Value("${user.session-time}")
+    private Integer configuredUserSessionTime;
 
     @Autowired
     private RestTemplate externalRestTemplateForOAuth;
@@ -82,6 +84,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final ProfileService profileService;
     private final ProfileRepository profileRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final UserSessionTimeRepository userSessionTimeRepository;
 
     private static final String GOOGLE_AUTH_CONSTANT_PASSWORD = null;
     private static final String GITHUB_AUTH_CONSTANT_PASSWORD = null;
@@ -149,7 +152,10 @@ public class UserAuthServiceImpl implements UserAuthService {
                 Authentication authentication = authenticationManager
                         .authenticate(new UsernamePasswordAuthenticationToken(username, password));
                 if (authentication.isAuthenticated()) {
-                    JwtToken token = jwtService.generateToken(existingUser, SESSION_LOGIN_MINUTES);
+                    JwtToken token = jwtService.generateToken(
+                            existingUser,
+                            userSessionTimeRepository.findByUserId(existingUser.getId()).map(UserSessionTime::getSessionTime).orElse(configuredUserSessionTime)
+                    );
                     makeOldSessionInActiveOfUserForNewLogin(username);
                     functionToPreventMultipleLogins(existingUser, token);
                     makeGmailAuthInactiveForUser(existingUser.getId());
@@ -211,7 +217,10 @@ public class UserAuthServiceImpl implements UserAuthService {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
             }
             makeOldSessionInActiveOfUserForNewLogin(email);
-            JwtToken jwtToken = jwtService.generateToken(newOrExistingUser, SESSION_LOGIN_MINUTES);
+            JwtToken jwtToken = jwtService.generateToken(
+                    newOrExistingUser,
+                    userSessionTimeRepository.findByUserId(newOrExistingUser.getId()).map(UserSessionTime::getSessionTime).orElse(configuredUserSessionTime)
+            );
             functionToPreventMultipleLogins(newOrExistingUser, jwtToken);
             userRoleToken.put(userRoleAssociation.get(newOrExistingUser.getRoleId()), jwtToken.getJwtToken());
             return ResponseEntity.ok(userRoleToken);
@@ -241,7 +250,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
             ResponseEntity<Map> tokenResponse = externalRestTemplateForOAuth.postForEntity(tokenUrl, request, Map.class);
             String accessToken = (String) tokenResponse.getBody().get(ACCESS_TOKEN);
-            // 2. Get user info
+
             HttpHeaders userHeaders = new HttpHeaders();
             userHeaders.setBearerAuth(accessToken);
             HttpEntity<Void> userRequest = new HttpEntity<>(userHeaders);
@@ -272,7 +281,6 @@ public class UserAuthServiceImpl implements UserAuthService {
                         .map(e -> e.get(STRING_EMAIL))
                         .orElse(null);
             }
-            // 3. Check or create user in DB
             UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElse(null);
             if (user == null) {
                 user = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Github User", email, GITHUB_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()),
@@ -286,8 +294,9 @@ public class UserAuthServiceImpl implements UserAuthService {
                 throw new ScenarioNotPossibleException("User is deleted. Kindly contact admin");
             }
             makeOldSessionInActiveOfUserForNewLogin(email);
-            // 4. Generate JWT
-            JwtToken jwtToken = jwtService.generateToken(user, SESSION_LOGIN_MINUTES);
+            JwtToken jwtToken = jwtService.generateToken(
+                    user, userSessionTimeRepository.findByUserId(user.getId()).map(UserSessionTime::getSessionTime).orElse(configuredUserSessionTime)
+            );
             functionToPreventMultipleLogins(user, jwtToken);
             String token = jwtToken.getJwtToken().replace("'", "\\'"); // escape quotes
 
