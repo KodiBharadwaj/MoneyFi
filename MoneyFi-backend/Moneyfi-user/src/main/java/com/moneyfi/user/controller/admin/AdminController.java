@@ -177,8 +177,8 @@ public class AdminController {
 
     @Operation(summary = "Api to fetch the user profile picture from aws s3")
     @GetMapping("/profile-picture/get")
-    public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(@NotBlank @RequestParam(value = "username") String username) {
-        return userCommonService.fetchUserProfilePictureFromS3(username, profileService.getProfileDetailsOfUser(username).getUserId());
+    public ResponseEntity<ByteArrayResource> fetchUserProfilePicture(@NotBlank @RequestParam(value = "username") String username) {
+        return userCommonService.fetchUserProfilePicture(username, profileService.getProfileDetailsOfUser(username).getUserId());
     }
 
     @Operation(summary = "Api to add the reason dropdown names")

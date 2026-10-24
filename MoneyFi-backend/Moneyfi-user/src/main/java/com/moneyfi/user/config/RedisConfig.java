@@ -1,4 +1,4 @@
-package com.moneyfi.user.config.redis.cache;
+package com.moneyfi.user.config;
 
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;

@@ -7,7 +7,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.util.IOUtils;
-import com.moneyfi.user.exceptions.S3AwsErrorThrowException;
+import com.moneyfi.user.exceptions.FileStorageException;
 import com.moneyfi.user.service.general.aws.AwsServices;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -46,7 +46,7 @@ public class AwsServicesImpl implements AwsServices {
             return "Profile Picture Uploaded!";
         } catch (AmazonServiceException e) {
             e.printStackTrace();
-            throw new S3AwsErrorThrowException("Exception occurred while uploading profile picture");
+            throw new FileStorageException("Exception occurred while uploading profile picture");
         } finally {
             if (fileObj != null && fileObj.exists()) {
                 try {
@@ -74,7 +74,7 @@ public class AwsServicesImpl implements AwsServices {
                     .body(resource);
         } catch (AmazonServiceException e) {
             e.printStackTrace();
-            throw new S3AwsErrorThrowException("Exception occurred while fetching profile picture");
+            throw new FileStorageException("Exception occurred while fetching profile picture");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -89,7 +89,7 @@ public class AwsServicesImpl implements AwsServices {
             return ResponseEntity.ok().body("profile_picture_removed");
         } catch (AmazonServiceException e) {
             e.printStackTrace();
-            throw new S3AwsErrorThrowException("Exception occurred while deleting the profile picture");
+            throw new FileStorageException("Exception occurred while deleting the profile picture");
         }
     }
 
@@ -101,7 +101,7 @@ public class AwsServicesImpl implements AwsServices {
             metadata.setContentType(file.getContentType());
             s3Client.putObject(bucketName, fileName, file.getInputStream(), metadata);
         } catch (IOException | AmazonServiceException e) {
-            throw new S3AwsErrorThrowException("Exception occurred while uploading Excel template", e);
+            throw new FileStorageException("Exception occurred while uploading Excel template", e);
         }
     }
 
@@ -118,9 +118,9 @@ public class AwsServicesImpl implements AwsServices {
                         .body(data);
             }
         } catch (AmazonServiceException e) {
-            throw new S3AwsErrorThrowException("Exception occurred while fetching Excel template", e);
+            throw new FileStorageException("Exception occurred while fetching Excel template", e);
         } catch (IOException e) {
-            throw new S3AwsErrorThrowException("Error reading Excel template from S3", e);
+            throw new FileStorageException("Error reading Excel template from S3", e);
         }
     }
 

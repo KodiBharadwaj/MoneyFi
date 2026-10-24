@@ -67,16 +67,21 @@ cors:
 cloud:
   aws:
     credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
+      access-key: ${AWS_ACCESS_KEY:sample-aws-access-key}
+      secret-key: ${AWS_SECRET_KEY:sample-aws-secret-key}
     region:
-      static: ${AWS_REGION}
+      static: ${AWS_REGION:us-east-1}
     stack:
       auto: false
 
+azure:
+  storage:
+    container-name: ${AZURE_STORAGE_CONTAINER:sample-azure-blob-storage}
+    connection-string: ${AZURE_STORAGE_CONNECTION_STRING:DefaultEndpointsProtocol=https;AccountName=dummyaccount;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=;EndpointSuffix=core.windows.net}
+
 application:
   bucket:
-    name: ${AWS_S3_BUCKET_NAME}
+    name: ${AWS_S3_BUCKET_NAME:moneyfi-bucket}
 
   time-zone: ${DEFAULT_TIME_ZONE:Asia/Kolkata}
 
@@ -107,6 +112,10 @@ request:
   gmail-sync-count: ${GMAIL_SYNC_COUNT:3}
 user:
   session-time: ${USER_SESSION_TIME_MIN:60}
+
+app:
+  storage:
+    provider: ${STORAGE_PROVIDER:cloudinary} #Supported values: aws, gcp, azure, cloudinary
 
 server:
   port: ${APPLICATION_PORT:8500}

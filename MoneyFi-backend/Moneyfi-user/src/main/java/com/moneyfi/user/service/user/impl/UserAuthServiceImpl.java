@@ -200,7 +200,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             if (newOrExistingUser == null) {
                 newOrExistingUser = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Google User", email, GOOGLE_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()), LoginMode.GOOGLE_OAUTH.name(), null);
                 if (picture != null && !picture.trim().isEmpty())
-                    userCommonService.uploadUserProfilePictureToS3(newOrExistingUser.getUsername(), newOrExistingUser.getId(), convertImageUrlToMultipartFile(picture));
+                    userCommonService.uploadProfilePicture(newOrExistingUser.getUsername(), newOrExistingUser.getId(), convertImageUrlToMultipartFile(picture));
             }
 
             GmailAuth newAuth = new GmailAuth();
@@ -286,7 +286,7 @@ public class UserAuthServiceImpl implements UserAuthService {
                 user = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Github User", email, GITHUB_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()),
                         LoginMode.GITHUB_OAUTH.name(), (address != null && !address.trim().isEmpty()) ? address : null);
                 if (picture != null && !picture.trim().isEmpty())
-                    userCommonService.uploadUserProfilePictureToS3(user.getUsername(), user.getId(), convertImageUrlToMultipartFile(picture));
+                    userCommonService.uploadProfilePicture(user.getUsername(), user.getId(), convertImageUrlToMultipartFile(picture));
             }
             if (user.isBlocked()) {
                 throw new ScenarioNotPossibleException("User is blocked, Kindly contact admin");

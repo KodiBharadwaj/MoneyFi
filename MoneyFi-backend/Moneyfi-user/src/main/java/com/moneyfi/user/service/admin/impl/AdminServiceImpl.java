@@ -31,8 +31,8 @@ import com.moneyfi.user.service.admin.dto.request.ReasonDetailsRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ReasonUpdateRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.user.service.admin.dto.response.*;
-import com.moneyfi.user.service.general.cloudinary.CloudinaryService;
 import com.moneyfi.user.service.general.caching.UserCacheService;
+import com.moneyfi.user.service.general.storage.FileStorageService;
 import com.moneyfi.user.service.user.UserCommonService;
 import com.moneyfi.user.service.user.dto.emaildto.AdminBlockUserDto;
 import com.moneyfi.user.service.user.dto.internal.GmailSyncCountJsonDto;
@@ -101,12 +101,12 @@ public class AdminServiceImpl implements AdminService {
     private final UserNotificationRepository userNotificationRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final ExcelTemplateRepository excelTemplateRepository;
-    private final CloudinaryService cloudinaryService;
     private final UserRepository userRepository;
     private final UserAuthHistRepository userAuthHistRepository;
     private final GmailSyncRepository gmailSyncRepository;
     private final ExcelGenerationService excelGenerationService;
     private final ReusableCodeClass reusableCodeClass;
+    private final FileStorageService fileStorageService;
 
     @Override
     public AdminOverviewPageDto getAdminOverviewPageDetails() {
@@ -634,7 +634,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     private void functionCallToUpdateExcelTemplate(Long adminUserId, String fileName, MultipartFile file) throws IOException {
-        uploadExelTemplateToCloud(file, fileName);
+        fileStorageService.uploadFile(file, fileName);
         excelTemplateRepository.save(
                 excelTemplateRepository.findByName(fileName).orElseThrow(() -> new ResourceNotFoundException(TEMPLATE_NOT_FOUND)).toBuilder()
                         .name(fileName)
@@ -653,7 +653,7 @@ public class AdminServiceImpl implements AdminService {
         }
 
         try {
-            uploadExelTemplateToCloud(file, fileName);
+            fileStorageService.uploadFile(file, fileName);
             excelTemplateRepository.save(ExcelTemplate.builder()
                     .name(fileName)
                     .content(file.getBytes())
@@ -665,14 +665,6 @@ public class AdminServiceImpl implements AdminService {
         } catch (Exception e) {
             e.printStackTrace();
             throw new FileUploadException("Failed to Upload");
-        }
-    }
-
-    private void uploadExelTemplateToCloud(MultipartFile file, String fileName) {
-        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
-            cloudinaryService.uploadExcelTemplateToCloudinary(file, fileName);
-        } else {
-            /** awsServices.uploadExcelTemplateToS3(file, fileName); */
         }
     }
 

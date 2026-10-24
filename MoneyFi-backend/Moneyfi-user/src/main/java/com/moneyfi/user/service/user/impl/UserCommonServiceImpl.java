@@ -16,6 +16,7 @@ import com.moneyfi.user.repository.general.*;
 import com.moneyfi.user.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.user.service.general.caching.UserCacheService;
 import com.moneyfi.user.service.general.cloudinary.CloudinaryService;
+import com.moneyfi.user.service.general.storage.FileStorageService;
 import com.moneyfi.user.service.user.CommonService;
 import com.moneyfi.user.service.user.UserCommonService;
 import com.moneyfi.user.service.user.dto.emaildto.GmailSyncIncreaseRequestDto;
@@ -63,7 +64,6 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Value("${spring.profiles.active:}")
     private String activeProfile;
 
-    private final CloudinaryService cloudinaryService;
     private final ProfileRepository profileRepository;
     private final ContactUsRepository contactUsRepository;
     private final ContactUsHistRepository contactUsHistRepository;
@@ -81,9 +81,9 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final TokenBlackListRepository tokenBlacklistRepository;
     private final GmailSyncRepository gmailSyncRepository;
     private final UserCacheService userCacheService;
+    private final FileStorageService fileStorageService;
 
-    public UserCommonServiceImpl(CloudinaryService cloudinaryService,
-                                 ProfileRepository profileRepository,
+    public UserCommonServiceImpl(ProfileRepository profileRepository,
                                  ContactUsRepository contactUsRepository,
                                  ContactUsHistRepository contactUsHistRepository,
                                  CommonServiceRepository commonServiceRepository,
@@ -99,8 +99,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  TokenBlackListRepository tokenBlacklistRepository,
                                  UserAuthHistRepository userAuthHistRepository,
                                  GmailSyncRepository gmailSyncRepository,
-                                 UserCacheService userCacheService){
-        this.cloudinaryService = cloudinaryService;
+                                 UserCacheService userCacheService,
+                                 FileStorageService fileStorageService){
         this.profileRepository = profileRepository;
         this.contactUsRepository = contactUsRepository;
         this.contactUsHistRepository = contactUsHistRepository;
@@ -118,6 +118,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.userAuthHistRepository = userAuthHistRepository;
         this.gmailSyncRepository = gmailSyncRepository;
         this.userCacheService = userCacheService;
+        this.fileStorageService = fileStorageService;
     }
 
     private static final String REFERENCE_NUMBER_SENT = "Reference already sent, Please submit your details";
@@ -408,58 +409,27 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    public String uploadUserProfilePictureToS3(String username, Long userId, MultipartFile file) {
-        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
-            cloudinaryService.uploadPictureToCloudinary(file, userId, username, UPLOAD_PROFILE_PICTURE);
-            return "Upload Successful";
-        } else {
-            /** return awsServices.uploadPictureToS3(userId, username, file, UPLOAD_PROFILE_PICTURE); */
-            return null;
-        }
+    public String uploadProfilePicture(String username, Long userId, MultipartFile file) {
+        fileStorageService.uploadPicture(file, userId, username, UPLOAD_PROFILE_PICTURE);
+        return "Upload Successful";
     }
 
     @Override
-    public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username, Long userId) {
-        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
-            byte[] imageBytes = cloudinaryService.getImageFromCloudinary(userId, username, UPLOAD_PROFILE_PICTURE);
-            ByteArrayResource resource = new ByteArrayResource(imageBytes);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.IMAGE_JPEG)
-                    .contentLength(imageBytes.length)
-                    .body(resource);
-        } else {
-            /** return awsServices.fetchUserProfilePictureFromS3(userId, username); */
-            return null;
-        }
+    public ResponseEntity<ByteArrayResource> fetchUserProfilePicture(String username, Long userId) {
+        return fileStorageService.fetchImage(userId, username, UPLOAD_PROFILE_PICTURE);
     }
 
     @Override
     public ResponseEntity<ByteArrayResource> getUserRaisedDefectImage(String username, String type, Long defectId) {
-        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
-            String imageType = "";
-            if ("DEFECT".equalsIgnoreCase(type)) imageType = UPLOAD_USER_RAISED_REPORT_PICTURE;
-            else if ("REQUEST".equalsIgnoreCase(type)) imageType = GMAIL_SYNC_COUNT_INCREASE_REQUEST;
-
-            byte[] imageBytes = cloudinaryService.getImageFromCloudinary(defectId, username, imageType);
-            ByteArrayResource resource = new ByteArrayResource(imageBytes);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.IMAGE_JPEG)
-                    .contentLength(imageBytes.length)
-                    .body(resource);
-        } else {
-            /** return awsServices.fetchUserProfilePictureFromS3(defectId, username); */
-            return null;
-        }
+        String imageType = "";
+        if ("DEFECT".equalsIgnoreCase(type)) imageType = UPLOAD_USER_RAISED_REPORT_PICTURE;
+        else if ("REQUEST".equalsIgnoreCase(type)) imageType = GMAIL_SYNC_COUNT_INCREASE_REQUEST;
+        return fileStorageService.fetchImage(defectId, username, imageType);
     }
 
     @Override
-    public ResponseEntity<String> deleteProfilePictureFromS3(String username, Long userId) {
-        if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
-            return cloudinaryService.deleteProfilePictureFromCloudinary(userId, username);
-        } else {
-            /** return awsServices.deleteProfilePictureFromS3(userId, username); */
-            return null;
-        }
+    public ResponseEntity<String> deleteProfilePicture(String username, Long userId) {
+        return fileStorageService.deletePicture(userId, username, UPLOAD_PROFILE_PICTURE);
     }
 
     @Override
@@ -683,13 +653,8 @@ public class UserCommonServiceImpl implements UserCommonService {
         scheduleNotification.setNotificationType(SchedulingNotificationType.GMAIL_SYNC_COUNT_INCREASE.name());
         saveUserNotificationsForParticularUsers(username, scheduleNotificationRepository.save(scheduleNotification).getId());
 
-        if (ObjectUtils.isNotEmpty(image)) {
-            if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
-                cloudinaryService.uploadPictureToCloudinary(image, savedRequest.getId(), username, GMAIL_SYNC_COUNT_INCREASE_REQUEST);
-            } else {
-                /** awsServices.uploadPictureToS3(savedRequest.getId(), username, image, GMAIL_SYNC_COUNT_INCREASE_REQUEST); */
-            }
-        }
+        fileStorageService.uploadPicture(image, savedRequest.getId(), username, GMAIL_SYNC_COUNT_INCREASE_REQUEST);
+
         applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userProfile.getName() + "<|>" + username + "<|>" + "request Gmail Sync Count Increase" + "<|>" + referenceNumber));
         String base64Image = null;
         String fileName = null;

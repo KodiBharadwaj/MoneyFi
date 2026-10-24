@@ -1,4 +1,4 @@
-package com.moneyfi.user.config.rabbitmq;
+package com.moneyfi.user.config;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
