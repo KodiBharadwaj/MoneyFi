@@ -9,6 +9,7 @@ import com.moneyfi.user.service.admin.dto.request.ReasonUpdateRequestDto;
 import com.moneyfi.user.service.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.user.service.admin.dto.response.*;
 import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;
+import com.moneyfi.user.util.enums.AccDeactivationType;
 import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,7 +29,7 @@ public interface AdminService {
 
     boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId, String approveStatus, String declineReason, int gmailSyncRequestCount);
 
-    void blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) throws JsonProcessingException;
+    void blockTheUserAccountByAdmin(String email, AccDeactivationType type, String reason, MultipartFile file, Long adminUserId, Long requestId) throws JsonProcessingException;
 
     List<UserGridDto> getUserDetailsGridForAdmin(String status, Long offset, Long limit, String search, String searchBy);
 

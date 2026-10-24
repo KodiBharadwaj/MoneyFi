@@ -441,47 +441,87 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void blockTheUserAccountByAdmin(String email, String reason, MultipartFile file, Long adminUserId) throws JsonProcessingException {
-        if (email == null || email.trim().isEmpty() || reason == null || reason.trim().isEmpty()) {
-            throw new ScenarioNotPossibleException("Please provide all the details correctly");
-        }
+    public void blockTheUserAccountByAdmin(String email, AccDeactivationType type, String reason, MultipartFile file, Long adminUserId, Long requestId) throws JsonProcessingException {
+        if (StringUtils.isBlank(email) || StringUtils.isBlank(reason))
+            throw new ScenarioNotPossibleException(PLEASE_PROVIDE_ALL_THE_DETAILS_CORRECTLY);
         UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
-        if (user.isBlocked()) {
-            throw new ScenarioNotPossibleException("User account is already blocked");
-        }
-        if (user.isDeleted()) {
-            throw new ScenarioNotPossibleException("User account is deleted, can't block the user");
-        }
-        user.setBlocked(Boolean.TRUE);
-        userRepository.save(user);
 
-        ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
+        if (user.isDeleted())
+            throw new ScenarioNotPossibleException("User account is deleted, can't perform the operation");
+
         LocalDateTime currentTime = LocalDateTime.now(ZoneId.systemDefault());
-        ContactUs contactUs = new ContactUs();
-        contactUs.setEmail(email);
-        contactUs.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
-        contactUs.setRequestActive(Boolean.TRUE);
-        contactUs.setVerified(Boolean.FALSE);
-        contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
-        contactUs.setStartTime(currentTime);
-        contactUs.setCompletedTime(currentTime);
-        contactUs.setReferenceNumber(generateAlphabetCode() + generateVerificationCode());
-        ContactUs savedContactUs = contactUsRepository.save(contactUs);
+        ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
 
-        ContactUsHist contactUsHist = new ContactUsHist();
-        contactUsHist.setContactUsId(savedContactUs.getId());
-        contactUsHist.setName(userProfile.getName());
-        contactUsHist.setMessage(BLOCKED_BY_ADMIN + ", " + reason);
-        contactUsHist.setRequestReason(savedContactUs.getRequestReason());
-        contactUsHist.setRequestStatus(savedContactUs.getRequestStatus());
-        contactUsHist.setUpdatedTime(currentTime);
-        contactUsHist.setUpdatedBy(adminUserId);
-        contactUsHistRepository.save(contactUsHist);
-        updateUserAuthHistoryTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.BLOCK_ACCOUNT), reason, adminUserId, LocalDateTime.now(ZoneId.systemDefault()));
-        if (ObjectUtils.isNotEmpty(file))
-            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.ADMIN_BLOCKED_USER_MAIL.name(), objectMapper.writeValueAsString(new AdminBlockUserDto(email, reason, userProfile.getName(), convertMultipartFileToPdfBytes(file)))));
+        switch (type) {
+            case BLOCK -> {
+                if (user.isBlocked())
+                    throw new ScenarioNotPossibleException("User account is already blocked");
+                user.setBlocked(Boolean.TRUE);
+                userRepository.save(user);
+
+                ContactUs contactUs = new ContactUs();
+                contactUs.setEmail(email);
+                contactUs.setRequestReason(RequestReason.ACCOUNT_BLOCK_REQUEST.name());
+                contactUs.setRequestActive(Boolean.TRUE);
+                contactUs.setVerified(Boolean.FALSE);
+                contactUs.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+                contactUs.setStartTime(currentTime);
+                contactUs.setCompletedTime(currentTime);
+                contactUs.setReferenceNumber(generateAlphabetCode() + generateVerificationCode());
+                ContactUs savedContactUs = contactUsRepository.save(contactUs);
+
+                ContactUsHist contactUsHist = new ContactUsHist();
+                contactUsHist.setContactUsId(savedContactUs.getId());
+                contactUsHist.setName(userProfile.getName());
+                contactUsHist.setMessage(BLOCKED_BY_ADMIN + ", " + reason);
+                contactUsHist.setRequestReason(savedContactUs.getRequestReason());
+                contactUsHist.setRequestStatus(savedContactUs.getRequestStatus());
+                contactUsHist.setUpdatedTime(currentTime);
+                contactUsHist.setUpdatedBy(adminUserId);
+                contactUsHistRepository.save(contactUsHist);
+                updateUserAuthHistoryTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.ADMIN_BLOCK), reason, adminUserId, LocalDateTime.now(ZoneId.systemDefault()));
+                if (ObjectUtils.isNotEmpty(file))
+                    applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.ADMIN_BLOCKED_USER_MAIL.name(), objectMapper.writeValueAsString(new AdminBlockUserDto(email, reason, userProfile.getName(), convertMultipartFileToPdfBytes(file)))));
+            }
+            case UNBLOCK -> {
+                if (!user.isBlocked())
+                    throw new ScenarioNotPossibleException("User account is already unblocked");
+                if (requestId == null)
+                    throw new ScenarioNotPossibleException("Invalid request");
+
+                ContactUs blockRequestDetails = contactUsRepository.findById(requestId).orElseThrow(() -> new ResourceNotFoundException(REQUEST_NOT_FOUND));
+                ContactUsHist unblockRequest = contactUsHistRepository.findByContactUsIdList(blockRequestDetails.getId()).stream()
+                        .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
+                        .findFirst()
+                        .orElse(null);
+                if (unblockRequest != null)
+                    throw new ScenarioNotPossibleException("User already raised unblock request. Please verify requests section");
+
+                user.setBlocked(Boolean.FALSE);
+                userRepository.save(user);
+
+                blockRequestDetails.setRequestActive(Boolean.FALSE);
+                blockRequestDetails.setVerified(Boolean.TRUE);
+                blockRequestDetails.setReferenceNumber(COM_ + blockRequestDetails.getReferenceNumber());
+                blockRequestDetails.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+                blockRequestDetails.setCompletedTime(currentTime);
+                contactUsRepository.save(blockRequestDetails);
+
+                ContactUsHist unblockHistory = new ContactUsHist();
+                unblockHistory.setContactUsId(blockRequestDetails.getId());
+                unblockHistory.setName(userProfile.getName());
+                unblockHistory.setMessage(UN_BLOCKED_BY_ADMIN + ", " + reason);
+                unblockHistory.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
+                unblockHistory.setRequestStatus(RaiseRequestStatus.COMPLETED.name());
+                unblockHistory.setUpdatedTime(currentTime);
+                unblockHistory.setUpdatedBy(adminUserId);
+                contactUsHistRepository.save(unblockHistory);
+                updateUserAuthHistoryTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.ADMIN_UNBLOCK), reason, adminUserId, currentTime);
+                reusableCodeClass.sendNotificationToUser(NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_SUCCESSFUL_MAIL.name(), userProfile.getName() + STRING_SEPARATOR + email + STRING_SEPARATOR + blockRequestDetails.getReferenceNumber().substring(4) + STRING_SEPARATOR + "Unblocked successfully");
+            }
+            default -> throw new ScenarioNotPossibleException(INVALID_REQUEST_MESSAGE);
+        }
     }
-
     @Override
     public List<String> getUsernamesOfAllUsers(Long offset, Long limit, String search) {
         if (StringUtils.isBlank(search)) throw new ScenarioNotPossibleException("Please enter a character to proceed");
@@ -655,7 +695,7 @@ public class AdminServiceImpl implements AdminService {
             case ACCOUNT_UNBLOCK_REQUEST -> {
                 user.setBlocked(Boolean.FALSE);
                 userRepository.save(user);
-                ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId()).stream()
+                ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdListAndSubmitted(contactUs.getId()).stream()
                         .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
                         .findFirst()
                         .orElseThrow(() -> new ResourceNotFoundException(REQUEST_NOT_FOUND));
@@ -669,7 +709,7 @@ public class AdminServiceImpl implements AdminService {
             case ACCOUNT_NOT_DELETE_REQUEST -> {
                 user.setDeleted(Boolean.FALSE);
                 userRepository.save(user);
-                ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId()).stream()
+                ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdListAndSubmitted(contactUs.getId()).stream()
                         .filter(request -> request.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name()))
                         .findFirst()
                         .orElseThrow(() -> new ResourceNotFoundException(REQUEST_NOT_FOUND));
@@ -681,7 +721,7 @@ public class AdminServiceImpl implements AdminService {
                 reusableCodeClass.sendNotificationToUser(NotificationQueueEnum.USER_ACCOUNT_RETRIEVAL_REQUEST_SUCCESSFUL_MAIL.name(), userProfile.getName() + STRING_SEPARATOR + email + STRING_SEPARATOR + contactUs.getReferenceNumber().substring(4) + STRING_SEPARATOR + "Retrieved successfully");
             }
             case NAME_CHANGE_REQUEST -> {
-                ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdList(contactUs.getId()).stream()
+                ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdListAndSubmitted(contactUs.getId()).stream()
                         .findFirst()
                         .orElseThrow(() -> new ResourceNotFoundException(REQUEST_NOT_FOUND));
                 if (!userProfile.getName().toLowerCase().contains(requestDetailsHist.getMessage().toLowerCase().split(",")[0])) {

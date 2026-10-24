@@ -2,22 +2,25 @@
   <!-- Filter Inputs -->
   <div class="filters">
     <div class="filter-field">
-      <label for="name">Name:</label>
-      <input placeholder="Filter by Name"  [(ngModel)]="nameFilter" (input)="onSearch('name',nameFilter)">
+      <label for="nameFilter">Name:</label>
+      <input id="nameFilter" placeholder="Filter by Name" [(ngModel)]="nameFilter"
+        (input)="onSearch('name', nameFilter)">
     </div>
 
     <div class="filter-field">
-      <label for="username">Username:</label>
-      <input placeholder="Filter by Username" [(ngModel)]="usernameFilter" (input)="onSearch('username',usernameFilter)">
+      <label for="usernameFilter">Username:</label>
+      <input id="usernameFilter" placeholder="Filter by Username" [(ngModel)]="usernameFilter"
+        (input)="onSearch('username', usernameFilter)">
     </div>
 
     <div class="filter-field">
-      <label for="phone">Phone:</label>
-      <input placeholder="Filter by Phone" [(ngModel)]="phoneFilter" (input)="onSearch('phone',phoneFilter)">
+      <label for="phoneFilter">Phone:</label>
+      <input id="phoneFilter" placeholder="Filter by Phone" [(ngModel)]="phoneFilter"
+        (input)="onSearch('phone', phoneFilter)">
     </div>
 
-    <div>
-      <button class="report-btn" (click)="generateReport()" style="margin-left: 5px;" [disabled]="isLoading">
+    <div class="filter-actions">
+      <button type="button" class="report-btn" (click)="generateReport()" [disabled]="isLoading">
         <ng-container *ngIf="!isLoading; else loadingTpl">
           📊 Generate Report
         </ng-container>
@@ -37,20 +40,19 @@
         <th>Phone</th>
         <th>
           Created Date
-          <span class="toggle-icon" (click)="toggleOrder()" title="Toggle Order">
-            ⇅
-          </span>
+          <span class="toggle-icon" (click)="toggleOrder()" title="Toggle Order">⇅</span>
         </th>
-        <th> Date of Birth </th>
+        <th>Date of Birth</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let user of users; let i = index">
+      <tr *ngFor="let user of users; let i = index; trackBy: trackByUser">
         <td>{{ offset + i + 1 }}</td>
         <td>{{ user.name }}</td>
-        <!-- <td>{{ user.username }}</td> -->
         <td>
-          <span class="username-link" (click)="openUserProfile(user.username)">
+          <span class="username-link" role="button" tabindex="0"
+            (click)="openUserProfile(user.username)"
+            (keydown.enter)="openUserProfile(user.username)">
             {{ user.username }}
           </span>
         </td>
@@ -58,141 +60,103 @@
         <td>{{ user.createdDateTime }}</td>
         <td>{{ user.dateOfBirth }}</td>
       </tr>
+      <tr *ngIf="!isGridLoading && users.length === 0">
+        <td colspan="6" class="empty-cell">No users found</td>
+      </tr>
     </tbody>
   </table>
-  <div *ngIf="isGridLoading" class="grid-loader">
-    Loading users...
-  </div>
+
+  <div *ngIf="isGridLoading" class="grid-loader">Loading users...</div>
 </div>
 
 <div class="pagination-container">
-
+  <div>Total Users : {{ totalUsers }}</div>
 
   <div>
+    <button type="button" (click)="previousPage()" [disabled]="currentPage <= 1 || isGridLoading"
+      aria-label="Previous page">◀</button>
 
-    Total Users : {{totalUsers}}
+    <span>Page {{ currentPage }} of {{ totalPages || 1 }}</span>
 
+    <button type="button" (click)="nextPage()" [disabled]="currentPage >= totalPages || isGridLoading"
+      aria-label="Next page">▶</button>
   </div>
 
-
-
   <div>
-
-
-    <button (click)="previousPage()" [disabled]="currentPage==1">
-
-      ◀
-
-    </button>
-
-
-
-    <span>
-
-      Page {{currentPage}}
-
-      of
-
-      {{totalPages}}
-
-    </span>
-
-
-
-    <button (click)="nextPage()" [disabled]="currentPage==totalPages">
-
-      ▶
-
-    </button>
-
-
-  </div>
-
-
-
-  <div>
-
-
-    <select [(ngModel)]="limit" (change)="changeLimit()">
-
-
-      <option [value]="10">10</option>
-
-      <option [value]="20">20</option>
-
-      <option [value]="50">50</option>
-
-      <option [value]="100">100</option>
-
-
+    <select [(ngModel)]="limit" (change)="changeLimit()" aria-label="Rows per page">
+      <option *ngFor="let size of limitOptions" [ngValue]="size">{{ size }}</option>
     </select>
-
-
   </div>
-
-
-
 </div>
 
-
-
+<!-- Reusable status-history timeline -->
+<ng-template #historyTpl let-items>
+  <div class="timeline-item" *ngFor="let item of items; trackBy: trackByIndex">
+    <div class="timeline-dot"></div>
+    <div class="timeline-content">
+      <div class="timeline-row">
+        <div class="timeline-status">{{ item.status }}</div>
+        <div class="timeline-time">{{ item.time }}</div>
+      </div>
+    </div>
+  </div>
+</ng-template>
 
 <div class="profile-dialog-backdrop" *ngIf="showUserDialog">
-  <div class="profile-dialog">
+  <div class="profile-dialog" role="dialog" aria-modal="true" aria-label="User profile">
 
     <!-- Profile Header -->
     <div class="profile-header">
       <div class="profile-pic">
-        <!-- Spinner -->
         <div class="spinner" *ngIf="isImageLoading"></div>
-        <img [src]="profileImage" alt="Profile Picture" [class.hidden]="isImageLoading" />
+        <img [src]="displayProfileImage" alt="Profile Picture" [class.hidden]="isImageLoading" />
       </div>
 
       <div class="profile-basic">
-        <h2>{{userProfile?.name}}
+        <h2>
+          {{ userProfile?.name }}
           <span class="status-badge" [ngClass]="{
                 'active': userProfile?.userStatus === 'ACTIVE',
                 'blocked': userProfile?.userStatus === 'BLOCKED',
                 'deleted': userProfile?.userStatus === 'DELETED'
               }">
-            {{userProfile?.userStatus}}
+            {{ userProfile?.userStatus }}
           </span>
         </h2>
-        <p>{{userProfile?.username}}</p>
+        <p>{{ userProfile?.username }}</p>
       </div>
-      <button class="block-btn" (click)="openBlockDialog()" [disabled]="userProfile?.userStatus !== 'ACTIVE'">
-        Block User
+
+      <button type="button" class="block-btn" [class.unblock-btn]="userProfile?.userStatus !== 'ACTIVE'"
+        [disabled]="!userProfile" (click)="openBlockDialog()">
+        {{ actionName }}
       </button>
 
-      <!-- Close Button -->
-      <div class="dialog-close" (click)="closeUserDialog()">Close</div>
+      <button type="button" class="dialog-close" (click)="closeUserDialog()">Close</button>
     </div>
 
     <!-- Basic Details -->
     <div class="profile-section">
-
       <h3>Basic Information</h3>
 
       <div class="profile-grid">
-        <div><label>Phone</label><span>{{userProfile?.phoneNumber}}</span></div>
-        <div><label>Gender</label><span>{{userProfile?.gender}}</span></div>
-        <div><label>DOB</label><span>{{userProfile?.dateOfBirth}}</span></div>
-        <div><label>Marital Status</label><span>{{userProfile?.maritalStatus}}</span></div>
-        <div><label>Created</label><span>{{userProfile?.createdTime}}</span></div>
-        <div><label>Account Creation Source</label><span>{{userProfile?.accountCreationSource}}</span></div>
-        <div class="address"><label>Address</label><span>{{userProfile?.address}}</span></div>
+        <div><label>Phone</label><span>{{ userProfile?.phoneNumber }}</span></div>
+        <div><label>Gender</label><span>{{ userProfile?.gender }}</span></div>
+        <div><label>DOB</label><span>{{ userProfile?.dateOfBirth }}</span></div>
+        <div><label>Marital Status</label><span>{{ userProfile?.maritalStatus }}</span></div>
+        <div><label>Created</label><span>{{ userProfile?.createdTime }}</span></div>
+        <div><label>Account Creation Source</label><span>{{ userProfile?.accountCreationSource }}</span></div>
+        <div class="address"><label>Address</label><span>{{ userProfile?.address }}</span></div>
       </div>
-
     </div>
 
     <!-- Name Change Requests -->
     <div class="profile-section">
-
-      <h3>Name Change Requests (Active: {{userProfile?.userRequestCount.nameChangeActiveRequests}}, Completed:
-        {{userProfile?.userRequestCount.nameChangeCompletedRequests}}, Declined:
-        {{userProfile?.userRequestCount.nameChangeDeclinedRequests}})</h3>
-      <ng-container *ngIf="userProfile?.nameChangeRequests?.length > 0; else noNameChangeRequestData">
-
+      <h3>
+        Name Change Requests (Active: {{ userProfile?.userRequestCount?.nameChangeActiveRequests ?? 0 }},
+        Completed: {{ userProfile?.userRequestCount?.nameChangeCompletedRequests ?? 0 }},
+        Declined: {{ userProfile?.userRequestCount?.nameChangeDeclinedRequests ?? 0 }})
+      </h3>
+      <ng-container *ngIf="userProfile?.nameChangeRequests?.length; else noNameChangeRequestData">
         <table class="dialog-table">
           <tr>
             <th>New Name</th>
@@ -204,50 +168,34 @@
             <th>Admin Involved</th>
             <th>History</th>
           </tr>
-
-          <tr *ngFor="let req of userProfile?.nameChangeRequests">
-            <td>{{req.newName}}</td>
-            <td>{{req.oldName}}</td>
-            <td>{{req.requestStatus}}</td>
-            <td>{{req.referenceNumber}}</td>
-            <td>{{req.daysTakenForCompletion}}</td>
-            <td>{{req.reasonForNameChange}}</td>
-            <td>{{req.requestDoneBy}}</td>
+          <tr *ngFor="let req of userProfile?.nameChangeRequests; trackBy: trackByIndex">
+            <td>{{ req.newName }}</td>
+            <td>{{ req.oldName }}</td>
+            <td>{{ req.requestStatus }}</td>
+            <td>{{ req.referenceNumber }}</td>
+            <td>{{ req.daysTakenForCompletion }}</td>
+            <td>{{ req.reasonForNameChange }}</td>
+            <td>{{ req.requestDoneBy }}</td>
             <td>
-              <div class="timeline-item" *ngFor="let item of getHistory(req.requestTimeStatusHistory)">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                  <div style="display: flex; justify-content: space-between;">
-                    <div class="timeline-status">
-                      {{item.status}}
-                    </div>
-                    <div class="timeline-time">
-                      {{item.time}}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <ng-container *ngTemplateOutlet="historyTpl; context: { $implicit: req.historyItems }"></ng-container>
             </td>
           </tr>
         </table>
       </ng-container>
       <ng-template #noNameChangeRequestData>
-        <div class="no-data">
-          No Name Change Requests found
-        </div>
+        <div class="no-data">No Name Change Requests found</div>
       </ng-template>
     </div>
 
-
     <!-- Account Unblock -->
     <div class="profile-section">
-
-      <h3>Account Unblock Requests (Active: {{userProfile?.userRequestCount.accBlockActiveRequests}}, Completed:
-        {{userProfile?.userRequestCount.accBlockChangeCompletedRequests}}, Declined:
-        {{userProfile?.userRequestCount.accBlockChangeDeclinedRequests}})</h3>
-      <ng-container *ngIf="userProfile?.unblockAccountRequests?.length > 0; else noUnblockRequestData">
+      <h3>
+        Account Unblock Requests (Active: {{ userProfile?.userRequestCount?.accBlockActiveRequests ?? 0 }},
+        Completed: {{ userProfile?.userRequestCount?.accBlockChangeCompletedRequests ?? 0 }},
+        Declined: {{ userProfile?.userRequestCount?.accBlockChangeDeclinedRequests ?? 0 }})
+      </h3>
+      <ng-container *ngIf="userProfile?.unblockAccountRequests?.length; else noUnblockRequestData">
         <table class="dialog-table">
-
           <tr>
             <th>Reason</th>
             <th>Blocked By</th>
@@ -257,46 +205,32 @@
             <th>Admin Involved</th>
             <th>History</th>
           </tr>
-
-          <tr *ngFor="let req of userProfile?.unblockAccountRequests">
-
-            <td>{{req.unblockRequestReason}}</td>
-            <td>{{req.blockedBy}}</td>
-            <td>{{req.requestStatus}}</td>
-            <td>{{req.referenceNumber}}</td>
-            <td>{{req.daysTakenForCompletion}}</td>
-            <td>{{req.requestDoneBy}}</td>
+          <tr *ngFor="let req of userProfile?.unblockAccountRequests; trackBy: trackByIndex">
+            <td>{{ req.unblockRequestReason }}</td>
+            <td>{{ req.blockedBy }}</td>
+            <td>{{ req.requestStatus }}</td>
+            <td>{{ req.referenceNumber }}</td>
+            <td>{{ req.daysTakenForCompletion }}</td>
+            <td>{{ req.requestDoneBy }}</td>
             <td>
-              <div class="timeline-item" *ngFor="let item of getHistory(req.requestTimeStatusHistory)">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                  <div style="display: flex; justify-content: space-between;">
-                    <div class="timeline-status">
-                      {{item.status}}
-                    </div>
-                    <div class="timeline-time">
-                      {{item.time}}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <ng-container *ngTemplateOutlet="historyTpl; context: { $implicit: req.historyItems }"></ng-container>
             </td>
           </tr>
         </table>
       </ng-container>
       <ng-template #noUnblockRequestData>
-        <div class="no-data">
-          No User Unblock Requests found
-        </div>
+        <div class="no-data">No User Unblock Requests found</div>
       </ng-template>
     </div>
 
     <!-- Account Retrieval -->
     <div class="profile-section">
-      <h3>Account Retrieval Requests (Active: {{userProfile?.userRequestCount.accRetrieveChangeActiveRequests}},
-        Completed: {{userProfile?.userRequestCount.accRetrieveChangeCompletedRequests}}, Declined:
-        {{userProfile?.userRequestCount.accRetrieveChangeDeclinedRequests}})</h3>
-      <ng-container *ngIf="userProfile?.accountRetrievalRequests?.length > 0; else noRetrievalRequestData">
+      <h3>
+        Account Retrieval Requests (Active: {{ userProfile?.userRequestCount?.accRetrieveChangeActiveRequests ?? 0 }},
+        Completed: {{ userProfile?.userRequestCount?.accRetrieveChangeCompletedRequests ?? 0 }},
+        Declined: {{ userProfile?.userRequestCount?.accRetrieveChangeDeclinedRequests ?? 0 }})
+      </h3>
+      <ng-container *ngIf="userProfile?.accountRetrievalRequests?.length; else noRetrievalRequestData">
         <table class="dialog-table">
           <tr>
             <th>Reason</th>
@@ -306,90 +240,67 @@
             <th>Admin Involved</th>
             <th>History</th>
           </tr>
-
-          <tr *ngFor="let req of userProfile?.accountRetrievalRequests">
-            <td>{{req.accountRetrievalRequestReason}}</td>
-            <td>{{req.requestStatus}}</td>
-            <td>{{req.referenceNumber}}</td>
-            <td>{{req.daysTakenForCompletion}}</td>
-            <td>{{req.requestDoneBy}}</td>
+          <tr *ngFor="let req of userProfile?.accountRetrievalRequests; trackBy: trackByIndex">
+            <td>{{ req.accountRetrievalRequestReason }}</td>
+            <td>{{ req.requestStatus }}</td>
+            <td>{{ req.referenceNumber }}</td>
+            <td>{{ req.daysTakenForCompletion }}</td>
+            <td>{{ req.requestDoneBy }}</td>
             <td>
-              <div class="timeline-item" *ngFor="let item of getHistory(req.requestTimeStatusHistory)">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                  <div style="display: flex; justify-content: space-between;">
-                    <div class="timeline-status">
-                      {{item.status}}
-                    </div>
-                    <div class="timeline-time">
-                      {{item.time}}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <ng-container *ngTemplateOutlet="historyTpl; context: { $implicit: req.historyItems }"></ng-container>
             </td>
           </tr>
         </table>
       </ng-container>
       <ng-template #noRetrievalRequestData>
-        <div class="no-data">
-          No Account Retrieval requests found
-        </div>
+        <div class="no-data">No Account Retrieval requests found</div>
       </ng-template>
     </div>
 
-
     <!-- Password Change History -->
     <div class="profile-section">
-      <h3>Password Change History </h3>
-      <ng-container
-        *ngIf="userProfile?.passwordChangeHistoryTrackDtoList?.length > 0; else noPasswordChangeHistoryData">
+      <h3>Password Change History</h3>
+      <ng-container *ngIf="userProfile?.passwordChangeHistoryTrackDtoList?.length; else noPasswordChangeHistoryData">
         <table class="dialog-table">
           <tr>
-            <th>Date & Time</th>
+            <th>Date &amp; Time</th>
             <th>Reason</th>
           </tr>
-          <tr *ngFor="let req of userProfile?.passwordChangeHistoryTrackDtoList">
+          <tr *ngFor="let req of userProfile?.passwordChangeHistoryTrackDtoList; trackBy: trackByIndex">
             <td>{{ req.changedAt | date:'dd MMM yyyy, hh:mm a' }}</td>
-            <td>{{req.reasonForChange}}</td>
+            <td>{{ req.reasonForChange }}</td>
           </tr>
         </table>
       </ng-container>
       <ng-template #noPasswordChangeHistoryData>
-        <div class="no-data">
-          No password change history found
-        </div>
+        <div class="no-data">No password change history found</div>
       </ng-template>
     </div>
 
     <!-- Forgot Password History -->
     <div class="profile-section">
-      <h3>Forgot Password Service History </h3>
-      <ng-container
-        *ngIf="userProfile?.forgotPasswordHistoryTrackDtoList?.length > 0; else noForgotPasswordHistoryData">
+      <h3>Forgot Password Service History</h3>
+      <ng-container *ngIf="userProfile?.forgotPasswordHistoryTrackDtoList?.length; else noForgotPasswordHistoryData">
         <table class="dialog-table">
           <tr>
-            <th>Date & Time</th>
+            <th>Date &amp; Time</th>
             <th>Reason</th>
           </tr>
-          <tr *ngFor="let req of userProfile?.forgotPasswordHistoryTrackDtoList">
+          <tr *ngFor="let req of userProfile?.forgotPasswordHistoryTrackDtoList; trackBy: trackByIndex">
             <td>{{ req.changedAt | date:'dd MMM yyyy, hh:mm a' }}</td>
-            <td>{{req.reasonForChange}}</td>
+            <td>{{ req.reasonForChange }}</td>
           </tr>
         </table>
       </ng-container>
       <ng-template #noForgotPasswordHistoryData>
-        <div class="no-data">
-          No forgot password history found
-        </div>
+        <div class="no-data">No forgot password history found</div>
       </ng-template>
     </div>
-
 
     <!-- User Raised Requests History -->
     <div class="profile-section">
       <h3>User Raised Requests History</h3>
-      <ng-container *ngIf="userProfile?.userDefectTrackingForAdminDtoList?.length > 0; else noUserRaisedRequestData">
+      <ng-container *ngIf="userProfile?.userDefectTrackingForAdminDtoList?.length; else noUserRaisedRequestData">
         <table class="dialog-table">
           <tr>
             <th>Start Date</th>
@@ -402,18 +313,19 @@
             <th>Admin Involved</th>
             <th>Image</th>
           </tr>
-          <tr *ngFor="let req of userProfile?.userDefectTrackingForAdminDtoList">
+          <tr *ngFor="let req of userProfile?.userDefectTrackingForAdminDtoList; trackBy: trackByIndex">
             <td>{{ req.startTime | date:'dd MMM yyyy, hh:mm a' }}</td>
             <td>{{ req.pendTime | date:'dd MMM yyyy, hh:mm a' }}</td>
             <td>{{ req.endTime | date:'dd MMM yyyy, hh:mm a' }}</td>
-            <td>{{req.referenceNumber}}</td>
-            <td>{{req.status}}</td>
-            <td>{{req.description}}</td>
-            <td>{{req.adminRemarks}}</td>
-            <td>{{req.requestDoneBy}}</td>
+            <td>{{ req.referenceNumber }}</td>
+            <td>{{ req.status }}</td>
+            <td>{{ req.description }}</td>
+            <td>{{ req.adminRemarks }}</td>
+            <td>{{ req.requestDoneBy }}</td>
             <td>
-              <!-- Image -->
-              <div class="image-preview" (click)="viewImage(userProfile?.username, req.defectId, 'DEFECT')">
+              <div class="image-preview" role="button" tabindex="0"
+                (click)="viewImage(userProfile?.username, req.defectId, 'DEFECT')"
+                (keydown.enter)="viewImage(userProfile?.username, req.defectId, 'DEFECT')">
                 <img src="assets/image-placeholder.png" alt="View" />
                 <p class="click-text">Click to view image</p>
               </div>
@@ -422,19 +334,15 @@
         </table>
       </ng-container>
       <ng-template #noUserRaisedRequestData>
-        <div class="no-data">
-          No User Raised Requests found
-        </div>
+        <div class="no-data">No User Raised Requests found</div>
       </ng-template>
     </div>
-
-
 
     <!-- Gmail Sync Count Increase Requests History -->
     <div class="profile-section">
       <h3>Gmail Sync Count Increase Requests History</h3>
       <ng-container
-        *ngIf="userProfile?.userGmailSyncCountIncreaseRequestHistoryTractDtoLit?.length > 0; else noUserRaisedGmailSyncCountIncreaseRequestData">
+        *ngIf="userProfile?.userGmailSyncCountIncreaseRequestHistoryTractDtoLit?.length; else noUserRaisedGmailSyncCountIncreaseRequestData">
         <table class="dialog-table">
           <tr>
             <th>Start Date</th>
@@ -446,16 +354,18 @@
             <th>Admin Involved</th>
             <th>Image</th>
           </tr>
-          <tr *ngFor="let req of userProfile?.userGmailSyncCountIncreaseRequestHistoryTractDtoLit">
+          <tr *ngFor="let req of userProfile?.userGmailSyncCountIncreaseRequestHistoryTractDtoLit; trackBy: trackByIndex">
             <td>{{ req.startDate | date:'dd MMM yyyy, hh:mm a' }}</td>
             <td>{{ req.totalTimeTaken }}</td>
-            <td>{{req.referenceNumber}}</td>
-            <td>{{req.status}}</td>
-            <td>{{req.requestedReasonAndCount}}</td>
-            <td>{{req.adminRemarks}}</td>
-            <td>{{req.requestDoneBy}}</td>
+            <td>{{ req.referenceNumber }}</td>
+            <td>{{ req.status }}</td>
+            <td>{{ req.requestedReasonAndCount }}</td>
+            <td>{{ req.adminRemarks }}</td>
+            <td>{{ req.requestDoneBy }}</td>
             <td>
-              <div class="image-preview" (click)="viewImage(userProfile?.username, req.requestId, 'REQUEST')">
+              <div class="image-preview" role="button" tabindex="0"
+                (click)="viewImage(userProfile?.username, req.requestId, 'REQUEST')"
+                (keydown.enter)="viewImage(userProfile?.username, req.requestId, 'REQUEST')">
                 <img src="assets/image-placeholder.png" alt="View" />
                 <p class="click-text">Click to view image</p>
               </div>
@@ -464,54 +374,46 @@
         </table>
       </ng-container>
       <ng-template #noUserRaisedGmailSyncCountIncreaseRequestData>
-        <div class="no-data">
-          No gmail sync countincrease Requests found
-        </div>
+        <div class="no-data">No gmail sync count increase requests found</div>
       </ng-template>
     </div>
-
-
-
-
   </div>
 
-
+  <!-- Block / Unblock Dialog -->
   <div class="block-dialog-backdrop" *ngIf="showBlockDialog">
-    <div class="block-dialog">
-      <h3>Block User</h3>
+    <div class="block-dialog" role="dialog" aria-modal="true" [attr.aria-label]="actionName">
+      <h3>{{ actionName }}</h3>
 
       <p class="warning-text">
-        You are about to block this user account.
+        You are about to {{ actionName | lowercase }} this user account.
       </p>
 
-      <label>Reason</label>
-      <textarea [(ngModel)]="blockReason" name="blockReason" placeholder="Enter reason for blocking" required
-        #reasonRef="ngModel">
-      </textarea>
+      <label for="blockReason">Reason</label>
+      <textarea id="blockReason" name="blockReason" placeholder="Enter reason" [(ngModel)]="blockReason"
+        [disabled]="isSubmitting"></textarea>
+      <div class="error" *ngIf="blockSubmitted && !blockReason.trim()">Reason is required</div>
 
-      <div class="error" *ngIf="reasonRef.invalid && reasonRef.touched">
-        Reason is required
-      </div>
-
-      <label>Evidence File</label>
-      <input type="file" (change)="onFileSelected($event)" required>
-
-      <div class="error" *ngIf="fileError">
-        Evidence file is required
-      </div>
+      <label for="evidenceFile">Evidence File</label>
+      <input id="evidenceFile" type="file" [disabled]="isSubmitting" (change)="onFileSelected($event)">
+      <div class="error" *ngIf="blockSubmitted && !selectedFile">Evidence file is required</div>
 
       <div class="dialog-actions">
-        <button class="cancel-btn" (click)="closeBlockDialog()">Cancel</button>
-        <button class="confirm-btn" (click)="blockUser()">Confirm Block</button>
+        <button type="button" class="cancel-btn" [disabled]="isSubmitting" (click)="closeBlockDialog()">
+          Cancel
+        </button>
+
+        <button type="button" class="confirm-btn" [class.unblock-confirm]="userProfile?.userStatus !== 'ACTIVE'"
+          [disabled]="isSubmitting" (click)="blockOrUnblockUser(userProfile?.requestId)">
+          {{ isSubmitting ? 'Saving...' : 'Confirm' }}
+        </button>
       </div>
     </div>
   </div>
 
-
-  <!-- Modal -->
-  <div *ngIf="selectedImage" class="image-modal">
-    <div class="modal-content">
-      <span class="close-btn" (click)="selectedImage = null">&times;</span>
+  <!-- Image Modal -->
+  <div *ngIf="selectedImage" class="image-modal" (click)="selectedImage = null">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <button type="button" class="close-btn" aria-label="Close image" (click)="selectedImage = null">&times;</button>
       <img [src]="selectedImage" alt="Defect Image" />
     </div>
   </div>

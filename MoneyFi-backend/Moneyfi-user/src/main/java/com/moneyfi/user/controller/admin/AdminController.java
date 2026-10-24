@@ -13,6 +13,7 @@ import com.moneyfi.user.service.user.UserCommonService;
 import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.user.service.user.ProfileService;
 import com.moneyfi.user.util.constants.StringConstants;
+import com.moneyfi.user.util.enums.AccDeactivationType;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -139,14 +140,16 @@ public class AdminController {
         return adminService.accountReactivationAndNameChangeRequest(requestDto.getEmail(), requestDto.getReferenceNumber(), requestDto.getRequestStatus(), adminUserId, requestDto.getApproveStatus(), requestDto.getDeclineReason(), requestDto.getGmailSyncRequestCount());
     }
 
-    @Operation(summary = "Api to block the user's account by admin")
-    @PostMapping(value = "/user-account/block", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Api to block/unblock the user's account by admin", description = "Admin can directly block or unblock the user account by providing documents")
+    @PostMapping(value = "/user-accounts/status", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void blockTheUserAccountByAdmin(Authentication authentication,
-                                                             @NotBlank @RequestParam String email,
-                                                             @NotBlank @RequestParam String reason,
-                                                             @RequestParam(required = true) MultipartFile file) throws JsonProcessingException {
+                                           @NotBlank @RequestParam String email,
+                                           @NotBlank @RequestParam String reason,
+                                           @NotNull @RequestParam AccDeactivationType type,
+                                           @RequestParam(required = false) Long requestId,
+                                           @RequestParam MultipartFile file) throws JsonProcessingException {
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        adminService.blockTheUserAccountByAdmin(email, reason, file, adminUserId);
+        adminService.blockTheUserAccountByAdmin(email, type, reason, file, adminUserId, requestId);
     }
 
     @Operation(summary = "Api to update the user feedback by admin")

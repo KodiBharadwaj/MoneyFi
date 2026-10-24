@@ -135,18 +135,18 @@ public class UserCommonServiceImpl implements UserCommonService {
             if (user.isDeleted() || !user.isBlocked()) {
                 throw new ScenarioNotPossibleException(user.isDeleted() ? ACCOUNT_DELETED_MESSAGE : USER_IS_NOT_BLOCKED_TODO_THIS);
             }
-            Optional<ContactUs> report = contactUsDetails
-                    .stream()
+            Optional<ContactUs> report = contactUsDetails.stream()
                     .filter(ContactUs::isRequestActive)
                     .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name()))
                     .filter(i -> i.getReferenceNumber() != null)
                     .findFirst();
             if (report.isPresent()) {
-                throw new ScenarioNotPossibleException(contactUsHistRepository.findByContactUsId(report.get().getId()).size() == 1 ? REFERENCE_NUMBER_SENT :
-                        DETAILS_ALREADY_SUBMITTED);
+                if (report.get().getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.INITIATED.name()))
+                    throw new ScenarioNotPossibleException("Reference Number already sent. Please submit details");
+                if (report.get().getRequestStatus().equalsIgnoreCase(RaiseRequestStatus.SUBMITTED.name()))
+                    throw new ScenarioNotPossibleException("Details already submitted. Please check the status");
             }
-            Optional<ContactUs> requestDetails = contactUsDetails
-                    .stream()
+            Optional<ContactUs> requestDetails = contactUsDetails.stream()
                     .filter(ContactUs::isRequestActive)
                     .filter(i -> i.getRequestReason().equalsIgnoreCase(RequestReason.ACCOUNT_BLOCK_REQUEST.name()))
                     .findFirst();
