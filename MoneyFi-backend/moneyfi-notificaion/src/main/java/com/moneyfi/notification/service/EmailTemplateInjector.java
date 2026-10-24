@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 
 import java.util.List;
@@ -82,15 +83,25 @@ public class EmailTemplateInjector {
     }
 
     private void functionCallToSendBatchInfoEmailToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) throws JsonProcessingException {
-        List<BatchInfoForEmailDto> batchInfoList = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), new TypeReference<List<BatchInfoForEmailDto>>() {});
-        emailTemplates.sendEmailForSuccessfulBatchTransactionInsertion(batchInfoList);
+        try {
+            List<BatchInfoForEmailDto> batchInfoList = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), new TypeReference<List<BatchInfoForEmailDto>>() {});
+            emailTemplates.sendEmailForSuccessfulBatchTransactionInsertion(batchInfoList);
+        } catch (JacksonException e) {
+            e.printStackTrace();
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
     private void functionCallToSendUserAccountCreationMail(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
-        String email = parts[0];
-        String name = parts[1];
-        emailTemplates.sendEmailForSuccessfulUserCreation(email, name);
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String email = parts[0];
+            String name = parts[1];
+            emailTemplates.sendEmailForSuccessfulUserCreation(email, name);
+        } catch (Exception e) {
+            e.printStackTrace();
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
     private void functionCallToSendUserBirthdayMail(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
@@ -100,6 +111,7 @@ public class EmailTemplateInjector {
             String name = parts[1];
             emailTemplates.sendBirthdayWishEmailToUsers(email, name);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -112,6 +124,7 @@ public class EmailTemplateInjector {
             int numberOfYears = Integer.parseInt(parts[2]);
             emailTemplates.sendAnniversaryCongratulationsMailToUser(email, name, numberOfYears);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -124,6 +137,7 @@ public class EmailTemplateInjector {
             String verificationCode = parts[2];
             emailTemplates.sendOtpForForgotPassword(username, email, verificationCode);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -137,6 +151,7 @@ public class EmailTemplateInjector {
             String type = parts[3];
             emailTemplates.sendOtpToUserForAccountBlock(username, name, verificationCode, type);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -149,6 +164,7 @@ public class EmailTemplateInjector {
             String verificationCode = parts[2];
             emailTemplates.sendOtpEmailToUserForSignup(email, name, verificationCode);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -160,6 +176,7 @@ public class EmailTemplateInjector {
             String email = parts[1];
             emailTemplates.sendPasswordChangeAlertMail(name, email);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -174,6 +191,7 @@ public class EmailTemplateInjector {
             String declineReason = parts[4];
             emailTemplates.sendAccountUnblockOrRetrievalFailureMailToUser(name, email, referenceNumber, mode, declineReason);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -187,6 +205,7 @@ public class EmailTemplateInjector {
             String mode = parts[3];
             emailTemplates.sendAccountUnblockOrRetrievalSuccessfulMailToUser(name, email, referenceNumber, mode);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -199,6 +218,7 @@ public class EmailTemplateInjector {
             String referenceNumber = parts[2];
             emailTemplates.sendNameChangeRequestRejectionMailToUser(name, email, referenceNumber);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -211,6 +231,7 @@ public class EmailTemplateInjector {
             String referenceNumber = parts[2];
             emailTemplates.sendNameChangeRequestApprovedMailToUser(name, email, referenceNumber);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -224,6 +245,7 @@ public class EmailTemplateInjector {
             String description = parts[3];
             emailTemplates.sendContactUsDetailsEmailToAdmin(email, phoneNumber, name, description);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -235,6 +257,7 @@ public class EmailTemplateInjector {
             String email = parts[1];
             emailTemplates.sendUserGmailSyncCountIncreaseRequestRejection(name, email);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -247,6 +270,7 @@ public class EmailTemplateInjector {
             int gmailSyncRequestCount = Integer.parseInt(parts[2]);
             emailTemplates.sendUserGmailSyncApprovedMail(name, email, gmailSyncRequestCount);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -256,6 +280,7 @@ public class EmailTemplateInjector {
             AdminBlockUserDto adminBlockUserDto = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), AdminBlockUserDto.class);
             emailTemplates.sendBlockAlertMailToUser(adminBlockUserDto.getEmail(), adminBlockUserDto.getReason(), adminBlockUserDto.getName(), adminBlockUserDto.getFile());
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -265,6 +290,7 @@ public class EmailTemplateInjector {
             StatementAnalysisDto statementAnalysisDto = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), StatementAnalysisDto.class);
             emailTemplates.sendSpendingAnalysisEmail(statementAnalysisDto);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -274,6 +300,7 @@ public class EmailTemplateInjector {
             StatementAnalysisDto statementAnalysisDto = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), StatementAnalysisDto.class);
             emailTemplates.sendAccountStatementAsEmail(statementAnalysisDto);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -283,6 +310,7 @@ public class EmailTemplateInjector {
             GmailSyncIncreaseRequestDto gmailSyncIncreaseRequestDto = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), GmailSyncIncreaseRequestDto.class);
             emailTemplates.sendUserRaisedGmailSyncRequestEmailToAdmin(gmailSyncIncreaseRequestDto);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -296,6 +324,7 @@ public class EmailTemplateInjector {
             String referenceNumber = parts[3];
             emailTemplates.sendReferenceNumberEmailToUser(name, email, description, referenceNumber);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -305,6 +334,7 @@ public class EmailTemplateInjector {
             UserRaisedDefectDto userRaisedDefectDto = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), UserRaisedDefectDto.class);
             emailTemplates.sendUserRaiseDefectEmailToAdmin(userRaisedDefectDto);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -314,6 +344,7 @@ public class EmailTemplateInjector {
             String username = notificationQueueDto.getValueJson();
             emailTemplates.sendUserNameToUser(username);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -327,6 +358,7 @@ public class EmailTemplateInjector {
             String email = parts[3];
             emailTemplates.sendUserReportStatusMailToUser(name, referenceNumber, description, email);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
@@ -338,6 +370,7 @@ public class EmailTemplateInjector {
             String message = parts[1];
             emailTemplates.sendUserFeedbackEmailToAdmin(rating, message);
         } catch (Exception e) {
+            e.printStackTrace();
             artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }

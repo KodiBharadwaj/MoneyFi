@@ -23,7 +23,7 @@ public class ArtemisQueueConsumer {
     private final EmailTemplates emailTemplates;
     private final EmailTemplateInjector emailTemplateInjector;
 
-    @JmsListener(destination = "artemis.queue.producer-user.consumer-notification")
+    @JmsListener(destination = "${spring.artemis.queue-name}")
     public void receiveMessage(String message) throws JsonProcessingException {
         log.info("Received from Artemis: {}", message);
         NotificationQueueDto notificationQueueDto = StringConstants.objectMapper.readValue(message, NotificationQueueDto.class);

@@ -5,3 +5,5 @@ spring:
     port: 8161
     user: artemis
     password: artemis
+    queue-name: artemis.queue.producer-user.consumer-notification
+    feedback-queue: artemis.queue.producer-user.consumer-notification.feedback

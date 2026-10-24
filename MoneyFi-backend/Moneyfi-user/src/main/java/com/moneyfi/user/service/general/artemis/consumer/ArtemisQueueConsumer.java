@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ArtemisQueueConsumer {
 
-    @JmsListener(destination = "artemis.queue.producer-user.consumer-notification.feedback")
+    @JmsListener(destination = "${spring.artemis.feedback-queue}")
     public void receiveMessage(String message) {
         log.info("Received feedback from notification service: {}", message);
     }
