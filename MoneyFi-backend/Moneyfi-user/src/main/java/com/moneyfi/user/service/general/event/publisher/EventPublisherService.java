@@ -30,9 +30,10 @@ public class EventPublisherService {
     public void sendUserNotification(NotificationQueueDto notificationQueueDto) {
         try {
             if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile)) {
-                artemisQueueProducer.sendMessage(notificationQueueDto);
-            } else {
                 rabbitMqQueuePublisher.publish(notificationQueueDto);
+            } else {
+                artemisQueueProducer.sendMessage(notificationQueueDto);
+
             }
         } catch (Exception e) {
             log.warn("Error while send user notification : {}", e.getMessage());
