@@ -14,18 +14,19 @@ import software.amazon.awssdk.thirdparty.jackson.core.JsonProcessingException;
 import static com.moneyfi.notification.util.constants.StringConstants.LOCAL_PROFILE_RABBIT_MQ;
 import static com.moneyfi.notification.util.constants.StringConstants.PROD_PROFILE_RABBIT_MQ;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 @Profile({LOCAL_PROFILE_RABBIT_MQ, PROD_PROFILE_RABBIT_MQ})
-@Slf4j
 public class RabbitMqQueueListener {
 
     private final EmailTemplates emailTemplates;
+    private final EmailTemplateInjector emailTemplateInjector;
 
     @RabbitListener(queues = "${rabbitmq.queue}")
     public void handleRabbitQueueEventListener(String notificationQueueDtoJson) throws JsonProcessingException {
         log.info("checking listener input: {}", notificationQueueDtoJson);
         NotificationQueueDto notificationQueueDto = StringConstants.objectMapper.readValue(notificationQueueDtoJson, NotificationQueueDto.class);
-        EmailTemplateInjector.functionToRouteBasedOnRequest(notificationQueueDto, emailTemplates);
+        emailTemplateInjector.functionToRouteBasedOnRequest(notificationQueueDto, emailTemplates);
     }
 }

@@ -2,6 +2,7 @@ package com.moneyfi.notification.service;
 
 import com.moneyfi.constants.dto.BatchInfoForEmailDto;
 import com.moneyfi.constants.enums.NotificationQueueEnum;
+import com.moneyfi.notification.service.artemis.producer.ArtemisQueueProducer;
 import com.moneyfi.notification.service.dto.NotificationQueueDto;
 import com.moneyfi.notification.service.dto.emaildto.AdminBlockUserDto;
 import com.moneyfi.notification.service.dto.emaildto.StatementAnalysisDto;
@@ -9,250 +10,335 @@ import com.moneyfi.notification.service.dto.emaildto.GmailSyncIncreaseRequestDto
 import com.moneyfi.notification.service.dto.emaildto.UserRaisedDefectDto;
 import com.moneyfi.notification.service.email.EmailTemplates;
 import com.moneyfi.notification.util.constants.StringConstants;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonProcessingException;
 import tools.jackson.core.type.TypeReference;
 
-import java.util.Collections;
 import java.util.List;
 
+import static com.moneyfi.constants.constants.CommonConstants.STRING_SEPARATOR;
+
 @Slf4j
+@Service
+@RequiredArgsConstructor
 public class EmailTemplateInjector {
 
-    private EmailTemplateInjector() {}
+    private final ArtemisQueueProducer artemisQueueProducer;
 
-    public static void functionToRouteBasedOnRequest(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) throws JsonProcessingException {
-        if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_FEEDBACK_MAIL.name())) {
-            functionCallForSendingFeedBackMailToAdmin(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_DEFECT_STATUS_MAIL.name())) {
-            functionCallForSendingReportStatusToUser(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.FORGOT_USERNAME_REQUEST_MAIL.name())) {
-            functionCallForSendingUsernameToUser(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_RAISED_DEFECT_TO_ADMIN_MAIL.name())) {
-            functionCallToSendUserRaisedDefectToAdmin(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name())) {
-            functionCallToSendReferenceNumberToUser(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.SEND_USER_REQUEST_TO_INCREASE_GMAIL_SYNC_COUNT_TO_ADMIN_MAIL.name())) {
-            functionCallToSendGmailSyncCountIncreaseRequestToAdmin(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.ACCOUNT_STATEMENT_EMAIL.name())) {
-            functionCallToSendAccountStatementMailToUser(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.SPENDING_ANALYSIS_EMAIL.name())) {
-            functionCallToSendSpendingAnalysisMailToUser(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.ADMIN_BLOCKED_USER_MAIL.name())) {
-            functionCallToSendAdminBlockedUserAlertMailToUser(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.GMAIL_SYNC_APPROVED_USER_MAIL.name())) {
-            functionCallToSendGmailSyncCountIncreaseRequestApprovedMailToUser(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.GMAIL_SYNC_REJECTED_USER_MAIL.name())) {
-            functionCallToSendGmailSyncCountIncreaseRequestRejectedMailToUser(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.CONTACT_US_HELP_CENTER_MAIL.name())) {
-            functionCallToSendGmailToAdminThroughContactUsHepDesk(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.NAME_CHANGE_REQUEST_APPROVED_MAIL.name())) {
-            functionCallToSendMailForNameChangeRequestApprovedToUser(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.NAME_CHANGE_REQUEST_REJECTED_MAIL.name())) {
-            functionCallToSendMailForNameChangeRequestRejectedToUser(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_SUCCESSFUL_MAIL.name())
-                    || notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_ACCOUNT_RETRIEVAL_REQUEST_SUCCESSFUL_MAIL.name())) {
-            functionCallToSendMailForAccountReactivateRequestApprovedToUser(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_REJECTED_MAIL.name())
-                || notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_ACCOUNT_RETRIEVAL_REQUEST_REJECTED_MAIL.name())) {
-            functionCallToSendMailForAccountReactivateRequestRejectedToUser(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_PASSWORD_CHANGE_ALERT_MAIL.name())) {
-            functionCallToSendMailForUserPasswordChange(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.OTP_MAIL_FOR_USER_SIGNUP.name())) {
-            functionCallToSendOtpForUserSignUp(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.OTP_FOR_USER_BLOCK.name())) {
-            functionCallToSendOtpUserBlock(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name())) {
-            functionCallToSendOtpWhenUserForgotPassword(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_ANNIVERSARY_MAIL.name())) {
-            functionCallToSendUserAnniversaryMail(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_BIRTHDAY_MAIL.name())) {
-            functionCallToSendUserBirthdayMail(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_ACCOUNT_CREATION_MAIL.name())) {
-            functionCallToSendUserAccountCreationMail(notificationQueueDto, emailTemplates);
-        } else if (notificationQueueDto.getNotificationQueueType().equalsIgnoreCase(NotificationQueueEnum.USER_BATCH_INFO_EMAIL.name())) {
-            functionCallToSendBatchInfoEmailToUser(notificationQueueDto, emailTemplates);
+    public void functionToRouteBasedOnRequest(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) throws JsonProcessingException {
+        switch (NotificationQueueEnum.valueOf(notificationQueueDto.getNotificationQueueType())) {
+            case USER_FEEDBACK_MAIL ->
+                    functionCallForSendingFeedBackMailToAdmin(notificationQueueDto, emailTemplates);
+            case USER_DEFECT_STATUS_MAIL ->
+                    functionCallForSendingReportStatusToUser(notificationQueueDto, emailTemplates);
+            case FORGOT_USERNAME_REQUEST_MAIL ->
+                    functionCallForSendingUsernameToUser(notificationQueueDto, emailTemplates);
+            case USER_RAISED_DEFECT_TO_ADMIN_MAIL ->
+                    functionCallToSendUserRaisedDefectToAdmin(notificationQueueDto, emailTemplates);
+            case SEND_REFERENCE_NUMBER_TO_USER_MAIL ->
+                    functionCallToSendReferenceNumberToUser(notificationQueueDto, emailTemplates);
+            case SEND_USER_REQUEST_TO_INCREASE_GMAIL_SYNC_COUNT_TO_ADMIN_MAIL ->
+                    functionCallToSendGmailSyncCountIncreaseRequestToAdmin(notificationQueueDto, emailTemplates);
+            case ACCOUNT_STATEMENT_EMAIL ->
+                    functionCallToSendAccountStatementMailToUser(notificationQueueDto, emailTemplates);
+            case SPENDING_ANALYSIS_EMAIL ->
+                    functionCallToSendSpendingAnalysisMailToUser(notificationQueueDto, emailTemplates);
+            case ADMIN_BLOCKED_USER_MAIL ->
+                    functionCallToSendAdminBlockedUserAlertMailToUser(notificationQueueDto, emailTemplates);
+            case GMAIL_SYNC_APPROVED_USER_MAIL ->
+                    functionCallToSendGmailSyncCountIncreaseRequestApprovedMailToUser(notificationQueueDto, emailTemplates);
+            case GMAIL_SYNC_REJECTED_USER_MAIL ->
+                    functionCallToSendGmailSyncCountIncreaseRequestRejectedMailToUser(notificationQueueDto, emailTemplates);
+            case CONTACT_US_HELP_CENTER_MAIL ->
+                    functionCallToSendGmailToAdminThroughContactUsHepDesk(notificationQueueDto, emailTemplates);
+            case NAME_CHANGE_REQUEST_APPROVED_MAIL ->
+                    functionCallToSendMailForNameChangeRequestApprovedToUser(notificationQueueDto, emailTemplates);
+            case NAME_CHANGE_REQUEST_REJECTED_MAIL ->
+                    functionCallToSendMailForNameChangeRequestRejectedToUser(notificationQueueDto, emailTemplates);
+            case USER_ACCOUNT_UNBLOCK_REQUEST_SUCCESSFUL_MAIL, USER_ACCOUNT_RETRIEVAL_REQUEST_SUCCESSFUL_MAIL ->
+                    functionCallToSendMailForAccountReactivateRequestApprovedToUser(notificationQueueDto, emailTemplates);
+            case USER_ACCOUNT_UNBLOCK_REQUEST_REJECTED_MAIL, USER_ACCOUNT_RETRIEVAL_REQUEST_REJECTED_MAIL ->
+                    functionCallToSendMailForAccountReactivateRequestRejectedToUser(notificationQueueDto, emailTemplates);
+            case USER_PASSWORD_CHANGE_ALERT_MAIL ->
+                    functionCallToSendMailForUserPasswordChange(notificationQueueDto, emailTemplates);
+            case OTP_MAIL_FOR_USER_SIGNUP ->
+                    functionCallToSendOtpForUserSignUp(notificationQueueDto, emailTemplates);
+            case OTP_FOR_USER_BLOCK ->
+                    functionCallToSendOtpUserBlock(notificationQueueDto, emailTemplates);
+            case OTP_FOR_FORGOT_PASSWORD ->
+                    functionCallToSendOtpWhenUserForgotPassword(notificationQueueDto, emailTemplates);
+            case USER_ANNIVERSARY_MAIL ->
+                    functionCallToSendUserAnniversaryMail(notificationQueueDto, emailTemplates);
+            case USER_BIRTHDAY_MAIL ->
+                    functionCallToSendUserBirthdayMail(notificationQueueDto, emailTemplates);
+            case USER_ACCOUNT_CREATION_MAIL ->
+                    functionCallToSendUserAccountCreationMail(notificationQueueDto, emailTemplates);
+            case USER_BATCH_INFO_EMAIL ->
+                    functionCallToSendBatchInfoEmailToUser(notificationQueueDto, emailTemplates);
+            default -> log.error("Incorrect type");
         }
     }
 
-    private static void functionCallToSendBatchInfoEmailToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) throws JsonProcessingException {
+    private void functionCallToSendBatchInfoEmailToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) throws JsonProcessingException {
         List<BatchInfoForEmailDto> batchInfoList = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), new TypeReference<List<BatchInfoForEmailDto>>() {});
         emailTemplates.sendEmailForSuccessfulBatchTransactionInsertion(batchInfoList);
     }
 
-    private static void functionCallToSendUserAccountCreationMail(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
+    private void functionCallToSendUserAccountCreationMail(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
         String email = parts[0];
         String name = parts[1];
         emailTemplates.sendEmailForSuccessfulUserCreation(email, name);
     }
 
-    private static void functionCallToSendUserBirthdayMail(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String email = parts[0];
-        String name = parts[1];
-        emailTemplates.sendBirthdayWishEmailToUsers(email, name);
+    private void functionCallToSendUserBirthdayMail(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String email = parts[0];
+            String name = parts[1];
+            emailTemplates.sendBirthdayWishEmailToUsers(email, name);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendUserAnniversaryMail(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String email = parts[0];
-        String name = parts[1];
-        int numberOfYears = Integer.parseInt(parts[2]);
-        emailTemplates.sendAnniversaryCongratulationsMailToUser(email, name, numberOfYears);
+    private void functionCallToSendUserAnniversaryMail(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String email = parts[0];
+            String name = parts[1];
+            int numberOfYears = Integer.parseInt(parts[2]);
+            emailTemplates.sendAnniversaryCongratulationsMailToUser(email, name, numberOfYears);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendOtpWhenUserForgotPassword(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String username = parts[0];
-        String email = parts[1];
-        String verificationCode = parts[2];
-        emailTemplates.sendOtpForForgotPassword(username, email, verificationCode);
+    private void functionCallToSendOtpWhenUserForgotPassword(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String username = parts[0];
+            String email = parts[1];
+            String verificationCode = parts[2];
+            emailTemplates.sendOtpForForgotPassword(username, email, verificationCode);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendOtpUserBlock(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String username = parts[0];
-        String name = parts[1];
-        String verificationCode = parts[2];
-        String type = parts[3];
-        emailTemplates.sendOtpToUserForAccountBlock(username, name, verificationCode, type);
+    private void functionCallToSendOtpUserBlock(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String username = parts[0];
+            String name = parts[1];
+            String verificationCode = parts[2];
+            String type = parts[3];
+            emailTemplates.sendOtpToUserForAccountBlock(username, name, verificationCode, type);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendOtpForUserSignUp(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String email = parts[0];
-        String name = parts[1];
-        String verificationCode = parts[2];
-        emailTemplates.sendOtpEmailToUserForSignup(email, name, verificationCode);
+    private void functionCallToSendOtpForUserSignUp(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String email = parts[0];
+            String name = parts[1];
+            String verificationCode = parts[2];
+            emailTemplates.sendOtpEmailToUserForSignup(email, name, verificationCode);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendMailForUserPasswordChange(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String name = parts[0];
-        String email = parts[1];
-        emailTemplates.sendPasswordChangeAlertMail(name, email);
+    private void functionCallToSendMailForUserPasswordChange(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String name = parts[0];
+            String email = parts[1];
+            emailTemplates.sendPasswordChangeAlertMail(name, email);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendMailForAccountReactivateRequestRejectedToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String name = parts[0];
-        String email = parts[1];
-        String referenceNumber = parts[2];
-        String mode = parts[3];
-        String declineReason = parts[4];
-        emailTemplates.sendAccountUnblockOrRetrievalFailureMailToUser(name, email, referenceNumber, mode, declineReason);
+    private void functionCallToSendMailForAccountReactivateRequestRejectedToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String name = parts[0];
+            String email = parts[1];
+            String referenceNumber = parts[2];
+            String mode = parts[3];
+            String declineReason = parts[4];
+            emailTemplates.sendAccountUnblockOrRetrievalFailureMailToUser(name, email, referenceNumber, mode, declineReason);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendMailForAccountReactivateRequestApprovedToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String name = parts[0];
-        String email = parts[1];
-        String referenceNumber = parts[2];
-        String mode = parts[3];
-        emailTemplates.sendAccountUnblockOrRetrievalSuccessfulMailToUser(name, email, referenceNumber, mode);
+    private void functionCallToSendMailForAccountReactivateRequestApprovedToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String name = parts[0];
+            String email = parts[1];
+            String referenceNumber = parts[2];
+            String mode = parts[3];
+            emailTemplates.sendAccountUnblockOrRetrievalSuccessfulMailToUser(name, email, referenceNumber, mode);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendMailForNameChangeRequestRejectedToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String name = parts[0];
-        String email = parts[1];
-        String referenceNumber = parts[2];
-        emailTemplates.sendNameChangeRequestRejectionMailToUser(name, email, referenceNumber);
+    private void functionCallToSendMailForNameChangeRequestRejectedToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String name = parts[0];
+            String email = parts[1];
+            String referenceNumber = parts[2];
+            emailTemplates.sendNameChangeRequestRejectionMailToUser(name, email, referenceNumber);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendMailForNameChangeRequestApprovedToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String name = parts[0];
-        String email = parts[1];
-        String referenceNumber = parts[2];
-        emailTemplates.sendNameChangeRequestApprovedMailToUser(name, email, referenceNumber);
+    private void functionCallToSendMailForNameChangeRequestApprovedToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String name = parts[0];
+            String email = parts[1];
+            String referenceNumber = parts[2];
+            emailTemplates.sendNameChangeRequestApprovedMailToUser(name, email, referenceNumber);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendGmailToAdminThroughContactUsHepDesk(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String email = parts[0];
-        String phoneNumber = parts[1];
-        String name = parts[2];
-        String description = parts[3];
-        emailTemplates.sendContactUsDetailsEmailToAdmin(email, phoneNumber, name, description);
+    private void functionCallToSendGmailToAdminThroughContactUsHepDesk(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String email = parts[0];
+            String phoneNumber = parts[1];
+            String name = parts[2];
+            String description = parts[3];
+            emailTemplates.sendContactUsDetailsEmailToAdmin(email, phoneNumber, name, description);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendGmailSyncCountIncreaseRequestRejectedMailToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String name = parts[0];
-        String email = parts[1];
-        emailTemplates.sendUserGmailSyncCountIncreaseRequestRejection(name, email);
+    private void functionCallToSendGmailSyncCountIncreaseRequestRejectedMailToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String name = parts[0];
+            String email = parts[1];
+            emailTemplates.sendUserGmailSyncCountIncreaseRequestRejection(name, email);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendGmailSyncCountIncreaseRequestApprovedMailToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String name = parts[0];
-        String email = parts[1];
-        int gmailSyncRequestCount = Integer.parseInt(parts[2]);
-        emailTemplates.sendUserGmailSyncApprovedMail(name, email, gmailSyncRequestCount);
+    private void functionCallToSendGmailSyncCountIncreaseRequestApprovedMailToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String name = parts[0];
+            String email = parts[1];
+            int gmailSyncRequestCount = Integer.parseInt(parts[2]);
+            emailTemplates.sendUserGmailSyncApprovedMail(name, email, gmailSyncRequestCount);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendAdminBlockedUserAlertMailToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        AdminBlockUserDto adminBlockUserDto = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), AdminBlockUserDto.class);
-        emailTemplates.sendBlockAlertMailToUser(adminBlockUserDto.getEmail(), adminBlockUserDto.getReason(), adminBlockUserDto.getName(), adminBlockUserDto.getFile());
+    private void functionCallToSendAdminBlockedUserAlertMailToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            AdminBlockUserDto adminBlockUserDto = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), AdminBlockUserDto.class);
+            emailTemplates.sendBlockAlertMailToUser(adminBlockUserDto.getEmail(), adminBlockUserDto.getReason(), adminBlockUserDto.getName(), adminBlockUserDto.getFile());
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendSpendingAnalysisMailToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        StatementAnalysisDto statementAnalysisDto = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), StatementAnalysisDto.class);
-        emailTemplates.sendSpendingAnalysisEmail(statementAnalysisDto);
+    private void functionCallToSendSpendingAnalysisMailToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            StatementAnalysisDto statementAnalysisDto = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), StatementAnalysisDto.class);
+            emailTemplates.sendSpendingAnalysisEmail(statementAnalysisDto);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendAccountStatementMailToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        StatementAnalysisDto statementAnalysisDto = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), StatementAnalysisDto.class);
-        emailTemplates.sendAccountStatementAsEmail(statementAnalysisDto);
+    private void functionCallToSendAccountStatementMailToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            StatementAnalysisDto statementAnalysisDto = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), StatementAnalysisDto.class);
+            emailTemplates.sendAccountStatementAsEmail(statementAnalysisDto);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendGmailSyncCountIncreaseRequestToAdmin(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+    private void functionCallToSendGmailSyncCountIncreaseRequestToAdmin(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
         try {
             GmailSyncIncreaseRequestDto gmailSyncIncreaseRequestDto = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), GmailSyncIncreaseRequestDto.class);
             emailTemplates.sendUserRaisedGmailSyncRequestEmailToAdmin(gmailSyncIncreaseRequestDto);
         } catch (Exception e) {
-            log.error("Failed to process SEND_USER_REQUEST_TO_INCREASE_GMAIL_SYNC_COUNT_TO_ADMIN_MAIL: {}", notificationQueueDto.getValueJson(), e);
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
 
-    private static void functionCallToSendReferenceNumberToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String name = parts[0];
-        String email = parts[1];
-        String description = parts[2];
-        String referenceNumber = parts[3];
-        emailTemplates.sendReferenceNumberEmailToUser(name, email, description, referenceNumber);
+    private void functionCallToSendReferenceNumberToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String name = parts[0];
+            String email = parts[1];
+            String description = parts[2];
+            String referenceNumber = parts[3];
+            emailTemplates.sendReferenceNumberEmailToUser(name, email, description, referenceNumber);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallToSendUserRaisedDefectToAdmin(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+    private void functionCallToSendUserRaisedDefectToAdmin(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
         try {
             UserRaisedDefectDto userRaisedDefectDto = StringConstants.objectMapper.readValue(notificationQueueDto.getValueJson(), UserRaisedDefectDto.class);
             emailTemplates.sendUserRaiseDefectEmailToAdmin(userRaisedDefectDto);
         } catch (Exception e) {
-            log.error("Failed to process USER_RAISED_DEFECT_TO_ADMIN_MAIL: {}", notificationQueueDto.getValueJson(), e);
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
         }
     }
 
-    private static void functionCallForSendingUsernameToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String username = notificationQueueDto.getValueJson();
-        emailTemplates.sendUserNameToUser(username);
+    private void functionCallForSendingUsernameToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String username = notificationQueueDto.getValueJson();
+            emailTemplates.sendUserNameToUser(username);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallForSendingReportStatusToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String name = parts[0];
-        String referenceNumber = parts[1];
-        String description = parts[2];
-        String email = parts[3];
-        emailTemplates.sendUserReportStatusMailToUser(name, referenceNumber, description, email);
+    private void functionCallForSendingReportStatusToUser(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String name = parts[0];
+            String referenceNumber = parts[1];
+            String description = parts[2];
+            String email = parts[3];
+            emailTemplates.sendUserReportStatusMailToUser(name, referenceNumber, description, email);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 
-    private static void functionCallForSendingFeedBackMailToAdmin(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
-        String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote("<|>"));
-        String rating = parts[0];
-        String message = parts[1];
-        emailTemplates.sendUserFeedbackEmailToAdmin(rating, message);
+    private void functionCallForSendingFeedBackMailToAdmin(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+        try {
+            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
+            String rating = parts[0];
+            String message = parts[1];
+            emailTemplates.sendUserFeedbackEmailToAdmin(rating, message);
+        } catch (Exception e) {
+            artemisQueueProducer.sendFeedbackMessage(e.getMessage());
+        }
     }
 }

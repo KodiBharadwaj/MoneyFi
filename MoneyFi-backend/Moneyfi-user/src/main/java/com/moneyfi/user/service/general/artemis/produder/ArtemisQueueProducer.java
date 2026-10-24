@@ -1,4 +1,4 @@
-package com.moneyfi.user.service.general.artemis;
+package com.moneyfi.user.service.general.artemis.produder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.service.user.dto.internal.NotificationQueueDto;
@@ -14,6 +14,6 @@ public class ArtemisQueueProducer {
     private final JmsTemplate jmsTemplate;
 
     public void sendMessage(NotificationQueueDto notificationQueueDto) throws JsonProcessingException {
-        jmsTemplate.convertAndSend("artemis.queue.name", StringConstants.objectMapper.writeValueAsString(notificationQueueDto));
+        jmsTemplate.convertAndSend("artemis.queue.producer-user.consumer-notification", StringConstants.objectMapper.writeValueAsString(notificationQueueDto));
     }
 }

@@ -1,6 +1,6 @@
 package com.moneyfi.user.service.general.event.publisher;
 
-import com.moneyfi.user.service.general.artemis.ArtemisQueueProducer;
+import com.moneyfi.user.service.general.artemis.produder.ArtemisQueueProducer;
 import com.moneyfi.user.service.user.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.general.rabbitmq.RabbitMqQueuePublisher;
 import lombok.RequiredArgsConstructor;

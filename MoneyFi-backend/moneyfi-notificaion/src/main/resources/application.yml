@@ -1,26 +1,26 @@
 spring:
   profiles:
-    active: ${PROFILE}
+    active: ${PROFILE:local-artemis}
   application:
     name: MoneyFi-notification
 
 email:
   brevo:
-    api-key: ${BREVO_API_KEY}
-    from-email: ${BREVO_FROM_EMAIL}
+    api-key: ${BREVO_API_KEY:xxxxxx}
+    from-email: ${BREVO_FROM_EMAIL:xxx}
 
   filter:
     from:
-      email : ${ADMIN_EMAIL}
-      password : ${ADMIN_PASSWORD}
+      email : ${ADMIN_EMAIL:xxxx}
+      password : ${ADMIN_PASSWORD:xxxx}
 
 cloud:
   aws:
     credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
+      access-key: ${AWS_ACCESS_KEY:xxxx}
+      secret-key: ${AWS_SECRET_KEY:xxxx}
     region:
-      static: ${AWS_REGION}
+      static: ${AWS_REGION:xxx}
     stack:
       auto: false
 
