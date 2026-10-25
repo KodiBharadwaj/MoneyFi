@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.constants.dto.ExcelResponseDto;
 import com.moneyfi.constants.dto.PaginatedRequestDto;
 import com.moneyfi.constants.dto.PaginatedResponseDto;
+import com.moneyfi.user.repository.admin.UserRequestsService;
 import com.moneyfi.user.service.admin.AdminService;
 import com.moneyfi.user.service.admin.dto.request.*;
 import com.moneyfi.user.service.admin.dto.response.*;
@@ -12,6 +13,7 @@ import com.moneyfi.user.service.user.UserCommonService;
 import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.user.service.user.ProfileService;
 import com.moneyfi.user.util.constants.StringConstants;
+import com.moneyfi.user.util.enums.AccDeactivationType;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -35,19 +37,20 @@ import java.util.Map;
 
 import static com.moneyfi.constants.constants.CommonConstants.STATUS;
 
-@RestController
-@RequestMapping("/api/v1/user-service/admin")
-@PreAuthorize("hasRole('ADMIN')")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
+@RequestMapping("/api/v1/user-service/admin")
 public class AdminController {
 
     private final AdminService adminService;
+    private final UserRequestsService userRequestsService;
     private final UserCommonService userCommonService;
     private final ProfileService profileService;
     private final UserAuthService userAuthService;
 
-    @Operation(summary = "Api to get the user count home page of admin")
+    @Operation(summary = "Api to get the user count home page of admin", description = "Admin home screen overview details count")
     @GetMapping("/overview-user-details")
     public ResponseEntity<AdminOverviewPageDto> getAdminOverviewPageDetails(){
         return ResponseEntity.ok(adminService.getAdminOverviewPageDetails());
@@ -129,7 +132,7 @@ public class AdminController {
         adminService.updateDefectStatus(defectId, body.get(STATUS), reason, adminUserId);
     }
 
-    @Operation(summary = "Api to unblock/retrieve/name change of the user account with respective details")
+    @Operation(summary = "Api to deal user requests", description = "To unblock/retrieve account/name change/gmail sync count increase request of the user account with respective details")
     @PostMapping("/user-requests/action")
     public boolean accountReactivationAndNameChangeRequest(Authentication authentication,
                                                            @RequestBody @Valid UserRequestsApprovalDto requestDto){
@@ -137,14 +140,16 @@ public class AdminController {
         return adminService.accountReactivationAndNameChangeRequest(requestDto.getEmail(), requestDto.getReferenceNumber(), requestDto.getRequestStatus(), adminUserId, requestDto.getApproveStatus(), requestDto.getDeclineReason(), requestDto.getGmailSyncRequestCount());
     }
 
-    @Operation(summary = "Api to block the user's account by admin")
-    @PostMapping(value = "/user-account/block", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Api to block/unblock the user's account by admin", description = "Admin can directly block or unblock the user account by providing documents")
+    @PostMapping(value = "/user-accounts/status", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void blockTheUserAccountByAdmin(Authentication authentication,
-                                                             @NotBlank @RequestParam String email,
-                                                             @NotBlank @RequestParam String reason,
-                                                             @RequestParam(required = true) MultipartFile file) throws JsonProcessingException {
+                                           @NotBlank @RequestParam String email,
+                                           @NotBlank @RequestParam String reason,
+                                           @NotNull @RequestParam AccDeactivationType type,
+                                           @RequestParam(required = false) Long requestId,
+                                           @RequestParam MultipartFile file) throws JsonProcessingException {
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        adminService.blockTheUserAccountByAdmin(email, reason, file, adminUserId);
+        adminService.blockTheUserAccountByAdmin(email, type, reason, file, adminUserId, requestId);
     }
 
     @Operation(summary = "Api to update the user feedback by admin")
@@ -172,8 +177,8 @@ public class AdminController {
 
     @Operation(summary = "Api to fetch the user profile picture from aws s3")
     @GetMapping("/profile-picture/get")
-    public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(@NotBlank @RequestParam(value = "username") String username) {
-        return userCommonService.fetchUserProfilePictureFromS3(username, profileService.getProfileDetailsOfUser(username).getUserId());
+    public ResponseEntity<ByteArrayResource> fetchUserProfilePicture(@NotBlank @RequestParam(value = "username") String username) {
+        return userCommonService.fetchUserProfilePicture(username, profileService.getProfileDetailsOfUser(username).getUserId());
     }
 
     @Operation(summary = "Api to add the reason dropdown names")
@@ -273,5 +278,14 @@ public class AdminController {
     @GetMapping("/get-excel-templates")
     public ResponseEntity<List<ExcelTemplateList>> getExcelTemplates() {
         return ResponseEntity.ok(adminService.getAllExcelTemplates());
+    }
+
+    @Operation(summary = "Api to change user session time", description = "Admin can change the individual user session duration time")
+    @GetMapping("/user-session-time")
+    public void changeUserSessionTime(Authentication authentication,
+                                      @NotBlank @RequestParam(value = "username") String username,
+                                      @NotNull @RequestParam(value = "time") Integer time) {
+        Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        userRequestsService.changeUserSessionTime(adminUserId, username, time);
     }
 }

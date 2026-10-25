@@ -6,16 +6,15 @@ import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.user.repository.general.ProfileRepository;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.repository.auth.TokenBlackListRepository;
+import com.moneyfi.user.service.ReusableCodeClass;
 import com.moneyfi.user.service.user.CommonService;
 import com.moneyfi.user.service.user.dto.emaildto.StatementAnalysisDto;
 import com.moneyfi.user.service.user.dto.internal.GmailSyncCountJsonDto;
-import com.moneyfi.user.service.user.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.user.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.SchedulingNotificationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -41,13 +40,16 @@ public class CommonServiceImpl implements CommonService {
     private final ProfileRepository profileRepository;
     private final CommonServiceRepository commonServiceRepository;
     private final TokenBlackListRepository tokenBlacklistRepository;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final ReusableCodeClass reusableCodeClass;
 
     @Override
     public boolean sendAccountStatementEmail(String username, Long userId, byte[] pdfBytes) {
         String name = functionToGetNameOfUserWithUserId(profileRepository, userId);
         try {
-            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.ACCOUNT_STATEMENT_EMAIL.name(), objectMapper.writeValueAsString(new StatementAnalysisDto(!name.trim().isEmpty() ? name : "User", username, pdfBytes))));
+            reusableCodeClass.sendNotificationToUser(
+                    NotificationQueueEnum.ACCOUNT_STATEMENT_EMAIL.name(),
+                    objectMapper.writeValueAsString(new StatementAnalysisDto(!name.trim().isEmpty() ? name : "User", username, pdfBytes))
+            );
             return true;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -58,7 +60,10 @@ public class CommonServiceImpl implements CommonService {
     public boolean sendSpendingAnalysisEmail(String username, Long userId, byte[] pdfBytes) {
         String name = functionToGetNameOfUserWithUserId(profileRepository, userId);
         try {
-            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SPENDING_ANALYSIS_EMAIL.name(), objectMapper.writeValueAsString(new StatementAnalysisDto(!name.trim().isEmpty() ? name : "User", username, pdfBytes))));
+            reusableCodeClass.sendNotificationToUser(
+                    NotificationQueueEnum.SPENDING_ANALYSIS_EMAIL.name(),
+                    objectMapper.writeValueAsString(new StatementAnalysisDto(!name.trim().isEmpty() ? name : "User", username, pdfBytes))
+            );
             return true;
         } catch (Exception e) {
             throw new RuntimeException(e);

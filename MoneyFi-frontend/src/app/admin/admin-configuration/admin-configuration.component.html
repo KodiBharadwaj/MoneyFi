@@ -57,6 +57,15 @@
       Trigger
     </button>
   </div>
+
+  <!-- Config Card 7 -->
+  <div class="config-card">
+    <h3>Modify User Session Time</h3>
+    <p>Manual adjustment of user session duration</p>
+    <button class="config-btn primary" [routerLink]="'/admin/configuration/user-session'">
+      Modify
+    </button>
+  </div>
 </div>
 
 <div class="expired-section" *ngIf="showExpiredNotifications">

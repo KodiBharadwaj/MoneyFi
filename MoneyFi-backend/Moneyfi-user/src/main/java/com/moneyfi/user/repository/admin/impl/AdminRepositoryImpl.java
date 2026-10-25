@@ -1,6 +1,5 @@
 package com.moneyfi.user.repository.admin.impl;
 
-import com.moneyfi.constants.constants.CommonConstants.*;
 import com.moneyfi.constants.dto.PaginatedRequestDto;
 import com.moneyfi.user.exceptions.QueryValidationException;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;

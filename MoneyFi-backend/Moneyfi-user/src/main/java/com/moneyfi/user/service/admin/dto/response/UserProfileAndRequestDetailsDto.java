@@ -20,6 +20,7 @@ public class UserProfileAndRequestDetailsDto {
     private String name;
     private String username;
     private String userStatus;
+    private Long requestId;
     private String phoneNumber;
     @JsonFormat(pattern = DATE_TIME_PATTERN)
     private Timestamp createdTime;

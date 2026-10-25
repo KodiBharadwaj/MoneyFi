@@ -1,11 +1,54 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { AdminService } from '../../services/AdminService';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ToastrService } from 'ngx-toastr';
-import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, finalize, takeUntil } from 'rxjs/operators';
+import { ToastrService } from 'ngx-toastr';
+import { AdminService } from '../../services/AdminService';
+import { environment } from '../../../environments/environment';
+
+interface HistoryItem {
+  status: string;
+  time: string;
+}
+
+interface UserRequestCount {
+  nameChangeActiveRequests?: number;
+  nameChangeCompletedRequests?: number;
+  nameChangeDeclinedRequests?: number;
+  accBlockActiveRequests?: number;
+  accBlockChangeCompletedRequests?: number;
+  accBlockChangeDeclinedRequests?: number;
+  accRetrieveChangeActiveRequests?: number;
+  accRetrieveChangeCompletedRequests?: number;
+  accRetrieveChangeDeclinedRequests?: number;
+}
+
+interface UserProfile {
+  username: string;
+  name?: string;
+  userStatus: string;
+  requestId?: number;
+  phoneNumber?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  maritalStatus?: string;
+  createdTime?: string;
+  accountCreationSource?: string;
+  address?: string;
+  userRequestCount?: UserRequestCount;
+  nameChangeRequests?: any[];
+  unblockAccountRequests?: any[];
+  accountRetrievalRequests?: any[];
+  passwordChangeHistoryTrackDtoList?: any[];
+  forgotPasswordHistoryTrackDtoList?: any[];
+  userDefectTrackingForAdminDtoList?: any[];
+  userGmailSyncCountIncreaseRequestHistoryTractDtoLit?: any[];
+}
+
+const PLACEHOLDER_IMAGE = 'assets/image-placeholder.png';
 
 @Component({
   selector: 'app-admin-users',
@@ -15,159 +58,261 @@ import { HttpClient } from '@angular/common/http';
   standalone: true,
 })
 export class AdminUsersComponent implements OnInit, OnDestroy {
-  status: string = '';
+  private readonly apiBase = `${environment.BASE_URL}/api/v1/user-service/admin`;
+  private readonly destroy$ = new Subject<void>();
+  private readonly search$ = new Subject<{ searchBy: string; value: string }>();
+
+  private usersSub?: Subscription;
+  private profileSub?: Subscription;
+  private imageSub?: Subscription;
+
+  // Grid state
+  status = '';
   users: any[] = [];
-
-  nameFilter: string = '';
-  usernameFilter: string = '';
-  phoneFilter: string = '';
-  isAscending: boolean = true;
-  isLoading = false;
+  nameFilter = '';
+  usernameFilter = '';
+  phoneFilter = '';
+  isAscending = true;
+  isLoading = false; // report generation
   isGridLoading = false;
-
-  totalUsers = 0;
-
-  offset = 0;
-  limit = 10;
-
-  currentPage = 1;
-  totalPages = 0;
-
   search = '';
   searchBy = '';
 
+  // Pagination
+  readonly limitOptions = [10, 20, 50, 100];
+  totalUsers = 0;
+  totalPages = 0;
+  currentPage = 1;
+  offset = 0;
+  limit = 10;
+
+  // Profile dialog
+  showUserDialog = false;
+  userProfile: UserProfile | null = null;
+  profileImage = '';
+  isImageLoading = false;
+  selectedImage: string | null = null;
+
+  // Block / unblock dialog
+  showBlockDialog = false;
+  blockReason = '';
+  blockSubmitted = false;
+  isSubmitting = false;
+  selectedFile: File | null = null;
+
   constructor(
-    private router: ActivatedRoute,
+    private route: ActivatedRoute,
     private adminService: AdminService,
     private toastr: ToastrService,
     private httpClient: HttpClient,
   ) {}
 
-  baseUrl = environment.BASE_URL;
-
   ngOnInit(): void {
-    this.router.paramMap.subscribe((params) => {
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       this.status = params.get('status') || '';
+      this.currentPage = 1;
+      this.offset = 0;
+      this.fetchUsers();
+    });
 
+    // Debounce typing so we don't hit the API on every keystroke.
+    this.search$.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe(({ searchBy, value }) => {
+      this.searchBy = searchBy;
+      this.search = value;
+      this.currentPage = 1;
+      this.offset = 0;
       this.fetchUsers();
     });
   }
 
-  // Toggle order
-  toggleOrder() {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.usersSub?.unsubscribe();
+    this.profileSub?.unsubscribe();
+    this.imageSub?.unsubscribe();
+  }
+
+  // ---------------------------------------------------------------- helpers
+
+  trackByUser = (_: number, user: any) => user?.username ?? _;
+  trackByIndex = (index: number) => index;
+
+  get actionName(): string {
+    return this.userProfile?.userStatus !== 'ACTIVE' ? 'Unblock User' : 'Block User';
+  }
+
+  get displayProfileImage(): string {
+    return this.profileImage || PLACEHOLDER_IMAGE;
+  }
+
+  /** Extracts a readable message from JSON / string / Blob error bodies. */
+  private async handleError(err: any, fallback = 'Something went wrong'): Promise<void> {
+    let message = fallback;
+    try {
+      let body = err?.error;
+      if (body instanceof Blob) {
+        body = await body.text();
+      }
+      if (typeof body === 'string') {
+        body = JSON.parse(body);
+      }
+      if (body?.message) {
+        message = body.message;
+      }
+    } catch (e) {
+      console.error('Failed to parse error response:', err?.error);
+    }
+    this.toastr.error(message);
+  }
+
+  // ------------------------------------------------------------------- grid
+
+  toggleOrder(): void {
     this.isAscending = !this.isAscending;
   }
 
-  showUserDialog = false;
-  userProfile: any;
-  profileImageUrl: any;
+  onSearch(searchBy: string, value: string): void {
+    this.search$.next({ searchBy, value });
+  }
 
-  openUserProfile(username: string) {
-    this.showUserDialog = true;
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.goToPage(this.currentPage + 1);
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.goToPage(this.currentPage - 1);
+    }
+  }
+
+  changeLimit(): void {
+    this.goToPage(1);
+  }
+
+  private goToPage(page: number): void {
+    this.currentPage = page;
+    this.offset = (page - 1) * this.limit;
+    this.fetchUsers();
+  }
+
+  fetchUsers(): void {
+    this.usersSub?.unsubscribe(); // cancel any in-flight request
+    this.isGridLoading = true;
+
+    this.usersSub = this.adminService
+      .getUsersByStatus(this.status, this.offset, this.limit, this.search, this.searchBy)
+      .subscribe({
+        next: (res) => {
+          this.users = res?.data ?? [];
+          this.totalUsers = res?.totalCount ?? 0;
+          this.totalPages = Math.ceil(this.totalUsers / this.limit);
+          this.isGridLoading = false;
+        },
+        error: () => {
+          this.isGridLoading = false;
+          this.toastr.error('Failed to load users');
+        },
+      });
+  }
+
+  generateReport(): void {
+    this.isLoading = true;
 
     this.httpClient
-      .get(
-        `${this.baseUrl}/api/v1/user-service/admin/user-profile-details?username=${username}`,
+      .get(`${this.apiBase}/user-details/excel`, {
+        responseType: 'blob',
+        params: {
+          status: this.status,
+          offset: this.offset,
+          limit: this.limit,
+          search: this.search,
+          searchBy: this.searchBy,
+        },
+      })
+      .pipe(
+        finalize(() => (this.isLoading = false)),
+        takeUntil(this.destroy$),
       )
-      .subscribe((data: any) => {
-        this.userProfile = data;
+      .subscribe({
+        next: (response) => {
+          const blob = new Blob([response], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'user_list.xlsx';
+          a.click();
+          window.URL.revokeObjectURL(url);
+        },
+        error: (err) => this.handleError(err, 'Failed to generate report'),
       });
+  }
 
+  // ---------------------------------------------------------------- profile
+
+  openUserProfile(username: string): void {
+    this.userProfile = null;
+    this.showUserDialog = true;
+    this.loadUserProfile(username);
     this.loadProfileImage(username);
   }
 
-  onSearch(searchBy: string, value: string) {
-    this.searchBy = searchBy;
-    this.search = value;
+  /** Fetches (or re-fetches) the profile without closing the dialog. */
+  private loadUserProfile(username: string): void {
+    this.profileSub?.unsubscribe();
 
-    this.currentPage = 1;
-    this.offset = 0;
-
-    this.fetchUsers();
-  }
-
-  nextPage() {
-    if (this.currentPage < this.totalPages) {
-      this.currentPage++;
-
-      this.offset = (this.currentPage - 1) * this.limit;
-
-      this.fetchUsers();
-    }
-  }
-
-  previousPage() {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-
-      this.offset = (this.currentPage - 1) * this.limit;
-
-      this.fetchUsers();
-    }
-  }
-
-  changeLimit() {
-    this.currentPage = 1;
-
-    this.offset = 0;
-
-    this.fetchUsers();
-  }
-
-  fetchUsers() {
-    this.isGridLoading = true;
-
-    this.adminService
-      .getUsersByStatus(
-        this.status,
-        this.offset,
-        this.limit,
-        this.search,
-        this.searchBy,
-      )
+    this.profileSub = this.httpClient
+      .get<UserProfile>(`${this.apiBase}/user-profile-details`, { params: { username } })
       .subscribe({
-        next: (res) => {
-          this.users = res.data;
-
-          this.totalUsers = res.totalCount;
-
-          this.totalPages = Math.ceil(this.totalUsers / this.limit);
-
-          this.isGridLoading = false;
-        },
-
-        error: () => {
-          this.isGridLoading = false;
-        },
+        next: (data) => (this.userProfile = this.prepareProfile(data)),
+        error: (err) => this.handleError(err, 'Failed to load user profile'),
       });
   }
 
-  profileImage = '';
-  isImageLoading: boolean = false;
-  loadProfileImage(username: string): void {
+  /** Pre-computes timeline items once instead of on every change-detection pass. */
+  private prepareProfile(profile: UserProfile): UserProfile {
+    const withHistory = (list?: any[]) =>
+      (list ?? []).map((req) => ({ ...req, historyItems: this.getHistory(req.requestTimeStatusHistory) }));
+
+    return {
+      ...profile,
+      nameChangeRequests: withHistory(profile.nameChangeRequests),
+      unblockAccountRequests: withHistory(profile.unblockAccountRequests),
+      accountRetrievalRequests: withHistory(profile.accountRetrievalRequests),
+    };
+  }
+
+  getHistory(history: any): HistoryItem[] {
+    return Object.entries(history ?? {}).map(([key, value]: [string, any]) => ({
+      status: key,
+      time: value?.requestUpdateTime,
+    }));
+  }
+
+  private loadProfileImage(username: string): void {
+    this.imageSub?.unsubscribe();
+    this.profileImage = '';
     this.isImageLoading = true;
 
-    this.httpClient
-      .get(
-        `${this.baseUrl}/api/v1/user-service/admin/profile-picture/get?username=${username}`,
-        { responseType: 'blob' },
-      )
+    this.imageSub = this.httpClient
+      .get(`${this.apiBase}/profile-picture/get`, { params: { username }, responseType: 'blob' })
       .subscribe({
         next: (blob) => {
-          if (blob.size > 0) {
-            const reader = new FileReader();
-            reader.onload = (e: any) => {
-              this.profileImage = e.target.result; // base64 string
-              sessionStorage.setItem(
-                'moneyfi.user.profile.image',
-                this.profileImage,
-              );
-              this.isImageLoading = false;
-            };
-            reader.readAsDataURL(blob);
-          } else {
-            console.warn('No profile picture found.');
+          if (blob.size === 0) {
+            this.isImageLoading = false; // no picture: fall back to placeholder
+            return;
           }
+          const reader = new FileReader();
+          reader.onload = () => {
+            this.profileImage = reader.result as string;
+            this.isImageLoading = false;
+          };
+          reader.onerror = () => (this.isImageLoading = false);
+          reader.readAsDataURL(blob);
         },
         error: (err) => {
           this.isImageLoading = false;
@@ -176,169 +321,107 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
       });
   }
 
-  closeUserDialog() {
+  closeUserDialog(): void {
+    this.profileSub?.unsubscribe();
+    this.imageSub?.unsubscribe();
     this.showUserDialog = false;
+    this.userProfile = null;
     this.profileImage = '';
+    this.isImageLoading = false;
+    this.closeBlockDialog();
   }
 
-  getHistory(history: any) {
-    return Object.entries(history).map(([key, value]: any) => ({
-      status: key,
-      time: value.requestUpdateTime,
-    }));
-  }
+  viewImage(username: string | undefined, id: number, type: string): void {
+    if (!username) {
+      return;
+    }
 
-  selectedImage: string | null = null;
-  viewImage(username: string, defectId: number, type: string): void {
     this.httpClient
-      .get(
-        `${this.baseUrl}/api/v1/user-service/admin/user-defects/image?username=${username}&type=${type}&id=${defectId}`,
-        { responseType: 'blob' },
-      )
+      .get(`${this.apiBase}/user-defects/image`, {
+        params: { username, type, id },
+        responseType: 'blob',
+      })
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (blob) => {
           const reader = new FileReader();
-          reader.onload = () => {
-            this.selectedImage = reader.result as string;
-          };
+          reader.onload = () => (this.selectedImage = reader.result as string);
           reader.readAsDataURL(blob);
         },
-        error: (err) => {
-          if (err.error instanceof Blob) {
-            const reader = new FileReader();
-            reader.onload = () => {
-              try {
-                const text = reader.result as string;
-                const errorObj = JSON.parse(text);
-                this.toastr.error(errorObj.message);
-              } catch (e) {
-                console.error('Failed to parse Blob error:', e);
-                this.toastr.error('Something went wrong');
-              }
-            };
-            reader.readAsText(err.error);
-          } else {
-            // fallback if it's not a Blob
-            const message = err.error?.message || 'Something went wrong';
-            this.toastr.error(message);
-          }
-        },
+        error: (err) => this.handleError(err),
       });
   }
 
-  showBlockDialog = false;
-  blockReason = '';
+  // ------------------------------------------------------- block / unblock
 
-  openBlockDialog() {
+  openBlockDialog(): void {
     this.showBlockDialog = true;
   }
 
-  closeBlockDialog() {
+  closeBlockDialog(): void {
     this.showBlockDialog = false;
+    this.blockReason = '';
+    this.blockSubmitted = false;
+    this.selectedFile = null;
   }
 
-  selectedFile!: File;
-  fileError = false;
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-
-    if (file) {
-      this.selectedFile = file;
-      this.fileError = false;
-    }
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedFile = input.files?.[0] ?? null;
   }
 
-  blockUser() {
-    if (!this.blockReason || !this.selectedFile) {
-      this.fileError = !this.selectedFile;
-      alert('Please provide reason and upload evidence file');
+  blockOrUnblockUser(requestId?: number): void {
+    if (this.isSubmitting || !this.userProfile) {
       return;
     }
-    const formData = new FormData();
-    formData.append('email', this.userProfile.username);
-    formData.append('reason', this.blockReason);
 
-    if (this.selectedFile) {
-      formData.append('file', this.selectedFile);
+    this.blockSubmitted = true;
+    if (!this.blockReason.trim() || !this.selectedFile) {
+      return; // inline validation messages are shown in the template
     }
 
+    const username = this.userProfile.username;
+    const isBlocking = this.userProfile.userStatus === 'ACTIVE';
+
+    const formData = new FormData();
+    formData.append('email', username);
+    formData.append('reason', this.blockReason.trim());
+    formData.append('requestId', requestId?.toString() || '');
+    formData.append('type', isBlocking ? 'BLOCK' : 'UNBLOCK');
+    formData.append('file', this.selectedFile);
+
+    this.isSubmitting = true;
+
     this.httpClient
-      .post(
-        `${this.baseUrl}/api/v1/user-service/admin/user-account/block`,
-        formData,
+      .post(`${this.apiBase}/user-accounts/status`, formData)
+      .pipe(
+        finalize(() => (this.isSubmitting = false)),
+        takeUntil(this.destroy$),
       )
       .subscribe({
-        next: (res) => {
-          this.toastr.success('User Blocked Successfully');
+        next: () => {
+          this.toastr.success(isBlocking ? 'User blocked successfully' : 'User unblocked successfully');
           this.closeBlockDialog();
+          this.loadUserProfile(username); // refresh status badge, button text and request history
+          this.fetchUsers(); // keep the grid in sync
         },
-        error: (err) => {
-          try {
-            const errorObj =
-              typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-            this.toastr.error(errorObj.message);
-          } catch (e) {
-            console.error('Failed to parse error:', err.error);
-          }
-        },
-      });
-  }
-  generateReport() {
-    this.isLoading = true;
-
-    this.httpClient
-      .get(
-        `${this.baseUrl}/api/v1/user-service/admin/user-details/excel`,
-
-        {
-          responseType: 'blob',
-
-          params: {
-            status: this.status,
-
-            offset: this.offset,
-
-            limit: this.limit,
-
-            search: this.search,
-
-            searchBy: this.searchBy,
-          },
-        },
-      )
-
-      .subscribe({
-        next: (response) => {
-          const blob = new Blob(
-            [response],
-
-            {
-              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            },
-          );
-
-          const url = window.URL.createObjectURL(blob);
-
-          const a = document.createElement('a');
-
-          a.href = url;
-
-          a.download = 'user_list.xlsx';
-
-          a.click();
-
-          window.URL.revokeObjectURL(url);
-
-          this.isLoading = false;
-        },
-
-        error: () => {
-          this.isLoading = false;
-        },
+        error: (err) => this.handleError(err),
       });
   }
 
-  ngOnDestroy(): void {
-    this.closeUserDialog();
+  // --------------------------------------------------------------- keyboard
+
+  /** Esc closes the top-most layer: image → block dialog → profile dialog. */
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.selectedImage) {
+      this.selectedImage = null;
+    } else if (this.showBlockDialog) {
+      if (!this.isSubmitting) {
+        this.closeBlockDialog();
+      }
+    } else if (this.showUserDialog) {
+      this.closeUserDialog();
+    }
   }
 }

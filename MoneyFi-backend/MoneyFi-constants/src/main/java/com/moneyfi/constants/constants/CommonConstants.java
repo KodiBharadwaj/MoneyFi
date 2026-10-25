@@ -62,6 +62,7 @@ public class CommonConstants {
     public static final String BEARER = "Bearer";
     public static final String ROLES = "roles";
     public static final String ROLE_ = "ROLE_";
+    public static final String COM_ = "COM_";
     public static final String TOKEN_BLACKLISTED_MESSAGE = "Token is Blacklisted";
     public static final String USER_VALIDATION_FAILED_MESSAGE = "Failed to validate the user";
     public static final String USER_ID = "userId";
@@ -71,6 +72,8 @@ public class CommonConstants {
     public static final String SPACE = " ";
     public static final String DOUBLE_COLON = "::";
     public static final String COLON = ":";
+    public static final String STRING_SEPARATOR = "<|>";
+    public static final String STRING_LINE_SEPARATOR = " | ";
 
     public static final String REQUEST_ID_HEADER = "Request-Id";
     public static final String MDC_REQUEST_ID = "requestId";

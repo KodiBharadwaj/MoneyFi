@@ -51,7 +51,6 @@ public class StringConstants {
     public static final String INVALID_CREDENTIALS = "Invalid Credentials Entered";
     public static final String LOGIN_ERROR = "An error occurred during login";
     public static final String OTP_RESEND_FAILURE_MESSAGE = "Otp not found or expired. Get a new otp";
-    public static final long SESSION_LOGIN_MINUTES = 60L;
     public static final String INCORRECT_PASSWORD = "Incorrect password entered";
     public static final String VERIFICATION_CODE_SENT_MESSAGE = "Verification code sent to your email!";
     public static final String MESSAGE = "message";
@@ -65,7 +64,7 @@ public class StringConstants {
     public static final String LOGOUT_SUCCESS_MESSAGE = "Logged out successfully";
     public static final String LOGOUT_FAILURE_MESSAGE = "Logout failed!";
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
-
+    public static final String PLEASE_PROVIDE_ALL_THE_DETAILS_CORRECTLY = "Please provide all the details correctly";
 
     public static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -97,6 +96,7 @@ public class StringConstants {
     public static final String CLOUDINARY_API_SECRET = "api_secret";
     public static final String CLOUDINARY_SECURE = "secure";
     public static final String BLOCKED_BY_ADMIN = "Blocked by Admin";
+    public static final String UN_BLOCKED_BY_ADMIN = "Unblocked by Admin";
     public static final String BLOCKED_BY_USER = "Blocked by User";
 
     public static final Map<String, Integer> templateIdAssociation = Map.of("profile-template", 1);

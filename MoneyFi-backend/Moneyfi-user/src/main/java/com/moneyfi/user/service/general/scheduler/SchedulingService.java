@@ -5,12 +5,11 @@ import com.moneyfi.user.repository.common.CommonServiceRepository;
 import com.moneyfi.user.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.user.repository.auth.TokenBlackListRepository;
 import com.moneyfi.user.repository.auth.UserRepository;
+import com.moneyfi.user.service.ReusableCodeClass;
 import com.moneyfi.user.service.general.scheduler.dto.UserEventDto;
-import com.moneyfi.user.service.user.dto.internal.NotificationQueueDto;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static com.moneyfi.constants.constants.CommonConstants.STRING_SEPARATOR;
 
 @Service
 @Slf4j
@@ -28,7 +29,7 @@ public class SchedulingService {
     private final UserRepository userRepository;
     private final CommonServiceRepository commonServiceRepository;
     private final GmailSyncRepository gmailSyncRepository;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final ReusableCodeClass reusableCodeClass;
 
     @PostConstruct
     public void initializeScheduledMethodsInCaseOfServiceRunningDelay(){
@@ -61,7 +62,10 @@ public class SchedulingService {
             int numberOfYears = LocalDate.now().getYear() - year;
 
             if (numberOfYears > 0) {
-                applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_BIRTHDAY_MAIL.name(), email + "<|>" + name));
+                reusableCodeClass.sendNotificationToUser(
+                        NotificationQueueEnum.USER_BIRTHDAY_MAIL.name(),
+                        email + STRING_SEPARATOR + name
+                );
             }
         });
     }
@@ -75,7 +79,10 @@ public class SchedulingService {
             int numberOfYears = LocalDate.now().getYear() - year;
 
             if (numberOfYears != 0) {
-                applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_ANNIVERSARY_MAIL.name(), email + "<|>" + name + "<|>" + numberOfYears));
+                reusableCodeClass.sendNotificationToUser(
+                        NotificationQueueEnum.USER_ANNIVERSARY_MAIL.name(),
+                        email + STRING_SEPARATOR + name + STRING_SEPARATOR + numberOfYears
+                );
             }
         });
     }

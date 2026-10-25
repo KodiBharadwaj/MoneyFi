@@ -18,13 +18,13 @@ import java.util.Map;
 
 public interface UserCommonService {
 
-    String uploadUserProfilePictureToS3(String username, Long userId, MultipartFile file) throws IOException;
+    String uploadProfilePicture(String username, Long userId, MultipartFile file) throws IOException;
 
-    ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(String username, Long userId);
+    ResponseEntity<ByteArrayResource> fetchUserProfilePicture(String username, Long userId);
 
     ResponseEntity<ByteArrayResource> getUserRaisedDefectImage(String username, String type, Long defectId);
 
-    ResponseEntity<String> deleteProfilePictureFromS3(String username, Long userId);
+    ResponseEntity<String> deleteProfilePicture(String username, Long userId);
 
     List<UserNotificationResponseDto> getUserNotifications(String username, String status);
 

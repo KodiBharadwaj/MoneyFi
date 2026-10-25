@@ -6,15 +6,16 @@ import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.auth.*;
 import com.moneyfi.user.model.general.ProfileModel;
 import com.moneyfi.user.model.gmailsync.GmailAuth;
+import com.moneyfi.user.repository.auth.UserSessionTimeRepository;
 import com.moneyfi.user.repository.general.ProfileRepository;
 import com.moneyfi.user.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.user.repository.auth.UserAuthHistRepository;
 import com.moneyfi.user.repository.auth.OtpTempRepository;
 import com.moneyfi.user.repository.auth.UserRepository;
+import com.moneyfi.user.service.ReusableCodeClass;
 import com.moneyfi.user.service.user.UserAuthService;
 import com.moneyfi.user.service.general.caching.UserCacheService;
 import com.moneyfi.user.service.user.UserCommonService;
-import com.moneyfi.user.service.user.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.user.dto.request.ChangePasswordDto;
 import com.moneyfi.user.service.user.dto.request.UserLoginDetailsRequestDto;
 import com.moneyfi.user.service.user.dto.request.UserProfile;
@@ -31,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -43,7 +43,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -66,6 +65,8 @@ public class UserAuthServiceImpl implements UserAuthService {
     private String githubClientSecret;
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
+    @Value("${user.session-time}")
+    private Integer configuredUserSessionTime;
 
     @Autowired
     private RestTemplate externalRestTemplateForOAuth;
@@ -81,7 +82,8 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final UserCacheService userCacheService;
     private final ProfileService profileService;
     private final ProfileRepository profileRepository;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final UserSessionTimeRepository userSessionTimeRepository;
+    private final ReusableCodeClass reusableCodeClass;
 
     private static final String GOOGLE_AUTH_CONSTANT_PASSWORD = null;
     private static final String GITHUB_AUTH_CONSTANT_PASSWORD = null;
@@ -111,7 +113,10 @@ public class UserAuthServiceImpl implements UserAuthService {
 
         if (!userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.ADMIN.name())) {
             saveUserProfileDetails(user.getId(), userProfile, address);
-            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_ACCOUNT_CREATION_MAIL.name(), user.getUsername() + "<|>" + userProfile.getName()));
+            reusableCodeClass.sendNotificationToUser(
+                    NotificationQueueEnum.USER_ACCOUNT_CREATION_MAIL.name(),
+                    user.getUsername() + STRING_SEPARATOR + userProfile.getName()
+            );
         }
         return user;
     }
@@ -149,7 +154,10 @@ public class UserAuthServiceImpl implements UserAuthService {
                 Authentication authentication = authenticationManager
                         .authenticate(new UsernamePasswordAuthenticationToken(username, password));
                 if (authentication.isAuthenticated()) {
-                    JwtToken token = jwtService.generateToken(existingUser, SESSION_LOGIN_MINUTES);
+                    JwtToken token = jwtService.generateToken(
+                            existingUser,
+                            userSessionTimeRepository.findByUserId(existingUser.getId()).map(UserSessionTime::getSessionTime).orElse(configuredUserSessionTime)
+                    );
                     makeOldSessionInActiveOfUserForNewLogin(username);
                     functionToPreventMultipleLogins(existingUser, token);
                     makeGmailAuthInactiveForUser(existingUser.getId());
@@ -194,7 +202,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             if (newOrExistingUser == null) {
                 newOrExistingUser = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Google User", email, GOOGLE_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()), LoginMode.GOOGLE_OAUTH.name(), null);
                 if (picture != null && !picture.trim().isEmpty())
-                    userCommonService.uploadUserProfilePictureToS3(newOrExistingUser.getUsername(), newOrExistingUser.getId(), convertImageUrlToMultipartFile(picture));
+                    userCommonService.uploadProfilePicture(newOrExistingUser.getUsername(), newOrExistingUser.getId(), convertImageUrlToMultipartFile(picture));
             }
 
             GmailAuth newAuth = new GmailAuth();
@@ -211,7 +219,10 @@ public class UserAuthServiceImpl implements UserAuthService {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
             }
             makeOldSessionInActiveOfUserForNewLogin(email);
-            JwtToken jwtToken = jwtService.generateToken(newOrExistingUser, SESSION_LOGIN_MINUTES);
+            JwtToken jwtToken = jwtService.generateToken(
+                    newOrExistingUser,
+                    userSessionTimeRepository.findByUserId(newOrExistingUser.getId()).map(UserSessionTime::getSessionTime).orElse(configuredUserSessionTime)
+            );
             functionToPreventMultipleLogins(newOrExistingUser, jwtToken);
             userRoleToken.put(userRoleAssociation.get(newOrExistingUser.getRoleId()), jwtToken.getJwtToken());
             return ResponseEntity.ok(userRoleToken);
@@ -241,7 +252,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
             ResponseEntity<Map> tokenResponse = externalRestTemplateForOAuth.postForEntity(tokenUrl, request, Map.class);
             String accessToken = (String) tokenResponse.getBody().get(ACCESS_TOKEN);
-            // 2. Get user info
+
             HttpHeaders userHeaders = new HttpHeaders();
             userHeaders.setBearerAuth(accessToken);
             HttpEntity<Void> userRequest = new HttpEntity<>(userHeaders);
@@ -272,13 +283,12 @@ public class UserAuthServiceImpl implements UserAuthService {
                         .map(e -> e.get(STRING_EMAIL))
                         .orElse(null);
             }
-            // 3. Check or create user in DB
             UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElse(null);
             if (user == null) {
                 user = registerUser(new UserProfile((name != null && !name.trim().isEmpty()) ? name : "Github User", email, GITHUB_AUTH_CONSTANT_PASSWORD, UserRoles.USER.name()),
                         LoginMode.GITHUB_OAUTH.name(), (address != null && !address.trim().isEmpty()) ? address : null);
                 if (picture != null && !picture.trim().isEmpty())
-                    userCommonService.uploadUserProfilePictureToS3(user.getUsername(), user.getId(), convertImageUrlToMultipartFile(picture));
+                    userCommonService.uploadProfilePicture(user.getUsername(), user.getId(), convertImageUrlToMultipartFile(picture));
             }
             if (user.isBlocked()) {
                 throw new ScenarioNotPossibleException("User is blocked, Kindly contact admin");
@@ -286,8 +296,9 @@ public class UserAuthServiceImpl implements UserAuthService {
                 throw new ScenarioNotPossibleException("User is deleted. Kindly contact admin");
             }
             makeOldSessionInActiveOfUserForNewLogin(email);
-            // 4. Generate JWT
-            JwtToken jwtToken = jwtService.generateToken(user, SESSION_LOGIN_MINUTES);
+            JwtToken jwtToken = jwtService.generateToken(
+                    user, userSessionTimeRepository.findByUserId(user.getId()).map(UserSessionTime::getSessionTime).orElse(configuredUserSessionTime)
+            );
             functionToPreventMultipleLogins(user, jwtToken);
             String token = jwtToken.getJwtToken().replace("'", "\\'"); // escape quotes
 
@@ -326,7 +337,10 @@ public class UserAuthServiceImpl implements UserAuthService {
             user.setOtpCount(user.getOtpCount() + 1);
             userRepository.save(user);
         }
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name(), profileService.getUserDetailsByUserId(user.getId()) + "<|>" + email + "<|>" + verificationCode));
+        reusableCodeClass.sendNotificationToUser(
+                NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name(),
+                profileService.getUserDetailsByUserId(user.getId()) + STRING_SEPARATOR + email + STRING_SEPARATOR + verificationCode
+        );
         return VERIFICATION_CODE_SENT_MESSAGE;
     }
 
@@ -412,7 +426,10 @@ public class UserAuthServiceImpl implements UserAuthService {
         user.setVerificationCodeExpiration(LocalDateTime.now());
         userRepository.save(user);
         userAuthHistRepository.save(new UserAuthHist(changePasswordDto.getUserId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE), changePasswordDto.getDescription(), changePasswordDto.getUserId()));
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_PASSWORD_CHANGE_ALERT_MAIL.name(), profileService.getUserDetailsByUserId(user.getId()) + "<|>" + user.getUsername()));
+        reusableCodeClass.sendNotificationToUser(
+                NotificationQueueEnum.USER_PASSWORD_CHANGE_ALERT_MAIL.name(),
+                profileService.getUserDetailsByUserId(user.getId()) + STRING_SEPARATOR + user.getUsername()
+        );
     }
 
     @Override
@@ -431,7 +448,10 @@ public class UserAuthServiceImpl implements UserAuthService {
                     otpTempRepository.save(new OtpTempModel(username, newOtp, LocalDateTime.now().plusMinutes(5), otpType));
                     return newOtp;
                 });
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_FOR_USER_BLOCK.name(), username + "<|>" + profileService.getUserDetailsByUserId(userData.getId()) + "<|>" + verificationCode + "<|>" + type));
+        reusableCodeClass.sendNotificationToUser(
+                NotificationQueueEnum.OTP_FOR_USER_BLOCK.name(),
+                username + STRING_SEPARATOR + profileService.getUserDetailsByUserId(userData.getId()) + STRING_SEPARATOR + verificationCode + STRING_SEPARATOR + type
+        );
         return ResponseEntity.ok(EMAIL_SENT_SUCCESS_MESSAGE);
     }
 
@@ -440,7 +460,10 @@ public class UserAuthServiceImpl implements UserAuthService {
     public String sendOtpForSignup(String email, String name) {
         UserValidations.checkForUserAlreadyExistenceValidation(userRepository.getUserDetailsByUsername(email).orElse(null));
         String verificationCode = generateVerificationCode();
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_MAIL_FOR_USER_SIGNUP.name(), email + "<|>" + name + "<|>" + verificationCode));
+        reusableCodeClass.sendNotificationToUser(
+                NotificationQueueEnum.OTP_MAIL_FOR_USER_SIGNUP.name(),
+                email + STRING_SEPARATOR + name + STRING_SEPARATOR + verificationCode
+        );
 
         Optional<OtpTempModel> tempModel = otpTempRepository.findByEmail(email).stream()
                 .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.USER_CREATION.name()))
@@ -528,7 +551,10 @@ public class UserAuthServiceImpl implements UserAuthService {
                 .map(OtpTempModel::getOtp)
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException(OTP_RESEND_FAILURE_MESSAGE));
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_FOR_USER_BLOCK.name(), username + "<|>" + profileService.getUserDetailsByUserId(getUserIdByUsername(username)) + "<|>" + verificationCode + "<|>" + type));
+        reusableCodeClass.sendNotificationToUser(
+                NotificationQueueEnum.OTP_FOR_USER_BLOCK.name(),
+                username + STRING_SEPARATOR + profileService.getUserDetailsByUserId(getUserIdByUsername(username)) + STRING_SEPARATOR + verificationCode + STRING_SEPARATOR + type
+        );
     }
 
     private String functionToGetOtpType(String type) {
@@ -544,7 +570,10 @@ public class UserAuthServiceImpl implements UserAuthService {
     private void resendOtpForForgotPasswordOperation(String username) {
         UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         if (StringUtils.isNotBlank(user.getVerificationCode()) && user.getVerificationCodeExpiration() != null && user.getVerificationCodeExpiration().isAfter(LocalDateTime.now())) {
-            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name(), profileService.getUserDetailsByUserId(user.getId()) + "<|>" + username + "<|>" + user.getVerificationCode()));
+            reusableCodeClass.sendNotificationToUser(
+                    NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name(),
+                    profileService.getUserDetailsByUserId(user.getId()) + STRING_SEPARATOR + username + STRING_SEPARATOR + user.getVerificationCode()
+            );
         } else throw new ScenarioNotPossibleException(OTP_RESEND_FAILURE_MESSAGE);
     }
 

@@ -48,6 +48,8 @@ public class GmailSyncService {
     private String googleClientId;
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String googleClientSecret;
+    @Value("${request.gmail-sync-count}")
+    private Integer gmailSyncRequestConfigured;
 
     private final GmailSyncRepository gmailSyncRepository;
     private final GmailProcessedMessageRepository processedRepository;
@@ -86,24 +88,27 @@ public class GmailSyncService {
         gmailSyncRepository.save(auth);
     }
 
-    public GmailConsentResponse<Integer> getGmailConsentStatus(Long userId) {
+    public GmailConsentResponse getGmailConsentStatus(Long userId) {
         Optional<GmailAuth> gmailAuth = gmailSyncRepository.findByUserId(userId);
 
         if (gmailAuth.isPresent()) {
             Integer count = gmailAuth.get().getCount() != null ? gmailAuth.get().getCount() : null;
             if (Boolean.TRUE.equals(gmailAuth.get().getIsActive())) {
-                return GmailConsentResponse.<Integer>builder()
-                        .data(count)
+                return GmailConsentResponse.builder()
+                        .count(count)
+                        .configuredCount(gmailSyncRequestConfigured)
                         .consentStatus(Boolean.TRUE).build();
             } else if(count != null) {
-                return GmailConsentResponse.<Integer>builder()
-                        .data(count)
+                return GmailConsentResponse.builder()
+                        .count(count)
+                        .configuredCount(gmailSyncRequestConfigured)
                         .consentStatus(Boolean.FALSE).build();
             }
         }
-        return GmailConsentResponse.<Integer>builder()
-                .data(0)
-                .consentStatus(false)
+        return GmailConsentResponse.builder()
+                .count(0)
+                .configuredCount(gmailSyncRequestConfigured)
+                .consentStatus(Boolean.FALSE)
                 .build();
     }
 
@@ -133,13 +138,13 @@ public class GmailSyncService {
             throw new ScenarioNotPossibleException(FUTURE_SYNC_NOT_ALLOWED);
         }
         GmailAuth gmailAuth = gmailSyncRepository.findByUserId(userId).filter(GmailAuth::getIsActive).orElseThrow(() -> new ResourceNotFoundException(CONSENT_NOT_FOUND));
-        if(gmailAuth != null && gmailAuth.getCount() >= 3) throw new ScenarioNotPossibleException(SYNC_LIMIT_CROSSED_TODAY_MESSAGE);
+        if(gmailAuth != null && gmailAuth.getCount() >= gmailSyncRequestConfigured) throw new ScenarioNotPossibleException(SYNC_LIMIT_CROSSED_TODAY_MESSAGE);
         else if(gmailAuth == null) throw new ScenarioNotPossibleException(USER_NOT_ALLOWED_TO_SYNC);
 
         gmailAuth.setCount((gmailAuth.getCount() != null ? gmailAuth.getCount() : 0) + 1);
         gmailSyncRepository.save(gmailAuth);
         /** return new HashMap<>(Map.of(2, List.of(new ParsedTransaction(1, "Upi", new BigDecimal("123"), "CREDIT OR DEBIT", LocalDateTime.now())))); **/
-        return Map.of(3 - gmailAuth.getCount(), syncEmails(userId, date).stream().filter(Objects::nonNull).toList());
+        return Map.of(gmailSyncRequestConfigured - gmailAuth.getCount(), syncEmails(userId, date).stream().filter(Objects::nonNull).toList());
     }
 
     private List<ParsedTransaction> syncEmails(Long userId, LocalDate date) throws IOException, URISyntaxException {

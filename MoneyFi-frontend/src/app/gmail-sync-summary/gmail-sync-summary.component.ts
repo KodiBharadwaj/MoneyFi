@@ -16,8 +16,9 @@ interface GmailSyncHistoryResponse {
   syncCount: number;
 }
 
-interface GmailConsentResponse<T> {
-  data: T;
+interface GmailConsentResponse {
+  count: number;
+  configuredCount: number;
   consentStatus: boolean;
 }
 
@@ -125,16 +126,16 @@ export class GmailSyncSummaryComponent implements OnInit {
 
   checkGmailSyncStatus() {
     this.httpClient
-      .get<GmailConsentResponse<number>>(`${this.baseUrl}/api/v1/user-service/gmail-sync/status`)
+      .get<GmailConsentResponse>(`${this.baseUrl}/api/v1/user-service/gmail-sync/status`)
       .subscribe((res) => {
 
-        const count = res?.data ?? 0;
+        const count = res.count ?? 0;
 
-        this.remainingSyncCount = Math.max(3 - count, 0);
+        this.remainingSyncCount = Math.max(res.configuredCount - count, 0);
 
         this.isGmailConnected = res?.consentStatus ?? false;
 
-        this.gmailSyncEnabled = count >= 3;
+        this.gmailSyncEnabled = count >= res.configuredCount;
       });
   }
 

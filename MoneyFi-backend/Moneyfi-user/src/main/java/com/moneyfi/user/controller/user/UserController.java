@@ -126,21 +126,21 @@ public class UserController {
     public ResponseEntity<String> uploadUserProfilePictureToS3(Authentication authentication,
                                                                @RequestParam(value = "file") MultipartFile file) throws IOException {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        return ResponseEntity.ok(userCommonService.uploadUserProfilePictureToS3(username, userAuthService.getUserIdByUsername(username), file));
+        return ResponseEntity.ok(userCommonService.uploadProfilePicture(username, userAuthService.getUserIdByUsername(username), file));
     }
 
     @Operation(summary = "Api to fetch the user profile picture from aws s3")
     @GetMapping("/profile-picture/get")
     public ResponseEntity<ByteArrayResource> fetchUserProfilePictureFromS3(Authentication authentication) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        return userCommonService.fetchUserProfilePictureFromS3(username, userAuthService.getUserIdByUsername(username));
+        return userCommonService.fetchUserProfilePicture(username, userAuthService.getUserIdByUsername(username));
     }
 
     @Operation(summary = "Api to delete the user profile picture from aws s3")
     @DeleteMapping("/profile-picture/delete")
-    public ResponseEntity<String> deleteProfilePictureFromS3(Authentication authentication) {
+    public ResponseEntity<String> deleteProfilePicture(Authentication authentication) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        return userCommonService.deleteProfilePictureFromS3(username, userAuthService.getUserIdByUsername(username));
+        return userCommonService.deleteProfilePicture(username, userAuthService.getUserIdByUsername(username));
     }
 
     @Operation(summary = "Api to get the admin scheduled notifications")

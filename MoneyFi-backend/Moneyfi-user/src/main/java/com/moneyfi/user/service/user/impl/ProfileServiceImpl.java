@@ -12,11 +12,9 @@ import com.moneyfi.user.repository.general.ContactUsRepository;
 import com.moneyfi.user.repository.general.ExcelTemplateRepository;
 import com.moneyfi.user.repository.general.ProfileRepository;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
-import com.moneyfi.user.service.general.aws.AwsServices;
-import com.moneyfi.user.service.general.cloudinary.CloudinaryService;
-import com.moneyfi.user.service.general.rabbitmq.RabbitMqQueuePublisher;
+import com.moneyfi.user.service.ReusableCodeClass;
+import com.moneyfi.user.service.general.storage.FileStorageService;
 import com.moneyfi.user.service.user.dto.emaildto.UserRaisedDefectDto;
-import com.moneyfi.user.service.user.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.user.dto.request.UserDefectRequestDto;
 import com.moneyfi.user.service.user.dto.request.UserFeedbackRequestDto;
 import com.moneyfi.user.service.user.ProfileService;
@@ -37,9 +35,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -58,16 +53,10 @@ import static com.moneyfi.constants.constants.CommonConstants.generateAlphabetCo
 import static com.moneyfi.constants.constants.CommonConstants.generateVerificationCode;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class ProfileServiceImpl implements ProfileService {
-
-    @Value("${spring.profiles.active:}")
-    private String activeProfile;
-
-    @Autowired
-    private RabbitMqQueuePublisher rabbitMqQueuePublisher;
 
     private static final String EMAIL_MISMATCH_MESSAGE = "Email mismatch detected";
     private static final String TEMPLATE_NOT_FOUND_MESSAGE = "Template not found";
@@ -77,9 +66,8 @@ public class ProfileServiceImpl implements ProfileService {
     private final CommonServiceRepository commonServiceRepository;
     private final ContactUsHistRepository contactUsHistRepository;
     private final ExcelTemplateRepository excelTemplateRepository;
-    private final AwsServices awsServices;
-    private final CloudinaryService cloudinaryService;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final FileStorageService fileStorageService;
+    private final ReusableCodeClass reusableCodeClass;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -156,14 +144,12 @@ public class ProfileServiceImpl implements ProfileService {
         userDefectHist.setUpdatedBy(userId);
         contactUsHistRepository.save(userDefectHist);
 
-        if (userDefectRequestDto.getFile() != null && !userDefectRequestDto.getFile().isEmpty()) {
-            if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
-                cloudinaryService.uploadPictureToCloudinary(userDefectRequestDto.getFile(), savedDefect.getId(), userDefectRequestDto.getEmail().trim(), UPLOAD_USER_RAISED_REPORT_PICTURE);
-            } else {
-                /** awsServices.uploadPictureToS3(savedDefect.getId(), userDefectRequestDto.getEmail().trim(), userDefectRequestDto.getFile(), UPLOAD_USER_RAISED_REPORT_PICTURE); */
-            }
-        }
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), userDefectRequestDto.getName() + "<|>" + userDefect.getEmail() + "<|>" + "resolve issue" + "<|>" + referenceNumber));
+        fileStorageService.uploadPicture(userDefectRequestDto.getFile(), savedDefect.getId(), userDefectRequestDto.getEmail().trim(), UPLOAD_USER_RAISED_REPORT_PICTURE);
+
+        reusableCodeClass.sendNotificationToUser(
+                NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(),
+                userDefectRequestDto.getName() + "<|>" + userDefect.getEmail() + "<|>" + "resolve issue" + "<|>" + referenceNumber
+        );
         String base64Image = null;
         String fileName = null;
         String contentType = null;
@@ -173,7 +159,10 @@ public class ProfileServiceImpl implements ProfileService {
             fileName = file.getOriginalFilename();
             contentType = file.getContentType();
         }
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_RAISED_DEFECT_TO_ADMIN_MAIL.name(), objectMapper.writeValueAsString(new UserRaisedDefectDto(userDefectRequestDto.getMessage(), userDefectRequestDto.getName(), userDefectRequestDto.getEmail(), base64Image, fileName, contentType))));
+        reusableCodeClass.sendNotificationToUser(
+                NotificationQueueEnum.USER_RAISED_DEFECT_TO_ADMIN_MAIL.name(),
+                objectMapper.writeValueAsString(new UserRaisedDefectDto(userDefectRequestDto.getMessage(), userDefectRequestDto.getName(), userDefectRequestDto.getEmail(), base64Image, fileName, contentType))
+        );
     }
 
     @Override
@@ -200,7 +189,10 @@ public class ProfileServiceImpl implements ProfileService {
         userFeedbackHist.setUpdatedTime(savedFeedback.getStartTime());
         userFeedbackHist.setUpdatedBy(userId);
         contactUsHistRepository.save(userFeedbackHist);
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_FEEDBACK_MAIL.name(), rating + "<|>" + (StringUtils.isBlank(message) ? "NULL" : message)));
+        reusableCodeClass.sendNotificationToUser(
+                NotificationQueueEnum.USER_FEEDBACK_MAIL.name(),
+                rating + "<|>" + (StringUtils.isBlank(message) ? "NULL" : message)
+        );
     }
 
     @Override
@@ -239,12 +231,7 @@ public class ProfileServiceImpl implements ProfileService {
         if ("profile-template".equalsIgnoreCase(fileType)) fileName = StringConstants.PROFILE_TEMPLATE_EXCEL_NAME;
 
         try {
-            if (LOCAL_PROFILE.equalsIgnoreCase(activeProfile) || PROD_PROFILE.equalsIgnoreCase(activeProfile)) {
-                return cloudinaryService.getExcelTemplateFromCloudinary(fileName);
-            } else {
-                /** return awsServices.fetchExcelTemplateFromS3(fileName); */
-                return null;
-            }
+            return fileStorageService.fetchFile(fileName);
         } catch (Exception e) {
             ExcelTemplate template = excelTemplateRepository.findByName(fileName).orElseThrow(() -> new ResourceNotFoundException(TEMPLATE_NOT_FOUND_MESSAGE));
             return ResponseEntity.ok()

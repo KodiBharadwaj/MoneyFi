@@ -15,5 +15,9 @@ public interface ContactUsHistRepository extends JpaRepository<ContactUsHist, Lo
 
     /** JPQL */
     @Query("SELECT c FROM ContactUsHist c WHERE c.contactUsId = :id AND c.requestStatus = 'SUBMITTED'")
+    List<ContactUsHist> findByContactUsIdListAndSubmitted(Long id);
+
+    /** JPQL */
+    @Query("SELECT c FROM ContactUsHist c WHERE c.contactUsId = :id")
     List<ContactUsHist> findByContactUsIdList(Long id);
 }

@@ -1,15 +1,12 @@
 package com.moneyfi.user.service.gmailsync.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
 @Builder
-public class GmailConsentResponse<T> {
-    T data;
+public class GmailConsentResponse {
+    Integer count;
+    Integer configuredCount;
     boolean consentStatus;
 }

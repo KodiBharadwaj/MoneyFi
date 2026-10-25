@@ -1,0 +1,62 @@
+spring:
+  profiles:
+    active: ${PROFILE:local}
+  application:
+    name: MoneyFi-notification
+
+  rabbitmq:
+    host: ${CLOUD_RABBITMQ_HOST_NAME:localhost}
+    port: ${CLOUD_RABBITMQ_PORT:5672}
+    username: ${CLOUD_RABBITMQ_USERNAME:guest}
+    password: ${CLOUD_RABBITMQ_PASSWORD:guest}
+    virtual-host: ${CLOUD_RABBITMQ_VIRTUAL_HOST:/}
+    ssl:
+      enabled: ${CLOUD_RABBITMQ_SSL_ENABLED:false}
+
+  #Artemis queue is only for local development and not for production
+  artemis:
+    mode: native
+    host: localhost
+    port: 8161
+    user: artemis
+    password: artemis
+    queue-name: artemis.queue.producer-user.consumer-notification
+    feedback-queue: artemis.queue.producer-user.consumer-notification.feedback
+
+email:
+  brevo:
+    api-key: ${BREVO_API_KEY:xxxxxx}
+    from-email: ${BREVO_FROM_EMAIL:xxx}
+
+  filter:
+    from:
+      email : ${ADMIN_EMAIL:xxxx}
+      password : ${ADMIN_PASSWORD:xxxx}
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY:xxxx}
+      secret-key: ${AWS_SECRET_KEY:xxxx}
+    region:
+      static: ${AWS_REGION:xxx}
+    stack:
+      auto: false
+
+app:
+  communication:
+    queue-provider: ${QUEUE_PROVIDER:rabbitmq} #Supported values: artemis, rabbitmq
+    email-provider: ${EMAIL_PROVIDER:google_smtp} #Supported values: google_smtp, brevo, aws_ses
+
+rabbitmq:
+  exchange: rabbit.mq.exchange
+  exchange-type: ${CLOUD_RABBITMQ_EXCHANGE_TYPE:topic}
+  request:
+    routing-key: rabbit.mq.routing.key
+    queue: rabbit.mq.queue
+  response:
+    routing-key: rabbit.mq.response.routing.key
+    queue: rabbit.mq.response.queue
+
+server:
+  port: ${APPLICATION_PORT:8600}

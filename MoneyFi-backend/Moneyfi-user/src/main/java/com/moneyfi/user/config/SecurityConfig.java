@@ -1,19 +1,7 @@
 package com.moneyfi.user.config;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.moneyfi.user.service.jwtservice.JwtFilter;
-import io.swagger.v3.oas.models.Components;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
-import io.swagger.v3.oas.models.security.SecurityScheme;
-import io.swagger.v3.oas.models.servers.Server;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,25 +17,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.List;
-
-import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
-import static com.moneyfi.constants.constants.CommonConstants.BEARER;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    @Value("${cloud.aws.credentials.access-key}")
-    private String accessKey;
-    @Value("${cloud.aws.credentials.secret-key}")
-    private String secretKey;
-    @Value("${cloud.aws.region.static}")
-    private String region;
 
     private final UserDetailsService userDetailsService;
     private final JwtFilter jwtFilter;
@@ -85,47 +60,5 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
-    }
-
-    @Bean
-    public RestTemplate getRestTemplate(){
-        return new RestTemplate();
-    }
-
-    @Bean
-    public RestTemplate externalRestTemplate() {
-        return new RestTemplate();
-    }
-
-    @Bean
-    public RestTemplate externalRestTemplateForOAuth(RestTemplateBuilder builder) {
-        return builder.build(); /* No @LoadBalanced */
-    }
-
-    /** Aws s3 security connection **/
-    @Bean
-    public AmazonS3 s3Client(){
-        AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
-        return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(region).build();
-    }
-
-    /** Swagger Config */
-    @Bean
-    public OpenAPI customOpenAPI() {
-        final String securitySchemeName = "bearerAuth";
-        return new OpenAPI()
-                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
-                .servers(List.of(
-                        new Server().url("/")
-                ))
-                .components(new Components()
-                        .addSecuritySchemes(securitySchemeName,
-                                new SecurityScheme()
-                                        .name(AUTHORIZATION)
-                                        .type(SecurityScheme.Type.HTTP)
-                                        .scheme(BEARER.toLowerCase())
-                                        .bearerFormat("JWT")
-                        )
-                );
     }
 }
