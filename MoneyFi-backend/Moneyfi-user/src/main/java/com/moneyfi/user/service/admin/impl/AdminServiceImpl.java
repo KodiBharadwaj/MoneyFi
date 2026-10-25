@@ -36,7 +36,6 @@ import com.moneyfi.user.service.general.storage.FileStorageService;
 import com.moneyfi.user.service.user.UserCommonService;
 import com.moneyfi.user.service.user.dto.emaildto.AdminBlockUserDto;
 import com.moneyfi.user.service.user.dto.internal.GmailSyncCountJsonDto;
-import com.moneyfi.user.service.user.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
@@ -49,7 +48,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -99,7 +97,6 @@ public class AdminServiceImpl implements AdminService {
     private final ScheduleNotificationRepository scheduleNotificationRepository;
     private final UserCommonService userCommonService;
     private final UserNotificationRepository userNotificationRepository;
-    private final ApplicationEventPublisher applicationEventPublisher;
     private final ExcelTemplateRepository excelTemplateRepository;
     private final UserRepository userRepository;
     private final UserAuthHistRepository userAuthHistRepository;
@@ -481,7 +478,10 @@ public class AdminServiceImpl implements AdminService {
                 contactUsHistRepository.save(contactUsHist);
                 updateUserAuthHistoryTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.ADMIN_BLOCK), reason, adminUserId, LocalDateTime.now(ZoneId.systemDefault()));
                 if (ObjectUtils.isNotEmpty(file))
-                    applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.ADMIN_BLOCKED_USER_MAIL.name(), objectMapper.writeValueAsString(new AdminBlockUserDto(email, reason, userProfile.getName(), convertMultipartFileToPdfBytes(file)))));
+                    reusableCodeClass.sendNotificationToUser(
+                            NotificationQueueEnum.ADMIN_BLOCKED_USER_MAIL.name(),
+                            objectMapper.writeValueAsString(new AdminBlockUserDto(email, reason, userProfile.getName(), convertMultipartFileToPdfBytes(file)))
+                    );
             }
             case UNBLOCK -> {
                 if (!user.isBlocked())

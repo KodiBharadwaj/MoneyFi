@@ -1,12 +1,12 @@
-package com.moneyfi.user.service.general.inter;
+package com.moneyfi.user.service.general.inter.impl;
 
 import com.moneyfi.constants.dto.BatchInfoForEmailDto;
 import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.user.repository.auth.UserRepository;
 import com.moneyfi.user.repository.general.ProfileRepository;
-import com.moneyfi.user.service.user.dto.internal.NotificationQueueDto;
+import com.moneyfi.user.service.ReusableCodeClass;
+import com.moneyfi.user.service.general.inter.InterServiceCommunicationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +19,7 @@ import static com.moneyfi.user.util.constants.StringConstants.objectMapper;
 @RequiredArgsConstructor
 public class InterServiceCommunicationServiceImpl implements InterServiceCommunicationService {
 
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final ReusableCodeClass reusableCodeClass;
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
 
@@ -31,11 +31,9 @@ public class InterServiceCommunicationServiceImpl implements InterServiceCommuni
             dto.setUsername(userRepository.findById(dto.getUserId()).get().getUsername());
         }
         try {
-            applicationEventPublisher.publishEvent(
-                    new NotificationQueueDto(
-                            NotificationQueueEnum.USER_BATCH_INFO_EMAIL.name(),
-                            objectMapper.writeValueAsString(batchInfoList)
-                    )
+            reusableCodeClass.sendNotificationToUser(
+                    NotificationQueueEnum.USER_BATCH_INFO_EMAIL.name(),
+                    objectMapper.writeValueAsString(batchInfoList)
             );
         } catch (Exception e) {
             throw new RuntimeException(e);

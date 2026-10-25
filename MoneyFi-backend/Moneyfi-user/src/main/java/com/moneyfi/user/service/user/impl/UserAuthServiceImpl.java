@@ -12,10 +12,10 @@ import com.moneyfi.user.repository.gmailsync.GmailSyncRepository;
 import com.moneyfi.user.repository.auth.UserAuthHistRepository;
 import com.moneyfi.user.repository.auth.OtpTempRepository;
 import com.moneyfi.user.repository.auth.UserRepository;
+import com.moneyfi.user.service.ReusableCodeClass;
 import com.moneyfi.user.service.user.UserAuthService;
 import com.moneyfi.user.service.general.caching.UserCacheService;
 import com.moneyfi.user.service.user.UserCommonService;
-import com.moneyfi.user.service.user.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.service.user.dto.request.ChangePasswordDto;
 import com.moneyfi.user.service.user.dto.request.UserLoginDetailsRequestDto;
 import com.moneyfi.user.service.user.dto.request.UserProfile;
@@ -32,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -83,8 +82,8 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final UserCacheService userCacheService;
     private final ProfileService profileService;
     private final ProfileRepository profileRepository;
-    private final ApplicationEventPublisher applicationEventPublisher;
     private final UserSessionTimeRepository userSessionTimeRepository;
+    private final ReusableCodeClass reusableCodeClass;
 
     private static final String GOOGLE_AUTH_CONSTANT_PASSWORD = null;
     private static final String GITHUB_AUTH_CONSTANT_PASSWORD = null;
@@ -114,7 +113,10 @@ public class UserAuthServiceImpl implements UserAuthService {
 
         if (!userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.ADMIN.name())) {
             saveUserProfileDetails(user.getId(), userProfile, address);
-            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_ACCOUNT_CREATION_MAIL.name(), user.getUsername() + "<|>" + userProfile.getName()));
+            reusableCodeClass.sendNotificationToUser(
+                    NotificationQueueEnum.USER_ACCOUNT_CREATION_MAIL.name(),
+                    user.getUsername() + STRING_SEPARATOR + userProfile.getName()
+            );
         }
         return user;
     }
@@ -335,7 +337,10 @@ public class UserAuthServiceImpl implements UserAuthService {
             user.setOtpCount(user.getOtpCount() + 1);
             userRepository.save(user);
         }
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name(), profileService.getUserDetailsByUserId(user.getId()) + "<|>" + email + "<|>" + verificationCode));
+        reusableCodeClass.sendNotificationToUser(
+                NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name(),
+                profileService.getUserDetailsByUserId(user.getId()) + STRING_SEPARATOR + email + STRING_SEPARATOR + verificationCode
+        );
         return VERIFICATION_CODE_SENT_MESSAGE;
     }
 
@@ -421,7 +426,10 @@ public class UserAuthServiceImpl implements UserAuthService {
         user.setVerificationCodeExpiration(LocalDateTime.now());
         userRepository.save(user);
         userAuthHistRepository.save(new UserAuthHist(changePasswordDto.getUserId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE), changePasswordDto.getDescription(), changePasswordDto.getUserId()));
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.USER_PASSWORD_CHANGE_ALERT_MAIL.name(), profileService.getUserDetailsByUserId(user.getId()) + "<|>" + user.getUsername()));
+        reusableCodeClass.sendNotificationToUser(
+                NotificationQueueEnum.USER_PASSWORD_CHANGE_ALERT_MAIL.name(),
+                profileService.getUserDetailsByUserId(user.getId()) + STRING_SEPARATOR + user.getUsername()
+        );
     }
 
     @Override
@@ -440,7 +448,10 @@ public class UserAuthServiceImpl implements UserAuthService {
                     otpTempRepository.save(new OtpTempModel(username, newOtp, LocalDateTime.now().plusMinutes(5), otpType));
                     return newOtp;
                 });
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_FOR_USER_BLOCK.name(), username + "<|>" + profileService.getUserDetailsByUserId(userData.getId()) + "<|>" + verificationCode + "<|>" + type));
+        reusableCodeClass.sendNotificationToUser(
+                NotificationQueueEnum.OTP_FOR_USER_BLOCK.name(),
+                username + STRING_SEPARATOR + profileService.getUserDetailsByUserId(userData.getId()) + STRING_SEPARATOR + verificationCode + STRING_SEPARATOR + type
+        );
         return ResponseEntity.ok(EMAIL_SENT_SUCCESS_MESSAGE);
     }
 
@@ -449,7 +460,10 @@ public class UserAuthServiceImpl implements UserAuthService {
     public String sendOtpForSignup(String email, String name) {
         UserValidations.checkForUserAlreadyExistenceValidation(userRepository.getUserDetailsByUsername(email).orElse(null));
         String verificationCode = generateVerificationCode();
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_MAIL_FOR_USER_SIGNUP.name(), email + "<|>" + name + "<|>" + verificationCode));
+        reusableCodeClass.sendNotificationToUser(
+                NotificationQueueEnum.OTP_MAIL_FOR_USER_SIGNUP.name(),
+                email + STRING_SEPARATOR + name + STRING_SEPARATOR + verificationCode
+        );
 
         Optional<OtpTempModel> tempModel = otpTempRepository.findByEmail(email).stream()
                 .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(OtpType.USER_CREATION.name()))
@@ -537,7 +551,10 @@ public class UserAuthServiceImpl implements UserAuthService {
                 .map(OtpTempModel::getOtp)
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException(OTP_RESEND_FAILURE_MESSAGE));
-        applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_FOR_USER_BLOCK.name(), username + "<|>" + profileService.getUserDetailsByUserId(getUserIdByUsername(username)) + "<|>" + verificationCode + "<|>" + type));
+        reusableCodeClass.sendNotificationToUser(
+                NotificationQueueEnum.OTP_FOR_USER_BLOCK.name(),
+                username + STRING_SEPARATOR + profileService.getUserDetailsByUserId(getUserIdByUsername(username)) + STRING_SEPARATOR + verificationCode + STRING_SEPARATOR + type
+        );
     }
 
     private String functionToGetOtpType(String type) {
@@ -553,7 +570,10 @@ public class UserAuthServiceImpl implements UserAuthService {
     private void resendOtpForForgotPasswordOperation(String username) {
         UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         if (StringUtils.isNotBlank(user.getVerificationCode()) && user.getVerificationCodeExpiration() != null && user.getVerificationCodeExpiration().isAfter(LocalDateTime.now())) {
-            applicationEventPublisher.publishEvent(new NotificationQueueDto(NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name(), profileService.getUserDetailsByUserId(user.getId()) + "<|>" + username + "<|>" + user.getVerificationCode()));
+            reusableCodeClass.sendNotificationToUser(
+                    NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name(),
+                    profileService.getUserDetailsByUserId(user.getId()) + STRING_SEPARATOR + username + STRING_SEPARATOR + user.getVerificationCode()
+            );
         } else throw new ScenarioNotPossibleException(OTP_RESEND_FAILURE_MESSAGE);
     }
 
