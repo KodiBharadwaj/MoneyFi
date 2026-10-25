@@ -95,7 +95,7 @@ cloud:
 azure:
   storage:
     container-name: ${AZURE_STORAGE_CONTAINER:moneyfiuserdev}
-    connection-string: ${AZURE_STORAGE_CONNECTION_STRING:DefaultEndpointsProtocol=https;AccountName=moneyfiuserdev;AccountKey=bA87Su/EKRXS6RsEuI0htgmYkg02K+aEjEfbW2rrY/xTySkZKBeLjTTHJt+6gDjBJcJTRL85p/Dg+AStp8qq2w==;EndpointSuffix=core.windows.net}
+    connection-string: ${AZURE_STORAGE_CONNECTION_STRING:DefaultEndpointsProtocol=https;AccountName=moneyfiuserdev;AccountKey=xxxx/xxxxx/xxxx==;EndpointSuffix=core.windows.net}
 
 application:
   bucket:
