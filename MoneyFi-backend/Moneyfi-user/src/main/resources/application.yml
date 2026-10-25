@@ -31,6 +31,15 @@ spring:
             client-id: xxxxxxxxxxxxxxxxxx
             client-secret: xxxxxxxxxxxxxxxxxxxxxxxxxx
             redirect-uri: "xxxxxxxxxxxxxxxxxxxxx"
+  rabbitmq:
+    host: ${CLOUD_RABBITMQ_HOST_NAME:localhost}
+    port: ${CLOUD_RABBITMQ_PORT:5672}
+    username: ${CLOUD_RABBITMQ_USERNAME:guest}
+    password: ${CLOUD_RABBITMQ_PASSWORD:guest}
+    virtual-host: ${CLOUD_RABBITMQ_VIRTUAL_HOST:/}
+    ssl:
+      enabled: ${CLOUD_RABBITMQ_SSL_ENABLED:false}
+
 
   boot:
     admin:
@@ -42,6 +51,15 @@ spring:
           metadata:
             user.name: ${MONITOR_SERVICE_CLIENT_USERNAME:client}
             user.password: ${MONITOR_SERVICE_CLIENT_PASSWORD:client123}
+
+  artemis:
+    mode: native
+    host: localhost
+    port: 8161
+    user: artemis
+    password: artemis
+    queue-name: artemis.queue.producer-user.consumer-notification
+    feedback-queue: artemis.queue.producer-user.consumer-notification.feedback
 
   flyway:
     enabled: true
@@ -76,8 +94,8 @@ cloud:
 
 azure:
   storage:
-    container-name: ${AZURE_STORAGE_CONTAINER:sample-azure-blob-storage}
-    connection-string: ${AZURE_STORAGE_CONNECTION_STRING:DefaultEndpointsProtocol=https;AccountName=dummyaccount;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=;EndpointSuffix=core.windows.net}
+    container-name: ${AZURE_STORAGE_CONTAINER:moneyfiuserdev}
+    connection-string: ${AZURE_STORAGE_CONNECTION_STRING:DefaultEndpointsProtocol=https;AccountName=moneyfiuserdev;AccountKey=bA87Su/EKRXS6RsEuI0htgmYkg02K+aEjEfbW2rrY/xTySkZKBeLjTTHJt+6gDjBJcJTRL85p/Dg+AStp8qq2w==;EndpointSuffix=core.windows.net}
 
 application:
   bucket:
@@ -94,6 +112,16 @@ cloudinary:
   jackson:
     time-zone: ${DEFAULT_TIME_ZONE:Asia/Kolkata}
 
+rabbitmq:
+  exchange: rabbit.mq.exchange
+  exchange-type: ${CLOUD_RABBITMQ_EXCHANGE_TYPE:topic}
+  request:
+    routing-key: rabbit.mq.routing.key
+    queue: rabbit.mq.queue
+  response:
+    routing-key: rabbit.mq.response.routing.key
+    queue: rabbit.mq.response.queue
+
 logging:
   level:
     org.hibernate.SQL: OFF
@@ -108,6 +136,15 @@ springdoc:
   swagger-ui:
     enabled: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
 request:
   gmail-sync-count: ${GMAIL_SYNC_COUNT:3}
 user:
@@ -116,6 +153,8 @@ user:
 app:
   storage:
     provider: ${STORAGE_PROVIDER:cloudinary} #Supported values: aws, gcp, azure, cloudinary
+  communication:
+    queue-provider: ${QUEUE_PROVIDER:artemis} #Supported values: artemis, rabbitmq
 
 server:
   port: ${APPLICATION_PORT:8500}

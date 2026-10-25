@@ -12,7 +12,7 @@ import com.moneyfi.user.repository.general.ContactUsRepository;
 import com.moneyfi.user.repository.general.ExcelTemplateRepository;
 import com.moneyfi.user.repository.general.ProfileRepository;
 import com.moneyfi.user.repository.common.CommonServiceRepository;
-import com.moneyfi.user.service.general.rabbitmq.RabbitMqQueuePublisher;
+import com.moneyfi.user.service.general.rabbitmq.publisher.RabbitMqQueuePublisher;
 import com.moneyfi.user.service.general.storage.FileStorageService;
 import com.moneyfi.user.service.user.dto.emaildto.UserRaisedDefectDto;
 import com.moneyfi.user.service.user.dto.internal.NotificationQueueDto;
