@@ -1,6 +1,7 @@
-package com.moneyfi.user.service.general.rabbitmq.publisher;
+package com.moneyfi.user.service.general.queue.rabbitmq.publisher;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.moneyfi.user.service.general.queue.PublishQueueService;
 import com.moneyfi.user.service.user.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import jakarta.annotation.PostConstruct;
@@ -9,11 +10,13 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class RabbitMqQueuePublisher {
+@ConditionalOnProperty(name = "app.communication.queue-provider", havingValue = "rabbitmq", matchIfMissing = true)
+public class RabbitMqQueueServicePublisher implements PublishQueueService {
 
     private final RabbitTemplate rabbitTemplate;
 

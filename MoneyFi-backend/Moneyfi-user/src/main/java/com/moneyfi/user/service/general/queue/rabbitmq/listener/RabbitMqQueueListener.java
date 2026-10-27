@@ -1,4 +1,4 @@
-package com.moneyfi.user.service.general.rabbitmq.listener;
+package com.moneyfi.user.service.general.queue.rabbitmq.listener;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
