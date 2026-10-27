@@ -1,4 +1,4 @@
-import { Component, NgZone, OnInit } from '@angular/core';
+import { Component, HostListener, NgZone, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IncomeComponent } from '../income/income.component';
 import { ExpensesComponent } from '../expenses/expenses.component';
@@ -17,6 +17,13 @@ import { NotificationService } from '../notification-service.service';
 import { UserNotification } from '../model/user-notification';
 
 declare const google: any;
+
+interface NavItem {
+  route: string;
+  label: string;
+  icon: string;
+  showBadge?: boolean;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -52,8 +59,60 @@ export class DashboardComponent implements OnInit{
   gmailSyncEnabled = false;
   isGmailConnected = false;
 
+  private static readonly MOBILE_BREAKPOINT = 768;
+  private static readonly SIDEBAR_KEY = 'moneyfi.sidebar.open';
+
+  isMobile = false;
+  isSidebarOpen = true;
+
+  navItems: NavItem[] = [
+    { route: 'overview', label: 'Overview', icon: 'fas fa-home' },
+    { route: 'income', label: 'Income', icon: 'fas fa-money-bill-wave' },
+    { route: 'expenses', label: 'Expenses', icon: 'fas fa-receipt' },
+    { route: 'budgets', label: 'Budgets', icon: 'fas fa-wallet' },
+    { route: 'goals', label: 'Goals', icon: 'fas fa-bullseye' },
+    { route: 'analysis', label: 'AI Analysis', icon: 'fas fa-chart-line' },
+    { route: 'reports-insights', label: 'Reports/Insights', icon: 'fas fa-lightbulb' },
+    { route: 'notifications', label: 'Notifications', icon: 'fa fa-bell', showBadge: true },
+  ];
+
+  userItems: NavItem[] = [
+    { route: 'profile', label: 'Profile', icon: 'fas fa-user-circle' },
+    { route: 'user-configuration', label: 'Settings', icon: 'fas fa-cog' },
+  ];
+
+  @HostListener('window:resize')
+  onResize(): void {
+    const wasMobile = this.isMobile;
+    this.isMobile = window.innerWidth <= DashboardComponent.MOBILE_BREAKPOINT;
+    if (this.isMobile !== wasMobile) {
+      this.isSidebarOpen = !this.isMobile;
+    }
+  }
+
+  toggleSidebar(): void {
+    this.isSidebarOpen = !this.isSidebarOpen;
+    if (!this.isMobile) {
+      try { localStorage.setItem(DashboardComponent.SIDEBAR_KEY, String(this.isSidebarOpen)); } catch { }
+    }
+  }
+
+  closeSidebar(): void {
+    this.isSidebarOpen = false;
+  }
+
+  onNavItemClick(): void {
+    if (this.isMobile) this.closeSidebar();
+  }
 
   ngOnInit(): void {
+    this.isMobile = window.innerWidth <= DashboardComponent.MOBILE_BREAKPOINT;
+    if (this.isMobile) {
+      this.isSidebarOpen = false;
+    } else {
+      try { this.isSidebarOpen = localStorage.getItem(DashboardComponent.SIDEBAR_KEY) !== 'false'; } catch { }
+    }
+
     this.notificationService.notificationCount$.subscribe(count => {
       this.notificationCount = count;
     });

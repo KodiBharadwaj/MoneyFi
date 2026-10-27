@@ -7,84 +7,55 @@
   </div>
 
   <!-- Sidebar -->
-  <nav class="sidebar">
+  <!-- Backdrop (mobile overlay mode) -->
+  <div class="sidebar-backdrop" *ngIf="isMobile && isSidebarOpen" (click)="closeSidebar()"></div>
+
+  <!-- Sidebar -->
+  <nav class="sidebar" [class.collapsed]="!isSidebarOpen" [class.mobile]="isMobile" id="app-sidebar">
     <div class="logo">
       <i class="fas fa-chart-pie fa-2x"></i>
       <span>MoneyFi</span>
     </div>
-    
+
     <div class="nav-links">
-      <button routerLink="overview" routerLinkActive="active">
-        <i class="fas fa-home"></i>
-        <span>Overview</span>
-      </button>
-
-      <button routerLink="income" routerLinkActive="active">
-        <i class="fas fa-money-bill-wave"></i>
-        <span>Income</span>
-      </button>
-
-      <button routerLink="expenses" routerLinkActive="active">
-        <i class="fas fa-receipt"></i>
-        <span>Expenses</span>
-      </button>
-
-      <button routerLink="budgets" routerLinkActive="active">
-        <i class="fas fa-wallet"></i>
-        <span>Budgets</span>
-      </button>
-
-      <button routerLink="goals" routerLinkActive="active">
-        <i class="fas fa-bullseye"></i>
-        <span>Goals</span>
-      </button>
-
-      <button routerLink="analysis" routerLinkActive="active">
-        <i class="fas fa-chart-line"></i>
-        <span>AI Analysis</span>
-      </button>
-
-      <button routerLink="reports-insights" routerLinkActive="active">
-        <i class="fas fa-lightbulb"></i>
-        <span>Reports/Insights</span>
-      </button>
-
-      <button routerLink="notifications" routerLinkActive="active" class="notification-btn">
-        <i class="fa fa-bell"></i>
-        <span>Notifications</span>
+      <button *ngFor="let item of navItems" [routerLink]="item.route" routerLinkActive="active"
+        [class.notification-btn]="item.showBadge" [title]="item.label" (click)="onNavItemClick()">
+        <i [class]="item.icon"></i>
+        <span>{{ item.label }}</span>
 
         <!-- Badge (only show when count > 0) -->
-        <span class="badge" *ngIf="notificationCount > 0">
+        <span class="badge" *ngIf="item.showBadge && notificationCount > 0">
           {{ notificationCount }}
         </span>
       </button>
-
     </div>
 
-    <!-- dashboard.component.html -->
-    <button
-      id="gmail-sync-btn"
-      class="btn btn-primary"
-      (click)="onGmailSyncClick()"
-    >
-      Sync Email Transactions
+    <button id="gmail-sync-btn" class="btn btn-primary" (click)="onGmailSyncClick(); onNavItemClick()"
+      title="Sync Email Transactions">
+      <i class="fas fa-sync-alt sync-icon"></i>
+      <span>Sync Email Transactions</span>
     </button>
 
     <div class="user-section">
-      <button routerLink="profile" routerLinkActive="active">
-        <i class="fas fa-user-circle"></i>
-        <span>Profile</span>
+      <button *ngFor="let item of userItems" [routerLink]="item.route" routerLinkActive="active"
+        [title]="item.label" (click)="onNavItemClick()">
+        <i [class]="item.icon"></i>
+        <span>{{ item.label }}</span>
       </button>
-      <button routerLink="user-configuration" routerLinkActive="active">
-        <i class="fas fa-cog"></i>
-        <span>Settings</span>
-      </button>
-      <button class="logout-btn" (click)="logoutUser()">
+      <button class="logout-btn" (click)="logoutUser()" title="Logout">
         <i class="fas fa-sign-out-alt"></i>
         <span>Logout</span>
       </button>
     </div>
   </nav>
+
+  <!-- Toggle: floats on the sidebar's right edge -->
+  <button class="sidebar-toggle" [class.open]="isSidebarOpen" [class.mobile]="isMobile" (click)="toggleSidebar()"
+    [attr.aria-expanded]="isSidebarOpen" aria-controls="app-sidebar"
+    [attr.aria-label]="isSidebarOpen ? 'Close sidebar' : 'Open sidebar'">
+    <i class="fas" [ngClass]="isSidebarOpen ? 'fa-chevron-left' : 'fa-chevron-right'"></i>
+  </button>
+
   <main class="main-content">
     <div class="content-container">
       <router-outlet></router-outlet>
