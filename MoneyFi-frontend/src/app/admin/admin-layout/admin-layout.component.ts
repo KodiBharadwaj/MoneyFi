@@ -30,6 +30,7 @@ export class AdminLayoutComponent {
     { label: 'User Feedbacks', link: '/admin/feedbacks' },
     { label: 'Insights/Charts', link: '/admin/insights' },
     { label: 'Configuration', link: '/admin/configuration' },
+    { label: 'Failed Queues', link: '/admin/configuration/failed-queues' },
   ];
 
   toggleSidebar() {

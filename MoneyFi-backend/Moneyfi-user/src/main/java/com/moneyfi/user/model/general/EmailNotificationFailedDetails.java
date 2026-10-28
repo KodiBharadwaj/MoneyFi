@@ -29,8 +29,15 @@ public class EmailNotificationFailedDetails {
     private String message;
 
     @NotBlank
-    @Column(name = "user_details")
-    private String userDetails;
+    @Column(name = "username")
+    private String username;
+
+    @NotNull
+    @Column(name = "user_id")
+    private String userId;
+
+    @Column(name = "name")
+    private String name;
 
     @NotNull
     @Column(name = "created_by")

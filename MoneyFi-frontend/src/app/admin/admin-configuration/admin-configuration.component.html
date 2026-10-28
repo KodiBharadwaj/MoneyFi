@@ -66,6 +66,15 @@
       Modify
     </button>
   </div>
+
+  <!-- Config Card 8 -->
+  <div class="config-card">
+    <h3>Failed Queues</h3>
+    <p>View failed email notification queue details</p>
+    <button class="config-btn primary" [routerLink]="'/admin/configuration/failed-queues'">
+      View
+    </button>
+  </div>
 </div>
 
 <div class="expired-section" *ngIf="showExpiredNotifications">

@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -287,5 +288,14 @@ public class AdminController {
                                       @NotNull @RequestParam(value = "time") Integer time) {
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         userRequestsService.changeUserSessionTime(adminUserId, username, time);
+    }
+
+    @Operation(summary = "Api to get the failed queues", description = "Admin can view the failed queue email notification details")
+    @GetMapping("/failed-queues")
+    public ResponseEntity<PaginatedResponseDto<FailedQueueDetailsResponseDto>> getFailedQueueEmailNotificationDetails(@NotNull @RequestParam OffsetDateTime startDate,
+                                                                                                                      @NotNull @RequestParam OffsetDateTime endDate,
+                                                                                                                      @ModelAttribute PaginatedRequestDto requestDto) {
+        List<FailedQueueDetailsResponseDto> responseList = adminService.getFailedQueueEmailNotificationDetails(startDate, endDate, requestDto);
+        return ResponseEntity.ok(StringConstants.returnPaginatedBuilder(responseList, FailedQueueDetailsResponseDto::getTotalCount));
     }
 }

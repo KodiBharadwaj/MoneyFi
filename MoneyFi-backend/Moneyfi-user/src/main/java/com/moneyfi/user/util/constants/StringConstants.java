@@ -1,6 +1,7 @@
 package com.moneyfi.user.util.constants;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.moneyfi.constants.dto.BuildResponseDto;
 import com.moneyfi.constants.dto.PaginatedResponseDto;
 import com.moneyfi.user.model.general.ProfileModel;
 import com.moneyfi.user.repository.general.ProfileRepository;

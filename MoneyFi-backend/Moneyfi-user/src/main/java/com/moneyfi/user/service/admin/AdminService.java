@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -66,4 +67,6 @@ public interface AdminService {
     void uploadExcelTemplate(Long adminUserId, String type,String operation, MultipartFile file) throws IOException;
 
     List<ExcelTemplateList> getAllExcelTemplates();
+
+    List<FailedQueueDetailsResponseDto> getFailedQueueEmailNotificationDetails(OffsetDateTime startDate, OffsetDateTime endDate, PaginatedRequestDto requestDto);
 }

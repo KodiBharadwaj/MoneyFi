@@ -41,6 +41,10 @@ import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.AdminValidations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,9 +76,6 @@ import static com.moneyfi.user.util.enums.SchedulingNotificationType.ADMIN_SCHED
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
 
-    @Value("${spring.profiles.active:}")
-    private String activeProfile;
-
     @Value("${excel.export.output-dir:./exports}")
     private String outputDirectory;
 
@@ -104,6 +105,7 @@ public class AdminServiceImpl implements AdminService {
     private final ExcelGenerationService excelGenerationService;
     private final ReusableCodeClass reusableCodeClass;
     private final FileStorageService fileStorageService;
+    private final EmailNotificationFailedRepository emailNotificationFailedRepository;
 
     @Override
     public AdminOverviewPageDto getAdminOverviewPageDetails() {
@@ -631,6 +633,35 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<ExcelTemplateList> getAllExcelTemplates() {
         return excelTemplateRepository.getAllExcelTemplateList();
+    }
+
+    @Override
+    public List<FailedQueueDetailsResponseDto> getFailedQueueEmailNotificationDetails(OffsetDateTime startDate, OffsetDateTime endDate, PaginatedRequestDto requestDto) {
+        int page = (int) (requestDto.getOffset() / requestDto.getLimit());
+        Sort sort = Sort.by(
+                Sort.Direction.fromString(Optional.ofNullable(requestDto.getSortOrder()).orElse("DESC")),
+                Optional.ofNullable(requestDto.getSortBy()).orElse("createdAt")
+        );
+
+        Pageable pageable = PageRequest.of(page, requestDto.getLimit().intValue(), sort);
+
+        Page<EmailNotificationFailedDetails> result =
+                emailNotificationFailedRepository.getFailedQueueEmailNotificationDetails(startDate.toLocalDateTime(), endDate.toLocalDateTime(), requestDto.getSearch(), pageable);
+
+        return result.getContent()
+                .stream()
+                .<FailedQueueDetailsResponseDto>map(entity -> FailedQueueDetailsResponseDto.builder()
+                        .failedQueueId(entity.getId())
+                        .mdcRequestId(entity.getMdcRequestId())
+                        .referenceNumber(entity.getReferenceNumber())
+                        .username(entity.getUsername())
+                        .userId(Long.valueOf(entity.getUserId()))
+                        .name(entity.getName())
+                        .message(entity.getMessage())
+                        .failureTime(entity.getCreatedAt())
+                        .totalCount(result.getTotalElements())
+                        .build())
+                .toList();
     }
 
     private void functionCallToUpdateExcelTemplate(Long adminUserId, String fileName, MultipartFile file) throws IOException {

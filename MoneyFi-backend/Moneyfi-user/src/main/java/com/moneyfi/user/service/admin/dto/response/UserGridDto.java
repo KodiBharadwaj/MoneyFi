@@ -2,16 +2,17 @@ package com.moneyfi.user.service.admin.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.moneyfi.user.dto.ReusableTotalCountDto;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.sql.Timestamp;
 import java.util.Date;
 
 import static com.moneyfi.user.util.constants.StringConstants.DATE_TIME_PATTERN;
 
-@Data
+@Getter
+@Setter
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserGridDto extends ReusableTotalCountDto {

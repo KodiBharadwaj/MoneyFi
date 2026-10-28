@@ -1,0 +1,90 @@
+<div class="fq-container">
+  <div class="fq-header">
+    <div>
+      <h2>Failed Queues</h2>
+      <p class="subtitle">Email notifications that failed to process</p>
+    </div>
+    <div class="count-badge">
+      <span class="count">{{ totalCount }}</span>
+      <span class="label">failures in range</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-card">
+    <div class="field">
+      <label for="fq-start">Start date</label>
+      <input id="fq-start" type="datetime-local" step="1" [(ngModel)]="startDate" />
+    </div>
+    <div class="field">
+      <label for="fq-end">End date</label>
+      <input id="fq-end" type="datetime-local" step="1" [(ngModel)]="endDate" />
+    </div>
+    <button class="search-btn" (click)="search()" [disabled]="loading">
+      {{ loading ? 'Loading...' : 'Search' }}
+    </button>
+  </div>
+
+  <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <div *ngIf="loading" class="state">Loading failed queues...</div>
+
+  <div *ngIf="!loading && !errorMessage && failedQueues.length === 0" class="state empty">
+    <div class="empty-icon">✔</div>
+    No failed queues found for the selected period.
+  </div>
+
+  <div class="table-wrapper" *ngIf="!loading && failedQueues.length > 0">
+    <table class="fq-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>User</th>
+          <th>Reference No.</th>
+          <th>Request ID</th>
+          <th>Failure Time</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of failedQueues">
+          <td><span class="id-chip">#{{ item.failedQueueId }}</span></td>
+          <td>
+            <div class="user-cell">
+              <span class="avatar">{{ (item.name || item.username || '?').charAt(0).toUpperCase() }}</span>
+              <div>
+                <div class="user-name">{{ item.name }}</div>
+                <div class="user-email">{{ item.username }}</div>
+              </div>
+            </div>
+          </td>
+          <td><code>{{ item.referenceNumber }}</code></td>
+          <td><code class="muted">{{ item.mdcRequestId }}</code></td>
+          <td class="nowrap">{{ item.failureTime | date:'medium' }}</td>
+          <td class="message" [class.expanded]="expandedId === item.failedQueueId"
+              (click)="toggleRow(item.failedQueueId)" title="Click to expand/collapse">
+            <span class="status-dot"></span>{{ item.message }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination-footer">
+    <div class="left">Total : {{ totalCount }}</div>
+
+    <div class="middle">
+      <button (click)="previousPage()" [disabled]="offset === 0 || loading">Previous</button>
+      <span>{{ startRecord }} - {{ endRecord }}</span>
+      <button (click)="nextPage()" [disabled]="offset + limit >= totalCount || loading">Next</button>
+    </div>
+
+    <div class="right">
+      <select [(ngModel)]="limit" (change)="changeLimit()">
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="20">20</option>
+        <option [ngValue]="50">50</option>
+      </select>
+    </div>
+  </div>
+</div>
