@@ -12,6 +12,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { environment } from '../../../environments/environment';
+import { ToastrService } from 'ngx-toastr';
 
 interface AdminActionDto {
   email: string;
@@ -47,7 +48,8 @@ export class AdminRequestDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<AdminRequestDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private http: HttpClient
+    private http: HttpClient,
+    private toastr: ToastrService
   ) {}
 
   baseUrl = environment.BASE_URL;
@@ -77,7 +79,16 @@ export class AdminRequestDialogComponent {
         next : () => {
           this.dialogRef.close('approved');
         },
-        error : () => alert('Failed to approve')
+          error: (err) => {
+          console.error('Failed to load income data:', err);
+          try {
+              const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+              const message = errorObj?.message || errorObj?.error || 'Something went wrong';
+              this.toastr.error(message, 'Login Failed');
+            } catch (e) {
+              console.error('Failed to parse error:', err.error);
+            }
+        }
       })
     } else {
       alert('Reference number does not match!');
