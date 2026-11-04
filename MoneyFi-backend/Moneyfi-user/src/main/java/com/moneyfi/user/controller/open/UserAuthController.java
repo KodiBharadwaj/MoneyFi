@@ -11,7 +11,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -50,12 +49,7 @@ public class UserAuthController {
     @Operation(summary = "Api end point for user to login")
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> loginUserViaEmailPasswordMode(@Valid @RequestBody UserLoginDetailsRequestDto requestDto) {
-        try {
-            return userAuthService.login(requestDto);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
-        }
+        return userAuthService.login(requestDto);
     }
 
     @Operation(summary = "Api to check the eligibility for next otp")

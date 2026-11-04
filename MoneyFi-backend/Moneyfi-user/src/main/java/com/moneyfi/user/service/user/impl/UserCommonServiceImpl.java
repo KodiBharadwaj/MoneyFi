@@ -27,6 +27,7 @@ import com.moneyfi.user.service.user.dto.response.UserNotificationResponseDto;
 import com.moneyfi.user.service.user.dto.response.UserRequestStatusDto;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.UserValidations;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +46,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,6 +58,9 @@ import static com.moneyfi.user.util.constants.StringUrls.DAILY_QUOTE_EXTERNAL_AP
 @Slf4j
 @Service
 public class UserCommonServiceImpl implements UserCommonService {
+
+    @Value("${request.gmail-sync-count}")
+    private Integer gmailSyncRequestConfigured;
 
     private final ProfileRepository profileRepository;
     private final ContactUsRepository contactUsRepository;
@@ -621,9 +626,9 @@ public class UserCommonServiceImpl implements UserCommonService {
     @Transactional(rollbackFor = Exception.class)
     public void userRequestToIncreaseGmailSyncDailyCount(GmailSyncCountIncreaseRequestDto request, MultipartFile image, String username) throws IOException {
         UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
-        UserValidations.validateUserGmailSyncCountIncreaseRequest(request, user.getId(), gmailSyncRepository);
+        UserValidations.validateUserGmailSyncCountIncreaseRequest(request, user.getId(), gmailSyncRepository, gmailSyncRequestConfigured);
         ContactUs existingRequest = contactUsRepository.findByEmail(username).stream()
-                .filter(gmailSyncRequest -> gmailSyncRequest.getRequestReason().equalsIgnoreCase(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name()) && gmailSyncRequest.getStartTime().toLocalDate().equals(LocalDate.now()))
+                .filter(gmailSyncRequest -> gmailSyncRequest.getRequestReason().equalsIgnoreCase(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name()) && gmailSyncRequest.getStartTime().toLocalDate().equals(LocalDate.now(ZoneId.systemDefault())))
                 .findFirst().orElse(null);
         if(ObjectUtils.isNotEmpty(existingRequest)) {
             throw new ScenarioNotPossibleException("Request already " + existingRequest.getRequestStatus().substring(0,1).toUpperCase() + existingRequest.getRequestStatus().substring(1).toLowerCase());
@@ -639,7 +644,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         contactUs.setRequestReason(RequestReason.GMAIL_SYNC_REQUEST_TYPE.name());
         contactUs.setVerified(Boolean.FALSE);
         contactUs.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-        contactUs.setStartTime(LocalDateTime.now());
+        contactUs.setStartTime(LocalDateTime.now(ZoneId.systemDefault()));
         ContactUs savedRequest = contactUsRepository.save(contactUs);
 
         GmailSyncCountJsonDto gmailSyncCountJsonDto = new GmailSyncCountJsonDto(request.getCount(), request.getReason(), savedRequest.getId());
@@ -650,8 +655,8 @@ public class UserCommonServiceImpl implements UserCommonService {
         ScheduleNotification scheduleNotification = new ScheduleNotification();
         scheduleNotification.setSubject("Gmail Sync Request Count Increase");
         scheduleNotification.setDescription(jsonString);
-        scheduleNotification.setScheduleFrom(LocalDateTime.now());
-        scheduleNotification.setScheduleTo(LocalDate.now().atTime(LocalTime.MAX));
+        scheduleNotification.setScheduleFrom(LocalDateTime.now(ZoneId.systemDefault()));
+        scheduleNotification.setScheduleTo(LocalDate.now(ZoneId.systemDefault()).atTime(LocalTime.MAX));
         scheduleNotification.setRecipients(username);
         scheduleNotification.setScheduleBy(user.getId());
         scheduleNotification.setUpdatedBy(user.getId());

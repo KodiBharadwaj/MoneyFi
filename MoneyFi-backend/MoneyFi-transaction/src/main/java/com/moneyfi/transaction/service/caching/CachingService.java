@@ -12,8 +12,7 @@ public class CachingService {
     private CachingService() {}
 
     public static String getCategoryNamesFromCache(Integer categoryId, String type, RedisTemplate redisTemplate) {
-        String key = "categoryList::" + type;
-        List<CategoryResponseDto> list = (List<CategoryResponseDto>) redisTemplate.opsForValue().get(key);
+        List<CategoryResponseDto> list = getCategoryIdsFromCache(type, redisTemplate);
         if (list != null) {
             return list.stream()
                     .filter(c -> c.getCategoryId().equals(categoryId))
@@ -26,6 +25,11 @@ public class CachingService {
 
     public static List<CategoryResponseDto> getCategoryIdsFromCache(String type, RedisTemplate redisTemplate) {
         String key = "categoryList::" + type;
-        return (List<CategoryResponseDto>) redisTemplate.opsForValue().get(key);
+        try {
+            return (List<CategoryResponseDto>) redisTemplate.opsForValue().get(key);
+        } catch (Exception e) {
+            log.warn("Redis unavailable, falling back to database for key '{}': {}", key, e.getMessage());
+            return null;
+        }
     }
 }

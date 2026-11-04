@@ -33,8 +33,13 @@ public class JwtService {
             String username = getUsernameFromToken(token).trim();
             String redisKey = REDIS_BLACKLIST_TOKEN_PREFIX_KEY + DOUBLE_COLON + username + COLON + token;
 
-            if (!redisTemplate.hasKey(redisKey)) {
-                throw new IllegalArgumentException(TOKEN_BLACKLISTED_MESSAGE);
+            try {
+                if (!redisTemplate.hasKey(redisKey)) {
+                    throw new IllegalArgumentException(TOKEN_BLACKLISTED_MESSAGE);
+                }
+            } catch (DataAccessException ex) {
+                // Redis unavailable: the DB lookup below still validates the session
+                log.warn("Redis unavailable, falling back to database session validation for user '{}': {}", username, ex.getMessage());
             }
 
             return transactionRepository.getUserIdFromUsernameAndToken(username, token);

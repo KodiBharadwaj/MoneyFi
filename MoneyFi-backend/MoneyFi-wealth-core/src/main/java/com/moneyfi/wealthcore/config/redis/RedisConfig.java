@@ -1,7 +1,11 @@
 package com.moneyfi.wealthcore.config.redis;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -14,9 +18,10 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
 
+@Slf4j
 @Configuration
 @EnableCaching
-public class RedisConfig {
+public class RedisConfig implements CachingConfigurer {
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
@@ -35,5 +40,34 @@ public class RedisConfig {
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return template;
+    }
+
+    /**
+     * When Redis is unavailable, cache reads behave as cache misses (so callers fall back
+     * to the database) and cache writes/evictions are skipped instead of failing the request.
+     */
+    @Override
+    public CacheErrorHandler errorHandler() {
+        return new CacheErrorHandler() {
+            @Override
+            public void handleCacheGetError(RuntimeException exception, Cache cache, Object key) {
+                log.warn("Redis unavailable, skipping cache GET for cache '{}' key '{}': {}", cache.getName(), key, exception.getMessage());
+            }
+
+            @Override
+            public void handleCachePutError(RuntimeException exception, Cache cache, Object key, Object value) {
+                log.warn("Redis unavailable, skipping cache PUT for cache '{}' key '{}': {}", cache.getName(), key, exception.getMessage());
+            }
+
+            @Override
+            public void handleCacheEvictError(RuntimeException exception, Cache cache, Object key) {
+                log.warn("Redis unavailable, skipping cache EVICT for cache '{}' key '{}': {}", cache.getName(), key, exception.getMessage());
+            }
+
+            @Override
+            public void handleCacheClearError(RuntimeException exception, Cache cache) {
+                log.warn("Redis unavailable, skipping cache CLEAR for cache '{}': {}", cache.getName(), exception.getMessage());
+            }
+        };
     }
 }

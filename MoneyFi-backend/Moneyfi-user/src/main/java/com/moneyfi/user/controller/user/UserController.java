@@ -26,11 +26,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/v1/user-service/user")
-@PreAuthorize("hasRole('USER')")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('USER')")
+@RequestMapping("/api/v1/user-service/user")
 public class UserController {
 
     private final UserAuthService userAuthService;
@@ -188,7 +188,7 @@ public class UserController {
         return userCommonService.blockOrDeleteAccountByUserRequest(username, request);
     }
 
-    @Operation(summary = "Api to request Admin to increase the gmail sync count")
+    @Operation(summary = "Api to request Admin to increase the gmail sync count", description = "User can raise request to increase gmail sync request count only for that day")
     @PostMapping(value = "/user-request/gmail-sync-request", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void userRequestToIncreaseGmailSyncDailyCount(Authentication authentication,
                                                          @RequestPart(value = "data") @Valid GmailSyncCountIncreaseRequestDto request,

@@ -93,8 +93,12 @@ public class CommonServiceImpl implements CommonService {
     public boolean isTokenBlacklisted(String token, String username) {
         String key = REDIS_BLACKLIST_TOKEN_PREFIX_KEY + DOUBLE_COLON + username + COLON + token;
 
-        if (redisTemplate.hasKey(key)) {
-            return false;
+        try {
+            if (redisTemplate.hasKey(key)) {
+                return false;
+            }
+        } catch (Exception e) {
+            log.warn("Redis unavailable, falling back to database for blacklist check of user '{}': {}", username, e.getMessage());
         }
         return !tokenBlacklistRepository.findByUsernameAndToken(username, token).isEmpty();
     }

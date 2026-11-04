@@ -4,6 +4,7 @@ import com.moneyfi.constants.dto.CategoryResponseDto;
 import com.moneyfi.user.model.auth.SessionTokenModel;
 import com.moneyfi.user.repository.auth.SessionTokenRepository;
 import com.moneyfi.user.service.user.dto.response.ProfileDetailsDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -15,6 +16,7 @@ import java.util.List;
 import static com.moneyfi.constants.constants.CommonConstants.*;
 
 @Service
+@Slf4j
 public class UserCacheService {
 
     @Autowired
@@ -37,11 +39,15 @@ public class UserCacheService {
 
     public List<String> getCategoryFromCache(String type) {
         String key = "categoryList::" + type;
-        List<CategoryResponseDto> list = (List<CategoryResponseDto>) redisTemplate.opsForValue().get(key);
-        if (list != null) {
-            return list.stream()
-                    .map(response -> (response.getCategory() + "-" + response.getCategoryId()))
-                    .toList();
+        try {
+            List<CategoryResponseDto> list = (List<CategoryResponseDto>) redisTemplate.opsForValue().get(key);
+            if (list != null) {
+                return list.stream()
+                        .map(response -> (response.getCategory() + "-" + response.getCategoryId()))
+                        .toList();
+            }
+        } catch (Exception e) {
+            log.warn("Redis unavailable, falling back to database for key '{}': {}", key, e.getMessage());
         }
         return List.of();
     }
@@ -54,7 +60,11 @@ public class UserCacheService {
     public SessionTokenModel saveSessionTokenModel(SessionTokenModel sessionTokenModel, SessionTokenRepository sessionTokenRepository) {
         SessionTokenModel saved = sessionTokenRepository.save(sessionTokenModel);
         String key = REDIS_BLACKLIST_TOKEN_PREFIX_KEY + DOUBLE_COLON + saved.getUsername() + COLON + saved.getToken();
-        redisTemplate.opsForValue().set(key, Boolean.TRUE);
+        try {
+            redisTemplate.opsForValue().set(key, Boolean.TRUE);
+        } catch (Exception e) {
+            log.warn("Redis unavailable, skipping session token caching for key '{}': {}", key, e.getMessage());
+        }
         return saved;
     }
 }

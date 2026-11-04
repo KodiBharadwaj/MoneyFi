@@ -70,9 +70,9 @@ public class UserValidations {
         }
     }
 
-    public static void validateUserGmailSyncCountIncreaseRequest(GmailSyncCountIncreaseRequestDto request, Long userId, GmailSyncRepository gmailSyncRepository) {
-        if (request.getCount() <= 0 || request.getCount() > 3) {
-            throw new ScenarioNotPossibleException("Please enter valid count between 0 to 3");
+    public static void validateUserGmailSyncCountIncreaseRequest(GmailSyncCountIncreaseRequestDto request, Long userId, GmailSyncRepository gmailSyncRepository, Integer gmailSyncRequestConfigured) {
+        if (request.getCount() <= 0 || request.getCount() > gmailSyncRequestConfigured) {
+            throw new ScenarioNotPossibleException("Please enter valid count between 0 and " + (gmailSyncRequestConfigured + 1));
         }
         if (ObjectUtils.isEmpty(request.getReason())) {
             throw new ScenarioNotPossibleException("Reason should not be empty");
@@ -82,8 +82,8 @@ public class UserValidations {
         if (ObjectUtils.isEmpty(currentCount)) {
             throw new ScenarioNotPossibleException("Gmail consent details not found");
         } else {
-            if (currentCount < 3) {
-                throw new ScenarioNotPossibleException("You still have " + (3 - currentCount) + " chance/chances");
+            if (currentCount < gmailSyncRequestConfigured) {
+                throw new ScenarioNotPossibleException("You still have " + (gmailSyncRequestConfigured - currentCount) + " chance/chances");
             }
         }
     }
