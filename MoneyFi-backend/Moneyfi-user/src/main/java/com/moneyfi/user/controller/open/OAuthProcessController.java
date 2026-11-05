@@ -1,6 +1,6 @@
 package com.moneyfi.user.controller.open;
 
-import com.moneyfi.user.service.user.UserAuthService;
+import com.moneyfi.user.service.primary.user.UserAuthService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

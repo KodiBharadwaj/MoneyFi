@@ -1,7 +1,7 @@
 package com.moneyfi.user.exceptions.handler;
 
 import com.moneyfi.user.exceptions.*;
-import com.moneyfi.user.service.user.dto.response.ErrorResponse;
+import com.moneyfi.user.service.primary.user.dto.response.ErrorResponse;
 import jakarta.persistence.NoResultException;
 import jakarta.validation.ConstraintViolationException;
 import org.apache.coyote.BadRequestException;

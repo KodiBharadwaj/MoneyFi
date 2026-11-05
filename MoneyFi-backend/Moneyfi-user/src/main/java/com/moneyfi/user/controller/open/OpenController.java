@@ -1,8 +1,8 @@
 package com.moneyfi.user.controller.open;
 
-import com.moneyfi.user.service.user.UserCommonService;
-import com.moneyfi.user.service.user.dto.request.*;
-import com.moneyfi.user.service.user.dto.response.UserRequestStatusDto;
+import com.moneyfi.user.service.primary.user.UserCommonService;
+import com.moneyfi.user.service.primary.user.dto.request.*;
+import com.moneyfi.user.service.primary.user.dto.response.UserRequestStatusDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;

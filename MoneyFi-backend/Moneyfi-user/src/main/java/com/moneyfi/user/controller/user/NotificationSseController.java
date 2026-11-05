@@ -2,8 +2,8 @@ package com.moneyfi.user.controller.user;
 
 import com.moneyfi.constants.enums.UserRoles;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
-import com.moneyfi.user.service.user.CommonService;
-import com.moneyfi.user.service.jwtservice.JwtService;
+import com.moneyfi.user.service.primary.user.CommonService;
+import com.moneyfi.user.service.primary.jwtservice.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;

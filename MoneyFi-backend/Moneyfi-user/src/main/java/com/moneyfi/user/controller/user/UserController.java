@@ -1,14 +1,14 @@
 package com.moneyfi.user.controller.user;
 
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
-import com.moneyfi.user.model.general.ProfileModel;
-import com.moneyfi.user.service.user.CommonService;
-import com.moneyfi.user.service.user.UserAuthService;
-import com.moneyfi.user.service.user.UserCommonService;
-import com.moneyfi.user.service.user.dto.request.*;
-import com.moneyfi.user.service.user.dto.response.UserNotificationResponseDto;
-import com.moneyfi.user.service.user.ProfileService;
-import com.moneyfi.user.service.user.dto.response.ProfileDetailsDto;
+import com.moneyfi.user.model.primary.general.ProfileModel;
+import com.moneyfi.user.service.primary.user.CommonService;
+import com.moneyfi.user.service.primary.user.UserAuthService;
+import com.moneyfi.user.service.primary.user.UserCommonService;
+import com.moneyfi.user.service.primary.user.dto.request.*;
+import com.moneyfi.user.service.primary.user.dto.response.UserNotificationResponseDto;
+import com.moneyfi.user.service.primary.user.ProfileService;
+import com.moneyfi.user.service.primary.user.dto.response.ProfileDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

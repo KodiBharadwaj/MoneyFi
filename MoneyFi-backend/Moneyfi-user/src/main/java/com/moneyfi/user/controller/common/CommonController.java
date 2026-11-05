@@ -1,6 +1,6 @@
 package com.moneyfi.user.controller.common;
 
-import com.moneyfi.user.service.user.UserAuthService;
+import com.moneyfi.user.service.primary.user.UserAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;

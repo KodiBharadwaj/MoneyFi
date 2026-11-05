@@ -1,11 +1,11 @@
 package com.moneyfi.user.controller.open;
 
 import com.moneyfi.constants.enums.LoginMode;
-import com.moneyfi.user.service.user.UserAuthService;
-import com.moneyfi.user.service.user.UserCommonService;
-import com.moneyfi.user.service.user.dto.request.UserLoginDetailsRequestDto;
-import com.moneyfi.user.service.user.dto.request.UserProfile;
-import com.moneyfi.user.service.user.dto.response.RemainingTimeCountDto;
+import com.moneyfi.user.service.primary.user.UserAuthService;
+import com.moneyfi.user.service.primary.user.UserCommonService;
+import com.moneyfi.user.service.primary.user.dto.request.UserLoginDetailsRequestDto;
+import com.moneyfi.user.service.primary.user.dto.request.UserProfile;
+import com.moneyfi.user.service.primary.user.dto.response.RemainingTimeCountDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;

@@ -1,10 +1,9 @@
 package com.moneyfi.user.util.constants;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.moneyfi.constants.dto.BuildResponseDto;
 import com.moneyfi.constants.dto.PaginatedResponseDto;
-import com.moneyfi.user.model.general.ProfileModel;
-import com.moneyfi.user.repository.general.ProfileRepository;
+import com.moneyfi.user.model.primary.general.ProfileModel;
+import com.moneyfi.user.repository.primary.general.ProfileRepository;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

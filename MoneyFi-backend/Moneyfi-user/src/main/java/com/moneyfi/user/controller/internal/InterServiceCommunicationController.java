@@ -1,7 +1,7 @@
 package com.moneyfi.user.controller.internal;
 
 import com.moneyfi.constants.dto.BatchInfoForEmailDto;
-import com.moneyfi.user.service.general.inter.InterServiceCommunicationService;
+import com.moneyfi.user.service.primary.general.inter.InterServiceCommunicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

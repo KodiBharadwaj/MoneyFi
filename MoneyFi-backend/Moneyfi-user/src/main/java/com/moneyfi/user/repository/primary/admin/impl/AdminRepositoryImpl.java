@@ -1,0 +1,206 @@
+package com.moneyfi.user.repository.primary.admin.impl;
+
+import com.moneyfi.constants.dto.PaginatedRequestDto;
+import com.moneyfi.user.exceptions.QueryValidationException;
+import com.moneyfi.user.exceptions.ResourceNotFoundException;
+import com.moneyfi.user.repository.primary.admin.AdminRepository;
+import com.moneyfi.user.service.primary.admin.dto.response.*;
+import com.moneyfi.user.service.primary.user.dto.response.UserFeedbackResponseDto;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.transform.Transformers;
+import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.moneyfi.constants.constants.CommonConstants.*;
+
+@Repository
+public class AdminRepositoryImpl implements AdminRepository {
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Override
+    public AdminOverviewPageDto getAdminOverviewPageDetails() {
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getAdminOverviewPageDetails ")
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(AdminOverviewPageDto.class));
+
+            return (AdminOverviewPageDto) query.getSingleResult();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching admin overview page details");
+        }
+    }
+
+    @Override
+    public List<UserRequestsGridDto> getUserRequestsGridForAdmin(String requestReason, PaginatedRequestDto requestDto) {
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getUserRequestsGridForAdmin " +
+                                    "@requestReason = :requestReason, " +
+                                    "@offset = :offset, " +
+                                    "@limit = :limit, " +
+                                    "@sortOrder = :sortOrder, " +
+                                    "@sortBy = :sortBy ")
+                    .setParameter("requestReason", requestReason)
+                    .setParameter(OFFSET, requestDto.getOffset())
+                    .setParameter(LIMIT, requestDto.getLimit())
+                    .setParameter(SORT_ORDER, requestDto.getSortOrder())
+                    .setParameter(SORT_BY, requestDto.getSortBy())
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserRequestsGridDto.class));
+            return query.getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user request details raised by users'");
+        }
+    }
+
+    @Override
+    public List<UserGridDto> getUserDetailsGridForAdmin(String status, Long offset, Long limit, String search, String searchBy) {
+        List<UserGridDto> userGridDetails = new ArrayList<>();
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getUserGridDetailsByStatusForAdmin " +
+                                    "@status = :status, " +
+                                    "@offset = :offset, " +
+                                    "@limit = :limit, " +
+                                    "@search = :search, " +
+                                    "@searchBy = :searchBy ")
+                    .setParameter(STATUS, status)
+                    .setParameter(OFFSET, offset)
+                    .setParameter(LIMIT, limit)
+                    .setParameter(SEARCH, search)
+                    .setParameter(SEARCH_BY, searchBy)
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserGridDto.class));
+            userGridDetails.addAll(query.getResultList());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching fetching " + status.toLowerCase() + " user grid details");
+        }
+        return userGridDetails;
+    }
+
+    @Override
+    public Map<Integer, Integer> getUserMonthlyCountInAYear(int year, String status) {
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getUserMonthlyCountInAYear " +
+                                    "@year = :year")
+                    .setParameter("year", year)
+                    .unwrap(NativeQuery.class);
+
+            List<Object[]> resultList = query.getResultList();
+
+            Map<Integer, Integer> resultMap = new HashMap<>();
+            for (Object[] row : resultList) {
+                Integer month = (Integer) row[0];
+                Integer count = (Integer) row[1];
+                resultMap.put(month, count);
+            }
+            return resultMap;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user monthly count in a year");
+        }
+    }
+
+    @Override
+    public UserProfileAndRequestDetailsDto getCompleteUserDetailsForAdmin(String username) {
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getCompleteUserDetailsForAdmin " +
+                                    "@username = :username")
+                    .setParameter("username", username)
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserProfileAndRequestDetailsDto.class));
+            return (UserProfileAndRequestDetailsDto) query.getSingleResult();
+        } catch (NoResultException e) {
+            throw new ResourceNotFoundException("User not found with username: " + username);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user details");
+        }
+    }
+
+    @Override
+    public List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status, PaginatedRequestDto requestDto) {
+        List<UserDefectResponseDto> userDefectResponseDtosList = new ArrayList<>();
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getUserRaisedDefectsForAdmin " +
+                                    "@status = :status, " +
+                                    "@offset = :offset, " +
+                                    "@limit = :limit, " +
+                                    "@sortOrder = :sortOrder, " +
+                                    "@sortBy = :sortBy ")
+                    .setParameter(STATUS, status)
+                    .setParameter(OFFSET, requestDto.getOffset())
+                    .setParameter(LIMIT, requestDto.getLimit())
+                    .setParameter(SORT_ORDER, requestDto.getSortOrder())
+                    .setParameter(SORT_BY, requestDto.getSortBy())
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserDefectResponseDto.class));
+            userDefectResponseDtosList.addAll(query.getResultList());
+            return userDefectResponseDtosList;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching fetching user raised defect details");
+        }
+    }
+
+    @Override
+    public List<UserFeedbackResponseDto> getUserFeedbackListForAdmin(PaginatedRequestDto requestDto) {
+        List<UserFeedbackResponseDto> userFeedbackList = new ArrayList<>();
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getUserFeedbackListForAdmin " +
+                                    "@offset = :offset, " +
+                                    "@limit = :limit, " +
+                                    "@sortOrder = :sortOrder, " +
+                                    "@sortBy = :sortBy ")
+                    .setParameter(OFFSET, requestDto.getOffset())
+                    .setParameter(LIMIT, requestDto.getLimit())
+                    .setParameter(SORT_ORDER, requestDto.getSortOrder())
+                    .setParameter(SORT_BY, requestDto.getSortBy())
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(UserFeedbackResponseDto.class));
+            userFeedbackList.addAll(query.getResultList());
+            return userFeedbackList;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching user feedback details");
+        }
+    }
+
+    @Override
+    public List<AdminSchedulesResponseDto> getAllActiveSchedulesOfAdmin(String status, String operationMode) {
+        List<AdminSchedulesResponseDto> scheduleList = new ArrayList<>();
+        try {
+            Query query = entityManager.createNativeQuery(
+                            "exec getAllActiveSchedulesOfAdmin " +
+                                    "@status = :status, " +
+                                    "@operationMode = :operationMode ")
+                    .setParameter(STATUS, status)
+                    .setParameter("operationMode", operationMode)
+                    .unwrap(NativeQuery.class)
+                    .setResultTransformer(Transformers.aliasToBean(AdminSchedulesResponseDto.class));
+            scheduleList.addAll(query.getResultList());
+            return scheduleList;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new QueryValidationException("Error occurred while fetching schedules for admin");
+        }
+    }
+}

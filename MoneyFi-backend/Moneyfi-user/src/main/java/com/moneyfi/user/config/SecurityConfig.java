@@ -1,6 +1,6 @@
 package com.moneyfi.user.config;
 
-import com.moneyfi.user.service.jwtservice.JwtFilter;
+import com.moneyfi.user.service.primary.jwtservice.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

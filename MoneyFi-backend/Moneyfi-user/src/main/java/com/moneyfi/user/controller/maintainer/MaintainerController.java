@@ -1,9 +1,9 @@
 package com.moneyfi.user.controller.maintainer;
 
-import com.moneyfi.user.service.user.UserAuthService;
-import com.moneyfi.user.service.maintainer.MaintainerService;
-import com.moneyfi.user.service.maintainer.dto.request.CreateOrUpdateAdminRequestDto;
-import com.moneyfi.user.service.maintainer.dto.response.AdminUsersResponseDto;
+import com.moneyfi.user.service.primary.user.UserAuthService;
+import com.moneyfi.user.service.primary.maintainer.MaintainerService;
+import com.moneyfi.user.service.primary.maintainer.dto.request.CreateOrUpdateAdminRequestDto;
+import com.moneyfi.user.service.primary.maintainer.dto.response.AdminUsersResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

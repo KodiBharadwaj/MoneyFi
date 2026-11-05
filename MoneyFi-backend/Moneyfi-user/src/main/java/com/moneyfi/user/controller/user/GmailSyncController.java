@@ -1,10 +1,10 @@
 package com.moneyfi.user.controller.user;
 
-import com.moneyfi.user.service.user.UserAuthService;
-import com.moneyfi.user.service.gmailsync.GmailSyncService;
-import com.moneyfi.user.service.gmailsync.dto.response.GmailConsentResponse;
-import com.moneyfi.user.service.gmailsync.dto.response.GmailSyncHistoryResponse;
-import com.moneyfi.user.service.gmailsync.dto.response.ParsedTransaction;
+import com.moneyfi.user.service.primary.user.UserAuthService;
+import com.moneyfi.user.service.primary.gmailsync.GmailSyncService;
+import com.moneyfi.user.service.primary.gmailsync.dto.response.GmailConsentResponse;
+import com.moneyfi.user.service.primary.gmailsync.dto.response.GmailSyncHistoryResponse;
+import com.moneyfi.user.service.primary.gmailsync.dto.response.ParsedTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
