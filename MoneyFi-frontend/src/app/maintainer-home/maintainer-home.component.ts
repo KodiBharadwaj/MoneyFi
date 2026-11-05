@@ -8,6 +8,8 @@ import { ConfirmLogoutDialogComponent } from '../confirm-logout-dialog/confirm-l
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 
+type SupportRole = 'ADMIN' | 'CUSTOMER_CARE';
+
 interface AdminUsersResponseDto {
   id: number;
   username: string;
@@ -22,6 +24,16 @@ interface AdminUsersResponseDto {
 })
 export class MaintainerHomeComponent implements OnInit {
 
+  readonly roleTabs: { value: SupportRole; label: string }[] = [
+    { value: 'ADMIN', label: 'Admin' },
+    { value: 'CUSTOMER_CARE', label: 'Customer Care' }
+  ];
+  selectedRole: SupportRole = 'ADMIN';
+
+  get roleLabel(): string {
+    return this.roleTabs.find(t => t.value === this.selectedRole)!.label;
+  }
+
   admins: AdminUsersResponseDto[] = [];
   blockedAdmins: any[] = [];
   deletedAdmins: any[] = [];
@@ -35,13 +47,15 @@ export class MaintainerHomeComponent implements OnInit {
   addForm = {
     username: '',
     password: '',
-    comment: ''
+    comment: '',
+    role: 'ADMIN' as SupportRole
   };
 
   updateForm = {
     username: '',
     password: '',
-    comment: ''
+    comment: '',
+    role: 'ADMIN' as SupportRole
   };
 
   constructor(private http: HttpClient, private toastr: ToastrService, private dialog: MatDialog,
@@ -50,16 +64,43 @@ export class MaintainerHomeComponent implements OnInit {
   baseUrl = environment.BASE_URL;
 
   ngOnInit(): void {
+    this.loadAll();
+  }
+
+  /* ================= ROLE TABS ================= */
+  selectRole(role: SupportRole) {
+    if (this.selectedRole === role) return;
+    this.selectedRole = role;
+    this.searchText = '';
+    this.admins = [];
+    this.filteredAdmins = [];
+    this.blockedAdmins = [];
+    this.deletedAdmins = [];
+    this.loadAll();
+  }
+
+  private loadAll() {
     this.getAdmins();
-    this.getBlockedAdmins();  
-    this.getDeletedAdmins();  
+    this.getBlockedAdmins();
+    this.getDeletedAdmins();
+  }
+
+  private showError(err: any) {
+    try {
+      const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+      this.toastr.error(errorObj.message);
+    } catch (e) {
+      console.error('Failed to parse error:', err.error);
+    }
   }
 
   getAdmins() {
-    this.http.get<AdminUsersResponseDto[]>(`${this.baseUrl}/api/v1/user-service/maintainer/get-admins?type=ACTIVE`)
+    const role = this.selectedRole;
+    this.http.get<AdminUsersResponseDto[]>(`${this.baseUrl}/api/v1/user-service/maintainer/support-users/get?type=ACTIVE&role=${role}`)
       .subscribe(res => {
-        this.admins = res;
-        this.filteredAdmins = res;
+        if (role !== this.selectedRole) return; // tab switched before response arrived
+        this.admins = res || [];
+        this.applySearch();
       });
   }
 
@@ -70,14 +111,15 @@ export class MaintainerHomeComponent implements OnInit {
     );
   }
 
-  /* ================= ADD ADMIN ================= */
+  /* ================= ADD USER ================= */
   openAddAdminModal() {
+    this.addForm = { username: '', password: '', comment: '', role: this.selectedRole };
     this.showAddModal = true;
   }
 
   closeAddModal() {
     this.showAddModal = false;
-    this.addForm = { username: '', password: '', comment: '' };
+    this.addForm = { username: '', password: '', comment: '', role: this.selectedRole };
   }
 
   createAdmin() {
@@ -86,28 +128,19 @@ export class MaintainerHomeComponent implements OnInit {
       return;
     }
 
-    this.http.post(`${this.baseUrl}/api/v1/user-service/maintainer/add-admin`, this.addForm).subscribe({
-      next: (data) => {
+    this.http.post(`${this.baseUrl}/api/v1/user-service/maintainer/support-user/add`, this.addForm).subscribe({
+      next: () => {
         this.closeAddModal();
-        this.getAdmins(); // refresh list
+        this.getAdmins();
       },
-      error: (err) => {
-        try {
-          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-          this.toastr.error(errorObj.message);
-        } catch (e) {
-          console.error('Failed to parse error:', err.error);
-        }
-      }
+      error: (err) => this.showError(err)
     });
   }
 
-  /* ================= UPDATE ADMIN ================= */
+  /* ================= UPDATE USER ================= */
   openUpdateModal(admin: AdminUsersResponseDto) {
     this.selectedAdminId = admin.id;
-    this.updateForm.username = admin.username;
-    this.updateForm.password = '';
-    this.updateForm.comment = '';
+    this.updateForm = { username: admin.username, password: '', comment: '', role: this.selectedRole };
     this.showUpdateModal = true;
   }
 
@@ -122,68 +155,46 @@ export class MaintainerHomeComponent implements OnInit {
       return;
     }
 
-    this.http.post(
-      `${this.baseUrl}/api/v1/user-service/maintainer/${this.selectedAdminId}/update-admin`,
-      this.updateForm
-    ).subscribe(() => {
-      this.closeUpdateModal();
-      this.getAdmins(); // refresh list
-    });
-
-    this.http.post(`${this.baseUrl}/api/v1/user-service/maintainer/${this.selectedAdminId}/update-admin`,
+    this.http.post(`${this.baseUrl}/api/v1/user-service/maintainer/${this.selectedAdminId}/support-user/update`,
       this.updateForm).subscribe({
-      next: (data) => {
+      next: () => {
         this.closeUpdateModal();
-        this.getAdmins(); // refresh list
+        this.getAdmins();
       },
-      error: (err) => {
-        try {
-          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-          this.toastr.error(errorObj.message);
-        } catch (e) {
-          console.error('Failed to parse error:', err.error);
-        }
-      }
+      error: (err) => this.showError(err)
     });
   }
 
   blockOrDeleteAdmin(admin: AdminUsersResponseDto, type: String) {
-    this.http.delete(`${this.baseUrl}/api/v1/user-service/maintainer/${admin.id}/delete-admin?type=${type}`).subscribe({
-      next: (data) => {
-        this.getAdmins();
-        this.getBlockedAdmins();  
-        this.getDeletedAdmins();
-      },
-      error: (err) => {
-        try {
-          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-          this.toastr.error(errorObj.message);
-        } catch (e) {
-          console.error('Failed to parse error:', err.error);
-        }
-      }
+    this.http.delete(`${this.baseUrl}/api/v1/user-service/maintainer/${admin.id}/delete-support-user?type=${type}`).subscribe({
+      next: () => this.loadAll(),
+      error: (err) => this.showError(err)
     });
   }
 
   getBlockedAdmins() {
-    this.http.get<AdminUsersResponseDto[]>(`${this.baseUrl}/api/v1/user-service/maintainer/get-admins?type=BLOCK`)
-    .subscribe(res => {
-      this.blockedAdmins = res || [];
-    });
+    const role = this.selectedRole;
+    this.http.get<AdminUsersResponseDto[]>(`${this.baseUrl}/api/v1/user-service/maintainer/support-users/get?type=BLOCK&role=${role}`)
+      .subscribe(res => {
+        if (role !== this.selectedRole) return;
+        this.blockedAdmins = res || [];
+      });
   }
 
   getDeletedAdmins() {
-    this.http.get<AdminUsersResponseDto[]>(`${this.baseUrl}/api/v1/user-service/maintainer/get-admins?type=DELETE`)
+    const role = this.selectedRole;
+    this.http.get<AdminUsersResponseDto[]>(`${this.baseUrl}/api/v1/user-service/maintainer/support-users/get?type=DELETE&role=${role}`)
       .subscribe(res => {
+        if (role !== this.selectedRole) return;
         this.deletedAdmins = res || [];
       });
   }
 
   unblockOrUnDeleteAdmin(admin: any, type: string) {
-    this.http.post(`${this.baseUrl}/api/v1/user-service/maintainer/${admin.id}/retrieve-admin?type=${type}`, {})
-      .subscribe(() => {
-        this.getAdmins();
-        this.getBlockedAdmins();
+    this.http.post(`${this.baseUrl}/api/v1/user-service/maintainer/${admin.id}/retrieve-support-user?type=${type}`, {})
+      .subscribe({
+        next: () => this.loadAll(),
+        error: (err) => this.showError(err)
       });
   }
 

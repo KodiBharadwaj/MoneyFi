@@ -75,7 +75,7 @@ export class AdminLayoutComponent {
               });
               sessionStorage.removeItem('moneyfi.auth');
               sessionStorage.clear();
-              this.router.navigate(['admin/login']);
+              this.router.navigate(['support-user/login']);
             } 
             else {
               this.toastr.error('Failed to logout')

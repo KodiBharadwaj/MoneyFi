@@ -1,19 +1,19 @@
 package com.moneyfi.user.service.primary.maintainer;
 
-import com.moneyfi.user.service.primary.maintainer.dto.request.CreateOrUpdateAdminRequestDto;
-import com.moneyfi.user.service.primary.maintainer.dto.response.AdminUsersResponseDto;
-import jakarta.validation.Valid;
+import com.moneyfi.constants.enums.UserRoles;
+import com.moneyfi.user.service.primary.maintainer.dto.request.CreateOrUpdateSupportUserCreationRequestDto;
+import com.moneyfi.user.service.primary.maintainer.dto.response.SupportUsersResponseDto;
 
 import java.util.List;
 
 public interface MaintainerService {
-    void addAdminUser(@Valid CreateOrUpdateAdminRequestDto requestDto, Long maintainerUserId);
+    void addUsersByMaintainer(CreateOrUpdateSupportUserCreationRequestDto requestDto, Long maintainerUserId);
 
-    List<AdminUsersResponseDto> getAdminUsersList(String type);
+    List<SupportUsersResponseDto> getSupportUsersList(String type, UserRoles role);
 
-    void updateAdminUser(@Valid CreateOrUpdateAdminRequestDto requestDto, Long adminUserId, Long maintainerUserId);
+    void updateSupportUser(CreateOrUpdateSupportUserCreationRequestDto requestDto, Long supportUserId, Long maintainerUserId);
 
-    void deleteAdminUser(Long adminUserId, Long maintainerUserId, String type);
+    void unblockOrRetrieveSupportUser(Long supportUserId, Long maintainerUserId, String type);
 
-    void unblockOrRetrieveAdmin(Long adminUserId, Long maintainerUserId, String type);
+    void deleteSupportUser(Long adminUserId, Long maintainerUserId, String type);
 }

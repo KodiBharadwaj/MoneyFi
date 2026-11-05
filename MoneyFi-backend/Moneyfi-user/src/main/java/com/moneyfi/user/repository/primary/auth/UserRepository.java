@@ -26,11 +26,13 @@ public interface UserRepository extends JpaRepository<UserAuthModel, Long> {
     @Modifying
     void updateRecurringIncomesAndExpenses();
 
+    /** SP Call */
     @Modifying
     @Transactional
     @Query(nativeQuery = true, value = "exec updateOtpCountToResetForUsers")
     void updateOtpCountToResetForUsers();
 
+    /** SP Call */
     @Modifying
     @Transactional
     @Query(nativeQuery = true, value = "exec deleteAllUserDataForDeletedUsersAfter30Days")

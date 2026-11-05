@@ -1,8 +1,1 @@
-delete from expense_table where category_id in (select id from category_list_table where type = 'EXPENSE' AND category = 'Goal');
-
-
-drop table goal_table;
-
-
-
-getUserRequestsGridForAdmin,  This sp need to updated. Just added input parameters. Need to refractor business.
+DROP TABLE user_role_table;

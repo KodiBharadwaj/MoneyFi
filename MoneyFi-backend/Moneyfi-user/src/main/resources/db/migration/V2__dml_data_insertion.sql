@@ -4,7 +4,7 @@ IF NOT EXISTS (
 )
 BEGIN
 INSERT INTO dbo.user_role_table (role_id, role_name)
-VALUES (1, 'ADMIN'), (2, 'USER'), (3,'DEVELOPER'), (4,'MAINTAINER');
+VALUES (1, 'ADMIN'), (2, 'USER'), (3,'DEVELOPER'), (4,'MAINTAINER'), (5, 'CUSTOMER_CARE');
 END
 
 -- To add maintainer default login credentials
@@ -26,5 +26,6 @@ BEGIN
 INSERT INTO reason_code_table (id, name)
 VALUES (1, 'Block Account'), (2, 'Password Change'), (3, 'Name Change'), (4, 'Unblock Account'), (5, 'Delete Account'), (6, 'Account retrieval'),
        (7, 'Phone Number Change'), (8, 'Ignore User Request'), (9, 'Gmail Sync Request Type'), (10, 'Forgot Username'), (11, 'Admin Creation'),
-       (12, 'Admin Update'), (13, 'Admin Block'), (14, 'Admin Unblock'), (15, 'Admin Delete'), (16, 'Admin Retrieval');
+       (12, 'Admin Update'), (13, 'Admin Block'), (14, 'Admin Unblock'), (15, 'Admin Delete'), (16, 'Admin Retrieval'), (17, 'Customer Care Creation'),
+       (18, 'Customer Care Update'), (19, 'Customer Care Block'), (20, 'Customer Care Unblock'), (21, 'Customer Care Delete'), (22, 'Customer Care Retrieval');
 END

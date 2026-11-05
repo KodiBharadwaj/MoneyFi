@@ -1,9 +1,10 @@
 package com.moneyfi.user.controller.maintainer;
 
+import com.moneyfi.constants.enums.UserRoles;
 import com.moneyfi.user.service.primary.user.UserAuthService;
 import com.moneyfi.user.service.primary.maintainer.MaintainerService;
-import com.moneyfi.user.service.primary.maintainer.dto.request.CreateOrUpdateAdminRequestDto;
-import com.moneyfi.user.service.primary.maintainer.dto.response.AdminUsersResponseDto;
+import com.moneyfi.user.service.primary.maintainer.dto.request.CreateOrUpdateSupportUserCreationRequestDto;
+import com.moneyfi.user.service.primary.maintainer.dto.response.SupportUsersResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -18,54 +19,55 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/v1/user-service/maintainer")
-@PreAuthorize("hasRole('MAINTAINER')")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('MAINTAINER')")
+@RequestMapping("/api/v1/user-service/maintainer")
 public class MaintainerController {
 
     private final MaintainerService maintainerService;
     private final UserAuthService userAuthService;
 
-    @Operation(summary = "Api to add admin users")
-    @PostMapping("/add-admin")
-    public void addAdminUser(Authentication authentication,
-                             @RequestBody @Valid CreateOrUpdateAdminRequestDto requestDto) {
+    @Operation(summary = "Api to add support users", description = "Maintainer can add admin, customer agents")
+    @PostMapping("/support-user/add")
+    public void addUsersByMaintainer(Authentication authentication,
+                                     @RequestBody @Valid CreateOrUpdateSupportUserCreationRequestDto requestDto) {
         Long userId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        maintainerService.addAdminUser(requestDto, userId);
+        maintainerService.addUsersByMaintainer(requestDto, userId);
     }
 
-    @Operation(summary = "Api to get Admin users")
-    @GetMapping("/get-admins")
-    public ResponseEntity<List<AdminUsersResponseDto>> getAdminUsers(@NotBlank @RequestParam(value = "type") String type) {
-        return ResponseEntity.ok(maintainerService.getAdminUsersList(type));
+    @Operation(summary = "Api to fetch support users", description = "Maintainer can fetch admin/customer care users")
+    @GetMapping("/support-users/get")
+    public ResponseEntity<List<SupportUsersResponseDto>> getSupportUsers(@NotBlank @RequestParam(value = "type") String type,
+                                                                         @NotNull @RequestParam(value = "role") UserRoles role) {
+        return ResponseEntity.ok(maintainerService.getSupportUsersList(type, role));
     }
 
-    @Operation(summary = "Api to update Admin user cred")
-    @PostMapping("/{id}/update-admin")
-    public void updateAdminUser(Authentication authentication,
-                                @NotNull @PathVariable(value = "id") Long id,
-                                @RequestBody @Valid CreateOrUpdateAdminRequestDto requestDto) {
+    @Operation(summary = "Api to update support user details", description = "Maintainer can update admin/customer care user details")
+    @PostMapping("/{id}/support-user/update")
+    public void updateSupportUser(Authentication authentication,
+                                  @NotNull @PathVariable(value = "id") Long supportUserId,
+                                  @RequestBody @Valid CreateOrUpdateSupportUserCreationRequestDto requestDto) {
         Long userId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        maintainerService.updateAdminUser(requestDto, id, userId);
+        maintainerService.updateSupportUser(requestDto, supportUserId, userId);
     }
 
-    @Operation(summary = "Api to update Admin user cred")
-    @PostMapping("/{id}/retrieve-admin")
-    public void unblockOrRetrieveAdmin(Authentication authentication,
-                                       @NotNull @PathVariable(value = "id") Long id,
-                                       @NotBlank @RequestParam(value = "type") String type) {
+    @Operation(summary = "Api to update support user details", description = "Maintainer can unblock or retrieve admin/customer care user")
+    @PostMapping("/{id}/retrieve-support-user")
+    public void unblockOrRetrieveSupportUser(Authentication authentication,
+                                             @NotNull @PathVariable(value = "id") Long id,
+                                             @NotBlank @RequestParam(value = "type") String type) {
         Long userId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        maintainerService.unblockOrRetrieveAdmin(id, userId, type);
+        maintainerService.unblockOrRetrieveSupportUser(id, userId, type);
     }
 
-    @Operation(summary = "Api to delete Admin user")
-    @DeleteMapping("/{id}/delete-admin")
-    public void deleteAdminUser(Authentication authentication,
-                                @NotNull @PathVariable(value = "id") Long id,
-                                @NotBlank @RequestParam(value = "type") String type) {
+    @Operation(summary = "Api to delete support user", description = "Maintainer can delete admin/customer care user")
+    @DeleteMapping("/{id}/delete-support-user")
+    public void deleteSupportUser(Authentication authentication,
+                                  @NotNull @PathVariable(value = "id") Long supportUserId,
+                                  @NotBlank @RequestParam(value = "type") String type) {
         Long userId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        maintainerService.deleteAdminUser(id, userId, type);
+        maintainerService.deleteSupportUser(supportUserId, userId, type);
     }
 }

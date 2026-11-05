@@ -9,7 +9,7 @@ import com.moneyfi.user.repository.primary.gmailsync.GmailSyncRepository;
 import com.moneyfi.user.service.primary.user.dto.request.AccountBlockOrDeleteRequestDto;
 import com.moneyfi.user.service.primary.user.dto.request.ChangePasswordDto;
 import com.moneyfi.user.service.primary.user.dto.request.GmailSyncCountIncreaseRequestDto;
-import com.moneyfi.user.service.primary.maintainer.dto.request.CreateOrUpdateAdminRequestDto;
+import com.moneyfi.user.service.primary.maintainer.dto.request.CreateOrUpdateSupportUserCreationRequestDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.AccDeactivationType;
 import lombok.extern.slf4j.Slf4j;
@@ -100,7 +100,7 @@ public class UserValidations {
         }
     }
 
-    public static void validateAdminCreationRequestByMaintainer(CreateOrUpdateAdminRequestDto requestDto) {
+    public static void validateUserCreationRequestByMaintainer(CreateOrUpdateSupportUserCreationRequestDto requestDto) {
         if(ObjectUtils.isEmpty(requestDto.getUsername())) {
             throw new ScenarioNotPossibleException("Username is required");
         }
@@ -109,7 +109,7 @@ public class UserValidations {
         }
     }
 
-    public static void validateExistingUserCheck(CreateOrUpdateAdminRequestDto requestDto, UserRepository userRepository) {
+    public static void validateExistingUserCheck(CreateOrUpdateSupportUserCreationRequestDto requestDto, UserRepository userRepository) {
         UserAuthModel existingUserCheck = userRepository.getUserDetailsByUsername(requestDto.getUsername().trim()).orElse(null);
         if (existingUserCheck != null) {
             if (existingUserCheck.isDeleted()) throw new ScenarioNotPossibleException("Username matching with out previous records. Please choose different username");

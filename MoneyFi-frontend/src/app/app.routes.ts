@@ -20,7 +20,7 @@ import { RaiseRequestComponent } from './raise-request/raise-request.component';
 import { RequestTrackerComponent } from './request-tracker/request-tracker.component';
 import { AdminHomeComponent } from './admin/admin-home/admin-home.component';
 import { AdminUsersComponent } from './admin/admin-users/admin-users.component';
-import { AdminLoginComponent } from './admin/admin-login/admin-login.component';
+import { SupportUserLoginComponent } from './support-user-login/support-user-login.component';
 import { AdminRequestsComponent } from './admin/admin-requests/admin-requests.component';
 import { AdminInsightsComponent } from './admin/admin-insights/admin-insights.component';
 import { AdminUserDefectsComponent } from './admin/admin-user-defects/admin-user-defects.component';
@@ -38,11 +38,12 @@ import { AdminLayoutComponent } from './admin/admin-layout/admin-layout.componen
 import { AdminTriggersComponent } from './admin/admin-triggers/admin-triggers.component';
 import { AdminUserSessionTimeComponent } from './admin/admin-user-session-time/admin-user-session-time.component';
 import { AdminFailedQueuesComponent } from './admin/admin-failed-queues/admin-failed-queues.component';
+import { CustomerCareHomeComponent } from './customer-care/customer-care-home/customer-care-home.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'admin/login', component: AdminLoginComponent },
+  { path: 'support-user/login', component: SupportUserLoginComponent },
   { path: 'signup', component: SignupComponent },
   { path: 'forgot-password',component:ForgotPasswordComponent },
   { path: 'forgot-username', component:ForgotUsernameComponent },
@@ -51,6 +52,7 @@ export const routes: Routes = [
   { path: 'track-request', component: RequestTrackerComponent },
   { path: 'help-center', component: HelpCenterComponent },
   { path: 'maintainer/home', component: MaintainerHomeComponent },
+  { path: 'customer-care/home', component: CustomerCareHomeComponent },
   {
     path: 'admin',
     component: AdminLayoutComponent,

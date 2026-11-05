@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneyfi.constants.dto.PaginatedResponseDto;
 import com.moneyfi.user.model.primary.general.ProfileModel;
 import com.moneyfi.user.repository.primary.general.ProfileRepository;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
@@ -103,7 +103,7 @@ public class StringConstants {
 
     public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
 
-    public static int functionToGetRoleIdBasedOnRoleName(@NotNull String role) {
+    public static int functionToGetRoleIdBasedOnRoleName(@NotBlank String role) {
         int roleId = 0;
         for (Map.Entry<Integer, String> it : userRoleAssociation.entrySet()) {
             if (it.getValue().equalsIgnoreCase(role)) {
