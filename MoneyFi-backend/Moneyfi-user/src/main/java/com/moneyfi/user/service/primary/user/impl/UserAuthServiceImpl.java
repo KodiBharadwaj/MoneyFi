@@ -12,6 +12,7 @@ import com.moneyfi.user.repository.primary.gmailsync.GmailSyncRepository;
 import com.moneyfi.user.repository.primary.auth.UserAuthHistRepository;
 import com.moneyfi.user.repository.primary.auth.OtpTempRepository;
 import com.moneyfi.user.repository.primary.auth.UserRepository;
+import com.moneyfi.user.service.PrimaryToSecondaryDbFlow;
 import com.moneyfi.user.service.primary.ReusableCodeClass;
 import com.moneyfi.user.service.primary.user.UserAuthService;
 import com.moneyfi.user.service.primary.general.caching.UserCacheService;
@@ -84,6 +85,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final ProfileRepository profileRepository;
     private final UserSessionTimeRepository userSessionTimeRepository;
     private final ReusableCodeClass reusableCodeClass;
+    private final PrimaryToSecondaryDbFlow primaryToSecondaryDbFlow;
 
     private static final String GOOGLE_AUTH_CONSTANT_PASSWORD = null;
     private static final String GITHUB_AUTH_CONSTANT_PASSWORD = null;
@@ -161,6 +163,8 @@ public class UserAuthServiceImpl implements UserAuthService {
                     makeOldSessionInActiveOfUserForNewLogin(username);
                     functionToPreventMultipleLogins(existingUser, token);
                     makeGmailAuthInactiveForUser(existingUser.getId());
+                    if (userRoleAssociation.get(existingUser.getRoleId()).equalsIgnoreCase(UserRoles.CUSTOMER_CARE.name()))
+                        primaryToSecondaryDbFlow.updateCustomerCareAvailability(existingUser.getId(), Boolean.TRUE);
                     userRoleToken.put(role, token.getJwtToken());
                     return ResponseEntity.ok(userRoleToken);
                 }
@@ -393,13 +397,17 @@ public class UserAuthServiceImpl implements UserAuthService {
         Map<String, String> response = new HashMap<>();
         String username = jwtService.extractUserName(token);
         UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
-        makeGmailAuthInactiveForUser(getUserIdByUsername(username));
         if (makeUserTokenBlacklisted(token, username) != null && makeUserSessionInActive(token) != null) {
             response.put(MESSAGE, LOGOUT_SUCCESS_MESSAGE);
         } else {
             response.put(MESSAGE, LOGOUT_FAILURE_MESSAGE);
         }
-        new Thread(() -> functionCallToRemoveDataFromCache(user)).start();
+        new Thread(() -> {
+            functionCallToRemoveDataFromCache(user);
+            makeGmailAuthInactiveForUser(getUserIdByUsername(username));
+            if (userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.CUSTOMER_CARE.name()))
+                primaryToSecondaryDbFlow.updateCustomerCareAvailability(user.getId(), Boolean.FALSE);
+        }).start();
         return response;
     }
 

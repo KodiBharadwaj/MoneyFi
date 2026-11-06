@@ -1,0 +1,138 @@
+<div class="conversations-page">
+
+  <!-- Left: conversations (75%) -->
+  <section class="conversations-pane">
+
+    <div class="page-heading">
+      <div>
+        <h1>Conversations</h1>
+        <p>Manage your assigned customer conversations.</p>
+      </div>
+
+      <button class="refresh-btn" (click)="loadAssignedConversations()">
+        <i class="material-icons">refresh</i>
+        Refresh
+      </button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span>Assigned</span>
+        <h2>{{ conversations.length }}</h2>
+      </div>
+      <div class="stat-card">
+        <span>Active</span>
+        <h2 class="active-count">{{ activeCount }}</h2>
+      </div>
+      <div class="stat-card">
+        <span>Waiting</span>
+        <h2 class="waiting-count">{{ waitingCount }}</h2>
+      </div>
+    </div>
+
+    <div class="conversation-section">
+      <div class="section-heading">
+        <h3>Assigned to me</h3>
+        <span class="conversation-count">{{ conversations.length }} conversations</span>
+      </div>
+
+      <div *ngIf="loadingConversations" class="empty-state">Loading conversations...</div>
+
+      <div *ngIf="!loadingConversations && conversations.length === 0" class="empty-state">
+        <i class="material-icons">forum</i>
+        <h3>No conversations assigned</h3>
+        <p>New customer conversations will appear here.</p>
+      </div>
+
+      <div class="conversation-list" *ngIf="!loadingConversations && conversations.length > 0">
+        <div class="conversation-card"
+             *ngFor="let conversation of conversations"
+             (click)="openConversation(conversation)"
+             [class.selected]="selectedConversation?.conversationId === conversation.conversationId">
+
+          <div class="customer-avatar">{{ getInitials(conversation.customerName) }}</div>
+
+          <div class="conversation-details">
+            <div class="customer-row">
+              <h4>{{ conversation.customerName || 'Customer #' + conversation.userId }}</h4>
+              <span class="conversation-time">{{ conversation.lastMessageAt | date:'shortTime' }}</span>
+            </div>
+
+            <p class="last-message">{{ conversation.lastMessage || 'No messages yet' }}</p>
+
+            <div class="conversation-meta">
+              <span class="conversation-id">#{{ conversation.conversationId }}</span>
+              <span class="status" [ngClass]="conversation.status.toLowerCase()">
+                {{ conversation.status }}
+              </span>
+            </div>
+          </div>
+
+          <i class="material-icons open-icon">chevron_right</i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Right: chat panel (25%) -->
+  <aside class="chat-panel">
+
+    <div class="chat-placeholder" *ngIf="!chatOpen || !selectedConversation">
+      <i class="material-icons">chat_bubble_outline</i>
+      <h3>No conversation selected</h3>
+      <p>Select a conversation to view its messages.</p>
+    </div>
+
+    <ng-container *ngIf="chatOpen && selectedConversation">
+      <div class="chat-header">
+        <div class="chat-customer">
+          <div class="customer-avatar small">{{ getInitials(selectedConversation.customerName) }}</div>
+          <div>
+            <h3>{{ selectedConversation.customerName || 'Customer #' + selectedConversation.userId }}</h3>
+            <span>{{ connected ? 'Connected' : 'Connecting...' }} · {{ selectedConversation.status }}</span>
+          </div>
+        </div>
+
+        <button class="close-chat-btn" (click)="closeChat()" title="Close chat">
+          <i class="material-icons">close</i>
+        </button>
+      </div>
+
+      <div class="chat-messages" id="customer-care-messages">
+        <div *ngIf="loadingMessages" class="history-loading">Loading chat history...</div>
+
+        <div *ngIf="!loadingMessages && messages.length === 0" class="empty-chat">
+          Start the conversation by sending a message.
+        </div>
+
+        <div *ngFor="let message of messages"
+             class="message-row"
+             [class.agent-message]="message.senderType === 'AGENT'"
+             [class.user-message]="message.senderType === 'USER'">
+          <div class="message-bubble">
+            <p>{{ message.content }}</p>
+            <span>{{ message.sentAt | date:'shortTime' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-footer" *ngIf="selectedConversation.status === 'ACTIVE'">
+        <input type="text"
+               [(ngModel)]="messageContent"
+               placeholder="Type your message..."
+               (keyup.enter)="sendMessage()"
+               [disabled]="!connected" />
+
+        <button class="send-btn"
+                (click)="sendMessage()"
+                [disabled]="!connected || !messageContent.trim() || sendingMessage">
+          <i class="material-icons">send</i>
+        </button>
+      </div>
+
+      <div class="closed-chat-message" *ngIf="selectedConversation.status !== 'ACTIVE'">
+        This conversation is {{ selectedConversation.status.toLowerCase() }}.
+      </div>
+    </ng-container>
+  </aside>
+</div>

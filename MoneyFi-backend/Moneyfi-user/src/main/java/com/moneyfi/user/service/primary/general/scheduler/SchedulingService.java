@@ -33,7 +33,7 @@ public class SchedulingService {
 
     @PostConstruct
     public void initializeScheduledMethodsInCaseOfServiceRunningDelay(){
-//        dailyJobRunInBeginningOfTheDay();
+        dailyJobRunInBeginningOfTheDay();
     }
 
     @Scheduled(fixedRate = 3600000) // Runs every 1 hour

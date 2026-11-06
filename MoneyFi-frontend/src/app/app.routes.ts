@@ -38,6 +38,8 @@ import { AdminLayoutComponent } from './admin/admin-layout/admin-layout.componen
 import { AdminTriggersComponent } from './admin/admin-triggers/admin-triggers.component';
 import { AdminUserSessionTimeComponent } from './admin/admin-user-session-time/admin-user-session-time.component';
 import { AdminFailedQueuesComponent } from './admin/admin-failed-queues/admin-failed-queues.component';
+import { CustomerCareLayoutComponent } from './customer-care/customer-care-layout/customer-care-layout.component';
+import { CustomerCareConversationsComponent } from './customer-care/customer-care-conversations/customer-care-conversations.component';
 import { CustomerCareHomeComponent } from './customer-care/customer-care-home/customer-care-home.component';
 
 export const routes: Routes = [
@@ -52,7 +54,15 @@ export const routes: Routes = [
   { path: 'track-request', component: RequestTrackerComponent },
   { path: 'help-center', component: HelpCenterComponent },
   { path: 'maintainer/home', component: MaintainerHomeComponent },
-  { path: 'customer-care/home', component: CustomerCareHomeComponent },
+  {
+    path: 'customer-care',
+    component: CustomerCareLayoutComponent,
+    children: [
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      { path: 'home', component: CustomerCareHomeComponent },
+      { path: 'conversations', component: CustomerCareConversationsComponent },
+    ]
+  },
   {
     path: 'admin',
     component: AdminLayoutComponent,

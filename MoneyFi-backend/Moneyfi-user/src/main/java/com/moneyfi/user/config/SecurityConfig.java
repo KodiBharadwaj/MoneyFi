@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/user-service/open/**").permitAll()
                         .requestMatchers("/api/v1/user-service/Oauth/**").permitAll()
                         .requestMatchers("/api/v1/user-service/auth/**").permitAll()
-                        .requestMatchers("/ws/support", "/ws/support/**").permitAll()
+                        .requestMatchers("/api/v1/user-service/ws/support", "/api/v1/user-service/ws/support/**").permitAll()
                         .requestMatchers("/api/v1/user-service/sse-notifications/subscribe").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",

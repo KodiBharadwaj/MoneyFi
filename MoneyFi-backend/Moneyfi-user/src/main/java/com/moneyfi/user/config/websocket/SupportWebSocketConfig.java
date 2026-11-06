@@ -1,7 +1,7 @@
 package com.moneyfi.user.config.websocket;
 
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -14,27 +14,22 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class SupportWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+    @Value("${cors.allowed-origins}")
+    private String allowedOrigins;
+
     private final SupportWebSocketInterceptor supportWebSocketInterceptor;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // Client sends messages to destinations starting with /app
-        registry.setApplicationDestinationPrefixes("/app"); //client to server messages
-
-        // Server broadcasts messages to subscribers
-        registry.enableSimpleBroker("/topic", "/queue"); // topic -> server to client broadcast, queue-> user specific messages
-
-        // Prefix for user-specific destinations
-        registry.setUserDestinationPrefix("/user"); // user destination prefix
+        registry.setApplicationDestinationPrefixes("/api/v1/user-service/app");
+        registry.enableSimpleBroker("/api/v1/user-service/topic", "/api/v1/user-service/queue");
+        registry.setUserDestinationPrefix("/api/v1/user-service/user");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws/support") // websocket connection end point
-                .setAllowedOriginPatterns(
-                        "http://localhost:4200",
-                        "http://localhost:4300"
-                );
+        registry.addEndpoint("/api/v1/user-service/ws/support")
+                .setAllowedOriginPatterns(allowedOrigins.split("\\s*,\\s*"));
     }
 
     @Override
@@ -42,4 +37,3 @@ public class SupportWebSocketConfig implements WebSocketMessageBrokerConfigurer 
         registration.interceptors(supportWebSocketInterceptor);
     }
 }
-

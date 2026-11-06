@@ -9,6 +9,7 @@ import com.moneyfi.user.model.primary.auth.UserAuthModel;
 import com.moneyfi.user.repository.primary.auth.UserAuthHistRepository;
 import com.moneyfi.user.repository.primary.auth.SessionTokenRepository;
 import com.moneyfi.user.repository.primary.auth.UserRepository;
+import com.moneyfi.user.service.PrimaryToSecondaryDbFlow;
 import com.moneyfi.user.service.primary.maintainer.MaintainerService;
 import com.moneyfi.user.service.primary.maintainer.dto.request.CreateOrUpdateSupportUserCreationRequestDto;
 import com.moneyfi.user.service.primary.maintainer.dto.response.SupportUsersResponseDto;
@@ -39,6 +40,7 @@ public class MaintainerServiceImpl implements MaintainerService {
     private final UserRepository userRepository;
     private final UserAuthHistRepository userAuthHistRepository;
     private final SessionTokenRepository sessionTokenRepository;
+    private final PrimaryToSecondaryDbFlow primaryToSecondaryDbFlow;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -53,7 +55,9 @@ public class MaintainerServiceImpl implements MaintainerService {
         user.setBlocked(Boolean.FALSE);
         user.setRoleId(StringConstants.functionToGetRoleIdBasedOnRoleName(requestDto.getRole().name()));
         user.setLoginCodeValue(LoginMode.MAINTAINER_CREATION.getLoginProcessCode());
-        userAuthHistRepository.save(new UserAuthHist(userRepository.save(user).getId(), LocalDateTime.now(ZoneId.systemDefault()), reasonCodeIdAssociation.get(requestDto.getRole() == UserRoles.ADMIN ? ADMIN_CREATION : CUSTOMER_CARE_CREATION), requestDto.getComment(), maintainerUserId));
+        UserAuthModel savedUser = userRepository.save(user);
+        userAuthHistRepository.save(new UserAuthHist(savedUser.getId(), LocalDateTime.now(ZoneId.systemDefault()), reasonCodeIdAssociation.get(requestDto.getRole() == UserRoles.ADMIN ? ADMIN_CREATION : CUSTOMER_CARE_CREATION), requestDto.getComment(), maintainerUserId));
+        if (requestDto.getRole() == UserRoles.CUSTOMER_CARE) primaryToSecondaryDbFlow.addCustomerCareAgentIntoSecondaryDb(user.getId());
     }
 
     @Override
@@ -106,11 +110,12 @@ public class MaintainerServiceImpl implements MaintainerService {
         }
         Integer reasonTypeId = reasonCodeIdAssociation.get(reasonKey);
         userAuthHistRepository.save(new UserAuthHist(userRepository.save(user).getId(), LocalDateTime.now(ZoneId.systemDefault()), reasonTypeId, "Maintainer " + type + "ED the account", maintainerUserId));
+        if (isCustomerCareAgent) primaryToSecondaryDbFlow.updateCustomerCareAvailability(user.getId(), Boolean.TRUE);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void deleteSupportUser(Long supportUserId, Long maintainerUserId, String type) {
+    public void blockOrDeleteSupportUser(Long supportUserId, Long maintainerUserId, String type) {
         UserAuthModel user = userRepository.findById(supportUserId).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         if (AccDeactivationType.BLOCK.name().equalsIgnoreCase(type))
             user.setBlocked(Boolean.TRUE);
@@ -132,5 +137,6 @@ public class MaintainerServiceImpl implements MaintainerService {
         Integer reasonTypeId = reasonCodeIdAssociation.get(reasonKey);
         sessionTokenRepository.deleteAllByUsername(user.getUsername());
         userAuthHistRepository.save(new UserAuthHist(userRepository.save(user).getId(), LocalDateTime.now(ZoneId.systemDefault()), reasonTypeId, "Maintainer " + type + "ED the account", maintainerUserId));
+        if (isCustomerCareAgent) primaryToSecondaryDbFlow.updateCustomerCareAvailability(user.getId(), Boolean.FALSE);
     }
 }

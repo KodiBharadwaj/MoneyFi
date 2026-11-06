@@ -1,4 +1,4 @@
-package com.moneyfi.user.config;
+package com.moneyfi.user.config.general;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

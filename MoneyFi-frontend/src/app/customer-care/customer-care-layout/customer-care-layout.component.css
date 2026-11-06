@@ -1,0 +1,166 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+.cc-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.top-nav {
+  background-color: #0f766e;
+  color: white;
+  padding: 1rem;
+  font-size: 1.5rem;
+}
+
+.brand {
+  font-weight: bold;
+}
+
+.layout {
+  display: flex;
+  flex: 1;
+  /* 🔥 VERY IMPORTANT */
+  min-height: 0;
+}
+
+
+.side-nav {
+  width: 220px;
+  background-color: #f0fdfa;
+  height: 100%;
+  /* full height */
+  overflow-y: auto;
+  /* scroll if needed */
+}
+
+.side-nav {
+  flex-shrink: 0;
+  transition: width 0.3s ease;
+}
+
+.side-nav.collapsed {
+  width: 0;
+  overflow: hidden;
+}
+
+.layout {
+  position: relative;
+}
+
+/* Floats on the sidebar's right edge */
+.sidebar-toggle {
+  position: absolute;
+  top: 16px;
+  left: 4px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 2px solid #f0fdfa;
+  border-radius: 50%;
+  background-color: #0f766e;
+  color: white;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: left 0.3s ease, background-color 0.2s ease;
+}
+
+.sidebar-toggle.open {
+  left: 206px; /* sidebar (220px) minus half the button */
+}
+
+.sidebar-toggle:hover {
+  background-color: #115e59;
+}
+
+.nav-list,
+.logout-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.side-nav li {
+  padding: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.side-nav li:hover {
+  background-color: #ccfbf1;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1rem;
+}
+
+.user-icon {
+  font-size: 1.2rem;
+}
+
+.logout-btn {
+  background-color: #ef4444;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.logout-btn:hover {
+  background-color: #dc2626;
+}
+
+.logout-spinner-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spinner-small {
+  width: 14px;
+  height: 14px;
+  border: 2px solid white;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

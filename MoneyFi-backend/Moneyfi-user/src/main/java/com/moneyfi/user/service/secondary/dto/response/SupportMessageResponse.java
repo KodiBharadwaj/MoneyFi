@@ -16,7 +16,7 @@ public class SupportMessageResponse {
 
     private String conversationId;
 
-    private String senderId;
+    private Long senderId;
 
     private MessageSenderType senderType;
 

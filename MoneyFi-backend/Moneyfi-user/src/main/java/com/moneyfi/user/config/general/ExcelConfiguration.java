@@ -1,4 +1,4 @@
-package com.moneyfi.user.config;
+package com.moneyfi.user.config.general;
 
 import com.moneyfi.constants.service.ExcelGenerationService;
 import com.moneyfi.constants.service.impl.ExcelGenerationServiceImpl;

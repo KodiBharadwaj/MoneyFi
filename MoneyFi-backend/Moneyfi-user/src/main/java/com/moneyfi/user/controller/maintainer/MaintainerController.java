@@ -68,6 +68,6 @@ public class MaintainerController {
                                   @NotNull @PathVariable(value = "id") Long supportUserId,
                                   @NotBlank @RequestParam(value = "type") String type) {
         Long userId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        maintainerService.deleteSupportUser(supportUserId, userId, type);
+        maintainerService.blockOrDeleteSupportUser(supportUserId, userId, type);
     }
 }

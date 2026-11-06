@@ -1,4 +1,4 @@
-package com.moneyfi.user.config;
+package com.moneyfi.user.config.storage;
 
 import com.cloudinary.Cloudinary;
 import org.springframework.beans.factory.annotation.Value;

@@ -149,6 +149,8 @@ request:
   gmail-sync-count: ${GMAIL_SYNC_COUNT:3}
 user:
   session-time: ${USER_SESSION_TIME_MIN:60}
+  customer-care:
+    conversations-count: ${CUSTOMER_CARE_AGENT_MAX_CONVERSATIONS_COUNT:10}
 
 app:
   storage:

@@ -1,4 +1,4 @@
-package com.moneyfi.user.config;
+package com.moneyfi.user.config.storage;
 
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;

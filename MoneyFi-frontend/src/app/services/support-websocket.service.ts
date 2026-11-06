@@ -6,6 +6,7 @@ import {
   StompSubscription
 } from '@stomp/stompjs';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -20,14 +21,19 @@ export class SupportWebSocketService implements OnDestroy {
   messages$: Observable<any> = this.messageSubject.asObservable();
   connected$: Observable<boolean> = this.connectedSubject.asObservable();
 
-  connect(token: string): void {
+  baseUrl = environment.BASE_URL;
 
+  connect(token: string): void {
     if (this.stompClient?.active) {
       return;
     }
 
+    const brokerUrl = this.baseUrl.replace('http://', 'ws://').replace('https://', 'wss://')
+    + '/api/v1/user-service/ws/support';
+
     this.stompClient = new Client({
-      brokerURL: 'ws://localhost:8765/ws/support',
+      
+      brokerURL: brokerUrl,
 
       connectHeaders: {
         Authorization: `Bearer ${token}`
@@ -71,7 +77,7 @@ export class SupportWebSocketService implements OnDestroy {
     }
 
     return this.stompClient.subscribe(
-      `/topic/support/${conversationId}`,
+      `/api/v1/user-service/topic/support/${conversationId}`,
       (message: IMessage) => {
         this.messageSubject.next(JSON.parse(message.body));
       }
@@ -85,7 +91,7 @@ export class SupportWebSocketService implements OnDestroy {
     }
 
     this.stompClient.publish({
-      destination: `/app/support/${conversationId}/send`,
+      destination: `/api/v1/user-service/app/support/${conversationId}/send`,
       body: JSON.stringify({ content })
     });
   }

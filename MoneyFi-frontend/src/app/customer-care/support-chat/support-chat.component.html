@@ -53,57 +53,61 @@
 
 
   <!-- Chat Body -->
-  <div class="chat-messages">
+<div class="chat-messages">
 
-    <!-- Initial loading -->
-    <div *ngIf="isStartingConversation" class="chat-system-message">
-      Connecting you to Customer Care...
-    </div>
+  <!-- Initial loading -->
+  <div *ngIf="isStartingConversation" class="chat-system-message">
+    Connecting you to Customer Care...
+  </div>
 
-    <!-- Waiting state -->
+  <!-- History loading -->
+  <div *ngIf="isLoadingHistory" class="chat-system-message">
+    Loading previous messages...
+  </div>
+
+  <!-- Waiting state -->
+  <div
+    *ngIf="conversationStatus === 'WAITING'"
+    class="chat-system-message">
+
+    <p>Thank you for contacting MoneyFi!</p>
+    <p>We're finding an available customer care agent for you.</p>
+  </div>
+
+  <!-- Initial welcome message -->
+  <div
+    *ngIf="conversationStatus === 'ACTIVE' && messages.length === 0 && !isLoadingHistory"
+    class="chat-system-message">
+
+    Hello! Welcome to MoneyFi Customer Care.
+    How can we help you today?
+  </div>
+
+  <!-- Chat Messages -->
+  <ng-container *ngFor="let message of messages">
+
     <div
-      *ngIf="conversationStatus === 'WAITING'"
-      class="chat-system-message">
-
-      <p>Thank you for contacting MoneyFi!</p>
-      <p>We're finding an available customer care agent for you.</p>
-    </div>
-
-    <!-- Initial welcome message -->
-    <div
-      *ngIf="conversationStatus === 'ACTIVE' && messages.length === 0"
-      class="chat-system-message">
-
-      Hello! Welcome to MoneyFi Customer Care.
-      How can we help you today?
-    </div>
-
-    <!-- Chat Messages -->
-    <ng-container *ngFor="let message of messages">
+      class="message-row"
+      [class.user-message-row]="message.senderType === 'USER'"
+      [class.agent-message-row]="message.senderType === 'AGENT'">
 
       <div
-        class="message-row"
-        [class.user-message-row]="message.senderType === 'USER'"
-        [class.agent-message-row]="message.senderType === 'AGENT'">
+        class="message-bubble"
+        [class.user-bubble]="message.senderType === 'USER'"
+        [class.agent-bubble]="message.senderType === 'AGENT'">
 
-        <div
-          class="message-bubble"
-          [class.user-bubble]="message.senderType === 'USER'"
-          [class.agent-bubble]="message.senderType === 'AGENT'">
+        <p>{{ message.content }}</p>
 
-          <p>{{ message.content }}</p>
-
-          <span class="message-time">
-            {{ message.sentAt | date:'shortTime' }}
-          </span>
-
-        </div>
+        <span class="message-time">
+          {{ message.sentAt | date:'shortTime' }}
+        </span>
 
       </div>
+    </div>
 
-    </ng-container>
+  </ng-container>
 
-  </div>
+</div>
 
 
   <!-- Message Input -->

@@ -18,9 +18,9 @@ public class SupportConversation {
     @Id
     private String id;
 
-    private String userId;
+    private Long userId;
 
-    private String agentId;
+    private Long agentId;
 
     private ConversationStatus status;
 

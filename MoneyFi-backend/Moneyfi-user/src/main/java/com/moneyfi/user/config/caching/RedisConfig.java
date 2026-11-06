@@ -1,4 +1,4 @@
-package com.moneyfi.user.config;
+package com.moneyfi.user.config.caching;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;

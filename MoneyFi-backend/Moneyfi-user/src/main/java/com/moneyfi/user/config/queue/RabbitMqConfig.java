@@ -1,4 +1,4 @@
-package com.moneyfi.user.config;
+package com.moneyfi.user.config.queue;
 
 import org.springframework.amqp.core.*;
 import org.springframework.beans.factory.annotation.Value;

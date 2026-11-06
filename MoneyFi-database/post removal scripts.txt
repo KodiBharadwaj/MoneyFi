@@ -1,1 +1,4 @@
-DROP TABLE user_role_table;
+delete from user_role_table and insert it again from fly way scripts
+
+
+delete from reason_code_table and insert it again from fly way scripts

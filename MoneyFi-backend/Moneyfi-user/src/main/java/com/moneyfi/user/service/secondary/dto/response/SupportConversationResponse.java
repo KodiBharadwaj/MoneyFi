@@ -12,9 +12,9 @@ public class SupportConversationResponse {
 
     private String conversationId;
 
-    private String userId;
+    private Long userId;
 
-    private String agentId;
+    private Long agentId;
 
     private ConversationStatus status;
 
