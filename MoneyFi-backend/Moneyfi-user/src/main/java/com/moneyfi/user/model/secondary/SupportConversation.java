@@ -11,7 +11,7 @@ import java.time.Instant;
 
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 @Document(collection = "support_conversations")
 public class SupportConversation {
 
@@ -29,10 +29,6 @@ public class SupportConversation {
     private Instant startedAt;
 
     private Instant closedAt;
-
-    private Instant lastMessageAt;
-
-    private Long messageCount = 0L;
 
     private Instant createdAt;
 

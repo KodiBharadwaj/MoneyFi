@@ -17,7 +17,7 @@ interface SupportConversationResponse {
   conversationId: string;
   userId: number;
   agentId: number | null;
-  status: 'WAITING' | 'ACTIVE' | 'CLOSED' | 'CANCELLED';
+  status: 'WAITING' | 'ACTIVE' | 'CLOSED' | 'CANCELLED' | 'IN_PROGRESS';
   message: string;
 }
 
@@ -47,7 +47,7 @@ export class SupportChatComponent implements OnInit, OnDestroy {
   conversationId: string | null = null;
 
   conversationStatus:
-    'WAITING' | 'ACTIVE' | 'CLOSED' | 'CANCELLED' | null = null;
+    'WAITING' | 'ACTIVE' | 'CLOSED' | 'CANCELLED' | 'IN_PROGRESS' | null = null;
 
   messageText = '';
   messages: SupportMessage[] = [];
@@ -60,6 +60,11 @@ export class SupportChatComponent implements OnInit, OnDestroy {
     private supportWebSocket: SupportWebSocketService
   ) {}
 
+  get isChatActive(): boolean {
+    return this.conversationStatus === 'ACTIVE' ||
+      this.conversationStatus === 'IN_PROGRESS';
+  }
+
   ngOnInit(): void {
 
     this.subscriptions.add(
@@ -70,7 +75,7 @@ export class SupportChatComponent implements OnInit, OnDestroy {
         if (
           connected &&
           this.conversationId &&
-          this.conversationStatus === 'ACTIVE' &&
+          this.isChatActive &&
           !this.conversationSubscription
         ) {
           this.subscribeToMessages();
@@ -148,7 +153,7 @@ export class SupportChatComponent implements OnInit, OnDestroy {
 
         this.isStartingConversation = false;
 
-        if (response.status === 'ACTIVE') {
+        if (this.isChatActive) {
           this.subscribeWhenConnected();
         }
       },
@@ -257,7 +262,7 @@ export class SupportChatComponent implements OnInit, OnDestroy {
       !content ||
       !this.conversationId ||
       !this.isConnected ||
-      this.conversationStatus !== 'ACTIVE'
+      !this.isChatActive
     ) {
       return;
     }

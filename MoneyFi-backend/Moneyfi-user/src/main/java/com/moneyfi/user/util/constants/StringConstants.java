@@ -21,6 +21,8 @@ import static com.moneyfi.constants.constants.CommonConstants.userRoleAssociatio
 
 public class StringConstants {
 
+    public static final String CONVERSATION_NOT_FOUND = "Conversation not found";
+
     private StringConstants() {}
 
     public static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);

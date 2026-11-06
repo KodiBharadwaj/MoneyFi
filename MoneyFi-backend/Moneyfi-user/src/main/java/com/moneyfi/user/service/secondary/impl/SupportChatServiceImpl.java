@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 
+import static com.moneyfi.user.util.constants.StringConstants.CONVERSATION_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 public class SupportChatServiceImpl implements SupportChatService {
@@ -28,7 +30,6 @@ public class SupportChatServiceImpl implements SupportChatService {
     private final MongoDbTemplateDealer mongoDbTemplateDealer;
 
     public static final String NOT_PART_OF_THIS_CONVERSATION = "You are not part of this conversation";
-    public static final String CONVERSATION_NOT_FOUND = "Conversation not found";
     public static final String CONVERSATION_IS_NOT_ACTIVE = "Conversation is not active";
 
     @Override
@@ -36,7 +37,7 @@ public class SupportChatServiceImpl implements SupportChatService {
     public void sendMessage(String conversationId, SendSupportMessageRequest request, Long userId) {
         SupportConversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException(CONVERSATION_NOT_FOUND));
 
-        if (conversation.getStatus() != ConversationStatus.ACTIVE)
+        if (conversation.getStatus() != ConversationStatus.ACTIVE && conversation.getStatus() != ConversationStatus.IN_PROGRESS)
             throw new IllegalStateException(CONVERSATION_IS_NOT_ACTIVE);
 
         MessageSenderType senderType;

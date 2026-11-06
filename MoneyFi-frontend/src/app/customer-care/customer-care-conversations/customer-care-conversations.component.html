@@ -21,8 +21,12 @@
         <h2>{{ conversations.length }}</h2>
       </div>
       <div class="stat-card">
-        <span>Active</span>
+        <span>New</span>
         <h2 class="active-count">{{ activeCount }}</h2>
+      </div>
+      <div class="stat-card">
+        <span>In progress</span>
+        <h2 class="progress-count">{{ inProgressCount }}</h2>
       </div>
       <div class="stat-card">
         <span>Waiting</span>
@@ -48,7 +52,9 @@
         <div class="conversation-card"
              *ngFor="let conversation of conversations"
              (click)="openConversation(conversation)"
-             [class.selected]="selectedConversation?.conversationId === conversation.conversationId">
+             [class.selected]="selectedConversation?.conversationId === conversation.conversationId"
+             [class.unopened]="conversation.status === 'ACTIVE'"
+             [class.in-progress]="conversation.status === 'IN_PROGRESS'">
 
           <div class="customer-avatar">{{ getInitials(conversation.customerName) }}</div>
 
@@ -62,8 +68,8 @@
 
             <div class="conversation-meta">
               <span class="conversation-id">#{{ conversation.conversationId }}</span>
-              <span class="status" [ngClass]="conversation.status.toLowerCase()">
-                {{ conversation.status }}
+              <span class="status" [ngClass]="conversation.status.toLowerCase().replace('_', '-')">
+                {{ statusLabel(conversation.status) }}
               </span>
             </div>
           </div>
@@ -116,7 +122,7 @@
         </div>
       </div>
 
-      <div class="chat-footer" *ngIf="selectedConversation.status === 'ACTIVE'">
+      <div class="chat-footer" *ngIf="isChatEnabled(selectedConversation)">
         <input type="text"
                [(ngModel)]="messageContent"
                placeholder="Type your message..."
@@ -130,8 +136,8 @@
         </button>
       </div>
 
-      <div class="closed-chat-message" *ngIf="selectedConversation.status !== 'ACTIVE'">
-        This conversation is {{ selectedConversation.status.toLowerCase() }}.
+      <div class="closed-chat-message" *ngIf="!isChatEnabled(selectedConversation)">
+        This conversation is {{ selectedConversation.status.toLowerCase().replace('_', ' ') }}.
       </div>
     </ng-container>
   </aside>

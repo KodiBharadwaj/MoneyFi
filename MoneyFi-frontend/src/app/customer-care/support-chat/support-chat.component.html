@@ -27,7 +27,7 @@
             [class.online]="isConnected">
           </span>
 
-          <ng-container *ngIf="conversationStatus === 'ACTIVE'">
+          <ng-container *ngIf="isChatActive">
             {{ isConnected ? 'Connected' : 'Connecting...' }}
           </ng-container>
 
@@ -76,7 +76,7 @@
 
   <!-- Initial welcome message -->
   <div
-    *ngIf="conversationStatus === 'ACTIVE' && messages.length === 0 && !isLoadingHistory"
+    *ngIf="isChatActive && messages.length === 0 && !isLoadingHistory"
     class="chat-system-message">
 
     Hello! Welcome to MoneyFi Customer Care.
@@ -117,7 +117,7 @@
       type="text"
       [(ngModel)]="messageText"
       placeholder="Type your message..."
-      [disabled]="!isConnected || conversationStatus !== 'ACTIVE'"
+      [disabled]="!isConnected || !isChatActive"
       (keyup.enter)="sendMessage()"
       maxlength="5000"
     />
@@ -127,7 +127,7 @@
       (click)="sendMessage()"
       [disabled]="!messageText.trim() ||
                   !isConnected ||
-                  conversationStatus !== 'ACTIVE'">
+                  !isChatActive">
 
       ➤
     </button>

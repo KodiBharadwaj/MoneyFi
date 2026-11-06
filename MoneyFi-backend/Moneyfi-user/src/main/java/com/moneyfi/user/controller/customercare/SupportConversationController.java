@@ -4,16 +4,16 @@ import com.moneyfi.user.service.primary.user.UserAuthService;
 import com.moneyfi.user.service.secondary.SupportConversationService;
 import com.moneyfi.user.service.secondary.dto.response.SupportConversationsResponseDto;
 import com.moneyfi.user.service.secondary.dto.response.SupportConversationResponse;
+import com.moneyfi.user.util.enums.ConversationStatus;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -39,5 +39,13 @@ public class SupportConversationController {
     public List<SupportConversationsResponseDto> fetchAgentAssignedConversations(Authentication authentication) {
         Long agentId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         return supportConversationService.fetchAgentAssignedConversations(agentId);
+    }
+
+    @Operation(summary = "Api to change the conversation thread", description = "When agent opens a conversation, it gets marked to Waiting status")
+    @GetMapping(value = "/{conversationId}/opened")
+    @PreAuthorize("hasRole('CUSTOMER_CARE')")
+    public void updateConversationThread(@NotBlank @PathVariable String conversationId,
+                                         @NotNull @RequestParam ConversationStatus status) {
+        supportConversationService.updateConversationThread(conversationId, status);
     }
 }

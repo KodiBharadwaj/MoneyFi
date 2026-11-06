@@ -9,14 +9,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SupportConversationResponse {
-
     private String conversationId;
-
     private Long userId;
-
     private Long agentId;
-
     private ConversationStatus status;
-
     private String message;
 }

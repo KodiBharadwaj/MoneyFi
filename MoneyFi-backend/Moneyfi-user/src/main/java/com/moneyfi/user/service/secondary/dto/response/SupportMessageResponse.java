@@ -11,16 +11,10 @@ import java.time.Instant;
 @Setter
 @Builder
 public class SupportMessageResponse {
-
     private String messageId;
-
     private String conversationId;
-
     private Long senderId;
-
     private MessageSenderType senderType;
-
     private String content;
-
     private Instant sentAt;
 }

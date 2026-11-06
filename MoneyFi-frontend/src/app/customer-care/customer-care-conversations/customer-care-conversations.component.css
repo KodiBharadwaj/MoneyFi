@@ -235,6 +235,46 @@
   color: #15803d;
 }
 
+.status.active {
+  background: #15803d;
+  color: #fff;
+}
+
+.status.in-progress {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.conversation-card.unopened {
+  background: #ecfdf5;
+  border-left-color: #15803d;
+}
+
+.conversation-card.unopened .customer-row h4,
+.conversation-card.unopened .last-message {
+  font-weight: 700;
+  color: #14532d;
+}
+
+.conversation-card.in-progress {
+  background: #f5f9ff;
+  border-left-color: #93c5fd;
+}
+
+.conversation-card.unopened:hover,
+.conversation-card.in-progress:hover {
+  filter: brightness(0.97);
+}
+
+.conversation-card.selected {
+  background: #ccfbf1;
+  border-left-color: #0f766e;
+}
+
+.stat-card h2.progress-count {
+  color: #1d4ed8;
+}
+
 .status.waiting {
   background: #fef3c7;
   color: #b45309;

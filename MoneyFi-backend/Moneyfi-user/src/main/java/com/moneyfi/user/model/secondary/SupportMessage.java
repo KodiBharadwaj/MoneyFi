@@ -27,6 +27,8 @@ public class SupportMessage {
 
     private MessageType messageType;
 
+    private boolean isRead;
+
     private String content;
 
     private Instant sentAt;

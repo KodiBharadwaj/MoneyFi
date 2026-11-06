@@ -12,7 +12,7 @@ interface SupportConversation {
   userId: number;
   agentId: number;
   customerName?: string;
-  status: 'WAITING' | 'ACTIVE' | 'CLOSED' | 'CANCELLED';
+  status: 'WAITING' | 'ACTIVE' | 'IN_PROGRESS' | 'CLOSED' | 'CANCELLED';
   lastMessage?: string;
   lastMessageAt?: string;
   messageCount?: number;
@@ -136,6 +136,11 @@ export class CustomerCareConversationsComponent implements OnInit, OnDestroy {
   }
 
   openConversation(conversation: SupportConversation): void {
+    // First time the agent opens an unopened (ACTIVE) conversation -> mark IN_PROGRESS.
+    if (conversation.status === 'ACTIVE') {
+      this.markInProgress(conversation);
+    }
+
     this.selectedConversation = conversation;
     this.chatOpen = true;
     this.messages = [];
@@ -145,6 +150,20 @@ export class CustomerCareConversationsComponent implements OnInit, OnDestroy {
     if (this.connected) {
       this.subscribeToSelectedConversation();
     }
+  }
+
+  private markInProgress(conversation: SupportConversation): void {
+    this.http.get<void>(
+      `${this.apiUrl}/api/v1/user-service/support/conversations/${conversation.conversationId}/opened`,
+      { params: { status: 'IN_PROGRESS' } }
+    ).subscribe({
+      next: () => {
+        conversation.status = 'IN_PROGRESS';
+      },
+      error: (error) => {
+        console.error('Unable to mark conversation as in progress', error);
+      }
+    });
   }
 
   private loadConversationHistory(conversationId: string): void {
@@ -186,7 +205,7 @@ export class CustomerCareConversationsComponent implements OnInit, OnDestroy {
       !content ||
       !this.selectedConversation ||
       !this.connected ||
-      this.selectedConversation.status !== 'ACTIVE'
+      !this.isChatEnabled(this.selectedConversation)
     ) {
       return;
     }
@@ -269,8 +288,20 @@ export class CustomerCareConversationsComponent implements OnInit, OnDestroy {
     this.supportWebSocketService.disconnect();
   }
 
+  isChatEnabled(conversation: SupportConversation): boolean {
+    return conversation.status === 'ACTIVE' || conversation.status === 'IN_PROGRESS';
+  }
+
+  statusLabel(status: string): string {
+    return status === 'ACTIVE' ? 'NEW' : status.replace('_', ' ');
+  }
+
   get activeCount(): number {
     return this.conversations.filter(c => c.status === 'ACTIVE').length;
+  }
+
+  get inProgressCount(): number {
+    return this.conversations.filter(c => c.status === 'IN_PROGRESS').length;
   }
 
   get waitingCount(): number {

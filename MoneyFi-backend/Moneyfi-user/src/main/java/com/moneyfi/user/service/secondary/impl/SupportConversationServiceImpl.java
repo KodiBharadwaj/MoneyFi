@@ -1,5 +1,6 @@
 package com.moneyfi.user.service.secondary.impl;
 
+import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.model.primary.general.ProfileModel;
 import com.moneyfi.user.model.secondary.SupportAgentWorkload;
 import com.moneyfi.user.model.secondary.SupportConversation;
@@ -15,10 +16,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+
+import static com.moneyfi.user.util.constants.StringConstants.CONVERSATION_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -30,10 +34,9 @@ public class SupportConversationServiceImpl implements SupportConversationServic
     private final ProfileRepository profileRepository;
     private final SupportMessageRepository supportMessageRepository;
 
-    private static final List<ConversationStatus> OPEN_STATUSES = List.of(ConversationStatus.WAITING, ConversationStatus.ACTIVE);
+    private static final List<ConversationStatus> OPEN_STATUSES = List.of(ConversationStatus.WAITING, ConversationStatus.ACTIVE, ConversationStatus.IN_PROGRESS);
 
     public SupportConversationResponse startConversationWithAgent(Long userId) {
-
         Optional<SupportConversation> existing =
                 conversationRepository.findFirstByUserIdAndStatusInOrderByCreatedAtDesc(userId, OPEN_STATUSES);
 
@@ -48,7 +51,6 @@ public class SupportConversationServiceImpl implements SupportConversationServic
                 .status(agent != null ? ConversationStatus.ACTIVE : ConversationStatus.WAITING)
                 .assignedAt(agent != null ? currentInstantTime : null)
                 .startedAt(agent != null ? currentInstantTime : null)
-                .messageCount(0L)
                 .createdAt(currentInstantTime)
                 .updatedAt(currentInstantTime)
                 .build();
@@ -84,6 +86,21 @@ public class SupportConversationServiceImpl implements SupportConversationServic
                             .build();
                 })
                 .toList();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateConversationThread(String conversationId, ConversationStatus status) {
+        SupportConversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException(CONVERSATION_NOT_FOUND));
+        Instant currentInstant = Instant.now();
+        SupportConversation.SupportConversationBuilder updatedBuilder = conversation.toBuilder()
+                .status(status)
+                .updatedAt(currentInstant);
+        if (status == ConversationStatus.CANCELLED || status == ConversationStatus.CLOSED) {
+            updatedBuilder.updatedAt(currentInstant);
+            updatedBuilder.closedAt(currentInstant);
+        }
+        conversationRepository.save(updatedBuilder.build());
     }
 
     private SupportConversationResponse mapResponse(SupportConversation conversation, String message) {
