@@ -37,6 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.moneyfi.constants.constants.CommonConstants.STRING_EMAIL;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 
 @Service

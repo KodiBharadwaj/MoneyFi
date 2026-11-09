@@ -655,7 +655,6 @@ public class AdminServiceImpl implements AdminService {
                         .mdcRequestId(entity.getMdcRequestId())
                         .referenceNumber(entity.getReferenceNumber())
                         .username(entity.getUsername())
-                        .userId(Long.valueOf(entity.getUserId()))
                         .name(entity.getName())
                         .message(entity.getMessage())
                         .failureTime(entity.getCreatedAt())

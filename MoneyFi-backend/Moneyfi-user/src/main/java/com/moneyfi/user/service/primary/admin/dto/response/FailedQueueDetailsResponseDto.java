@@ -15,7 +15,6 @@ public class FailedQueueDetailsResponseDto extends ReusableTotalCountDto {
     private String mdcRequestId;
     private String referenceNumber;
     private String username;
-    private Long userId;
     private String name;
     private String message;
     private LocalDateTime failureTime;

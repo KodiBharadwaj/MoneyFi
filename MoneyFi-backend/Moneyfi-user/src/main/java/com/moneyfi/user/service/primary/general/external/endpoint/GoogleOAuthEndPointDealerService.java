@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.Map;
 
 import static com.moneyfi.constants.constants.CommonConstants.MONEYFI_APPLICATION_NAME;
+import static com.moneyfi.constants.constants.CommonConstants.STRING_EMAIL;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 import static com.moneyfi.user.util.constants.StringUrls.*;
 

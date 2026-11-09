@@ -81,7 +81,6 @@ public class StringConstants {
     public static final String EXPIRES_IN = "expires_in";
     public static final String SCOPE = "scope";
     public static final String POST_MESSAGE = "postmessage";
-    public static final String STRING_EMAIL = "email";
     public static final String GMAIL_SYNC = "GMAIL_SYNC";
     public static final String GOOGLE_AUTHORIZATION_CODE_NULL_MESSAGE = "Google Authorization code cannot be null";
 

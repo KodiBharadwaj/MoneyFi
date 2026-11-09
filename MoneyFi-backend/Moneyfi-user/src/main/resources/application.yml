@@ -157,6 +157,8 @@ app:
     provider: ${STORAGE_PROVIDER:cloudinary} #Supported values: aws, gcp, azure, cloudinary
   communication:
     queue-provider: ${QUEUE_PROVIDER:artemis} #Supported values: artemis, rabbitmq
+  otp:
+    expiration-time: ${OTP_EXPIRATION_TIME_IN_MINUTES:5}
 
 server:
   port: ${APPLICATION_PORT:8500}

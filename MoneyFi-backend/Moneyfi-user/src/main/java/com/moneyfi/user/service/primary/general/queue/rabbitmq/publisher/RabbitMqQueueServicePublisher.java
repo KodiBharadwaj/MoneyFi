@@ -1,8 +1,8 @@
 package com.moneyfi.user.service.primary.general.queue.rabbitmq.publisher;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.moneyfi.constants.dto.NotificationQueueDto;
 import com.moneyfi.user.service.primary.general.queue.PublishQueueService;
-import com.moneyfi.user.service.primary.user.dto.internal.NotificationQueueDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

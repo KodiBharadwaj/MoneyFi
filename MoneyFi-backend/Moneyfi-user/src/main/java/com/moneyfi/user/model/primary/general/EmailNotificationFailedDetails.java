@@ -3,14 +3,14 @@ package com.moneyfi.user.model.primary.general;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
+@Builder
 @Table(name = "email_notification_failed_details_table")
 public class EmailNotificationFailedDetails {
 
@@ -28,16 +28,27 @@ public class EmailNotificationFailedDetails {
     @Column(name = "message")
     private String message;
 
+    @Column(name = "value_json")
+    private String valueJson;
+
     @NotBlank
     @Column(name = "username")
     private String username;
 
-    @NotNull
-    @Column(name = "user_id")
-    private String userId;
-
     @Column(name = "name")
     private String name;
+
+    @NotBlank
+    @Column(name = "failure_stage")
+    private String failureStage;
+
+    @NotBlank
+    @Column(name = "message_type")
+    private String messageType;
+
+    @NotBlank
+    @Column(name = "broker_used")
+    private String brokerUsed;
 
     @NotNull
     @Column(name = "created_by")

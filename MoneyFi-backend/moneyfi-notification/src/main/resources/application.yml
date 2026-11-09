@@ -45,7 +45,7 @@ cloud:
 
 app:
   communication:
-    queue-provider: ${QUEUE_PROVIDER:rabbitmq} #Supported values: artemis, rabbitmq
+    queue-provider: ${QUEUE_PROVIDER:artemis} #Supported values: artemis, rabbitmq
     email-provider: ${EMAIL_PROVIDER:google_smtp} #Supported values: google_smtp, brevo, aws_ses
 
 rabbitmq:

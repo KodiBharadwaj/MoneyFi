@@ -1,8 +1,9 @@
 package com.moneyfi.notification.service;
 
 import com.moneyfi.constants.dto.BatchInfoForEmailDto;
+import com.moneyfi.constants.dto.FeedbackResponseDto;
+import com.moneyfi.constants.dto.NotificationQueueDto;
 import com.moneyfi.constants.enums.NotificationQueueEnum;
-import com.moneyfi.notification.service.dto.NotificationQueueDto;
 import com.moneyfi.notification.service.dto.emaildto.AdminBlockUserDto;
 import com.moneyfi.notification.service.dto.emaildto.StatementAnalysisDto;
 import com.moneyfi.notification.service.dto.emaildto.GmailSyncIncreaseRequestDto;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonProcessingException;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -27,7 +30,8 @@ import static com.moneyfi.constants.constants.CommonConstants.STRING_SEPARATOR;
 public class EmailTemplateInjector {
     
     private final EventPublisherService eventPublisherService;
-    
+    private final ObjectMapper objectMapper;
+
     public void functionToRouteBasedOnRequest(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) throws JsonProcessingException {
         switch (NotificationQueueEnum.valueOf(notificationQueueDto.getNotificationQueueType())) {
             case USER_FEEDBACK_MAIL ->
@@ -129,17 +133,35 @@ public class EmailTemplateInjector {
         }
     }
 
-    private void functionCallToSendOtpWhenUserForgotPassword(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {
+    private void functionCallToSendOtpWhenUserForgotPassword(NotificationQueueDto dto, EmailTemplates emailTemplates) {
         try {
-            String[] parts = notificationQueueDto.getValueJson().split(java.util.regex.Pattern.quote(STRING_SEPARATOR));
-            String username = parts[0];
-            String email = parts[1];
-            String verificationCode = parts[2];
-            emailTemplates.sendOtpForForgotPassword(username, email, verificationCode);
+            JsonNode jsonNode = parseJson(dto);
+            emailTemplates.sendOtpForForgotPassword(
+                    getFieldValue(jsonNode, "userName"),
+                    getFieldValue(jsonNode, "username"),
+                    getFieldValue(jsonNode, "verificationCode")
+            );
         } catch (Exception e) {
-            e.printStackTrace();
-            eventPublisherService.publishMessage(e.getMessage());
+            log.error("Notification failed with error: {}", e.getMessage());
+            String errorMessage = (e instanceof JsonProcessingException jpe) ? "Invalid notification payload: " + jpe.getOriginalMessage() : String.valueOf(e.getMessage());
+            eventPublisherService.publishMessage(FeedbackResponseDto.builder()
+                    .requestValueJson(dto)
+                    .errorMessage(errorMessage)
+                    .build()
+            );
         }
+    }
+
+    private JsonNode parseJson(NotificationQueueDto dto) throws JsonProcessingException {
+        return objectMapper.readTree(dto.getValueJson());
+    }
+
+    private static String getFieldValue(JsonNode node, String field) {
+        JsonNode jsonNode = node.get(field);
+        if (jsonNode == null || jsonNode.isNull()) {
+            throw new IllegalArgumentException("Missing field in notification payload: " + field);
+        }
+        return jsonNode.asString();
     }
 
     private void functionCallToSendOtpUserBlock(NotificationQueueDto notificationQueueDto, EmailTemplates emailTemplates) {

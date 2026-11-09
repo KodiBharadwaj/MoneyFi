@@ -1,5 +1,6 @@
 package com.moneyfi.user.service.primary.user.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.constants.enums.*;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
@@ -14,6 +15,7 @@ import com.moneyfi.user.repository.primary.auth.OtpTempRepository;
 import com.moneyfi.user.repository.primary.auth.UserRepository;
 import com.moneyfi.user.service.PrimaryToSecondaryDbFlow;
 import com.moneyfi.user.service.primary.ReusableCodeClass;
+import com.moneyfi.user.service.primary.general.inter.EmailNotificationFailedService;
 import com.moneyfi.user.service.primary.user.UserAuthService;
 import com.moneyfi.user.service.primary.general.caching.UserCacheService;
 import com.moneyfi.user.service.primary.user.UserCommonService;
@@ -26,11 +28,13 @@ import com.moneyfi.user.service.primary.jwtservice.JwtService;
 import com.moneyfi.user.service.primary.jwtservice.dto.JwtToken;
 import com.moneyfi.user.service.primary.user.ProfileService;
 import com.moneyfi.user.util.constants.StringConstants;
+import com.moneyfi.user.util.enums.QueueFailureStage;
 import com.moneyfi.user.util.enums.ResendOtpType;
 import com.moneyfi.user.validator.UserValidations;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -45,6 +49,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -68,6 +73,8 @@ public class UserAuthServiceImpl implements UserAuthService {
     private String allowedOrigins;
     @Value("${user.session-time}")
     private Integer configuredUserSessionTime;
+    @Value("${app.otp.expiration-time}")
+    private int otpExpirationTime;
 
     @Autowired
     private RestTemplate externalRestTemplateForOAuth;
@@ -86,6 +93,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final UserSessionTimeRepository userSessionTimeRepository;
     private final ReusableCodeClass reusableCodeClass;
     private final PrimaryToSecondaryDbFlow primaryToSecondaryDbFlow;
+    private final EmailNotificationFailedService emailNotificationFailedService;
 
     private static final String GOOGLE_AUTH_CONSTANT_PASSWORD = null;
     private static final String GITHUB_AUTH_CONSTANT_PASSWORD = null;
@@ -328,24 +336,39 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String forgotPassword(String email) {
+    public String forgotPassword(String email) throws JsonProcessingException {
         UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         UserValidations.userAlreadyDeactivatedCheckValidation(user);
-        String verificationCode = null;
-        if (user.getVerificationCode() != null && LocalDateTime.now().isBefore(user.getVerificationCodeExpiration())) {
+        String verificationCode;
+        if (user.getVerificationCode() != null && LocalDateTime.now(ZoneId.systemDefault()).isBefore(user.getVerificationCodeExpiration())) {
             verificationCode = user.getVerificationCode();
         } else {
             verificationCode = generateVerificationCode();
             user.setVerificationCode(verificationCode);
-            user.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(5));
+            user.setVerificationCodeExpiration(LocalDateTime.now(ZoneId.systemDefault()).plusMinutes(otpExpirationTime));
             user.setOtpCount(user.getOtpCount() + 1);
             userRepository.save(user);
         }
+
         reusableCodeClass.sendNotificationToUser(
                 NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name(),
-                profileService.getUserDetailsByUserId(user.getId()) + STRING_SEPARATOR + email + STRING_SEPARATOR + verificationCode
+                objectMapper.writeValueAsString(setUserDetailsForNotificationQueue(email, user, verificationCode))
         );
         return VERIFICATION_CODE_SENT_MESSAGE;
+    }
+
+    private Map<String, Object> setUserDetailsForNotificationQueue(String email, UserAuthModel user, String verificationCode) throws JsonProcessingException {
+        try {
+            return Map.of(
+                    STRING_USER_NAME, profileService.getUserDetailsByUserId(user.getId()),
+                    STRING_USERNAME, email,
+                    STRING_VERIFICATION_CODE, verificationCode,
+                    STRING_MDC_REQUEST_ID, MDC.get(MDC_REQUEST_ID));
+        } catch (Exception e) {
+            log.error("Error occurred: {}", e.getMessage());
+            emailNotificationFailedService.saveFailedEmailNotificationDetails(user.getId(), email, e.getMessage(), QueueFailureStage.SOURCE_SERVICE.name(), NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name());
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -453,7 +476,7 @@ public class UserAuthServiceImpl implements UserAuthService {
                 .findFirst()
                 .orElseGet(() -> {
                     String newOtp = generateVerificationCode();
-                    otpTempRepository.save(new OtpTempModel(username, newOtp, LocalDateTime.now().plusMinutes(5), otpType));
+                    otpTempRepository.save(new OtpTempModel(username, newOtp, LocalDateTime.now(ZoneId.systemDefault()).plusMinutes(otpExpirationTime), otpType));
                     return newOtp;
                 });
         reusableCodeClass.sendNotificationToUser(
@@ -479,10 +502,10 @@ public class UserAuthServiceImpl implements UserAuthService {
         if (tempModel.isPresent()) {
             OtpTempModel existing = tempModel.get();
             existing.setOtp(verificationCode);
-            existing.setExpirationTime(LocalDateTime.now().plusMinutes(5));
+            existing.setExpirationTime(LocalDateTime.now(ZoneId.systemDefault()).plusMinutes(otpExpirationTime));
             otpTempRepository.save(existing);
         } else {
-            otpTempRepository.save(new OtpTempModel(email, verificationCode, LocalDateTime.now().plusMinutes(5), OtpType.USER_CREATION.name()));
+            otpTempRepository.save(new OtpTempModel(email, verificationCode, LocalDateTime.now(ZoneId.systemDefault()).plusMinutes(otpExpirationTime), OtpType.USER_CREATION.name()));
         }
         return EMAIL_SENT_SUCCESS_MESSAGE;
     }

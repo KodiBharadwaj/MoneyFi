@@ -1,5 +1,6 @@
 package com.moneyfi.user.service.primary.user;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.model.primary.auth.UserAuthModel;
 import com.moneyfi.user.service.primary.user.dto.request.ChangePasswordDto;
 import com.moneyfi.user.service.primary.user.dto.request.UserLoginDetailsRequestDto;
@@ -22,7 +23,7 @@ public interface UserAuthService {
 
     Long getUserIdByUsername(String username);
 
-    String forgotPassword(String email);
+    String forgotPassword(String email) throws JsonProcessingException;
 
     String verifyCode(String email, String code);
 

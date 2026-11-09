@@ -1,6 +1,6 @@
 package com.moneyfi.user.service.primary;
 
-import com.moneyfi.user.service.primary.user.dto.internal.NotificationQueueDto;
+import com.moneyfi.constants.dto.NotificationQueueDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -13,12 +13,12 @@ public class ReusableCodeClass {
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    public void sendNotificationToUser(String notificationQueueType, String description) {
+    public void sendNotificationToUser(String notificationQueueType, String valueJson) {
         log.info("Sending Notification to user of type: {}", notificationQueueType);
         applicationEventPublisher.publishEvent(
                 NotificationQueueDto.builder()
                         .notificationQueueType(notificationQueueType)
-                        .valueJson(description)
+                        .valueJson(valueJson)
                         .build()
         );
     }

@@ -1,5 +1,6 @@
 package com.moneyfi.user.controller.open;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.constants.enums.LoginMode;
 import com.moneyfi.user.service.primary.user.UserAuthService;
 import com.moneyfi.user.service.primary.user.UserCommonService;
@@ -58,9 +59,9 @@ public class UserAuthController {
         return ResponseEntity.ok(userAuthService.checkOtpActiveMethod(email));
     }
 
-    @Operation(summary = "Api end point to send otp for forgot password")
+    @Operation(summary = "Api to send otp", description = "User can get otp when forgets account password")
     @GetMapping("/forgot-password/get-otp")
-    public ResponseEntity<String> forgotPassword(@NotBlank @Email @RequestParam String email) {
+    public ResponseEntity<String> forgotPassword(@NotBlank @Email @RequestParam String email) throws JsonProcessingException {
         return ResponseEntity.ok(userAuthService.forgotPassword(email));
     }
 
