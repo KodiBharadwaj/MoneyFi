@@ -20,10 +20,10 @@ public interface EmailNotificationFailedRepository extends JpaRepository<EmailNo
             AND (
                     :search IS NULL
                     OR :search = ''
-                    OR LOWER(e.mdcRequestId) LIKE LOWER(CONCAT('%', :search, '%'))
-                    OR LOWER(e.referenceNumber) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR (e.mdcRequestId IS NOT NULL AND LOWER(e.mdcRequestId) LIKE LOWER(CONCAT('%', :search, '%')))
+                    OR (e.referenceNumber IS NOT NULL AND LOWER(e.referenceNumber) LIKE LOWER(CONCAT('%', :search, '%')))
                     OR LOWER(e.username) LIKE LOWER(CONCAT('%', :search, '%'))
-                    OR LOWER(e.name) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR (e.name IS NOT NULL AND LOWER(e.name) LIKE LOWER(CONCAT('%', :search, '%')))
                     OR LOWER(e.message) LIKE LOWER(CONCAT('%', :search, '%'))
                 )
             """)

@@ -217,9 +217,80 @@ code.muted {
   white-space: nowrap;
 }
 
-.message.expanded {
-  white-space: normal;
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-head h3 { margin: 0; font-size: 16px; }
+
+.modal-close {
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+}
+
+.modal-body h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.modal-error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 16px;
   word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.json-view {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 6px;
+  padding: 12px;
+  margin: 0;
+  max-height: 300px;
+  overflow: auto;
+  font-family: Consolas, monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .status-dot {

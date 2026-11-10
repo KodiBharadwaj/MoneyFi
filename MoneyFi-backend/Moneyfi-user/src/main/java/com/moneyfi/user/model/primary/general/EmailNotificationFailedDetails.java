@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "email_notification_failed_details_table")
 public class EmailNotificationFailedDetails {
 

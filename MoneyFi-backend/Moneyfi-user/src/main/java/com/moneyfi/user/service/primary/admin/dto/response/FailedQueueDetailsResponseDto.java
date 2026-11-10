@@ -17,5 +17,9 @@ public class FailedQueueDetailsResponseDto extends ReusableTotalCountDto {
     private String username;
     private String name;
     private String message;
+    private String valueJson;
+    private String failureStage;
+    private String messageType;
+    private String streamPlatform;
     private LocalDateTime failureTime;
 }

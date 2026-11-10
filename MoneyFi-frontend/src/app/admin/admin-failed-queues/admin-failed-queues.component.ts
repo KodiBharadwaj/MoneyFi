@@ -9,9 +9,12 @@ interface FailedQueueDetailsResponseDto {
   mdcRequestId: string;
   referenceNumber: string;
   username: string;
-  userId: number;
   name: string;
   message: string;
+  valueJson: string;
+  failureStage: string;
+  messageType: string;
+  streamPlatform: string;
   failureTime: string;
 }
 
@@ -35,7 +38,8 @@ export class AdminFailedQueuesComponent implements OnInit {
   failedQueues: FailedQueueDetailsResponseDto[] = [];
   loading = false;
   errorMessage = '';
-  expandedId: number | null = null;
+  selectedItem: FailedQueueDetailsResponseDto | null = null;
+  selectedJson = '';
 
   offset = 0;
   limit = 10;
@@ -109,8 +113,22 @@ export class AdminFailedQueuesComponent implements OnInit {
     });
   }
 
-  toggleRow(id: number) {
-    this.expandedId = this.expandedId === id ? null : id;
+  openDetails(item: FailedQueueDetailsResponseDto) {
+    this.selectedItem = item;
+    if (!item.valueJson) {
+      this.selectedJson = '';
+      return;
+    }
+    try {
+      this.selectedJson = JSON.stringify(JSON.parse(item.valueJson), null, 2);
+    } catch {
+      this.selectedJson = item.valueJson;
+    }
+  }
+
+  closeDetails() {
+    this.selectedItem = null;
+    this.selectedJson = '';
   }
 
   nextPage() {
