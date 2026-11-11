@@ -42,18 +42,74 @@
       </div>
     </div>
 
+    <div class="chat-header-actions">
+      <button
+        *ngIf="view === 'chat' || view === 'history'"
+        class="chat-close-btn"
+        (click)="view === 'chat' ? backToList() : showList('ACTIVE')"
+        aria-label="Back">
+        ←
+      </button>
+
+      <button
+        *ngIf="view === 'list'"
+        class="chat-close-btn"
+        (click)="showList('INACTIVE')"
+        title="Previous conversations"
+        aria-label="Conversation history">
+        🕘
+      </button>
+
+      <button
+        class="chat-close-btn"
+        (click)="closeChat()"
+        aria-label="Close chat">
+        ✕
+      </button>
+    </div>
+
+  </div>
+
+
+  <!-- Conversation list (active / history) -->
+  <div class="chat-messages" *ngIf="view !== 'chat'">
+
+    <div class="chat-system-message">
+      {{ view === 'history' ? 'Previous conversations' : 'Your conversations' }}
+    </div>
+
+    <div *ngIf="isLoadingList" class="chat-system-message">Loading...</div>
+
+    <div *ngIf="listError" class="chat-system-message">
+      Unable to load conversations. Please try again.
+    </div>
+
+    <div
+      *ngIf="!isLoadingList && !listError && conversations.length === 0"
+      class="chat-system-message">
+      {{ view === 'history' ? 'No previous conversations.' : 'No active conversations.' }}
+    </div>
+
     <button
-      class="chat-close-btn"
-      (click)="closeChat()"
-      aria-label="Close chat">
-      ✕
+      *ngFor="let c of conversations; let i = index"
+      class="conversation-item"
+      (click)="selectConversation(c)">
+      <span>Conversation {{ i + 1 }}</span>
+      <span class="conversation-status">{{ c.status }}</span>
+    </button>
+
+    <button
+      *ngIf="view === 'list' && !isLoadingList"
+      class="new-conversation-btn"
+      (click)="startConversation()">
+      + Start a new conversation
     </button>
 
   </div>
 
 
   <!-- Chat Body -->
-<div class="chat-messages">
+<div class="chat-messages" *ngIf="view === 'chat'">
 
   <!-- Initial loading -->
   <div *ngIf="isStartingConversation" class="chat-system-message">
@@ -111,7 +167,7 @@
 
 
   <!-- Message Input -->
-  <div class="chat-input-section">
+  <div class="chat-input-section" *ngIf="view === 'chat'">
 
     <input
       type="text"

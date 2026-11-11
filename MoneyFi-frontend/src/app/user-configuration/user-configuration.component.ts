@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
 import { ContactFormComponent } from '../forms/contact-form/contact-form.component';
 import { FeedbackFormComponent } from '../forms/feedback-form/feedback-form.component';
 import { SurveyFormComponent } from '../forms/survey-form/survey-form.component';
-import { SupportChatComponent } from '../customer-care/support-chat/support-chat.component';
+import { SupportChatComponent } from '../support-chat/support-chat.component';
 
 @Component({
   selector: 'app-user-configuration',

@@ -21,8 +21,6 @@ import static com.moneyfi.constants.constants.CommonConstants.userRoleAssociatio
 
 public class StringConstants {
 
-    public static final String CONVERSATION_NOT_FOUND = "Conversation not found";
-
     private StringConstants() {}
 
     public static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
@@ -67,6 +65,7 @@ public class StringConstants {
     public static final String LOGOUT_FAILURE_MESSAGE = "Logout failed!";
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     public static final String PLEASE_PROVIDE_ALL_THE_DETAILS_CORRECTLY = "Please provide all the details correctly";
+    public static final String CONVERSATION_NOT_FOUND = "Conversation not found";
 
     public static final ObjectMapper objectMapper = new ObjectMapper();
 

@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 import static com.moneyfi.constants.constants.CommonConstants.*;
-import static com.moneyfi.user.util.constants.StringConstants.*;
 
 @Slf4j
 @Service

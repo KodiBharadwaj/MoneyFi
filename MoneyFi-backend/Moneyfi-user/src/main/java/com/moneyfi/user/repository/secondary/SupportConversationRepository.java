@@ -12,7 +12,9 @@ import java.util.Optional;
 @Repository
 public interface SupportConversationRepository extends MongoRepository<SupportConversation, String> {
 
-    Optional<SupportConversation> findFirstByUserIdAndStatusInOrderByCreatedAtDesc(Long userId, Collection<ConversationStatus> statuses);
-
     List<SupportConversation> findAllByAgentId(Long agentId);
+
+    List<SupportConversation> findAllByUserIdAndStatusIn(Long userId, Collection<ConversationStatus> statuses);
+
+    Optional<SupportConversation> findFirstByIdAndUserId(String conversationId, Long userId);
 }

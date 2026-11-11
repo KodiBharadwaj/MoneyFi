@@ -10,8 +10,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 
-import { SupportWebSocketService } from '../../services/support-websocket.service';
-import { environment } from '../../../environments/environment';
+import { SupportWebSocketService } from '../services/support-websocket.service';
+import { environment } from '../../environments/environment';
 
 interface SupportConversationResponse {
   conversationId: string;
@@ -19,6 +19,11 @@ interface SupportConversationResponse {
   agentId: number | null;
   status: 'WAITING' | 'ACTIVE' | 'CLOSED' | 'CANCELLED' | 'IN_PROGRESS';
   message: string;
+}
+
+interface ExistingConversation {
+  conversationId: string;
+  status: 'WAITING' | 'ACTIVE' | 'CLOSED' | 'CANCELLED' | 'IN_PROGRESS';
 }
 
 interface SupportMessage {
@@ -43,6 +48,12 @@ export class SupportChatComponent implements OnInit, OnDestroy {
   isStartingConversation = false;
   isConnected = false;
   isLoadingHistory = false;
+
+  view: 'list' | 'history' | 'chat' = 'list';
+  fromHistory = false;
+  conversations: ExistingConversation[] = [];
+  isLoadingList = false;
+  listError = false;
 
   conversationId: string | null = null;
 
@@ -105,27 +116,115 @@ export class SupportChatComponent implements OnInit, OnDestroy {
   }
 
   openChat(): void {
-
     this.isChatOpen = true;
-
-    // Existing conversation: do not create another one.
-    if (this.conversationId) {
-      return;
-    }
-
-    this.startConversation();
+    this.showList('ACTIVE');
   }
 
   closeChat(): void {
     this.isChatOpen = false;
 
     // Do not close the actual support conversation.
-    // Keep the WebSocket connection and conversation alive.
+    // Keep the WebSocket connection alive.
+  }
+
+  /** Show the conversation list (ACTIVE = current, INACTIVE = history). */
+  showList(type: 'ACTIVE' | 'INACTIVE'): void {
+
+    this.leaveConversation();
+    this.view = type === 'ACTIVE' ? 'list' : 'history';
+    this.isLoadingList = true;
+    this.listError = false;
+    this.conversations = [];
+
+    this.http.get<ExistingConversation[]>(
+      `${environment.BASE_URL}/api/v1/user-service/support/conversations/get-conversations`,
+      { params: { status: type } }
+    ).subscribe({
+      next: (response) => {
+        this.conversations = response ?? [];
+        this.isLoadingList = false;
+      },
+      error: (error) => {
+        console.error('Unable to load conversations', error);
+        this.listError = true;
+        this.isLoadingList = false;
+      }
+    });
+  }
+
+  /** Open a conversation from the list and fetch its messages. */
+  selectConversation(conversation: ExistingConversation): void {
+
+    const token = this.getAuthToken();
+
+    if (!token) {
+      console.error('Authentication token not found');
+      return;
+    }
+
+    this.leaveConversation();
+    this.fromHistory = this.view === 'history';
+    this.view = 'chat';
+    this.conversationId = conversation.conversationId;
+    this.conversationStatus = conversation.status;
+
+    if (!this.isConnected) {
+      this.supportWebSocket.connect(token);
+    }
+
+    this.loadConversationHistory();
+
+    if (this.isChatActive) {
+      this.subscribeWhenConnected();
+    }
+
+    // No agent was available earlier: try assigning one again.
+    if (conversation.status === 'WAITING') {
+      this.assignAgent(conversation.conversationId);
+    }
+  }
+
+  private assignAgent(conversationId: string): void {
+
+    this.http.get<SupportConversationResponse>(
+      `${environment.BASE_URL}/api/v1/user-service/support/conversations/assign-agent`,
+      { params: { conversationId } }
+    ).subscribe({
+      next: (response) => {
+
+        // User may have navigated away while the request was running.
+        if (this.conversationId !== conversationId) {
+          return;
+        }
+
+        this.conversationStatus = response.status;
+
+        if (this.isChatActive) {
+          this.subscribeWhenConnected();
+        }
+      },
+      error: (error) => console.error('Unable to assign agent', error)
+    });
+  }
+
+  backToList(): void {
+    this.showList(this.fromHistory ? 'INACTIVE' : 'ACTIVE');
+  }
+
+  private leaveConversation(): void {
+    this.conversationSubscription?.unsubscribe();
+    this.conversationSubscription = undefined;
+    this.conversationId = null;
+    this.conversationStatus = null;
+    this.messages = [];
   }
 
   startConversation(): void {
 
+    this.leaveConversation();
     this.isStartingConversation = true;
+    this.view = 'chat';
+    this.fromHistory = false;
 
     const token = this.getAuthToken();
 
