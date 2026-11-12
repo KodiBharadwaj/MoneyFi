@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -26,12 +25,10 @@ import java.util.List;
 
 import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
 
-@RestController
-@RequestMapping("/api/v1/transaction")
-@PreAuthorize("hasRole('USER')")
-@RequiredArgsConstructor
-@Slf4j
 @Validated
+@RestController
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('USER')")
 public class TransactionApiController {
 
     private final JwtService jwtService;

@@ -1,4 +1,4 @@
-package com.moneyfi.transaction.batch.config;
+package com.moneyfi.wealthcore.config.logging;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

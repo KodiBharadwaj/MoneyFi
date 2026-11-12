@@ -16,11 +16,10 @@ import java.time.LocalDate;
 
 import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
 
-@RestController
-@RequestMapping("/api/v1/wealth-core")
-@PreAuthorize("hasRole('USER')")
 @Validated
+@RestController
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('USER')")
 public class WealthCoreApiController {
 
     private final WealthCoreService wealthCoreService;

@@ -41,8 +41,8 @@ import static com.moneyfi.constants.constants.CommonConstants.STATUS;
 @Validated
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")
-@RequestMapping("/api/v1/user-service/admin")
 public class AdminController {
 
     private final AdminService adminService;

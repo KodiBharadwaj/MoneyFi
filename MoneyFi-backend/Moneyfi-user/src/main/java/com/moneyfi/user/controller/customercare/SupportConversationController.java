@@ -23,7 +23,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/user-service/support/conversations")
+@RequestMapping("/support/conversations")
 public class SupportConversationController {
 
     private final UserAuthService userAuthService;

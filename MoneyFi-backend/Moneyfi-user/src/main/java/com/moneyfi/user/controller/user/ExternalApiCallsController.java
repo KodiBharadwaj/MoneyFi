@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/user-service/external-api")
-@PreAuthorize("hasRole('USER')")
 @RequiredArgsConstructor
+@RequestMapping("/external-api")
+@PreAuthorize("hasRole('USER')")
 public class ExternalApiCallsController {
 
     private final UserCommonService userCommonService;

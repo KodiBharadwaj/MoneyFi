@@ -1,7 +1,8 @@
-package com.moneyfi.user.config;
+package com.moneyfi.user.config.security;
 
 import com.moneyfi.user.service.primary.jwtservice.JwtFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,44 +19,48 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import static com.moneyfi.constants.constants.BasePathConstants.*;
+import static com.moneyfi.constants.constants.CommonConstants.ASTERISK;
+import static com.moneyfi.constants.constants.CommonConstants.SLASH;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    @Value("${app.password-encoder.strength}")
+    private int strengthValue;
+
     private final UserDetailsService userDetailsService;
     private final JwtFilter jwtFilter;
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(new BCryptPasswordEncoder(12));
-        return provider;
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/user-service/open/**").permitAll()
-                        .requestMatchers("/api/v1/user-service/Oauth/**").permitAll()
-                        .requestMatchers("/api/v1/user-service/auth/**").permitAll()
-                        .requestMatchers("/api/v1/user-service/ws/support", "/api/v1/user-service/ws/support/**").permitAll()
-                        .requestMatchers("/api/v1/user-service/sse-notifications/subscribe").permitAll()
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
-                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers(USER_SERVICE_BASE_PATH + "/open/**").permitAll()
+                        .requestMatchers(USER_SERVICE_BASE_PATH + "/Oauth/**").permitAll()
+                        .requestMatchers(USER_SERVICE_BASE_PATH + "/auth/**").permitAll()
+                        .requestMatchers(USER_SERVICE_BASE_PATH + "/ws/support").permitAll()
+                        .requestMatchers(USER_SERVICE_BASE_PATH + "/ws/support/**").permitAll()
+                        .requestMatchers(USER_SERVICE_BASE_PATH + "/sse-notifications/subscribe").permitAll()
+                        .requestMatchers(SWAGGER_WHITELIST).permitAll()
+                        .requestMatchers(ACTUATOR + SLASH + ASTERISK + ASTERISK).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .cors(Customizer.withDefaults());
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(new BCryptPasswordEncoder(strengthValue));
+        return provider;
     }
 
     @Bean

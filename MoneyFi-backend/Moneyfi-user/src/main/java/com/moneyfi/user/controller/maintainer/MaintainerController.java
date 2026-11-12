@@ -22,8 +22,8 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/maintainer")
 @PreAuthorize("hasRole('MAINTAINER')")
-@RequestMapping("/api/v1/user-service/maintainer")
 public class MaintainerController {
 
     private final MaintainerService maintainerService;

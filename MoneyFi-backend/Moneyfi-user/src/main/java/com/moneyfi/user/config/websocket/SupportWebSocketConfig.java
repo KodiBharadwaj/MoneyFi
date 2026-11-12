@@ -9,6 +9,8 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import static com.moneyfi.constants.constants.BasePathConstants.USER_SERVICE_BASE_PATH;
+
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSocketMessageBroker
@@ -21,14 +23,14 @@ public class SupportWebSocketConfig implements WebSocketMessageBrokerConfigurer 
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.setApplicationDestinationPrefixes("/api/v1/user-service/app");
-        registry.enableSimpleBroker("/api/v1/user-service/topic", "/api/v1/user-service/queue");
-        registry.setUserDestinationPrefix("/api/v1/user-service/user");
+        registry.setApplicationDestinationPrefixes(USER_SERVICE_BASE_PATH + "/app");
+        registry.enableSimpleBroker(USER_SERVICE_BASE_PATH + "/topic", USER_SERVICE_BASE_PATH + "/queue");
+        registry.setUserDestinationPrefix(USER_SERVICE_BASE_PATH + "/user");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/api/v1/user-service/ws/support")
+        registry.addEndpoint(USER_SERVICE_BASE_PATH + "/ws/support")
                 .setAllowedOriginPatterns(allowedOrigins.split("\\s*,\\s*"));
     }
 

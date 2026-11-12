@@ -2,7 +2,6 @@ package com.moneyfi.wealthcore.service.api;
 
 import com.moneyfi.constants.dto.GoalExpenseRelationRequestDto;
 import com.moneyfi.wealthcore.service.webclient.WebClientService;
-import com.moneyfi.wealthcore.utils.constants.StringUrls;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,9 +12,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+import static com.moneyfi.constants.constants.BasePathConstants.TRANSACTION_SERVICE_BASE_PATH;
+import static com.moneyfi.constants.constants.BasePathConstants.USER_SERVICE_BASE_PATH;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class ExternalApiCallService {
 
     @Value("${service.urls.user-service}")
@@ -30,7 +32,7 @@ public class ExternalApiCallService {
         String token = authHeader.substring(7);
         return webClientService.exchange(
                 HttpMethod.GET,
-                transactionServiceUrl + StringUrls.TRANSACTION_SERVICE_URL + continuationUrl,
+                transactionServiceUrl + TRANSACTION_SERVICE_BASE_PATH + continuationUrl,
                 queryParams,
                 null,
                 token,
@@ -42,7 +44,7 @@ public class ExternalApiCallService {
         String token = authHeader.substring(7);
         webClientService.exchange(
                 HttpMethod.POST,
-                userServiceUrl + StringUrls.USER_SERVICE_URL + continuationUrl,
+                userServiceUrl + USER_SERVICE_BASE_PATH + continuationUrl,
                 null,
                 pdfBytes,
                 token,
@@ -53,7 +55,7 @@ public class ExternalApiCallService {
     public void externalApiCallToTransactionServiceToSaveExpense(String token, String continuationUrl, GoalExpenseRelationRequestDto goalExpenseRelationRequestDto) {
         webClientService.exchange(
                 HttpMethod.POST,
-                transactionServiceUrl + StringUrls.TRANSACTION_SERVICE_URL + continuationUrl,
+                transactionServiceUrl + TRANSACTION_SERVICE_BASE_PATH + continuationUrl,
                 null,
                 goalExpenseRelationRequestDto,
                 token,
@@ -64,7 +66,7 @@ public class ExternalApiCallService {
     public void externalApiCallToTransactionServiceToDeleteExpense(String token, String continuationUrl, List<Long> expenseIdsList) {
         webClientService.exchange(
                 HttpMethod.DELETE,
-                transactionServiceUrl + StringUrls.TRANSACTION_SERVICE_URL + continuationUrl,
+                transactionServiceUrl + TRANSACTION_SERVICE_BASE_PATH + continuationUrl,
                 null,
                 expenseIdsList,
                 token,

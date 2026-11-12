@@ -13,10 +13,10 @@ import org.springframework.web.client.RestTemplate;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestController
-@RequestMapping("/api/v1/user-service/Oauth")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/Oauth")
 public class OAuthProcessController {
 
     @Value("${spring.security.oauth2.client.registration.facebook.client-id}")

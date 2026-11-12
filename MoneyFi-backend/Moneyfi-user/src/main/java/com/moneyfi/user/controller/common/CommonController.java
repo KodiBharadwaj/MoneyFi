@@ -21,7 +21,7 @@ import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/user-service/common")
+@RequestMapping("/common")
 public class CommonController {
 
     private final UserAuthService userAuthService;

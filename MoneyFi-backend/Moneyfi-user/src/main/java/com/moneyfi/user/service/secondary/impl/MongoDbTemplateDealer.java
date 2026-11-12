@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 
+import static com.moneyfi.constants.constants.BasePathConstants.USER_SERVICE_BASE_PATH;
+
 @Service
 @RequiredArgsConstructor
 public class MongoDbTemplateDealer {
@@ -95,6 +97,6 @@ public class MongoDbTemplateDealer {
                         .content(savedMessage.getContent())
                         .sentAt(currentInstantTime)
                         .build();
-        messagingTemplate.convertAndSend("/api/v1/user-service/topic/support/" + conversationId, response);
+        messagingTemplate.convertAndSend(USER_SERVICE_BASE_PATH + "/topic/support/" + conversationId, response);
     }
 }

@@ -1,4 +1,4 @@
-package com.moneyfi.transaction.config;
+package com.moneyfi.transaction.config.auditing;
 
 import com.moneyfi.transaction.batch.config.AuditContext;
 import org.springframework.context.annotation.Bean;

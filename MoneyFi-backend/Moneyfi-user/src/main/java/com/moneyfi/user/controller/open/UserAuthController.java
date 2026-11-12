@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@RestController
-@RequestMapping("/api/v1/user-service/auth")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequestMapping("/auth")
+@RequiredArgsConstructor
 public class UserAuthController {
 
     private final UserAuthService userAuthService;

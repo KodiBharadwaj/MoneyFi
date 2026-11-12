@@ -22,11 +22,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-@RestController
-@RequestMapping("/api/v1/user-service/gmail-sync")
-@PreAuthorize("hasRole('USER')")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/gmail-sync")
+@PreAuthorize("hasRole('USER')")
 public class GmailSyncController {
 
     private final GmailSyncService gmailSyncService;

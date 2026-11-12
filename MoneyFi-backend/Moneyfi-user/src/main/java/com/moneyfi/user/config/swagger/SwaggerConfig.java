@@ -1,4 +1,4 @@
-package com.moneyfi.user.config.general;
+package com.moneyfi.user.config.swagger;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -10,19 +10,18 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
-import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
-import static com.moneyfi.constants.constants.CommonConstants.BEARER;
+import static com.moneyfi.constants.constants.CommonConstants.*;
 
 @Configuration
 public class SwaggerConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        final String securitySchemeName = "bearerAuth";
+        final String securitySchemeName = STRING_BEARER_AUTH;
         return new OpenAPI()
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                 .servers(List.of(
-                        new Server().url("/")
+                        new Server().url(SLASH)
                 ))
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName,
@@ -30,7 +29,7 @@ public class SwaggerConfig {
                                         .name(AUTHORIZATION)
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme(BEARER.toLowerCase())
-                                        .bearerFormat("JWT")
+                                        .bearerFormat(STRING_JWT)
                         )
                 );
     }

@@ -42,13 +42,11 @@ public class JwtServiceImplementation implements JwtService {
         String token = Jwts.builder()
                 .setClaims(claims)
                 .setSubject(user.getUsername())
-                .claim("userId", user.getId())
                 .claim("roles", List.of(role))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + minutes * 60 * 1000))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
-
         return new JwtToken(token);
     }
 

@@ -21,6 +21,8 @@ import static com.moneyfi.constants.constants.CommonConstants.userRoleAssociatio
 
 public class StringConstants {
 
+    public static final String INVALID_OR_EXPIRED_TOKEN = "Invalid or expired token";
+
     private StringConstants() {}
 
     public static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);

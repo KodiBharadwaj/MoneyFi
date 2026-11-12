@@ -29,8 +29,8 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/user")
 @PreAuthorize("hasRole('USER')")
-@RequestMapping("/api/v1/user-service/user")
 public class UserController {
 
     private final UserAuthService userAuthService;

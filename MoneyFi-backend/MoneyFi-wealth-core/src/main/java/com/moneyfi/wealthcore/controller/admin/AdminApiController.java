@@ -16,11 +16,11 @@ import java.util.List;
 
 import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
 
-@RestController
-@RequestMapping("/api/v1/wealth-core/admin")
-@PreAuthorize("hasRole('ADMIN')")
 @Validated
+@RestController
 @RequiredArgsConstructor
+@RequestMapping("/admin")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminApiController {
 
     private final AdminService adminService;

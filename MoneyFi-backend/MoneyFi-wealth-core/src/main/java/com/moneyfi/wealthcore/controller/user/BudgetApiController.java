@@ -20,11 +20,11 @@ import java.util.List;
 
 import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
 
-@RestController
-@RequestMapping("/api/v1/wealth-core/budget")
-@PreAuthorize("hasRole('USER')")
 @Validated
+@RestController
 @RequiredArgsConstructor
+@RequestMapping("/budget")
+@PreAuthorize("hasRole('USER')")
 public class BudgetApiController {
 
     private final BudgetService budgetService;

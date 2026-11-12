@@ -19,6 +19,7 @@ import java.util.Objects;
 
 import static com.moneyfi.wealthcore.utils.constants.StringConstants.*;
 import static com.moneyfi.wealthcore.utils.constants.StringConstants.EMAIL_SENT_FAILURE_MESSAGE;
+import static com.moneyfi.wealthcore.utils.constants.StringUrls.*;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +39,7 @@ public class WealthCoreServiceImpl implements WealthCoreService {
                         FROM_DATE, fromDate.toString(),
                         TO_DATE, toDate.toString()
                 ),
-                "/income/total-income/specified-range"
+                GET_ALL_INCOMES_IN_RANGE_URL
         );
         List<Object[]> expenseResponse = externalApiCallService.externalApiCallToTransactionService(
                 authHeader,
@@ -46,7 +47,7 @@ public class WealthCoreServiceImpl implements WealthCoreService {
                         FROM_DATE, fromDate.toString(),
                         TO_DATE, toDate.toString()
                 ),
-                "/expense/total-expenses/specified-range"
+                GET_ALL_EXPENSES_IN_RANGE_URL
         );
         List<Object[]> incomeResponseTillToDate = externalApiCallService.externalApiCallToTransactionService(
                 authHeader,
@@ -54,7 +55,7 @@ public class WealthCoreServiceImpl implements WealthCoreService {
                         FROM_DATE, LocalDate.of(1, 1, 1).toString(),
                         TO_DATE, toDate.toString()
                 ),
-                "/income/total-income/specified-range"
+                GET_ALL_INCOMES_IN_RANGE_URL
         );
         List<Object[]> expenseResponseTillToDate = externalApiCallService.externalApiCallToTransactionService(
                 authHeader,
@@ -62,7 +63,7 @@ public class WealthCoreServiceImpl implements WealthCoreService {
                         FROM_DATE, LocalDate.of(1, 1, 1).toString(),
                         TO_DATE, toDate.toString()
                 ),
-                "/expense/total-expenses/specified-range"
+                GET_ALL_EXPENSES_IN_RANGE_URL
         );
 
         Map<String, BigDecimal> incomeByCategoryMap = new HashMap<>();
@@ -109,7 +110,7 @@ public class WealthCoreServiceImpl implements WealthCoreService {
     public ResponseEntity<String> getUserSpendingAnalysisByBudgetCategoriesPdfEmail(Long userId, LocalDate fromDate, LocalDate toDate, String authHeader) {
         try {
             byte[] pdfBytes = getUserSpendingAnalysisByBudgetCategoriesPdf(userId, fromDate, toDate, authHeader);
-            externalApiCallService.externalApiCallToUserServiceToSendPdfEmail(pdfBytes, authHeader, "/spending-analysis/email");
+            externalApiCallService.externalApiCallToUserServiceToSendPdfEmail(pdfBytes, authHeader, SEND_SPENDING_ANALYSIS_EMAIL_URL);
             return ResponseEntity.ok(EMAIL_SENT_SUCCESS_MESSAGE);
         } catch (Exception e) {
             e.printStackTrace();

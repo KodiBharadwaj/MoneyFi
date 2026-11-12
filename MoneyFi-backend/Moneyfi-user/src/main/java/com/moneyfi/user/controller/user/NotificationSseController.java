@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
-@RequestMapping("/api/v1/user-service/sse-notifications")
 @RequiredArgsConstructor
+@RequestMapping("/sse-notifications")
 public class NotificationSseController {
 
     private final JwtService jwtService;

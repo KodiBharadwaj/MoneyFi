@@ -159,6 +159,8 @@ app:
     queue-provider: ${QUEUE_PROVIDER:artemis} #Supported values: artemis, rabbitmq
   otp:
     expiration-time: ${OTP_EXPIRATION_TIME_IN_MINUTES:5}
+  password-encoder:
+    strength: ${BCRYPT_PASSWORD_STRENGTH:14}
 
 server:
   port: ${APPLICATION_PORT:8500}

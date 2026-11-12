@@ -9,15 +9,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
+import org.springframework.stereotype.Service;
 
 import static com.moneyfi.constants.constants.CommonConstants.*;
 
-@Component
-@RequiredArgsConstructor
 @Slf4j
+@Service
+@RequiredArgsConstructor
 public class JwtService {
 
     @Value("${jwt.secret}")
@@ -26,8 +24,7 @@ public class JwtService {
     private final WealthCoreRepository wealthCoreRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public Long extractUserIdFromToken(String token, LocalDateTime time) {
-        log.info("Security check filter enabled: {}", time);
+    public Long extractUserIdFromToken(String token) {
 
         try {
             String username = getUsernameFromToken(token).trim();
@@ -55,10 +52,6 @@ public class JwtService {
 
     public String getUsernameFromToken(String token) {
         return extractAllClaims(token).getSubject();
-    }
-
-    public Long extractUserIdFromToken(String token) {
-        return extractAllClaims(token).get(USER_ID, Long.class);
     }
 
     public Claims extractAllClaims(String token) {
