@@ -30,11 +30,11 @@ import java.util.List;
 
 import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
 
-@RestController
-@RequestMapping("/api/v1/transaction/income")
-@PreAuthorize("hasRole('USER')")
 @Validated
+@RestController
 @RequiredArgsConstructor
+@RequestMapping("/income")
+@PreAuthorize("hasRole('USER')")
 public class IncomeApiController {
 
     private final IncomeService incomeService;

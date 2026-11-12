@@ -2,15 +2,14 @@ package com.moneyfi.user.validator;
 
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
-import com.moneyfi.user.model.auth.OtpTempModel;
-import com.moneyfi.user.model.auth.UserAuthModel;
-import com.moneyfi.user.repository.general.ProfileRepository;
-import com.moneyfi.user.repository.auth.UserRepository;
-import com.moneyfi.user.repository.gmailsync.GmailSyncRepository;
-import com.moneyfi.user.service.user.dto.request.AccountBlockOrDeleteRequestDto;
-import com.moneyfi.user.service.user.dto.request.ChangePasswordDto;
-import com.moneyfi.user.service.user.dto.request.GmailSyncCountIncreaseRequestDto;
-import com.moneyfi.user.service.maintainer.dto.request.CreateOrUpdateAdminRequestDto;
+import com.moneyfi.user.model.primary.auth.OtpTempModel;
+import com.moneyfi.user.model.primary.auth.UserAuthModel;
+import com.moneyfi.user.repository.primary.auth.UserRepository;
+import com.moneyfi.user.repository.primary.gmailsync.GmailSyncRepository;
+import com.moneyfi.user.service.primary.user.dto.request.AccountBlockOrDeleteRequestDto;
+import com.moneyfi.user.service.primary.user.dto.request.ChangePasswordDto;
+import com.moneyfi.user.service.primary.user.dto.request.GmailSyncCountIncreaseRequestDto;
+import com.moneyfi.user.service.primary.maintainer.dto.request.CreateOrUpdateSupportUserCreationRequestDto;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.AccDeactivationType;
 import lombok.extern.slf4j.Slf4j;
@@ -70,9 +69,9 @@ public class UserValidations {
         }
     }
 
-    public static void validateUserGmailSyncCountIncreaseRequest(GmailSyncCountIncreaseRequestDto request, Long userId, GmailSyncRepository gmailSyncRepository) {
-        if (request.getCount() <= 0 || request.getCount() > 3) {
-            throw new ScenarioNotPossibleException("Please enter valid count between 0 to 3");
+    public static void validateUserGmailSyncCountIncreaseRequest(GmailSyncCountIncreaseRequestDto request, Long userId, GmailSyncRepository gmailSyncRepository, Integer gmailSyncRequestConfigured) {
+        if (request.getCount() <= 0 || request.getCount() > gmailSyncRequestConfigured) {
+            throw new ScenarioNotPossibleException("Please enter valid count between 0 and " + (gmailSyncRequestConfigured + 1));
         }
         if (ObjectUtils.isEmpty(request.getReason())) {
             throw new ScenarioNotPossibleException("Reason should not be empty");
@@ -82,8 +81,8 @@ public class UserValidations {
         if (ObjectUtils.isEmpty(currentCount)) {
             throw new ScenarioNotPossibleException("Gmail consent details not found");
         } else {
-            if (currentCount < 3) {
-                throw new ScenarioNotPossibleException("You still have " + (3 - currentCount) + " chance/chances");
+            if (currentCount < gmailSyncRequestConfigured) {
+                throw new ScenarioNotPossibleException("You still have " + (gmailSyncRequestConfigured - currentCount) + " chance/chances");
             }
         }
     }
@@ -101,7 +100,7 @@ public class UserValidations {
         }
     }
 
-    public static void validateAdminCreationRequestByMaintainer(CreateOrUpdateAdminRequestDto requestDto) {
+    public static void validateUserCreationRequestByMaintainer(CreateOrUpdateSupportUserCreationRequestDto requestDto) {
         if(ObjectUtils.isEmpty(requestDto.getUsername())) {
             throw new ScenarioNotPossibleException("Username is required");
         }
@@ -110,7 +109,7 @@ public class UserValidations {
         }
     }
 
-    public static void validateExistingUserCheck(CreateOrUpdateAdminRequestDto requestDto, UserRepository userRepository) {
+    public static void validateExistingUserCheck(CreateOrUpdateSupportUserCreationRequestDto requestDto, UserRepository userRepository) {
         UserAuthModel existingUserCheck = userRepository.getUserDetailsByUsername(requestDto.getUsername().trim()).orElse(null);
         if (existingUserCheck != null) {
             if (existingUserCheck.isDeleted()) throw new ScenarioNotPossibleException("Username matching with out previous records. Please choose different username");

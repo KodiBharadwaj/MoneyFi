@@ -28,11 +28,11 @@ import java.util.List;
 
 import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
 
-@RestController
-@RequestMapping("/api/v1/transaction/expense")
-@PreAuthorize("hasRole('USER')")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/expense")
+@PreAuthorize("hasRole('USER')")
 public class ExpenseApiController {
 
     private final ExpenseService expenseService;

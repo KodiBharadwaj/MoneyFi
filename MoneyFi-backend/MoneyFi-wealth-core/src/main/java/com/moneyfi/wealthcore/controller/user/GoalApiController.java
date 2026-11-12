@@ -6,7 +6,6 @@ import com.moneyfi.wealthcore.service.goal.GoalService;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalDetailsDto;
 import com.moneyfi.wealthcore.service.goal.dto.response.GoalTileDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,11 +19,11 @@ import java.util.List;
 
 import static com.moneyfi.constants.constants.CommonConstants.AUTHORIZATION;
 
-@RestController
-@RequestMapping("/api/v1/wealth-core/goal")
-@PreAuthorize("hasRole('USER')")
 @Validated
+@RestController
 @RequiredArgsConstructor
+@RequestMapping("/goal")
+@PreAuthorize("hasRole('USER')")
 public class GoalApiController {
 
     private final GoalService goalService;

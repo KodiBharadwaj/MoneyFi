@@ -2,9 +2,9 @@ package com.moneyfi.user.util.constants;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneyfi.constants.dto.PaginatedResponseDto;
-import com.moneyfi.user.model.general.ProfileModel;
-import com.moneyfi.user.repository.general.ProfileRepository;
-import jakarta.validation.constraints.NotNull;
+import com.moneyfi.user.model.primary.general.ProfileModel;
+import com.moneyfi.user.repository.primary.general.ProfileRepository;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +20,8 @@ import java.util.function.Function;
 import static com.moneyfi.constants.constants.CommonConstants.userRoleAssociation;
 
 public class StringConstants {
+
+    public static final String INVALID_OR_EXPIRED_TOKEN = "Invalid or expired token";
 
     private StringConstants() {}
 
@@ -65,6 +67,7 @@ public class StringConstants {
     public static final String LOGOUT_FAILURE_MESSAGE = "Logout failed!";
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     public static final String PLEASE_PROVIDE_ALL_THE_DETAILS_CORRECTLY = "Please provide all the details correctly";
+    public static final String CONVERSATION_NOT_FOUND = "Conversation not found";
 
     public static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -79,7 +82,6 @@ public class StringConstants {
     public static final String EXPIRES_IN = "expires_in";
     public static final String SCOPE = "scope";
     public static final String POST_MESSAGE = "postmessage";
-    public static final String STRING_EMAIL = "email";
     public static final String GMAIL_SYNC = "GMAIL_SYNC";
     public static final String GOOGLE_AUTHORIZATION_CODE_NULL_MESSAGE = "Google Authorization code cannot be null";
 
@@ -103,7 +105,7 @@ public class StringConstants {
 
     public static final String DATE_TIME_PATTERN = "MM/dd/yyyy HH:mm:ss";
 
-    public static int functionToGetRoleIdBasedOnRoleName(@NotNull String role) {
+    public static int functionToGetRoleIdBasedOnRoleName(@NotBlank String role) {
         int roleId = 0;
         for (Map.Entry<Integer, String> it : userRoleAssociation.entrySet()) {
             if (it.getValue().equalsIgnoreCase(role)) {

@@ -1,8 +1,7 @@
-delete from expense_table where category_id in (select id from category_list_table where type = 'EXPENSE' AND category = 'Goal');
+delete from user_role_table and insert it again from fly way scripts
 
 
-drop table goal_table;
+delete from reason_code_table and insert it again from fly way scripts
 
 
-
-getUserRequestsGridForAdmin,  This sp need to updated. Just added input parameters. Need to refractor business.
+drop table email_notification_failed_details_table;

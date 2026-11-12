@@ -2,6 +2,8 @@ package com.moneyfi.apigateway.filter;
 
 import com.moneyfi.apigateway.util.JwtUtil;
 import io.jsonwebtoken.Claims;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -13,11 +15,12 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter implements GlobalFilter {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -39,7 +42,7 @@ public class JwtAuthenticationFilter implements GlobalFilter {
             ServerHttpRequest request = exchange.getRequest().mutate().header("userId", claims.getSubject()).build();
             return chain.filter(exchange.mutate().request(request).build());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Exception occurred: {}", e.getMessage());
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }

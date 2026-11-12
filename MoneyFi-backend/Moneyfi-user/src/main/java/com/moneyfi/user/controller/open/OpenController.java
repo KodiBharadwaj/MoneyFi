@@ -1,8 +1,8 @@
 package com.moneyfi.user.controller.open;
 
-import com.moneyfi.user.service.user.UserCommonService;
-import com.moneyfi.user.service.user.dto.request.*;
-import com.moneyfi.user.service.user.dto.response.UserRequestStatusDto;
+import com.moneyfi.user.service.primary.user.UserCommonService;
+import com.moneyfi.user.service.primary.user.dto.request.*;
+import com.moneyfi.user.service.primary.user.dto.response.UserRequestStatusDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@RestController
-@RequestMapping("/api/v1/user-service/open")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequestMapping("/open")
+@RequiredArgsConstructor
 public class OpenController {
 
     private final UserCommonService userCommonService;

@@ -10,11 +10,12 @@ import { CommonModule } from '@angular/common';
 import { ContactFormComponent } from '../forms/contact-form/contact-form.component';
 import { FeedbackFormComponent } from '../forms/feedback-form/feedback-form.component';
 import { SurveyFormComponent } from '../forms/survey-form/survey-form.component';
+import { SupportChatComponent } from '../support-chat/support-chat.component';
 
 @Component({
   selector: 'app-user-configuration',
   standalone: true,
-  imports: [FormsModule, CommonModule, ContactFormComponent, FeedbackFormComponent, SurveyFormComponent],
+  imports: [FormsModule, CommonModule, ContactFormComponent, FeedbackFormComponent, SurveyFormComponent, SupportChatComponent],
   templateUrl: './user-configuration.component.html',
   styleUrl: './user-configuration.component.css'
 })

@@ -4,5 +4,6 @@ public enum UserRoles {
     ADMIN,
     USER,
     DEVELOPER,
-    MAINTAINER;
+    MAINTAINER,
+    CUSTOMER_CARE,
 }

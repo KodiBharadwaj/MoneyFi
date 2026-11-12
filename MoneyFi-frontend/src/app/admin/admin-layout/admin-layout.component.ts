@@ -20,6 +20,22 @@ export class AdminLayoutComponent {
 
   username: string = '';
   isLogoutLoading = false;
+  isSidebarOpen = true;
+
+  navItems: { label: string; link: string | any[] }[] = [
+    { label: 'Dashboard', link: '/admin/home' },
+    { label: 'Total Users', link: ['/admin/users', 'All'] },
+    { label: 'User Requests', link: ['/admin/requests', 'All'] },
+    { label: 'User Issues', link: '/admin/user-defects' },
+    { label: 'User Feedbacks', link: '/admin/feedbacks' },
+    { label: 'Insights/Charts', link: '/admin/insights' },
+    { label: 'Configuration', link: '/admin/configuration' },
+    { label: 'Failed Queues', link: '/admin/configuration/failed-queues' },
+  ];
+
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+  }
 
   constructor(private adminService: AdminService, private router:Router, private dialog: MatDialog, 
     private httpClient:HttpClient, private toastr: ToastrService) {}
@@ -59,7 +75,7 @@ export class AdminLayoutComponent {
               });
               sessionStorage.removeItem('moneyfi.auth');
               sessionStorage.clear();
-              this.router.navigate(['admin/login']);
+              this.router.navigate(['support-user/login']);
             } 
             else {
               this.toastr.error('Failed to logout')

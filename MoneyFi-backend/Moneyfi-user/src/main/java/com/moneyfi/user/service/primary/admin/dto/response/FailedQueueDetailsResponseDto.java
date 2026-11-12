@@ -1,0 +1,25 @@
+package com.moneyfi.user.service.primary.admin.dto.response;
+
+import com.moneyfi.user.dto.ReusableTotalCountDto;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@SuperBuilder
+public class FailedQueueDetailsResponseDto extends ReusableTotalCountDto {
+    private Long failedQueueId;
+    private String mdcRequestId;
+    private String referenceNumber;
+    private String username;
+    private String name;
+    private String message;
+    private String valueJson;
+    private String failureStage;
+    private String messageType;
+    private String streamPlatform;
+    private LocalDateTime failureTime;
+}

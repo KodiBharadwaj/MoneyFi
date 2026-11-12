@@ -1,27 +1,27 @@
 package com.moneyfi.user.controller.open;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.constants.enums.LoginMode;
-import com.moneyfi.user.service.user.UserAuthService;
-import com.moneyfi.user.service.user.UserCommonService;
-import com.moneyfi.user.service.user.dto.request.UserLoginDetailsRequestDto;
-import com.moneyfi.user.service.user.dto.request.UserProfile;
-import com.moneyfi.user.service.user.dto.response.RemainingTimeCountDto;
+import com.moneyfi.user.service.primary.user.UserAuthService;
+import com.moneyfi.user.service.primary.user.UserCommonService;
+import com.moneyfi.user.service.primary.user.dto.request.UserLoginDetailsRequestDto;
+import com.moneyfi.user.service.primary.user.dto.request.UserProfile;
+import com.moneyfi.user.service.primary.user.dto.response.RemainingTimeCountDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@RestController
-@RequestMapping("/api/v1/user-service/auth")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequestMapping("/auth")
+@RequiredArgsConstructor
 public class UserAuthController {
 
     private final UserAuthService userAuthService;
@@ -50,12 +50,7 @@ public class UserAuthController {
     @Operation(summary = "Api end point for user to login")
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> loginUserViaEmailPasswordMode(@Valid @RequestBody UserLoginDetailsRequestDto requestDto) {
-        try {
-            return userAuthService.login(requestDto);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
-        }
+        return userAuthService.login(requestDto);
     }
 
     @Operation(summary = "Api to check the eligibility for next otp")
@@ -64,9 +59,9 @@ public class UserAuthController {
         return ResponseEntity.ok(userAuthService.checkOtpActiveMethod(email));
     }
 
-    @Operation(summary = "Api end point to send otp for forgot password")
+    @Operation(summary = "Api to send otp", description = "User can get otp when forgets account password")
     @GetMapping("/forgot-password/get-otp")
-    public ResponseEntity<String> forgotPassword(@NotBlank @Email @RequestParam String email) {
+    public ResponseEntity<String> forgotPassword(@NotBlank @Email @RequestParam String email) throws JsonProcessingException {
         return ResponseEntity.ok(userAuthService.forgotPassword(email));
     }
 

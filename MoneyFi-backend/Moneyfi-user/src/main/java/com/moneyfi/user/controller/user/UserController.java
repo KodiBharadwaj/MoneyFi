@@ -1,14 +1,14 @@
 package com.moneyfi.user.controller.user;
 
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
-import com.moneyfi.user.model.general.ProfileModel;
-import com.moneyfi.user.service.user.CommonService;
-import com.moneyfi.user.service.user.UserAuthService;
-import com.moneyfi.user.service.user.UserCommonService;
-import com.moneyfi.user.service.user.dto.request.*;
-import com.moneyfi.user.service.user.dto.response.UserNotificationResponseDto;
-import com.moneyfi.user.service.user.ProfileService;
-import com.moneyfi.user.service.user.dto.response.ProfileDetailsDto;
+import com.moneyfi.user.model.primary.general.ProfileModel;
+import com.moneyfi.user.service.primary.user.CommonService;
+import com.moneyfi.user.service.primary.user.UserAuthService;
+import com.moneyfi.user.service.primary.user.UserCommonService;
+import com.moneyfi.user.service.primary.user.dto.request.*;
+import com.moneyfi.user.service.primary.user.dto.response.UserNotificationResponseDto;
+import com.moneyfi.user.service.primary.user.ProfileService;
+import com.moneyfi.user.service.primary.user.dto.response.ProfileDetailsDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -26,11 +26,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/v1/user-service/user")
-@PreAuthorize("hasRole('USER')")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/user")
+@PreAuthorize("hasRole('USER')")
 public class UserController {
 
     private final UserAuthService userAuthService;
@@ -188,7 +188,7 @@ public class UserController {
         return userCommonService.blockOrDeleteAccountByUserRequest(username, request);
     }
 
-    @Operation(summary = "Api to request Admin to increase the gmail sync count")
+    @Operation(summary = "Api to request Admin to increase the gmail sync count", description = "User can raise request to increase gmail sync request count only for that day")
     @PostMapping(value = "/user-request/gmail-sync-request", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void userRequestToIncreaseGmailSyncDailyCount(Authentication authentication,
                                                          @RequestPart(value = "data") @Valid GmailSyncCountIncreaseRequestDto request,

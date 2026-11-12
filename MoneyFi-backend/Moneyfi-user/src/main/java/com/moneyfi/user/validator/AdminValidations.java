@@ -1,7 +1,7 @@
 package com.moneyfi.user.validator;
 
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
-import com.moneyfi.user.service.admin.dto.request.ScheduleNotificationRequestDto;
+import com.moneyfi.user.service.primary.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.user.util.constants.StringConstants;
 
 public class AdminValidations {

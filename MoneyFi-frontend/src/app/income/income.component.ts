@@ -169,7 +169,6 @@ export class IncomeComponent {
             this.toastr.error(message, 'Login Failed');
           } catch (e) {
             console.error('Failed to parse error:', err.error);
-            // this.toastr.error('An error occurred', 'Login Failed');
           }
       },
       complete: () => {

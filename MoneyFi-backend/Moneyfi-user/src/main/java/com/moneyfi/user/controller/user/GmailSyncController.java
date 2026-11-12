@@ -1,10 +1,10 @@
 package com.moneyfi.user.controller.user;
 
-import com.moneyfi.user.service.user.UserAuthService;
-import com.moneyfi.user.service.gmailsync.GmailSyncService;
-import com.moneyfi.user.service.gmailsync.dto.response.GmailConsentResponse;
-import com.moneyfi.user.service.gmailsync.dto.response.GmailSyncHistoryResponse;
-import com.moneyfi.user.service.gmailsync.dto.response.ParsedTransaction;
+import com.moneyfi.user.service.primary.user.UserAuthService;
+import com.moneyfi.user.service.primary.gmailsync.GmailSyncService;
+import com.moneyfi.user.service.primary.gmailsync.dto.response.GmailConsentResponse;
+import com.moneyfi.user.service.primary.gmailsync.dto.response.GmailSyncHistoryResponse;
+import com.moneyfi.user.service.primary.gmailsync.dto.response.ParsedTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +22,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-@RestController
-@RequestMapping("/api/v1/user-service/gmail-sync")
-@PreAuthorize("hasRole('USER')")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/gmail-sync")
+@PreAuthorize("hasRole('USER')")
 public class GmailSyncController {
 
     private final GmailSyncService gmailSyncService;

@@ -6,7 +6,6 @@ import { environment } from '../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { NgChartsModule } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
-import e from 'express';
 
 @Component({
   selector: 'app-help-center',

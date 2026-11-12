@@ -10,14 +10,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import static com.moneyfi.constants.constants.CommonConstants.*;
 
-@Component
-@RequiredArgsConstructor
 @Slf4j
+@Service
+@RequiredArgsConstructor
 public class JwtService {
 
     @Value("${jwt.secret}")
@@ -26,15 +28,19 @@ public class JwtService {
     private final TransactionRepository transactionRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public Long extractUserIdFromToken(String token, LocalDateTime time) {
-        log.info("Security check filter enabled: {}", time);
+    public Long extractUserIdFromToken(String token) {
 
         try {
             String username = getUsernameFromToken(token).trim();
             String redisKey = REDIS_BLACKLIST_TOKEN_PREFIX_KEY + DOUBLE_COLON + username + COLON + token;
 
-            if (!redisTemplate.hasKey(redisKey)) {
-                throw new IllegalArgumentException(TOKEN_BLACKLISTED_MESSAGE);
+            try {
+                if (!redisTemplate.hasKey(redisKey)) {
+                    throw new IllegalArgumentException(TOKEN_BLACKLISTED_MESSAGE);
+                }
+            } catch (DataAccessException ex) {
+                // Redis unavailable: the DB lookup below still validates the session
+                log.warn("Redis unavailable, falling back to database session validation for user '{}': {}", username, ex.getMessage());
             }
 
             return transactionRepository.getUserIdFromUsernameAndToken(username, token);
@@ -50,10 +56,6 @@ public class JwtService {
 
     public String getUsernameFromToken(String token) {
         return extractAllClaims(token).getSubject();
-    }
-
-    public Long extractUserIdFromToken(String token) {
-        return extractAllClaims(token).get(USER_ID, Long.class);
     }
 
     public Claims extractAllClaims(String token) {

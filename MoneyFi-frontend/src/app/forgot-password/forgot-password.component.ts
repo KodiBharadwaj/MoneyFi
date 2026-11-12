@@ -1,280 +1,212 @@
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-
-import { Router, RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
-import { NgChartsModule } from 'ng2-charts';
-import { ChartConfiguration, ChartData } from 'chart.js';
-import { remainingTimeCount } from '../model/remainingTimeCount';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../environments/environment';
+import { remainingTimeCount } from '../model/remainingTimeCount';
 
+type Stage = 'email' | 'verification' | 'reset';
+
+const OTP_SENT_MESSAGE = 'Verification code sent to your email!';
+const OTP_LENGTH = 6;
+const MIN_PASSWORD_LENGTH = 6;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [CommonModule,FormsModule,RouterModule,NgChartsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './forgot-password.component.html',
   styleUrl: './forgot-password.component.css'
 })
 export class ForgotPasswordComponent {
-  email: string = '';
-  verificationCode: string = '';
-  newPassword: string = '';
-  confirmPassword: string = '';
+  readonly otpLength = OTP_LENGTH;
+  private readonly authUrl = `${environment.BASE_URL}/api/v1/user-service/auth`;
 
-  // Component state
-  stage: 'email' | 'verification' | 'reset' = 'email';
-  
-  // Message handling
-  errorMessage: string = '';
-  successMessage: string = '';
+  email = '';
+  verificationCode = '';
+  newPassword = '';
+  confirmPassword = '';
 
-  constructor(private http: HttpClient,private router:Router, private toastr:ToastrService) {}
+  stage: Stage = 'email';
+  errorMessage = '';
+  successMessage = '';
 
-  baseUrl = environment.BASE_URL;
+  isLoading = false;
+  isSubmitting = false; // verify / reset request in flight
+  loadingResendOtp = false;
 
-  public radarChartData: ChartData<'radar'> = {
-    labels: ['Budgeting', 'Saving', 'Investing', 'Planning', 'Tracking', 'Goals'],
-    datasets: [
-      {
-        label: 'Current Status',
-        data: [65, 59, 90, 81, 56, 55],
-        fill: true,
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        borderColor: 'rgb(255, 99, 132)',
-        pointBackgroundColor: 'rgb(255, 99, 132)',
-        pointBorderColor: '#fff',
-      },
-      {
-        label: 'Target Status',
-        data: [28, 48, 40, 19, 96, 27],
-        fill: true,
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        borderColor: 'rgb(54, 162, 235)',
-        pointBackgroundColor: 'rgb(54, 162, 235)',
-        pointBorderColor: '#fff',
-      }
-    ]
-  };
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private toastr: ToastrService
+  ) {}
 
-  public radarChartOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Financial Health Analysis',
-        font: {
-          size: 18,
-          family: 'Roboto',
-        },
-        color: '#1e3c72',
-      }
-    },
-    scales: {
-      r: {
-        ticks: {
-          display: false, // Hide the numbers on the scale
-        },
-        angleLines: {
-          display: true, // Keep the radial axis lines
-        },
-      }
-    }
-  };
-
-  isLoading: boolean = false; // Add this in your component
-
+  // Stage 1: request an OTP (unless one was already sent recently)
   sendVerificationCode() {
-    // Reset previous messages
     this.clearMessages();
-  
-    // Validate email format
-    if (!this.isValidEmail(this.email)) {
+
+    if (!EMAIL_REGEX.test(this.email)) {
       this.errorMessage = 'Please enter a valid email address';
       return;
     }
-  
-    this.isLoading = true; // Start loading
 
+    this.isLoading = true;
 
-    this.http.get<remainingTimeCount>(`${this.baseUrl}/api/v1/user-service/auth/${this.email}/otp-send/check`).subscribe({
-      next : (outputDto) => {
-        if(outputDto.result){
-
-          this.http.get(`${this.baseUrl}/api/v1/user-service/auth/forgot-password/get-otp`, { 
-            params: { email: this.email },
-            responseType: 'text'
-          }).subscribe({
-            next: (response : string) => {
-              if (response === 'Verification code sent to your email!'){
-                this.successMessage = response;
-                this.stage = 'verification';
-                this.isLoading = false; // Stop loading
-              } else {
-                this.toastr.error('Error in our internal email service! Please come later!');
-                this.isLoading = false; // Stop loading
-                this.router.navigate(['login']);
-              }
-            },
-            error: (err) => {
-              this.isLoading = false;
-              console.error('Error sending OTP:', err);
-              try {
-                  const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-                  this.toastr.error(errorObj.message);
-                } catch (e) {
-                  console.error('Failed to parse error:', err.error);
-                }
-            },
-          });
-
+    this.http.get<remainingTimeCount>(`${this.authUrl}/${this.email}/otp-send/check`).subscribe({
+      next: (outputDto) => {
+        if (outputDto.result) {
+          this.requestOtp();
+          return;
         }
-        else {
-          if(outputDto.remainingMinutes <= 1)
-          alert('Otp already sent! For new otp, Please try again after ' + outputDto.remainingMinutes + ' minute');
-          else 
-          alert('Otp already sent! For new otp, Please try again after ' + outputDto.remainingMinutes + ' minutes');
-          // this.verifyCode();
-          this.isLoading = false;
-          this.stage = 'verification';
-        }
-      },error: (err) => {
+
+        const minutes = outputDto.remainingMinutes;
+        alert(`Otp already sent! For new otp, Please try again after ${minutes} ${minutes <= 1 ? 'minute' : 'minutes'}`);
+        this.isLoading = false;
+        this.stage = 'verification';
+      },
+      error: (err) => {
         console.error(err);
         this.isLoading = false;
-        try {
-          const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-          this.toastr.error(errorObj.message);
-        } catch (e) {
-            console.error('Failed to parse error:', err.error);
-        }
-    },
-    })
-    
+        this.toastApiError(err);
+      }
+    });
   }
-  
-  // Verification code stage
-  verifyCode() {
-    // Reset previous messages
-    this.clearMessages();
 
-    // Validate code length
-    if (this.verificationCode.length !== 6) {
-      this.errorMessage = 'Verification code must be 6 digits';
-      return;
-    }
-
-    // Make API call to verify code
-    this.http.get(`${this.baseUrl}/api/v1/user-service/auth/forgot-password/verify-otp`, { 
-      params: { 
-        email: this.email,
-        code: this.verificationCode 
-      },
+  private requestOtp() {
+    this.http.get(`${this.authUrl}/forgot-password/get-otp`, {
+      params: { email: this.email },
       responseType: 'text'
     }).subscribe({
       next: (response) => {
+        this.isLoading = false;
+        if (response === OTP_SENT_MESSAGE) {
+          this.successMessage = response;
+          this.stage = 'verification';
+        } else {
+          this.toastr.error('Error in our internal email service! Please come later!');
+          this.router.navigate(['login']);
+        }
+      },
+      error: (err) => {
+        console.error('Error sending OTP:', err);
+        this.isLoading = false;
+        this.toastApiError(err);
+      }
+    });
+  }
+
+  // Stage 2: verify the OTP
+  verifyCode() {
+    this.clearMessages();
+
+    if (this.verificationCode.length !== OTP_LENGTH) {
+      this.errorMessage = `Verification code must be ${OTP_LENGTH} digits`;
+      return;
+    }
+
+    this.isSubmitting = true;
+
+    this.http.get(`${this.authUrl}/forgot-password/verify-otp`, {
+      params: { email: this.email, code: this.verificationCode },
+      responseType: 'text'
+    }).subscribe({
+      next: (response) => {
+        this.isSubmitting = false;
         this.successMessage = response;
         this.stage = 'reset';
       },
       error: (err) => {
-        try {
-            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-            this.errorMessage = errorObj.message;
-          } catch (e) {
-            console.error('Failed to parse error:', err.error);
-          }
-      },
-    });
-  }
-
-  // Password reset stage
-  resetPassword() {
-    // Reset previous messages
-    this.clearMessages();
-
-    // Validate password
-    if (!this.validatePassword()) {
-      return;
-    }
-
-    // Make API call to reset password
-    this.http.put(`${this.baseUrl}/api/v1/user-service/auth/forgot-password/update-password`, null, { 
-      params: { 
-        email: this.email,
-        password: this.newPassword 
-      },
-      responseType: 'text'
-    }).subscribe({
-      next: (response) => {
-        this.successMessage = response;
-        // Optional: Reset form or navigate to login
-        this.resetForm();
-        
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 2000);
-      },
-      error: (err) => {
-        try {
-            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-            this.errorMessage = errorObj.message;
-          } catch (e) {
-            console.error('Failed to parse error:', err.error);
-          }
-      },
-    });
-  }
-
-  // Password validation
-  private validatePassword(): boolean {
-    // Check if passwords match
-    if (this.newPassword !== this.confirmPassword) {
-      this.errorMessage = 'Passwords do not match';
-      return false;
-    }
-
-    // Basic password strength check
-    if (this.newPassword.length < 6) {
-      this.errorMessage = 'Password must be at least 8 characters long';
-      return false;
-    }
-
-    return true;
-  }
-
-  loadingResendOtp = false;
-  resendOtp(type:string) {
-    this.loadingResendOtp = true;
-    this.http.get(`${this.baseUrl}/api/v1/user-service/auth/otp-resend?username=${this.email}&type=${type}`).subscribe({
-      next: response => {
-        this.toastr.success('OTP sent to your email');
-        this.loadingResendOtp = false;
-      },
-      error: err => {
-        this.loadingResendOtp = false;
-        try {
-          const errorObj =
-            typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-          this.toastr.error(errorObj.message);
-        } catch (e) {
-          console.error('Failed to parse error:', err.error);
-        }
+        this.isSubmitting = false;
+        this.showApiError(err);
       }
     });
   }
 
-  // Email validation
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  // Stage 3: set the new password
+  resetPassword() {
+    this.clearMessages();
+
+    if (!this.validatePassword()) {
+      return;
+    }
+
+    this.isSubmitting = true;
+
+    this.http.put(`${this.authUrl}/forgot-password/update-password`, null, {
+      params: { email: this.email, password: this.newPassword },
+      responseType: 'text'
+    }).subscribe({
+      next: (response) => {
+        this.isSubmitting = false;
+        this.successMessage = response;
+        this.resetForm();
+        setTimeout(() => this.router.navigate(['/login']), 2000);
+      },
+      error: (err) => {
+        this.isSubmitting = false;
+        this.showApiError(err);
+      }
+    });
   }
 
-  // Reset form and component state
+  resendOtp(type: string) {
+    this.loadingResendOtp = true;
+    this.http.get(`${this.authUrl}/otp-resend?username=${this.email}&type=${type}`).subscribe({
+      next: () => {
+        this.toastr.success('OTP sent to your email');
+        this.loadingResendOtp = false;
+      },
+      error: (err) => {
+        this.loadingResendOtp = false;
+        this.toastApiError(err);
+      }
+    });
+  }
+
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
+  }
+
+  private validatePassword(): boolean {
+    if (this.newPassword !== this.confirmPassword) {
+      this.errorMessage = 'Passwords do not match';
+      return false;
+    }
+    if (this.newPassword.length < MIN_PASSWORD_LENGTH) {
+      this.errorMessage = 'Password must be at least 8 characters long';
+      return false;
+    }
+    return true;
+  }
+
+  /** Extracts `message` from an error response body (JSON string or object). */
+  private extractErrorMessage(err: any): string | null {
+    try {
+      const body = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+      return body.message;
+    } catch {
+      console.error('Failed to parse error:', err.error);
+      return null;
+    }
+  }
+
+  private showApiError(err: any) {
+    const message = this.extractErrorMessage(err);
+    if (message) {
+      this.errorMessage = message;
+    }
+  }
+
+  private toastApiError(err: any) {
+    const message = this.extractErrorMessage(err);
+    if (message) {
+      this.toastr.error(message);
+    }
+  }
+
   private resetForm() {
     this.email = '';
     this.verificationCode = '';
@@ -283,17 +215,8 @@ export class ForgotPasswordComponent {
     this.stage = 'email';
   }
 
-  // Clear error and success messages
   private clearMessages() {
     this.errorMessage = '';
     this.successMessage = '';
   }
-
-  navigateTo(route: string): void {
-    this.router.navigate([route]);
-  }
-
 }
-
-
-

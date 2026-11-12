@@ -1,6 +1,6 @@
 package com.moneyfi.user.controller.open;
 
-import com.moneyfi.user.service.user.UserAuthService;
+import com.moneyfi.user.service.primary.user.UserAuthService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,10 +13,10 @@ import org.springframework.web.client.RestTemplate;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestController
-@RequestMapping("/api/v1/user-service/Oauth")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/Oauth")
 public class OAuthProcessController {
 
     @Value("${spring.security.oauth2.client.registration.facebook.client-id}")

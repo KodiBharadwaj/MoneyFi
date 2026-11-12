@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/wealth-core/common")
 @RequiredArgsConstructor
+@RequestMapping("/common")
 public class CommonController {
     
     private final CommonService commonService;

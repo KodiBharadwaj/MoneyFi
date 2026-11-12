@@ -1,9 +1,9 @@
 package com.moneyfi.user.controller.user;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.moneyfi.user.service.user.UserAuthService;
-import com.moneyfi.user.service.user.UserCommonService;
-import com.moneyfi.user.service.user.dto.response.QuoteResponseDto;
+import com.moneyfi.user.service.primary.user.UserAuthService;
+import com.moneyfi.user.service.primary.user.UserCommonService;
+import com.moneyfi.user.service.primary.user.dto.response.QuoteResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/user-service/external-api")
-@PreAuthorize("hasRole('USER')")
 @RequiredArgsConstructor
+@RequestMapping("/external-api")
+@PreAuthorize("hasRole('USER')")
 public class ExternalApiCallsController {
 
     private final UserCommonService userCommonService;

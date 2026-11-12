@@ -1,7 +1,7 @@
 package com.moneyfi.notification.service.rabbitmq.listener;
 
+import com.moneyfi.constants.dto.NotificationQueueDto;
 import com.moneyfi.notification.service.EmailTemplateInjector;
-import com.moneyfi.notification.service.dto.NotificationQueueDto;
 import com.moneyfi.notification.service.email.EmailTemplates;
 import com.moneyfi.notification.util.constants.StringConstants;
 import lombok.RequiredArgsConstructor;

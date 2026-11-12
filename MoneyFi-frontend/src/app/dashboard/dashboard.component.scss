@@ -115,25 +115,119 @@
     }
   }
   
-  // Responsive Design
-  @media (max-width: 768px) {
-    .sidebar {
-      width: 60px;
-  
+  .sidebar {
+    overflow: hidden;
+    flex-shrink: 0;
+    white-space: nowrap;
+
+    #gmail-sync-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 0.5rem 0 1rem;
+    }
+
+    .sync-icon {
+      display: none;
+    }
+
+    // Collapsed: icon-only rail on desktop
+    &.collapsed {
+      width: 72px;
+
       .logo span,
-      .nav-links span,
-      .user-section span {
+      .nav-links span:not(.badge),
+      .user-section span,
+      #gmail-sync-btn span {
         display: none;
       }
-  
+
+      .logo {
+        padding: 20px 0;
+        justify-content: center;
+      }
+
       .nav-links button,
       .user-section button {
         justify-content: center;
-        
+        padding: 12px 0;
+
         i {
           margin: 0;
         }
       }
+
+      .sync-icon {
+        display: inline;
+      }
+    }
+
+    // Mobile: slide-in overlay
+    &.mobile {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      z-index: 1500;
+      width: 250px;
+      transition: transform 0.3s ease;
+
+      &.collapsed {
+        width: 250px;
+        transform: translateX(-100%);
+
+        .logo span,
+        .nav-links span:not(.badge),
+        .user-section span,
+        #gmail-sync-btn span {
+          display: inline;
+        }
+
+        .sync-icon {
+          display: none;
+        }
+      }
+    }
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1400;
+  }
+
+  .sidebar-toggle {
+    position: fixed;
+    top: 28px;
+    left: 58px; // collapsed rail (72px) minus half the button
+    z-index: 1600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 2px solid #f5f5f5;
+    border-radius: 50%;
+    background: #1a237e;
+    color: white;
+    font-size: 0.75rem;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    transition: left 0.3s ease, background 0.2s ease;
+
+    &.open {
+      left: 236px; // sidebar (250px) minus half the button
+    }
+
+    &.mobile:not(.open) {
+      left: 8px;
+    }
+
+    &:hover {
+      background: #283593;
     }
   }
 

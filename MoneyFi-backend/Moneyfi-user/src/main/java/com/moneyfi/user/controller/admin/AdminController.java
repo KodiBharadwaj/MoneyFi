@@ -4,14 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.constants.dto.ExcelResponseDto;
 import com.moneyfi.constants.dto.PaginatedRequestDto;
 import com.moneyfi.constants.dto.PaginatedResponseDto;
-import com.moneyfi.user.repository.admin.UserRequestsService;
-import com.moneyfi.user.service.admin.AdminService;
-import com.moneyfi.user.service.admin.dto.request.*;
-import com.moneyfi.user.service.admin.dto.response.*;
-import com.moneyfi.user.service.user.UserAuthService;
-import com.moneyfi.user.service.user.UserCommonService;
-import com.moneyfi.user.service.user.dto.response.UserFeedbackResponseDto;
-import com.moneyfi.user.service.user.ProfileService;
+import com.moneyfi.user.repository.primary.admin.UserRequestsService;
+import com.moneyfi.user.service.primary.admin.AdminService;
+import com.moneyfi.user.service.primary.admin.dto.request.*;
+import com.moneyfi.user.service.primary.admin.dto.response.*;
+import com.moneyfi.user.service.primary.user.UserAuthService;
+import com.moneyfi.user.service.primary.user.UserCommonService;
+import com.moneyfi.user.service.primary.user.dto.response.UserFeedbackResponseDto;
+import com.moneyfi.user.service.primary.user.ProfileService;
 import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.AccDeactivationType;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -40,8 +41,8 @@ import static com.moneyfi.constants.constants.CommonConstants.STATUS;
 @Validated
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")
-@RequestMapping("/api/v1/user-service/admin")
 public class AdminController {
 
     private final AdminService adminService;
@@ -287,5 +288,14 @@ public class AdminController {
                                       @NotNull @RequestParam(value = "time") Integer time) {
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         userRequestsService.changeUserSessionTime(adminUserId, username, time);
+    }
+
+    @Operation(summary = "Api to get the failed queues", description = "Admin can view the failed queue email notification details")
+    @GetMapping("/failed-queues")
+    public ResponseEntity<PaginatedResponseDto<FailedQueueDetailsResponseDto>> getFailedQueueEmailNotificationDetails(@NotNull @RequestParam OffsetDateTime startDate,
+                                                                                                                      @NotNull @RequestParam OffsetDateTime endDate,
+                                                                                                                      @ModelAttribute PaginatedRequestDto requestDto) {
+        List<FailedQueueDetailsResponseDto> responseList = adminService.getFailedQueueEmailNotificationDetails(startDate, endDate, requestDto);
+        return ResponseEntity.ok(StringConstants.returnPaginatedBuilder(responseList, FailedQueueDetailsResponseDto::getTotalCount));
     }
 }

@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.moneyfi.wealthcore.utils.constants.StringConstants.*;
+import static com.moneyfi.wealthcore.utils.constants.StringUrls.ADD_EXPENSE_TRANSACTION_FOR_GOAL_URL;
+import static com.moneyfi.wealthcore.utils.constants.StringUrls.EXPENSE_URL;
 
 @Service
 @Slf4j
@@ -147,7 +149,7 @@ public class GoalServiceImpl implements GoalService {
         goalExpenseRelationRequestDto.setDate(LocalDateTime.now());
         goalExpenseRelationRequestDto.setRecurring(Boolean.TRUE);
         goalExpenseRelationRequestDto.setGoalId(goal.getId());
-        externalApiCallService.externalApiCallToTransactionServiceToSaveExpense(token, "/expense/goal-expense-relation/add", goalExpenseRelationRequestDto);
+        externalApiCallService.externalApiCallToTransactionServiceToSaveExpense(token, ADD_EXPENSE_TRANSACTION_FOR_GOAL_URL, goalExpenseRelationRequestDto);
     }
 
     private void functionCallToExpenseServiceToDeleteExpense(String expenseIds, String authHeader){
@@ -155,7 +157,7 @@ public class GoalServiceImpl implements GoalService {
         List<Long> expenseIdsList = Arrays.stream(expenseIds.split(","))
                 .map(Long::parseLong)
                 .collect(Collectors.toList());
-        externalApiCallService.externalApiCallToTransactionServiceToDeleteExpense(token, "/expense", expenseIdsList);
+        externalApiCallService.externalApiCallToTransactionServiceToDeleteExpense(token, EXPENSE_URL, expenseIdsList);
     }
 
     private GoalDetailsDto updatedGoalDtoConversion(GoalModel updatedGoal){

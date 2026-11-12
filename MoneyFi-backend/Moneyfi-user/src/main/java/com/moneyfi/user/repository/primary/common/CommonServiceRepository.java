@@ -1,0 +1,22 @@
+package com.moneyfi.user.repository.primary.common;
+
+import com.moneyfi.user.service.primary.general.scheduler.dto.UserEventDto;
+import com.moneyfi.user.service.primary.user.dto.response.UserNotificationResponseDto;
+import com.moneyfi.user.service.primary.user.dto.response.UserRequestStatusDto;
+import com.moneyfi.user.service.primary.user.dto.response.ProfileDetailsDto;
+
+import java.util.List;
+
+public interface CommonServiceRepository {
+    ProfileDetailsDto getProfileDetailsOfUser(String username);
+
+    UserRequestStatusDto trackUserRequestUsingReferenceNumber(String referenceNumber);
+
+    List<UserNotificationResponseDto> getUserNotifications(String username, String status);
+
+    List<String> findAllUsernamesOfUsers(Long offset, Long limit, String search);
+
+    List<String> getCategoriesBasedOnTransactionType(String name);
+
+    List<UserEventDto> getBirthdayAndAnniversaryUsersList(int month, int day, String occasion);
+}

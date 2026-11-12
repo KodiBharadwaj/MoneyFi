@@ -123,6 +123,7 @@ export class GmailSyncSummaryComponent implements OnInit {
 
 
   remainingSyncCount: number = 0;
+  configuredSyncCount: number = 0;
 
   checkGmailSyncStatus() {
     this.httpClient
@@ -130,6 +131,7 @@ export class GmailSyncSummaryComponent implements OnInit {
       .subscribe((res) => {
 
         const count = res.count ?? 0;
+        this.configuredSyncCount = res.configuredCount ?? 0;
 
         this.remainingSyncCount = Math.max(res.configuredCount - count, 0);
 

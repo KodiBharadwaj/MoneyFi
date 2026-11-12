@@ -1,0 +1,44 @@
+<div class="cc-container">
+  <nav class="top-nav">
+    <div class="header-container">
+      <div class="brand">MoneyFi Customer Care</div>
+
+      <div class="user-section">
+        <span class="user-info">
+          <i class="user-icon">👤</i>
+          {{username}}
+        </span>
+
+        <button class="logout-btn" (click)="logoutUser()" [disabled]="isLogoutLoading">
+  
+          <span *ngIf="!isLogoutLoading">Logout</span>
+        
+          <span *ngIf="isLogoutLoading" class="logout-spinner-container">
+            <span class="spinner-small"></span>
+            Logging out...
+          </span>
+        
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="layout">
+    <aside class="side-nav" [class.collapsed]="!isSidebarOpen">
+      <ul class="nav-list">
+        <li *ngFor="let item of navItems" [routerLink]="item.link">{{ item.label }}</li>
+      </ul>
+    </aside>
+
+    <!-- IMPORTANT -->
+    <button class="sidebar-toggle" [class.open]="isSidebarOpen" (click)="toggleSidebar()"
+      [attr.aria-expanded]="isSidebarOpen" [attr.aria-label]="isSidebarOpen ? 'Close sidebar' : 'Open sidebar'">
+      {{ isSidebarOpen ? '‹' : '›' }}
+    </button>
+
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+</div>
