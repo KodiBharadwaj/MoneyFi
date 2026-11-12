@@ -26,7 +26,7 @@ public class CommonConstants {
     public static final String DATE_TIME_UNDERSCORE_PATTERN = "yyyy_MM_dd HH_mm_ss";
     public static final String DATE_TIME_GENERIC_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
-    public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name(), 3, UserRoles.DEVELOPER.name(), 4, UserRoles.MAINTAINER.name());
+    public static final Map<Integer, String> userRoleAssociation = Map.of(1, UserRoles.ADMIN.name(), 2, UserRoles.USER.name(), 3, UserRoles.DEVELOPER.name(), 4, UserRoles.MAINTAINER.name(), 5, UserRoles.CUSTOMER_CARE.name());
     public static final Map<ReasonEnum, Integer> reasonCodeIdAssociation =
             Map.ofEntries(
                     Map.entry(BLOCK_ACCOUNT, 1),
@@ -44,7 +44,13 @@ public class CommonConstants {
                     Map.entry(ADMIN_BLOCK, 13),
                     Map.entry(ADMIN_UNBLOCK, 14),
                     Map.entry(ADMIN_DELETE, 15),
-                    Map.entry(ADMIN_RETRIEVAL, 16)
+                    Map.entry(ADMIN_RETRIEVAL, 16),
+                    Map.entry(CUSTOMER_CARE_CREATION, 17),
+                    Map.entry(CUSTOMER_CARE_UPDATE, 18),
+                    Map.entry(CUSTOMER_CARE_BLOCK, 19),
+                    Map.entry(CUSTOMER_CARE_UNBLOCK, 20),
+                    Map.entry(CUSTOMER_CARE_DELETE, 21),
+                    Map.entry(CUSTOMER_CARE_RETRIEVAL, 22)
             );
     public static final Map<String, CellStyle> dateStyles = new HashMap<>();
 
@@ -66,7 +72,17 @@ public class CommonConstants {
     public static final String TOKEN_BLACKLISTED_MESSAGE = "Token is Blacklisted";
     public static final String USER_VALIDATION_FAILED_MESSAGE = "Failed to validate the user";
     public static final String USER_ID = "userId";
+    public static final String ARTEMIS = "artemis";
     public static final String REDIS_BLACKLIST_TOKEN_PREFIX_KEY = "blackListToken";
+    public static final String STRING_JWT = "JWT";
+    public static final String STRING_BEARER_AUTH = "bearerAuth";
+
+    public static final String STRING_USERNAME = "username";
+    public static final String STRING_VERIFICATION_CODE = "verificationCode";
+    public static final String STRING_REFERENCE_NUMBER = "referenceNumber";
+    public static final String STRING_MDC_REQUEST_ID = "mdcRequestId";
+    public static final String STRING_USER_NAME = "userName";
+    public static final String STRING_EMAIL = "email";
 
     public static final String DOT = ".";
     public static final String SPACE = " ";
@@ -74,6 +90,8 @@ public class CommonConstants {
     public static final String COLON = ":";
     public static final String STRING_SEPARATOR = "<|>";
     public static final String STRING_LINE_SEPARATOR = " | ";
+    public static final String SLASH = "/";
+    public static final String ASTERISK = "*";
 
     public static final String REQUEST_ID_HEADER = "Request-Id";
     public static final String MDC_REQUEST_ID = "requestId";

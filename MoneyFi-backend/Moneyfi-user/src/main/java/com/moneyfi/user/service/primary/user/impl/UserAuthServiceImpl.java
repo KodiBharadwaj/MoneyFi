@@ -56,23 +56,29 @@ import java.util.*;
 import static com.moneyfi.constants.constants.CommonConstants.*;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 
-@Service
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class UserAuthServiceImpl implements UserAuthService {
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
+
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String googleClientSecret;
+
     @Value("${spring.security.oauth2.client.registration.github.client-id}")
     private String githubClientId;
+
     @Value("${spring.security.oauth2.client.registration.github.client-secret}")
     private String githubClientSecret;
+
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
+
     @Value("${user.session-time}")
     private Integer configuredUserSessionTime;
+
     @Value("${app.otp.expiration-time}")
     private int otpExpirationTime;
 
@@ -177,14 +183,20 @@ public class UserAuthServiceImpl implements UserAuthService {
                     return ResponseEntity.ok(userRoleToken);
                 }
             } catch (BadCredentialsException ex) {
-                ex.printStackTrace();
+                log.error("Exception occurred: {}", ex.getMessage());
                 userRoleToken.put(ERROR, INCORRECT_PASSWORD);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
             }
             userRoleToken.put(ERROR, INVALID_CREDENTIALS);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userRoleToken);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (ResourceNotFoundException ex) {
+            if (requestDto.getRole().equalsIgnoreCase(UserRoles.CUSTOMER_CARE.name()))
+                userRoleToken.put(ERROR, "Agent details not found. Please contact maintainer");
+            if (requestDto.getRole().equalsIgnoreCase(UserRoles.ADMIN.name()))
+                userRoleToken.put(ERROR, "Admin details not found. Please contact maintainer");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userRoleToken);
+        } catch (Exception ex) {
+            log.error("Exception occurred: {}", ex.getMessage());
             userRoleToken.put(ERROR, LOGIN_ERROR);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(userRoleToken);
         }
@@ -239,7 +251,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             userRoleToken.put(userRoleAssociation.get(newOrExistingUser.getRoleId()), jwtToken.getJwtToken());
             return ResponseEntity.ok(userRoleToken);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Exception occurred: {}", e.getMessage());
             throw new RuntimeException("Exception while login via Google OAuth: " + e);
         }
     }

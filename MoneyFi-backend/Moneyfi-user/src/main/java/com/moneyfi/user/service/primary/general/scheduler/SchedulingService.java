@@ -7,7 +7,6 @@ import com.moneyfi.user.repository.primary.auth.TokenBlackListRepository;
 import com.moneyfi.user.repository.primary.auth.UserRepository;
 import com.moneyfi.user.service.primary.ReusableCodeClass;
 import com.moneyfi.user.service.primary.general.scheduler.dto.UserEventDto;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,8 +19,8 @@ import java.util.List;
 
 import static com.moneyfi.constants.constants.CommonConstants.STRING_SEPARATOR;
 
-@Service
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class SchedulingService {
 
@@ -30,11 +29,6 @@ public class SchedulingService {
     private final CommonServiceRepository commonServiceRepository;
     private final GmailSyncRepository gmailSyncRepository;
     private final ReusableCodeClass reusableCodeClass;
-
-    @PostConstruct
-    public void initializeScheduledMethodsInCaseOfServiceRunningDelay(){
-        dailyJobRunInBeginningOfTheDay();
-    }
 
     @Scheduled(fixedRate = 3600000) // Runs every 1 hour
     @Transactional
