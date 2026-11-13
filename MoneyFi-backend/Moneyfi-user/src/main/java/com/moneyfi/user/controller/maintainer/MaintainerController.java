@@ -70,4 +70,12 @@ public class MaintainerController {
         Long userId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         maintainerService.blockOrDeleteSupportUser(supportUserId, userId, type);
     }
+
+    @Operation(summary = "Api to reregister agent", description = "Maintainer can add agent details in secondary db if it is missed")
+    @GetMapping("{id}/register-agent")
+    public void registerAgent(Authentication authentication,
+                              @NotNull @PathVariable(value = "id") Long agentId) {
+        Long maintainerId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
+        maintainerService.registerAgent(maintainerId, agentId);
+    }
 }

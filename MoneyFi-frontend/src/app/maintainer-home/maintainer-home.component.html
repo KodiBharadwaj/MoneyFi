@@ -71,7 +71,19 @@
       <tbody>
         <tr *ngFor="let admin of filteredAdmins" style="border-top: 1px solid #ecf0f1;">
           <td style="padding: 12px; font-weight: 500;">{{ admin.id }}</td>
-          <td style="padding: 12px;">{{ admin.username }}</td>
+          <td style="padding: 12px;">
+            {{ admin.username }}
+            <ng-container *ngIf="selectedRole === 'CUSTOMER_CARE'">
+              <span *ngIf="admin.isRegistered === true" title="Registered as agent"
+                    style="color: #27ae60; font-weight: bold; margin-left: 6px;">&#10004;</span>
+              <button *ngIf="admin.isRegistered === false"
+                      (click)="registerAgent(admin)"
+                      [disabled]="registeringAgentId === admin.id"
+                      style="background: #8e44ad; color: white; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; margin-left: 8px; font-size: 12px;">
+                {{ registeringAgentId === admin.id ? 'Registering...' : 'Register as agent' }}
+              </button>
+            </ng-container>
+          </td>
           <td style="padding: 12px; display: flex; gap: 8px;">
 
             <button

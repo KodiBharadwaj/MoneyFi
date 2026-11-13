@@ -11,7 +11,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const toastr = inject(ToastrService);
 
   // Skip auth for public APIs
-  if (req.url.includes('/register')) {
+  if (/\/auth\/register(\?|$)/.test(req.url)) {
     return next(req);
   }
   const jwt = sessionStorage.getItem('moneyfi.auth');

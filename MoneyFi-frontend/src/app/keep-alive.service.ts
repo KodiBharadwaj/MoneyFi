@@ -15,7 +15,6 @@ export class KeepAliveService implements OnDestroy {
   startPinging() {
     this.subscription = interval(60000).subscribe(() => { // every 60s
       console.log("schedule working")
-      this.http.get('https://moneyfi-eureka.onrender.com').subscribe();
       this.http.get('https://moneyfi-api-gateway.onrender.com').subscribe();
       this.http.get('https://moneyfi-transaction-service.onrender.com').subscribe();
       this.http.get('https://moneyfi-wealth-core.onrender.com').subscribe();

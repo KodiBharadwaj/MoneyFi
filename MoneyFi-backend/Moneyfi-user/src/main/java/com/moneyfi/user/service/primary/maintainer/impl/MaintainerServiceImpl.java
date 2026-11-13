@@ -4,8 +4,10 @@ import com.moneyfi.constants.enums.LoginMode;
 import com.moneyfi.constants.enums.ReasonEnum;
 import com.moneyfi.constants.enums.UserRoles;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
+import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.primary.auth.UserAuthHist;
 import com.moneyfi.user.model.primary.auth.UserAuthModel;
+import com.moneyfi.user.model.secondary.SupportAgentWorkload;
 import com.moneyfi.user.repository.primary.auth.UserAuthHistRepository;
 import com.moneyfi.user.repository.primary.auth.SessionTokenRepository;
 import com.moneyfi.user.repository.primary.auth.UserRepository;
@@ -32,8 +34,8 @@ import static com.moneyfi.constants.enums.ReasonEnum.*;
 import static com.moneyfi.user.util.constants.StringConstants.USER_NOT_FOUND;
 import static com.moneyfi.user.util.constants.StringConstants.encoder;
 
-@Service
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class MaintainerServiceImpl implements MaintainerService {
 
@@ -41,6 +43,9 @@ public class MaintainerServiceImpl implements MaintainerService {
     private final UserAuthHistRepository userAuthHistRepository;
     private final SessionTokenRepository sessionTokenRepository;
     private final PrimaryToSecondaryDbFlow primaryToSecondaryDbFlow;
+
+    public static final String RE_REGISTERING_AS_AGENT_IN_SECONDARY_DB = "Re Registering as agent in secondary db";
+    public static final String AGENT_IS_ALREADY_REGISTERED = "Agent is already registered";
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -71,6 +76,7 @@ public class MaintainerServiceImpl implements MaintainerService {
                 .map(user -> SupportUsersResponseDto.builder()
                         .id(user.getId())
                         .username(user.getUsername())
+                        .isRegistered(getAgentActiveStatus(user.getId(), role))
                         .build())
                 .toList();
     }
@@ -138,5 +144,22 @@ public class MaintainerServiceImpl implements MaintainerService {
         sessionTokenRepository.deleteAllByUsername(user.getUsername());
         userAuthHistRepository.save(new UserAuthHist(userRepository.save(user).getId(), LocalDateTime.now(ZoneId.systemDefault()), reasonTypeId, "Maintainer " + type + "ED the account", maintainerUserId));
         if (isCustomerCareAgent) primaryToSecondaryDbFlow.updateCustomerCareAvailability(user.getId(), Boolean.FALSE);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void registerAgent(Long maintainerId, Long agentId) {
+        UserAuthModel user = userRepository.findById(agentId).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        SupportAgentWorkload agent = primaryToSecondaryDbFlow.getAgentDetails(agentId);
+        if (agent == null) {
+            primaryToSecondaryDbFlow.addCustomerCareAgentIntoSecondaryDb(user.getId());
+            userAuthHistRepository.save(new UserAuthHist(user.getId(), LocalDateTime.now(ZoneId.systemDefault()), reasonCodeIdAssociation.get(CUSTOMER_CARE_CREATION), RE_REGISTERING_AS_AGENT_IN_SECONDARY_DB, maintainerId));
+        } else throw new ScenarioNotPossibleException(AGENT_IS_ALREADY_REGISTERED);
+    }
+
+    private Boolean getAgentActiveStatus(Long agentId, UserRoles role) {
+        if (role != UserRoles.CUSTOMER_CARE) return null;
+        SupportAgentWorkload agent = primaryToSecondaryDbFlow.getAgentDetails(agentId);
+        if (agent == null) return Boolean.FALSE; else return Boolean.TRUE;
     }
 }

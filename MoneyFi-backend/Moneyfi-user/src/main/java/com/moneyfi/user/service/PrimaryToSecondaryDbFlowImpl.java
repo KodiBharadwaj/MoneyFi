@@ -49,4 +49,9 @@ public class PrimaryToSecondaryDbFlowImpl implements PrimaryToSecondaryDbFlow {
                 .build();
         supportAgentWorkloadRepository.save(updatedAgent);
     }
+
+    @Override
+    public SupportAgentWorkload getAgentDetails(Long agentId) {
+        return supportAgentWorkloadRepository.findByAgentId(agentId).orElse(null);
+    }
 }

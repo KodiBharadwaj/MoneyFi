@@ -16,4 +16,6 @@ public interface MaintainerService {
     void unblockOrRetrieveSupportUser(Long supportUserId, Long maintainerUserId, String type);
 
     void blockOrDeleteSupportUser(Long adminUserId, Long maintainerUserId, String type);
+
+    void registerAgent(Long maintainerId, Long agentId);
 }

@@ -13,6 +13,7 @@ type SupportRole = 'ADMIN' | 'CUSTOMER_CARE';
 interface AdminUsersResponseDto {
   id: number;
   username: string;
+  isRegistered?: boolean;
 }
 
 @Component({
@@ -170,6 +171,24 @@ export class MaintainerHomeComponent implements OnInit {
       next: () => this.loadAll(),
       error: (err) => this.showError(err)
     });
+  }
+
+  registeringAgentId: number | null = null;
+
+  registerAgent(admin: AdminUsersResponseDto) {
+    this.registeringAgentId = admin.id;
+    this.http.get(`${this.baseUrl}/api/v1/user-service/maintainer/${admin.id}/register-agent`, { responseType: 'text' })
+      .subscribe({
+        next: () => {
+          this.registeringAgentId = null;
+          this.toastr.success('Registered as agent');
+          this.getAdmins();
+        },
+        error: (err) => {
+          this.registeringAgentId = null;
+          this.showError(err);
+        }
+      });
   }
 
   getBlockedAdmins() {
