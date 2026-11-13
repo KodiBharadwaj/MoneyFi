@@ -1,5 +1,6 @@
 package com.moneyfi.user.service.primary.user;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.model.primary.general.ProfileModel;
 import com.moneyfi.user.service.primary.user.dto.request.UserDefectRequestDto;
 import com.moneyfi.user.service.primary.user.dto.request.UserFeedbackRequestDto;
@@ -19,7 +20,7 @@ public interface ProfileService {
 
     void saveContactUsDetails(UserDefectRequestDto userDefectRequestDto, Long userId, String username) throws IOException;
 
-    void saveFeedback(UserFeedbackRequestDto feedback, Long userId);
+    void saveFeedback(UserFeedbackRequestDto feedback, Long userId) throws JsonProcessingException;
 
     void parseUserProfileDataFromExcel(MultipartFile excel, Long userId);
 

@@ -128,7 +128,7 @@ public class AdminController {
     public void updateDefectStatus(Authentication authentication,
                                    @NotNull @PathVariable(value = "defectId") Long defectId,
                                    @RequestBody Map<String, String> body,
-                                   @NotBlank @RequestParam String reason) {
+                                   @NotBlank @RequestParam String reason) throws JsonProcessingException {
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.updateDefectStatus(defectId, body.get(STATUS), reason, adminUserId);
     }

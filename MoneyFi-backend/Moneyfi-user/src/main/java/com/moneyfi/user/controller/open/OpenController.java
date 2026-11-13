@@ -1,5 +1,6 @@
 package com.moneyfi.user.controller.open;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.service.primary.user.UserCommonService;
 import com.moneyfi.user.service.primary.user.dto.request.*;
 import com.moneyfi.user.service.primary.user.dto.response.UserRequestStatusDto;
@@ -71,7 +72,7 @@ public class OpenController {
 
     @Operation(summary = "Api to send the contact us/help center details to admin via mail")
     @PostMapping("/contact-us")
-    public void sendContactUsDetailsToAdmin(@Valid @RequestBody HelpCenterContactUsRequestDto requestDto) {
+    public void sendContactUsDetailsToAdmin(@Valid @RequestBody HelpCenterContactUsRequestDto requestDto) throws JsonProcessingException {
         userCommonService.sendContactUsDetailsToAdmin(requestDto);
     }
 

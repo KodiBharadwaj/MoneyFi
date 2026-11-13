@@ -24,6 +24,7 @@ import com.moneyfi.user.repository.primary.auth.UserAuthHistRepository;
 import com.moneyfi.user.repository.primary.auth.UserRepository;
 import com.moneyfi.user.repository.primary.general.*;
 import com.moneyfi.user.repository.primary.gmailsync.GmailSyncRepository;
+import com.moneyfi.user.service.primary.NotificationDetailsSetter;
 import com.moneyfi.user.service.primary.ReusableCodeClass;
 import com.moneyfi.user.service.primary.admin.AdminService;
 import com.moneyfi.user.service.primary.admin.dto.request.AdminScheduleRequestDto;
@@ -32,6 +33,7 @@ import com.moneyfi.user.service.primary.admin.dto.request.ReasonUpdateRequestDto
 import com.moneyfi.user.service.primary.admin.dto.request.ScheduleNotificationRequestDto;
 import com.moneyfi.user.service.primary.admin.dto.response.*;
 import com.moneyfi.user.service.primary.general.caching.UserCacheService;
+import com.moneyfi.user.service.primary.general.inter.EmailNotificationFailedService;
 import com.moneyfi.user.service.primary.general.storage.FileStorageService;
 import com.moneyfi.user.service.primary.user.UserCommonService;
 import com.moneyfi.user.service.primary.user.dto.emaildto.AdminBlockUserDto;
@@ -41,10 +43,6 @@ import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.*;
 import com.moneyfi.user.validator.AdminValidations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,6 +65,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static com.moneyfi.constants.constants.CommonConstants.*;
+import static com.moneyfi.user.service.primary.NotificationDetailsSetter.setUserDetailsForNotificationQueueWithReferenceNumber;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 import static com.moneyfi.user.util.constants.StringConstants.USER_NOT_FOUND;
 import static com.moneyfi.user.util.enums.SchedulingNotificationType.ADMIN_SCHEDULING;
@@ -105,7 +104,7 @@ public class AdminServiceImpl implements AdminService {
     private final ExcelGenerationService excelGenerationService;
     private final ReusableCodeClass reusableCodeClass;
     private final FileStorageService fileStorageService;
-    private final EmailNotificationFailedRepository emailNotificationFailedRepository;
+    private final EmailNotificationFailedService emailNotificationFailedService;
 
     @Override
     public AdminOverviewPageDto getAdminOverviewPageDetails() {
@@ -237,7 +236,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateDefectStatus(Long defectId, String status, String reason, Long adminUserId) {
+    public void updateDefectStatus(Long defectId, String status, String reason, Long adminUserId) throws JsonProcessingException {
         ContactUs userDefect = contactUsRepository.findById(defectId).orElseThrow(() -> new ResourceNotFoundException("User defect details not found"));
         ProfileModel userProfile = profileRepository.findByUserEmail(userDefect.getEmail()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
         log.info("User Profile details: {}", userProfile);
@@ -267,7 +266,10 @@ public class AdminServiceImpl implements AdminService {
                 scheduleNotification.setSubject("Admin solved your concern");
                 scheduleNotification.setDescription("Status: Completed" + STRING_LINE_SEPARATOR + "Reference Number: " + userDefect.getReferenceNumber().substring(4));
                 sendNotificationToUserForRaisedRequestUpdate(scheduleNotification, adminUserId, userDefect.getEmail());
-                reusableCodeClass.sendNotificationToUser(NotificationQueueEnum.USER_DEFECT_STATUS_MAIL.name(), userProfile.getName() + STRING_SEPARATOR + userDefect.getReferenceNumber().substring(4) + STRING_SEPARATOR + userDefectHist.getMessage() + STRING_SEPARATOR + userDefect.getEmail().trim());
+                reusableCodeClass.sendNotificationToUser(
+                        NotificationQueueEnum.USER_DEFECT_STATUS_MAIL.name(),
+                        objectMapper.writeValueAsString(NotificationDetailsSetter.setUserDetailsForNotificationQueueWithReferenceNumber(userDefect.getEmail().trim(), userProfile.getName(), userDefect.getReferenceNumber().substring(4), userDefectHist.getMessage(), NotificationQueueEnum.USER_DEFECT_STATUS_MAIL.name(), emailNotificationFailedService))
+                );
             }
             case "Pend" -> {
                 userDefect.setRequestStatus(RaiseRequestStatus.PENDED.name());
@@ -296,7 +298,10 @@ public class AdminServiceImpl implements AdminService {
                 scheduleNotification.setSubject("Admin Ignored your concern");
                 scheduleNotification.setDescription("Status: Ignored" + STRING_LINE_SEPARATOR + "Reference Number: " + userDefect.getReferenceNumber().substring(4) + STRING_LINE_SEPARATOR + "Reason: " + reason);
                 sendNotificationToUserForRaisedRequestUpdate(scheduleNotification, adminUserId, userDefect.getEmail());
-                reusableCodeClass.sendNotificationToUser(NotificationQueueEnum.USER_DEFECT_STATUS_MAIL.name(), userProfile.getName() + STRING_SEPARATOR + userDefect.getReferenceNumber().substring(4) + STRING_SEPARATOR + userDefectHist.getMessage() + STRING_SEPARATOR + userDefect.getEmail().trim());
+                reusableCodeClass.sendNotificationToUser(
+                        NotificationQueueEnum.USER_DEFECT_STATUS_MAIL.name(),
+                        objectMapper.writeValueAsString(NotificationDetailsSetter.setUserDetailsForNotificationQueueWithReferenceNumber(userDefect.getEmail().trim(), userProfile.getName(), userDefect.getReferenceNumber().substring(4), userDefectHist.getMessage(), NotificationQueueEnum.USER_DEFECT_STATUS_MAIL.name(), emailNotificationFailedService))
+                );
             }
             default -> throw new ScenarioNotPossibleException(UNACCEPTABLE_REQUEST);
         }
@@ -519,7 +524,10 @@ public class AdminServiceImpl implements AdminService {
                 unblockHistory.setUpdatedBy(adminUserId);
                 contactUsHistRepository.save(unblockHistory);
                 updateUserAuthHistoryTable(user.getId(), reasonCodeIdAssociation.get(ReasonEnum.ADMIN_UNBLOCK), reason, adminUserId, currentTime);
-                reusableCodeClass.sendNotificationToUser(NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_SUCCESSFUL_MAIL.name(), userProfile.getName() + STRING_SEPARATOR + email + STRING_SEPARATOR + blockRequestDetails.getReferenceNumber().substring(4) + STRING_SEPARATOR + "Unblocked successfully");
+                reusableCodeClass.sendNotificationToUser(
+                        NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_SUCCESSFUL_MAIL.name(),
+                        objectMapper.writeValueAsString(NotificationDetailsSetter.setUserDetailsForNotificationQueueWithReferenceNumber(email, userProfile.getName(), blockRequestDetails.getReferenceNumber().substring(4), "Unblocked successfully", NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_SUCCESSFUL_MAIL.name(), emailNotificationFailedService))
+                );
             }
             default -> throw new ScenarioNotPossibleException(INVALID_REQUEST_MESSAGE);
         }
@@ -637,34 +645,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<FailedQueueDetailsResponseDto> getFailedQueueEmailNotificationDetails(OffsetDateTime startDate, OffsetDateTime endDate, PaginatedRequestDto requestDto) {
-        int page = (int) (requestDto.getOffset() / requestDto.getLimit());
-        Sort sort = Sort.by(
-                Sort.Direction.fromString(Optional.ofNullable(requestDto.getSortOrder()).orElse("DESC")),
-                Optional.ofNullable(requestDto.getSortBy()).orElse("createdAt")
-        );
-
-        Pageable pageable = PageRequest.of(page, requestDto.getLimit().intValue(), sort);
-
-        Page<EmailNotificationFailedDetails> result =
-                emailNotificationFailedRepository.getFailedQueueEmailNotificationDetails(startDate.toLocalDateTime(), endDate.toLocalDateTime(), requestDto.getSearch(), pageable);
-
-        return result.getContent()
-                .stream()
-                .<FailedQueueDetailsResponseDto>map(entity -> FailedQueueDetailsResponseDto.builder()
-                        .failedQueueId(entity.getId())
-                        .mdcRequestId(entity.getMdcRequestId())
-                        .referenceNumber(entity.getReferenceNumber())
-                        .username(entity.getUsername())
-                        .name(entity.getName())
-                        .message(entity.getMessage())
-                        .valueJson(entity.getValueJson())
-                        .failureStage(entity.getFailureStage())
-                        .messageType(entity.getMessageType())
-                        .streamPlatform(entity.getBrokerUsed())
-                        .failureTime(entity.getCreatedAt())
-                        .totalCount(result.getTotalElements())
-                        .build())
-                .toList();
+        return emailNotificationFailedService.getFailedQueueEmailNotificationDetails(startDate, endDate, requestDto);
     }
 
     private void functionCallToUpdateExcelTemplate(Long adminUserId, String fileName, MultipartFile file) throws IOException {
@@ -730,7 +711,10 @@ public class AdminServiceImpl implements AdminService {
                 requestUserHist.setRequestReason(RequestReason.ACCOUNT_UNBLOCK_REQUEST.name());
                 requestUserHist.setMessage("Admin has been unblocked the Account");
                 updateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
-                reusableCodeClass.sendNotificationToUser(NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_SUCCESSFUL_MAIL.name(), userProfile.getName() + STRING_SEPARATOR + email + STRING_SEPARATOR + contactUs.getReferenceNumber().substring(4) + STRING_SEPARATOR + "Unblocked successfully");
+                reusableCodeClass.sendNotificationToUser(
+                        NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_SUCCESSFUL_MAIL.name(),
+                        objectMapper.writeValueAsString(NotificationDetailsSetter.setUserDetailsForNotificationQueueWithReferenceNumber(email, userProfile.getName(), contactUs.getReferenceNumber().substring(4), "Unblocked successfully", NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_SUCCESSFUL_MAIL.name(), emailNotificationFailedService))
+                );
             }
             case ACCOUNT_NOT_DELETE_REQUEST -> {
                 user.setDeleted(Boolean.FALSE);
@@ -744,7 +728,10 @@ public class AdminServiceImpl implements AdminService {
                 requestUserHist.setRequestReason(RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name());
                 requestUserHist.setMessage("Admin has been approved Account Retrieval");
                 updateContactUsTable(contactUs, requestUserHist, completedTime, adminUserId);
-                reusableCodeClass.sendNotificationToUser(NotificationQueueEnum.USER_ACCOUNT_RETRIEVAL_REQUEST_SUCCESSFUL_MAIL.name(), userProfile.getName() + STRING_SEPARATOR + email + STRING_SEPARATOR + contactUs.getReferenceNumber().substring(4) + STRING_SEPARATOR + "Retrieved successfully");
+                reusableCodeClass.sendNotificationToUser(
+                        NotificationQueueEnum.USER_ACCOUNT_RETRIEVAL_REQUEST_SUCCESSFUL_MAIL.name(),
+                        objectMapper.writeValueAsString(NotificationDetailsSetter.setUserDetailsForNotificationQueueWithReferenceNumber(email, userProfile.getName(), contactUs.getReferenceNumber().substring(4), "Retrieved successfully", NotificationQueueEnum.USER_ACCOUNT_RETRIEVAL_REQUEST_SUCCESSFUL_MAIL.name(), emailNotificationFailedService))
+                );
             }
             case NAME_CHANGE_REQUEST -> {
                 ContactUsHist requestDetailsHist = contactUsHistRepository.findByContactUsIdListAndSubmitted(contactUs.getId()).stream()
@@ -774,7 +761,10 @@ public class AdminServiceImpl implements AdminService {
                 scheduleNotification.setRecipients(email);
                 scheduleNotification.setNotificationType(SchedulingNotificationType.NAME_CHANGE_REQUEST.name());
                 userCommonService.saveUserNotificationsForParticularUsers(user.getUsername(), scheduleNotificationRepository.save(scheduleNotification).getId());
-                reusableCodeClass.sendNotificationToUser(NotificationQueueEnum.NAME_CHANGE_REQUEST_APPROVED_MAIL.name(), userProfile.getName() + STRING_SEPARATOR + email + STRING_SEPARATOR + contactUs.getReferenceNumber().substring(4));
+                reusableCodeClass.sendNotificationToUser(
+                        NotificationQueueEnum.NAME_CHANGE_REQUEST_APPROVED_MAIL.name(),
+                        objectMapper.writeValueAsString(NotificationDetailsSetter.setUserDetailsForNotificationQueueWithReferenceNumber(email, userProfile.getName(), contactUs.getReferenceNumber().substring(4), NotificationQueueEnum.NAME_CHANGE_REQUEST_APPROVED_MAIL.name(), emailNotificationFailedService))
+                );
             }
             case GMAIL_SYNC_REQUEST_TYPE -> {
                 if (gmailSyncRequestCount <= 0 || gmailSyncRequestCount > gmailSyncRequestConfigured) {
@@ -793,7 +783,10 @@ public class AdminServiceImpl implements AdminService {
                 scheduleNotification.setSubject("Gmail Sync Count Increase Request Approved");
                 scheduleNotification.setDescription(objectMapper.writeValueAsString(new GmailSyncCountJsonDto(gmailSyncRequestCount, STATUS_APPROVED, contactUs.getId())));
                 scheduleGmailSyncUpdateToUser(scheduleNotification, adminUserId, email, user, contactUs);
-                reusableCodeClass.sendNotificationToUser(NotificationQueueEnum.GMAIL_SYNC_APPROVED_USER_MAIL.name(), userProfile.getName() + STRING_SEPARATOR + email + STRING_SEPARATOR + gmailSyncRequestCount);
+                reusableCodeClass.sendNotificationToUser(
+                        NotificationQueueEnum.GMAIL_SYNC_APPROVED_USER_MAIL.name(),
+                        objectMapper.writeValueAsString(setUserDetailsForNotificationQueueWithReferenceNumber(email, userProfile.getName(), gmailSyncRequestCount, NotificationQueueEnum.GMAIL_SYNC_APPROVED_USER_MAIL.name(), emailNotificationFailedService))
+                );
             }
             default -> throw new ScenarioNotPossibleException(UNACCEPTABLE_REQUEST);
         }
@@ -850,7 +843,10 @@ public class AdminServiceImpl implements AdminService {
                 scheduleNotification.setSubject("Gmail Sync Count Increase Request Rejected");
                 scheduleNotification.setDescription(objectMapper.writeValueAsString(new GmailSyncCountJsonDto(0, STATUS_REJECTED + ". Reason: " + declineReason, contactUs.getId())));
                 scheduleGmailSyncUpdateToUser(scheduleNotification, adminUserId, email, user, contactUs);
-                reusableCodeClass.sendNotificationToUser(NotificationQueueEnum.GMAIL_SYNC_REJECTED_USER_MAIL.name(), userProfile.getName() + STRING_SEPARATOR + email);
+                reusableCodeClass.sendNotificationToUser(
+                        NotificationQueueEnum.GMAIL_SYNC_REJECTED_USER_MAIL.name(),
+                        objectMapper.writeValueAsString(NotificationDetailsSetter.setUserDetailsForNotificationQueue(email, userProfile.getName(), NotificationQueueEnum.GMAIL_SYNC_REJECTED_USER_MAIL.name(), emailNotificationFailedService))
+                );
             }
             case NAME_CHANGE_REQUEST -> {
                 ScheduleNotification scheduleNotification = new ScheduleNotification();
@@ -863,12 +859,21 @@ public class AdminServiceImpl implements AdminService {
                 scheduleNotification.setRecipients(email);
                 scheduleNotification.setNotificationType(SchedulingNotificationType.NAME_CHANGE_REQUEST.name());
                 userCommonService.saveUserNotificationsForParticularUsers(user.getUsername(), scheduleNotificationRepository.save(scheduleNotification).getId());
-                reusableCodeClass.sendNotificationToUser(NotificationQueueEnum.NAME_CHANGE_REQUEST_REJECTED_MAIL.name(), userProfile.getName() + STRING_SEPARATOR + email + STRING_SEPARATOR + contactUs.getReferenceNumber().substring(4));
+                reusableCodeClass.sendNotificationToUser(
+                        NotificationQueueEnum.NAME_CHANGE_REQUEST_REJECTED_MAIL.name(),
+                        objectMapper.writeValueAsString(NotificationDetailsSetter.setUserDetailsForNotificationQueueWithReferenceNumber(email, userProfile.getName(), contactUs.getReferenceNumber().substring(4), NotificationQueueEnum.NAME_CHANGE_REQUEST_REJECTED_MAIL.name(), emailNotificationFailedService))
+                );
             }
             case ACCOUNT_UNBLOCK_REQUEST ->
-                    reusableCodeClass.sendNotificationToUser(NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_REJECTED_MAIL.name(), userProfile.getName() + STRING_SEPARATOR + email + STRING_SEPARATOR + contactUs.getReferenceNumber().substring(4) + STRING_SEPARATOR + "Unblock Request" + STRING_SEPARATOR + declineReason);
+                    reusableCodeClass.sendNotificationToUser(
+                            NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_REJECTED_MAIL.name(),
+                            objectMapper.writeValueAsString(NotificationDetailsSetter.setUserDetailsForNotificationQueueWithReferenceNumber(email, userProfile.getName(), contactUs.getReferenceNumber().substring(4), "Unblock Request", declineReason, NotificationQueueEnum.USER_ACCOUNT_UNBLOCK_REQUEST_REJECTED_MAIL.name(), emailNotificationFailedService))
+                    );
             case ACCOUNT_NOT_DELETE_REQUEST ->
-                    reusableCodeClass.sendNotificationToUser(NotificationQueueEnum.USER_ACCOUNT_RETRIEVAL_REQUEST_REJECTED_MAIL.name(), userProfile.getName() + STRING_SEPARATOR + email + STRING_SEPARATOR + contactUs.getReferenceNumber().substring(4) + STRING_SEPARATOR + "Retrieval Request" + STRING_SEPARATOR + declineReason);
+                    reusableCodeClass.sendNotificationToUser(
+                            NotificationQueueEnum.USER_ACCOUNT_RETRIEVAL_REQUEST_REJECTED_MAIL.name(),
+                            objectMapper.writeValueAsString(NotificationDetailsSetter.setUserDetailsForNotificationQueueWithReferenceNumber(email, userProfile.getName(), contactUs.getReferenceNumber().substring(4), "Retrieval Request", declineReason, NotificationQueueEnum.USER_ACCOUNT_RETRIEVAL_REQUEST_REJECTED_MAIL.name(), emailNotificationFailedService))
+                    );
             default -> throw new ScenarioNotPossibleException(UNACCEPTABLE_REQUEST);
         }
     }

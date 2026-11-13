@@ -33,7 +33,7 @@ public class SupportChatServiceImpl implements SupportChatService {
     public static final String CONVERSATION_IS_NOT_ACTIVE = "Conversation is not active";
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class, transactionManager = "mongoTransactionManager")
     public void sendMessage(String conversationId, SendSupportMessageRequest request, Long userId) {
         SupportConversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException(CONVERSATION_NOT_FOUND));
 

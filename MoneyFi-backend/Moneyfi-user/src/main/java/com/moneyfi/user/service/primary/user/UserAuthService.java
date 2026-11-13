@@ -13,7 +13,7 @@ import java.util.Map;
 
 public interface UserAuthService {
 
-    UserAuthModel registerUser(UserProfile userProfile, String loginMode, String address);
+    UserAuthModel registerUser(UserProfile userProfile, String loginMode, String address) throws JsonProcessingException;
 
     ResponseEntity<Map<String, String>> login(@Valid UserLoginDetailsRequestDto requestDto);
 
@@ -31,17 +31,17 @@ public interface UserAuthService {
 
     RemainingTimeCountDto checkOtpActiveMethod(String email);
 
-    void resendOtp(String username, String otpType);
+    void resendOtp(String username, String otpType) throws JsonProcessingException;
 
     Map<String, String> logout(String token);
 
     String updateUserSessionExpirationTime(long minutes, String username, String substring);
 
-    void changePassword(ChangePasswordDto changePasswordDto);
+    void changePassword(ChangePasswordDto changePasswordDto) throws JsonProcessingException;
 
-    ResponseEntity<String> sendOtpToBlockAccount(String username, String type);
+    ResponseEntity<String> sendOtpToBlockAccount(String username, String type) throws JsonProcessingException;
 
-    String sendOtpForSignup(String email, String name);
+    String sendOtpForSignup(String email, String name) throws JsonProcessingException;
 
     Boolean checkEnteredOtpDuringSignup(String email, String inputOtp);
 }

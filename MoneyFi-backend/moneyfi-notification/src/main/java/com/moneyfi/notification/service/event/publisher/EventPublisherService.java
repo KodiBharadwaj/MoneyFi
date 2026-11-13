@@ -41,20 +41,4 @@ public class EventPublisherService {
             log.error("Error while send user feedback notification : {}", e.getMessage());
         }
     }
-
-    @Async
-    @Order(1)
-    @EventListener
-    public void publishMessage(String feedbackResponseDto) {
-        try {
-            String feedbackResponseString = objectMapper.writeValueAsString(feedbackResponseDto);
-            if (ARTEMIS.equalsIgnoreCase(queueProvider)) {
-                artemisQueuePublisher.publishMessage(feedbackResponseString);
-            } else {
-                rabbitMqQueuePublisher.publishMessage(feedbackResponseString);
-            }
-        } catch (Exception e) {
-            log.error("Error while send user feedback notification : {}", e.getMessage());
-        }
-    }
 }

@@ -1,11 +1,15 @@
 package com.moneyfi.user.service.primary.general.scheduler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneyfi.constants.enums.NotificationQueueEnum;
 import com.moneyfi.user.repository.primary.common.CommonServiceRepository;
 import com.moneyfi.user.repository.primary.gmailsync.GmailSyncRepository;
 import com.moneyfi.user.repository.primary.auth.TokenBlackListRepository;
 import com.moneyfi.user.repository.primary.auth.UserRepository;
+import com.moneyfi.user.service.primary.NotificationDetailsSetter;
 import com.moneyfi.user.service.primary.ReusableCodeClass;
+import com.moneyfi.user.service.primary.general.inter.EmailNotificationFailedService;
 import com.moneyfi.user.service.primary.general.scheduler.dto.UserEventDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
-import static com.moneyfi.constants.constants.CommonConstants.STRING_SEPARATOR;
+import static com.moneyfi.user.service.primary.NotificationDetailsSetter.setUserDetailsForNotificationQueueAdminServiceForSendingAnniversary;
 
 @Slf4j
 @Service
@@ -29,6 +34,8 @@ public class SchedulingService {
     private final CommonServiceRepository commonServiceRepository;
     private final GmailSyncRepository gmailSyncRepository;
     private final ReusableCodeClass reusableCodeClass;
+    private final ObjectMapper objectMapper;
+    private final EmailNotificationFailedService emailNotificationFailedService;
 
     @Scheduled(fixedRate = 3600000) // Runs every 1 hour
     @Transactional
@@ -53,13 +60,17 @@ public class SchedulingService {
             String email = user.getUsername();
             String name = user.getName();
             int year = user.getYear();
-            int numberOfYears = LocalDate.now().getYear() - year;
+            int numberOfYears = LocalDate.now(ZoneId.systemDefault()).getYear() - year;
 
             if (numberOfYears > 0) {
-                reusableCodeClass.sendNotificationToUser(
-                        NotificationQueueEnum.USER_BIRTHDAY_MAIL.name(),
-                        email + STRING_SEPARATOR + name
-                );
+                try {
+                    reusableCodeClass.sendNotificationToUser(
+                            NotificationQueueEnum.USER_BIRTHDAY_MAIL.name(),
+                            objectMapper.writeValueAsString(NotificationDetailsSetter.setUserDetailsForNotificationQueue(email, name, NotificationQueueEnum.USER_BIRTHDAY_MAIL.name(), emailNotificationFailedService))
+                    );
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }
@@ -70,13 +81,17 @@ public class SchedulingService {
             String email = user.getUsername();
             String name = user.getName();
             int year = user.getYear();
-            int numberOfYears = LocalDate.now().getYear() - year;
+            int numberOfYears = LocalDate.now(ZoneId.systemDefault()).getYear() - year;
 
             if (numberOfYears != 0) {
-                reusableCodeClass.sendNotificationToUser(
-                        NotificationQueueEnum.USER_ANNIVERSARY_MAIL.name(),
-                        email + STRING_SEPARATOR + name + STRING_SEPARATOR + numberOfYears
-                );
+                try {
+                    reusableCodeClass.sendNotificationToUser(
+                            NotificationQueueEnum.USER_ANNIVERSARY_MAIL.name(),
+                            objectMapper.writeValueAsString(setUserDetailsForNotificationQueueAdminServiceForSendingAnniversary(email, name, numberOfYears, NotificationQueueEnum.USER_ANNIVERSARY_MAIL.name(), emailNotificationFailedService))
+                    );
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }

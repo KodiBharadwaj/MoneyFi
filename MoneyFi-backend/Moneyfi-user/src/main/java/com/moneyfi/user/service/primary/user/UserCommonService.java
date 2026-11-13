@@ -42,7 +42,7 @@ public interface UserCommonService {
 
     UserRequestStatusDto trackUserRequestUsingReferenceNumber(String referenceNumber);
 
-    void sendContactUsDetailsToAdmin(HelpCenterContactUsRequestDto requestDto);
+    void sendContactUsDetailsToAdmin(HelpCenterContactUsRequestDto requestDto) throws JsonProcessingException;
 
     void saveUserNotificationsForParticularUsers(String recipients, Long scheduleId);
 

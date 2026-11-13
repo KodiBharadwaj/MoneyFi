@@ -16,6 +16,7 @@ import com.moneyfi.user.repository.primary.general.*;
 import com.moneyfi.user.repository.primary.gmailsync.GmailSyncRepository;
 import com.moneyfi.user.service.primary.ReusableCodeClass;
 import com.moneyfi.user.service.primary.general.caching.UserCacheService;
+import com.moneyfi.user.service.primary.general.inter.EmailNotificationFailedService;
 import com.moneyfi.user.service.primary.general.storage.FileStorageService;
 import com.moneyfi.user.service.primary.user.CommonService;
 import com.moneyfi.user.service.primary.user.UserCommonService;
@@ -52,6 +53,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.moneyfi.constants.constants.CommonConstants.*;
+import static com.moneyfi.user.service.primary.NotificationDetailsSetter.setUserDetailsForNotificationQueueHelpDesk;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 import static com.moneyfi.user.util.constants.StringUrls.DAILY_QUOTE_EXTERNAL_API_URL;
 
@@ -80,6 +82,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final UserCacheService userCacheService;
     private final FileStorageService fileStorageService;
     private final ReusableCodeClass reusableCodeClass;
+    private final EmailNotificationFailedService emailNotificationFailedService;
 
     public UserCommonServiceImpl(ProfileRepository profileRepository,
                                  ContactUsRepository contactUsRepository,
@@ -98,7 +101,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  GmailSyncRepository gmailSyncRepository,
                                  UserCacheService userCacheService,
                                  FileStorageService fileStorageService,
-                                 ReusableCodeClass reusableCodeClass){
+                                 ReusableCodeClass reusableCodeClass,
+                                 EmailNotificationFailedService emailNotificationFailedService){
         this.profileRepository = profileRepository;
         this.contactUsRepository = contactUsRepository;
         this.contactUsHistRepository = contactUsHistRepository;
@@ -117,6 +121,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.userCacheService = userCacheService;
         this.fileStorageService = fileStorageService;
         this.reusableCodeClass = reusableCodeClass;
+        this.emailNotificationFailedService = emailNotificationFailedService;
     }
 
     private static final String REFERENCE_NUMBER_SENT = "Reference already sent, Please submit your details";
@@ -366,7 +371,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    public void sendContactUsDetailsToAdmin(HelpCenterContactUsRequestDto requestDto) {
+    public void sendContactUsDetailsToAdmin(HelpCenterContactUsRequestDto requestDto) throws JsonProcessingException {
         if(requestDto.getEmail() == null || requestDto.getPhoneNumber() == null || requestDto.getName() == null || requestDto.getDescription() == null){
             throw new ScenarioNotPossibleException("Input fields cannot be null");
         }
@@ -383,7 +388,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         }
         reusableCodeClass.sendNotificationToUser(
                 NotificationQueueEnum.CONTACT_US_HELP_CENTER_MAIL.name(),
-                email + STRING_SEPARATOR + requestDto.getPhoneNumber() + STRING_SEPARATOR + requestDto.getName() + STRING_SEPARATOR + requestDto.getDescription()
+                objectMapper.writeValueAsString(setUserDetailsForNotificationQueueHelpDesk(email, requestDto.getName(), requestDto.getPhoneNumber(), requestDto.getDescription(), NotificationQueueEnum.CONTACT_US_HELP_CENTER_MAIL.name(), emailNotificationFailedService))
         );
     }
 
@@ -591,7 +596,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
             UserAuthHist userAuthHist = new UserAuthHist();
             userAuthHist.setUserId(user.getId());
-            userAuthHist.setUpdatedTime(LocalDateTime.now());
+            userAuthHist.setUpdatedTime(LocalDateTime.now(ZoneId.systemDefault()));
             userAuthHist.setReasonTypeId(reasonCodeIdAssociation.get(ReasonEnum.FORGOT_USERNAME));
             userAuthHist.setComment("Forgot my username, fetched with my known personal values");
             userAuthHist.setUpdatedBy(user.getId());
@@ -616,7 +621,6 @@ public class UserCommonServiceImpl implements UserCommonService {
                 return quoteResponseDto;
             }
         } catch (Exception e){
-            e.printStackTrace();
             throw new ScenarioNotPossibleException("Failed to parse the json response -> " + e);
         }
         throw new ResourceNotFoundException("No quote response found from external api");

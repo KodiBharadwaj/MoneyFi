@@ -26,7 +26,7 @@ public interface AdminService {
 
     List<UserDefectResponseDto> getUserRaisedDefectsForAdmin(String status, PaginatedRequestDto requestDto);
 
-    void updateDefectStatus(Long defectId, String status, String reason, Long adminUserId);
+    void updateDefectStatus(Long defectId, String status, String reason, Long adminUserId) throws JsonProcessingException;
 
     boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId, String approveStatus, String declineReason, int gmailSyncRequestCount);
 

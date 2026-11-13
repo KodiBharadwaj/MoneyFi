@@ -1,5 +1,7 @@
 package com.moneyfi.user.service.primary.user.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.primary.general.ContactUs;
@@ -13,6 +15,7 @@ import com.moneyfi.user.repository.primary.general.ExcelTemplateRepository;
 import com.moneyfi.user.repository.primary.general.ProfileRepository;
 import com.moneyfi.user.repository.primary.common.CommonServiceRepository;
 import com.moneyfi.user.service.primary.ReusableCodeClass;
+import com.moneyfi.user.service.primary.general.inter.EmailNotificationFailedService;
 import com.moneyfi.user.service.primary.general.storage.FileStorageService;
 import com.moneyfi.user.service.primary.user.dto.emaildto.UserRaisedDefectDto;
 import com.moneyfi.user.service.primary.user.dto.request.UserDefectRequestDto;
@@ -51,6 +54,7 @@ import java.util.Base64;
 
 import static com.moneyfi.constants.constants.CommonConstants.generateAlphabetCode;
 import static com.moneyfi.constants.constants.CommonConstants.generateVerificationCode;
+import static com.moneyfi.user.service.primary.NotificationDetailsSetter.*;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 
 @Slf4j
@@ -68,6 +72,8 @@ public class ProfileServiceImpl implements ProfileService {
     private final ExcelTemplateRepository excelTemplateRepository;
     private final FileStorageService fileStorageService;
     private final ReusableCodeClass reusableCodeClass;
+    private final ObjectMapper objectMapper;
+    private final EmailNotificationFailedService emailNotificationFailedService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -148,7 +154,7 @@ public class ProfileServiceImpl implements ProfileService {
 
         reusableCodeClass.sendNotificationToUser(
                 NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(),
-                userDefectRequestDto.getName() + "<|>" + userDefect.getEmail() + "<|>" + "resolve issue" + "<|>" + referenceNumber
+                objectMapper.writeValueAsString(setUserDetailsForNotificationQueueWithReferenceNumber(userDefect.getEmail(), userDefectRequestDto.getName(), referenceNumber, "resolve issue", NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), emailNotificationFailedService))
         );
         String base64Image = null;
         String fileName = null;
@@ -167,7 +173,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void saveFeedback(UserFeedbackRequestDto feedback, Long userId) {
+    public void saveFeedback(UserFeedbackRequestDto feedback, Long userId) throws JsonProcessingException {
         String rating = feedback.getMessage().substring(0, 1);
         String message = feedback.getMessage().substring(2);
 
@@ -177,7 +183,7 @@ public class ProfileServiceImpl implements ProfileService {
         userFeedback.setVerified(false);
         userFeedback.setRequestReason(RequestReason.USER_FEEDBACK_UPDATE.name());
         userFeedback.setRequestStatus(RaiseRequestStatus.SUBMITTED.name());
-        userFeedback.setStartTime(LocalDateTime.now());
+        userFeedback.setStartTime(LocalDateTime.now(ZoneId.systemDefault()));
         ContactUs savedFeedback = contactUsRepository.save(userFeedback);
 
         ContactUsHist userFeedbackHist = new ContactUsHist();
@@ -191,7 +197,7 @@ public class ProfileServiceImpl implements ProfileService {
         contactUsHistRepository.save(userFeedbackHist);
         reusableCodeClass.sendNotificationToUser(
                 NotificationQueueEnum.USER_FEEDBACK_MAIL.name(),
-                rating + "<|>" + (StringUtils.isBlank(message) ? "NULL" : message)
+                objectMapper.writeValueAsString(setUserDetailsForNotificationQueueForRating(rating, (StringUtils.isBlank(message) ? "NULL" : message), NotificationQueueEnum.USER_FEEDBACK_MAIL.name(), emailNotificationFailedService))
         );
     }
 

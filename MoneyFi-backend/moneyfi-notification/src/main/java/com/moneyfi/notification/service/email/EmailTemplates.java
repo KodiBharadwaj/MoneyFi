@@ -22,7 +22,7 @@ public class EmailTemplates {
 
     private final EmailService emailService;
 
-    public void sendUserReportStatusMailToUser(String name, String referenceNumber, String description, String email){
+    public void sendUserReportStatusMailToUser(String email, String name, String referenceNumber, String description){
         String subject = "Report Raised Status";
         String body = "<html>"
                 + "<body>"
@@ -186,7 +186,7 @@ public class EmailTemplates {
         emailService.sendEmailWithAttachment(statementAnalysisDto.getUsername(), subject, body, statementAnalysisDto.getPdfByte(), fileNamePart + "_spending_analysis.pdf");
     }
 
-    public void sendReferenceNumberEmailToUser(String name, String email, String description, String referenceNumber) {
+    public void sendReferenceNumberEmailToUser(String email, String name, String referenceNumber, String description) {
         String subject = "MoneyFi - user requests";
         String body = "<html>"
                 + "<body>"
@@ -223,7 +223,7 @@ public class EmailTemplates {
         emailService.sendEmailWithAttachment(email, subject, body, file, "reason-attachment.jpg");
     }
 
-    public void sendUserGmailSyncApprovedMail(String name, String email, int gmailSyncRequestCount) {
+    public void sendUserGmailSyncApprovedMail(String email, String name, int gmailSyncRequestCount) {
         String subject = "Gmail Sync Request Approved - MoneyFi";
         String body = "<html>"
                 + "<body>"
@@ -240,7 +240,7 @@ public class EmailTemplates {
         emailService.sendEmail(email, subject, body);
     }
 
-    public void sendUserGmailSyncCountIncreaseRequestRejection(String name, String email) {
+    public void sendUserGmailSyncCountIncreaseRequestRejection(String email, String name) {
         String subject = "Gmail Sync Request Rejected - MoneyFi";
         String body = "<html>"
                 + "<body>"
@@ -257,7 +257,7 @@ public class EmailTemplates {
         emailService.sendEmail(email, subject, body);
     }
 
-    public void sendContactUsDetailsEmailToAdmin(String email, String phoneNumber, String name, String description) {
+    public void sendContactUsDetailsEmailToAdmin(String email, String name, String phoneNumber, String description) {
         String subject = "MoneyFi - Help center/Contact";
         String body = "<html>"
                 + "<body>"
@@ -276,7 +276,7 @@ public class EmailTemplates {
         emailService.sendEmail(email, subject, body);
     }
 
-    public void sendNameChangeRequestApprovedMailToUser(String name, String email, String referenceNumber) {
+    public void sendNameChangeRequestApprovedMailToUser(String email, String name, String referenceNumber) {
         String subject = "Name Change Request Approved - MoneyFi";
         String body = "<html>"
                 + "<body>"
@@ -293,7 +293,7 @@ public class EmailTemplates {
         emailService.sendEmail(email, subject, body);
     }
 
-    public void sendNameChangeRequestRejectionMailToUser(String name, String email, String referenceNumber) {
+    public void sendNameChangeRequestRejectionMailToUser(String email, String name, String referenceNumber) {
         String subject = "Name Change Request Declined - MoneyFi";
         String body = "<html>"
                 + "<body>"
@@ -310,12 +310,12 @@ public class EmailTemplates {
         emailService.sendEmail(email, subject, body);
     }
 
-    public void sendAccountUnblockOrRetrievalSuccessfulMailToUser(String name, String email, String referenceNumber, String mode) {
-        String subject = "Your Account " + mode +" - MoneyFi";
+    public void sendAccountUnblockOrRetrievalSuccessfulMailToUser(String email, String name, String referenceNumber, String message) {
+        String subject = "Your Account " + message +" - MoneyFi";
         String body = "<html>"
                 + "<body>"
                 + "<p style='font-size: 16px;'>Hello " + name + ",</p>"
-                + "<p style='font-size: 16px;'>Your account " + mode + "</p>"
+                + "<p style='font-size: 16px;'>Your account " + message + "</p>"
                 + "<p style='font-size: 16px;'>Please login to your account and start reusing the services. Please use the reference number for tracking purpose: " + referenceNumber + "</p>"
                 + "<hr>"
                 + "<p style='font-size: 14px; color: #555;'>If you have any issues, feel free to contact us at " + ADMIN_EMAIL +"</p>"
@@ -327,7 +327,7 @@ public class EmailTemplates {
         emailService.sendEmail(email, subject, body);
     }
 
-    public void sendAccountUnblockOrRetrievalFailureMailToUser(String name, String email, String referenceNumber, String mode, String declineReason) {
+    public void sendAccountUnblockOrRetrievalFailureMailToUser(String email, String name, String referenceNumber, String mode, String declineReason) {
         String subject = "Account " + mode + " Declined - MoneyFi";
         String body = "<html>"
                 + "<body>"
@@ -344,7 +344,7 @@ public class EmailTemplates {
         emailService.sendEmail(email, subject, body);
     }
 
-    public void sendPasswordChangeAlertMail(String name, String email){
+    public void sendPasswordChangeAlertMail(String email, String name){
         String subject = "Password Change Alert!!";
         String body = "<html>"
                 + "<body>"
@@ -404,7 +404,7 @@ public class EmailTemplates {
         emailService.sendEmail(email, subject, body);
     }
 
-    public void sendOtpForForgotPassword(String userName, String email, String verificationCode){
+    public void sendOtpForForgotPassword(String email, String userName, String verificationCode){
         String subject = "MoneyFi's Password Reset Verification Code";
         String body = "<html>"
                 + "<body>"

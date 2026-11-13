@@ -29,14 +29,14 @@ public class UserAuthController {
 
     @Operation(summary = "Api for user registration/signup using email password mode")
     @PostMapping("/register")
-    public void registerUser(@Valid @RequestBody UserProfile userProfile) {
+    public void registerUser(@Valid @RequestBody UserProfile userProfile) throws JsonProcessingException {
         userAuthService.registerUser(userProfile, LoginMode.EMAIL_PASSWORD.name(), null);
     }
 
     @Operation(summary = "Api to send Otp for user verification during signup")
     @GetMapping("/send-otp/signup")
     public ResponseEntity<String> sendOtpForSignup(@NotBlank @Email @RequestParam(value = "email") String email,
-                                                   @NotBlank @RequestParam(value = "name") String name){
+                                                   @NotBlank @RequestParam(value = "name") String name) throws JsonProcessingException {
         return ResponseEntity.ok(userAuthService.sendOtpForSignup(email, name));
     }
 
@@ -82,7 +82,7 @@ public class UserAuthController {
     @Operation(summary = "Api to resend otp")
     @GetMapping("/otp-resend")
     public void resendOtp(@NotBlank @Email @RequestParam(value = "username") String username,
-                          @NotBlank @RequestParam(value = "type") String otpType) {
+                          @NotBlank @RequestParam(value = "type") String otpType) throws JsonProcessingException {
         userAuthService.resendOtp(username, otpType);
     }
 }
