@@ -18,7 +18,7 @@ spring:
         highlight_sql: true
   data:
     mongodb:
-      uri: mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}/
+      uri: ${MONGODB_URL}
       database: ${MONGODB_DATABASE}
     redis:
       url: ${REDIS_URL:redis://default@127.0.0.1:6379}
