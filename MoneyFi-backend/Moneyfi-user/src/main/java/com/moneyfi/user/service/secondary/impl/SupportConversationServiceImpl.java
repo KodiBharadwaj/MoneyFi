@@ -106,7 +106,7 @@ public class SupportConversationServiceImpl implements SupportConversationServic
                             .agentId(assignedConversation.getAgentId())
                             .customerName(profileRepository.findByUserId(assignedConversation.getUserId()).map(ProfileModel::getName).orElse("Unknown"))
                             .status(StringUtils.capitalize(assignedConversation.getStatus().name()))
-                            .lastMessage(messageDetails.map(SupportMessage::getContent).orElse("Not found"))
+                            .lastMessage(messageDetails.map(SupportMessage::getContent).orElse(null))
                             .lastMessageAt(messageDetails.map(SupportMessage::getSentAt).orElse(Instant.now()).toString())
                             .messageCount((int) supportMessageRepository.countByConversationId(assignedConversation.getId()))
                             .build();

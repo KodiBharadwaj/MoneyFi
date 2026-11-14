@@ -1,7 +1,10 @@
 package com.moneyfi.user.model.primary.auth;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -9,6 +12,9 @@ import java.time.LocalDateTime;
 @Data
 @Table(name = "user_auth_table")
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserAuthModel {
 
     @Id

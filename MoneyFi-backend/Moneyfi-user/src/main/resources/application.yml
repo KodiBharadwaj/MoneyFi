@@ -160,6 +160,9 @@ app:
     session-time: ${USER_SESSION_TIME_MIN:60}
   customer-care:
     conversations-count: ${CUSTOMER_CARE_AGENT_MAX_CONVERSATIONS_COUNT:20}
+  maintainer:
+    username: ${MAINTAINER_USERNAME}
+    password: ${MAINTAINER_PASSWORD}
 
 server:
   port: ${APPLICATION_PORT:8500}
