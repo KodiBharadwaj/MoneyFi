@@ -17,14 +17,14 @@ import static com.moneyfi.user.util.constants.StringConstants.USER_NOT_FOUND;
 @RequiredArgsConstructor
 public class PrimaryToSecondaryDbFlowImpl implements PrimaryToSecondaryDbFlow {
 
-    @Value("${user.customer-care.conversations-count}")
+    @Value("${app.customer-care.conversations-count}")
     private int maxConcurrentConversations;
 
     private final SupportAgentWorkloadRepository supportAgentWorkloadRepository;
 
     @Async
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class, transactionManager = "mongoTransactionManager")
     public void addCustomerCareAgentIntoSecondaryDb(Long userId) {
         SupportAgentWorkload supportAgentWorkload = SupportAgentWorkload.builder()
                 .agentId(userId)
@@ -39,7 +39,7 @@ public class PrimaryToSecondaryDbFlowImpl implements PrimaryToSecondaryDbFlow {
 
     @Async
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class, transactionManager = "mongoTransactionManager")
     public void updateCustomerCareAvailability(Long userId, boolean activeStatus) {
         SupportAgentWorkload existingAgent = supportAgentWorkloadRepository.findByAgentId(userId).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         SupportAgentWorkload updatedAgent = existingAgent.toBuilder()

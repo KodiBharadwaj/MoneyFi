@@ -331,8 +331,14 @@ export class UserConfigurationComponent implements AfterViewInit{
         });
       },
       error: err => {
-        alert('Failed to confirm block request.');
-        console.error(err);
+        try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            const message = errorObj?.message || errorObj?.error || 'Something went wrong';
+            this.toastr.error(message, 'Login Failed');
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+            this.toastr.error('Failed to block account. Please try again later.', 'Error');
+          }
       }
     });
   }
@@ -377,8 +383,14 @@ export class UserConfigurationComponent implements AfterViewInit{
         });
       },
       error: err => {
-        alert('Failed to confirm block request.');
-        console.error(err);
+        try {
+            const errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            const message = errorObj?.message || errorObj?.error || 'Something went wrong';
+            this.toastr.error(message, 'Login Failed');
+          } catch (e) {
+            console.error('Failed to parse error:', err.error);
+            this.toastr.error('Failed to delete account. Please try again later.', 'Error');
+          }
       }
     });
   }

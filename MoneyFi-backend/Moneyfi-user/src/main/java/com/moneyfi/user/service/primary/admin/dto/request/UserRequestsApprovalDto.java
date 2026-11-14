@@ -11,7 +11,7 @@ public class UserRequestsApprovalDto {
     @NotBlank
     private String referenceNumber;
     @NotBlank
-    private String requestStatus;
+    private String requestType;
     private String declineReason;
     private String approveStatus;
 

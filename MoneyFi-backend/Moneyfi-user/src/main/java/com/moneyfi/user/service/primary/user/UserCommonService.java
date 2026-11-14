@@ -34,7 +34,7 @@ public interface UserCommonService {
 
     List<String> getReasonsForDialogForUser(int reasonCode);
 
-    Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email);
+    Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email) throws JsonProcessingException;
 
     void accountReactivateRequestByUser(AccountRetrieveRequestDto requestDto);
 
@@ -42,7 +42,7 @@ public interface UserCommonService {
 
     UserRequestStatusDto trackUserRequestUsingReferenceNumber(String referenceNumber);
 
-    void sendContactUsDetailsToAdmin(HelpCenterContactUsRequestDto requestDto);
+    void sendContactUsDetailsToAdmin(HelpCenterContactUsRequestDto requestDto) throws JsonProcessingException;
 
     void saveUserNotificationsForParticularUsers(String recipients, Long scheduleId);
 

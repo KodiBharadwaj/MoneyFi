@@ -104,7 +104,7 @@ public class AdminController {
         );
     }
 
-    @Operation(summary = "Api to get the user feedback list to the admin")
+    @Operation(summary = "Api to get the user feedback list to the admin", description = "Admin can see feedbacks from users anonymously")
     @GetMapping("/user-feedback/get")
     public ResponseEntity<PaginatedResponseDto<UserFeedbackResponseDto>> getUserFeedbackListForAdmin(@ModelAttribute PaginatedRequestDto requestDto) {
         return ResponseEntity.ok(
@@ -128,7 +128,7 @@ public class AdminController {
     public void updateDefectStatus(Authentication authentication,
                                    @NotNull @PathVariable(value = "defectId") Long defectId,
                                    @RequestBody Map<String, String> body,
-                                   @NotBlank @RequestParam String reason) {
+                                   @NotBlank @RequestParam String reason) throws JsonProcessingException {
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         adminService.updateDefectStatus(defectId, body.get(STATUS), reason, adminUserId);
     }
@@ -138,7 +138,7 @@ public class AdminController {
     public boolean accountReactivationAndNameChangeRequest(Authentication authentication,
                                                            @RequestBody @Valid UserRequestsApprovalDto requestDto){
         Long adminUserId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
-        return adminService.accountReactivationAndNameChangeRequest(requestDto.getEmail(), requestDto.getReferenceNumber(), requestDto.getRequestStatus(), adminUserId, requestDto.getApproveStatus(), requestDto.getDeclineReason(), requestDto.getGmailSyncRequestCount());
+        return adminService.accountReactivationAndNameChangeRequest(requestDto.getEmail(), requestDto.getReferenceNumber(), requestDto.getRequestType(), adminUserId, requestDto.getApproveStatus(), requestDto.getDeclineReason(), requestDto.getGmailSyncRequestCount());
     }
 
     @Operation(summary = "Api to block/unblock the user's account by admin", description = "Admin can directly block or unblock the user account by providing documents")

@@ -23,7 +23,7 @@ CREATE TABLE reason_code_table (
 -- DML Scripts
 -- To insert pre defined values in user_role table
 INSERT INTO dbo.user_role_table (role_id, role_name)
-VALUES (1, 'ADMIN'), (2, 'USER'), (3,'DEVELOPER'), (4,'MAINTAINER');
+VALUES (1, 'ADMIN'), (2, 'USER'), (3,'DEVELOPER'), (4,'MAINTAINER'), (5, 'CUSTOMER_CARE');
 
 -- To add maintainer default login credentials
 INSERT INTO dbo.user_auth_table (username, password, is_deleted, is_blocked, role_id, otp_count, login_code_value, last_reset)
@@ -39,10 +39,10 @@ VALUES ('client', '$2a$12$H3ThrYDby00iblvWzKHt7OLBHkEiQvx4ZJCiWIK35FRlG5cTD8J8G'
 
 -- Fixed reason id and reason names
 INSERT INTO reason_code_table (id, name)
-VALUES (1, 'Block Account'), (2, 'Password Change'), (3, 'Name Change'), (4, 'Unblock Account'), (5, 'Delete Account'), (6, 'Account retrieval'), 
-(7, 'Phone Number Change'), (8, 'Ignore User Request'), (9, 'Gmail Sync Request Type'), (10, 'Forgot Username'), (11, 'Admin Creation'), 
-(12, 'Admin Update'), (13, 'Admin Block'), (14, 'Admin Unblock'), (15, 'Admin Delete'), (16, 'Admin Retrieval');
-
+VALUES (1, 'Block Account'), (2, 'Password Change'), (3, 'Name Change'), (4, 'Unblock Account'), (5, 'Delete Account'), (6, 'Account retrieval'),
+       (7, 'Phone Number Change'), (8, 'Ignore User Request'), (9, 'Gmail Sync Request Type'), (10, 'Forgot Username'), (11, 'Admin Creation'),
+       (12, 'Admin Update'), (13, 'Admin Block'), (14, 'Admin Unblock'), (15, 'Admin Delete'), (16, 'Admin Retrieval'), (17, 'Customer Care Creation'),
+       (18, 'Customer Care Update'), (19, 'Customer Care Block'), (20, 'Customer Care Unblock'), (21, 'Customer Care Delete'), (22, 'Customer Care Retrieval');
 
 
 CREATE TABLE BATCH_JOB_INSTANCE  (

@@ -1,5 +1,6 @@
 package com.moneyfi.user.controller.user;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.model.primary.general.ProfileModel;
 import com.moneyfi.user.service.primary.user.CommonService;
@@ -44,10 +45,10 @@ public class UserController {
         return "method entered";
     }
 
-    @Operation(summary = "Api to change password for logged in user")
+    @Operation(summary = "Api to change password for logged in user", description = "User can change his password by providing old password")
     @PostMapping("/change-password")
     public void changePassword(Authentication authentication,
-                               @Valid @RequestBody ChangePasswordDto changePasswordDto) {
+                               @Valid @RequestBody ChangePasswordDto changePasswordDto) throws JsonProcessingException {
         Long userId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         changePasswordDto.setUserId(userId);
         userAuthService.changePassword(changePasswordDto);
@@ -56,7 +57,7 @@ public class UserController {
     @Operation(summary = "Api to send otp to block/delete the account")
     @GetMapping("/otp-request/account-deactivate-actions")
     public ResponseEntity<String> sendOtpForBlockAndDeleteAccountByUserRequest(Authentication authentication,
-                                                                               @NotBlank @RequestParam String type){
+                                                                               @NotBlank @RequestParam String type) throws JsonProcessingException {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         return userAuthService.sendOtpToBlockAccount(username, type);
     }
@@ -94,7 +95,7 @@ public class UserController {
     @Operation(summary = "Api to save the user feedback details")
     @PostMapping("/submit-feedback")
     public void saveUserFeedback(Authentication authentication,
-                                 @RequestBody @Valid UserFeedbackRequestDto feedback){
+                                 @RequestBody @Valid UserFeedbackRequestDto feedback) throws JsonProcessingException {
         Long userId = userAuthService.getUserIdByUsername(((UserDetails) authentication.getPrincipal()).getUsername());
         profileService.saveFeedback(feedback, userId);
     }

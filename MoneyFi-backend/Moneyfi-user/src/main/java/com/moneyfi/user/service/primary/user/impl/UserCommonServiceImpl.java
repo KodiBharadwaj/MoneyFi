@@ -16,6 +16,7 @@ import com.moneyfi.user.repository.primary.general.*;
 import com.moneyfi.user.repository.primary.gmailsync.GmailSyncRepository;
 import com.moneyfi.user.service.primary.ReusableCodeClass;
 import com.moneyfi.user.service.primary.general.caching.UserCacheService;
+import com.moneyfi.user.service.primary.general.inter.EmailNotificationFailedService;
 import com.moneyfi.user.service.primary.general.storage.FileStorageService;
 import com.moneyfi.user.service.primary.user.CommonService;
 import com.moneyfi.user.service.primary.user.UserCommonService;
@@ -30,6 +31,7 @@ import com.moneyfi.user.validator.UserValidations;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -52,6 +54,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.moneyfi.constants.constants.CommonConstants.*;
+import static com.moneyfi.user.service.primary.NotificationDetailsSetter.*;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 import static com.moneyfi.user.util.constants.StringUrls.DAILY_QUOTE_EXTERNAL_API_URL;
 
@@ -59,7 +62,7 @@ import static com.moneyfi.user.util.constants.StringUrls.DAILY_QUOTE_EXTERNAL_AP
 @Service
 public class UserCommonServiceImpl implements UserCommonService {
 
-    @Value("${request.gmail-sync-count}")
+    @Value("${app.request.gmail-sync-count}")
     private Integer gmailSyncRequestConfigured;
 
     private final ProfileRepository profileRepository;
@@ -80,6 +83,8 @@ public class UserCommonServiceImpl implements UserCommonService {
     private final UserCacheService userCacheService;
     private final FileStorageService fileStorageService;
     private final ReusableCodeClass reusableCodeClass;
+    private final EmailNotificationFailedService emailNotificationFailedService;
+    private final BCryptPasswordEncoder encoder;
 
     public UserCommonServiceImpl(ProfileRepository profileRepository,
                                  ContactUsRepository contactUsRepository,
@@ -98,7 +103,9 @@ public class UserCommonServiceImpl implements UserCommonService {
                                  GmailSyncRepository gmailSyncRepository,
                                  UserCacheService userCacheService,
                                  FileStorageService fileStorageService,
-                                 ReusableCodeClass reusableCodeClass){
+                                 ReusableCodeClass reusableCodeClass,
+                                 EmailNotificationFailedService emailNotificationFailedService,
+                                 BCryptPasswordEncoder encoder){
         this.profileRepository = profileRepository;
         this.contactUsRepository = contactUsRepository;
         this.contactUsHistRepository = contactUsHistRepository;
@@ -117,6 +124,8 @@ public class UserCommonServiceImpl implements UserCommonService {
         this.userCacheService = userCacheService;
         this.fileStorageService = fileStorageService;
         this.reusableCodeClass = reusableCodeClass;
+        this.emailNotificationFailedService = emailNotificationFailedService;
+        this.encoder = encoder;
     }
 
     private static final String REFERENCE_NUMBER_SENT = "Reference already sent, Please submit your details";
@@ -125,7 +134,7 @@ public class UserCommonServiceImpl implements UserCommonService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email) {
+    public Map<Boolean, String> sendReferenceRequestNumberEmail(String requestStatus, String email) throws JsonProcessingException {
         UserAuthModel user = userRepository.getUserDetailsByUsername(email).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         Map<Boolean, String> response = new HashMap<>();
         List<ContactUs> contactUsDetails = contactUsRepository.findByEmail(email);
@@ -169,8 +178,8 @@ public class UserCommonServiceImpl implements UserCommonService {
                 savedRequest = contactUsRepository.save(saveRequest);
             }
             reusableCodeClass.sendNotificationToUser(
-                    NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), 
-                    userProfile.getName() + STRING_SEPARATOR + email + STRING_SEPARATOR + "account unblock" + STRING_SEPARATOR + referenceNumber
+                    NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(),
+                    objectMapper.writeValueAsString(setUserDetailsForNotificationQueueWithReferenceNumber(email, userProfile.getName(), referenceNumber, "account unblock", NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), emailNotificationFailedService))
             );
             contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), null, "Reference number requested to unblock the account", savedRequest.getStartTime(),
                     RequestReason.ACCOUNT_UNBLOCK_REQUEST.name(), RaiseRequestStatus.INITIATED.name(), user.getId()));
@@ -217,7 +226,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             }
             reusableCodeClass.sendNotificationToUser(
                     NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(),
-                    userProfile.getName() + STRING_SEPARATOR + email + STRING_SEPARATOR + "account retrieval" + STRING_SEPARATOR + referenceNumber
+                    objectMapper.writeValueAsString(setUserDetailsForNotificationQueueWithReferenceNumber(email, userProfile.getName(), referenceNumber, "account retrieval",  NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), emailNotificationFailedService))
             );
             contactUsHistRepository.save(new ContactUsHist(savedRequest.getId(), null, "Reference number requested to retrieve the account", savedRequest.getStartTime(),
                     RequestReason.ACCOUNT_NOT_DELETE_REQUEST.name(), RaiseRequestStatus.INITIATED.name(), user.getId()));
@@ -241,7 +250,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             String referenceNumber = generateAlphabetCode() + generateVerificationCode();
             reusableCodeClass.sendNotificationToUser(
                     NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(),
-                    userProfile.getName() + STRING_SEPARATOR + email + STRING_SEPARATOR + "change name" + STRING_SEPARATOR + referenceNumber
+                    objectMapper.writeValueAsString(setUserDetailsForNotificationQueueWithReferenceNumber(email, userProfile.getName(), referenceNumber,"change name", NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), emailNotificationFailedService))
             );
             ContactUs saveRequest = new ContactUs();
             saveRequest.setEmail(email);
@@ -366,7 +375,7 @@ public class UserCommonServiceImpl implements UserCommonService {
     }
 
     @Override
-    public void sendContactUsDetailsToAdmin(HelpCenterContactUsRequestDto requestDto) {
+    public void sendContactUsDetailsToAdmin(HelpCenterContactUsRequestDto requestDto) throws JsonProcessingException {
         if(requestDto.getEmail() == null || requestDto.getPhoneNumber() == null || requestDto.getName() == null || requestDto.getDescription() == null){
             throw new ScenarioNotPossibleException("Input fields cannot be null");
         }
@@ -383,7 +392,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         }
         reusableCodeClass.sendNotificationToUser(
                 NotificationQueueEnum.CONTACT_US_HELP_CENTER_MAIL.name(),
-                email + STRING_SEPARATOR + requestDto.getPhoneNumber() + STRING_SEPARATOR + requestDto.getName() + STRING_SEPARATOR + requestDto.getDescription()
+                objectMapper.writeValueAsString(setUserDetailsForNotificationQueueHelpDesk(email, requestDto.getName(), requestDto.getPhoneNumber(), requestDto.getDescription(), NotificationQueueEnum.CONTACT_US_HELP_CENTER_MAIL.name(), emailNotificationFailedService))
         );
     }
 
@@ -447,20 +456,21 @@ public class UserCommonServiceImpl implements UserCommonService {
         return commonServiceRepository.getUserNotifications(username, status).stream()
                 .peek(notification -> {
                     if (notification.getNotificationType().equalsIgnoreCase(SchedulingNotificationType.GMAIL_SYNC_COUNT_INCREASE.name())) {
-                        GmailSyncCountJsonDto gmailSyncCountJsonDto = null;
+                        GmailSyncCountJsonDto gmailSyncCountJsonDto;
                         try {
                             gmailSyncCountJsonDto = objectMapper.readValue(notification.getDescription(), GmailSyncCountJsonDto.class);
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
                         }
-                        String referenceNumber = contactUsRepository.findById(gmailSyncCountJsonDto.getContactUsId()).get().getReferenceNumber();
-                        if(referenceNumber.startsWith("COM_")) referenceNumber = referenceNumber.substring(4);
+                        String referenceNumber = contactUsRepository.findById(gmailSyncCountJsonDto.getContactUsId()).map(ContactUs::getReferenceNumber).orElse(null);
+                        if (referenceNumber == null) return;
+                        if (referenceNumber.startsWith("COM_" )) referenceNumber = referenceNumber.substring(4);
                         if (notification.getRole().equalsIgnoreCase(UserRoles.USER.name())) {
                             notification.setDescription("Requested count: " + gmailSyncCountJsonDto.getCount() + " | " + "Requested Reason: " + gmailSyncCountJsonDto.getReason() + " | " + "Reference Number: " + referenceNumber);
                         } else if (notification.getRole().equalsIgnoreCase(UserRoles.ADMIN.name())) {
-                            GmailSyncCountJsonDto parentGmailSyncCountJsonDto = null;
+                            GmailSyncCountJsonDto parentGmailSyncCountJsonDto;
                             try {
-                                parentGmailSyncCountJsonDto = objectMapper.readValue(scheduleNotificationRepository.findById(notification.getParentKey()).get().getDescription(), GmailSyncCountJsonDto.class);
+                                parentGmailSyncCountJsonDto = objectMapper.readValue(scheduleNotificationRepository.findById(notification.getParentKey()).map(ScheduleNotification::getDescription).orElse(null), GmailSyncCountJsonDto.class);
                             } catch (JsonProcessingException e) {
                                 throw new RuntimeException(e);
                             }
@@ -525,7 +535,7 @@ public class UserCommonServiceImpl implements UserCommonService {
         Optional<OtpTempModel> otpTempModel = otpTempRepository.getOtpTempDetails(username, deactivationType, LocalDateTime.now());
         if(otpTempModel.isPresent()){
             OtpTempModel response = otpTempModel.get();
-            UserValidations.otpCheckDuringAccountDeactivationValidations(request, response, user);
+            UserValidations.otpCheckDuringAccountDeactivationValidations(request, response, user, encoder);
 
             ProfileModel userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException(USER_PROFILE_NOT_FOUND));
             String referenceNumber = generateAlphabetCode() + generateVerificationCode();
@@ -591,7 +601,7 @@ public class UserCommonServiceImpl implements UserCommonService {
             UserAuthModel user = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
             UserAuthHist userAuthHist = new UserAuthHist();
             userAuthHist.setUserId(user.getId());
-            userAuthHist.setUpdatedTime(LocalDateTime.now());
+            userAuthHist.setUpdatedTime(LocalDateTime.now(ZoneId.systemDefault()));
             userAuthHist.setReasonTypeId(reasonCodeIdAssociation.get(ReasonEnum.FORGOT_USERNAME));
             userAuthHist.setComment("Forgot my username, fetched with my known personal values");
             userAuthHist.setUpdatedBy(user.getId());
@@ -616,7 +626,6 @@ public class UserCommonServiceImpl implements UserCommonService {
                 return quoteResponseDto;
             }
         } catch (Exception e){
-            e.printStackTrace();
             throw new ScenarioNotPossibleException("Failed to parse the json response -> " + e);
         }
         throw new ResourceNotFoundException("No quote response found from external api");
@@ -663,10 +672,10 @@ public class UserCommonServiceImpl implements UserCommonService {
         scheduleNotification.setNotificationType(SchedulingNotificationType.GMAIL_SYNC_COUNT_INCREASE.name());
         saveUserNotificationsForParticularUsers(username, scheduleNotificationRepository.save(scheduleNotification).getId());
 
-        fileStorageService.uploadPicture(image, savedRequest.getId(), username, GMAIL_SYNC_COUNT_INCREASE_REQUEST);
+        if (image != null) fileStorageService.uploadPicture(image, savedRequest.getId(), username, GMAIL_SYNC_COUNT_INCREASE_REQUEST);
         reusableCodeClass.sendNotificationToUser(
                 NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(),
-                userProfile.getName() + STRING_SEPARATOR + username + STRING_SEPARATOR + "request Gmail Sync Count Increase" + STRING_SEPARATOR + referenceNumber
+                objectMapper.writeValueAsString(setUserDetailsForNotificationQueueWithReferenceNumber(username, userProfile.getName(), referenceNumber,"request Gmail Sync Count Increase", NotificationQueueEnum.SEND_REFERENCE_NUMBER_TO_USER_MAIL.name(), emailNotificationFailedService))
         );
         String base64Image = null;
         String fileName = null;

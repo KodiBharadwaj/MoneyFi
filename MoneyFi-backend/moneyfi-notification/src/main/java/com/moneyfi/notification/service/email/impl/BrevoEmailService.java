@@ -1,5 +1,6 @@
 package com.moneyfi.notification.service.email.impl;
 
+import com.moneyfi.notification.exceptions.CustomInternalServerErrorException;
 import com.moneyfi.notification.service.email.EmailService;
 import com.moneyfi.notification.util.constants.StringConstants;
 import lombok.extern.slf4j.Slf4j;
@@ -59,8 +60,8 @@ public class BrevoEmailService implements EmailService {
 
             log.info(StringConstants.EMAIL_SENT_SUCCESS_MESSAGE + " with Brevo mail service");
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("Brevo email sending failed", e);
+            throw new CustomInternalServerErrorException(e.getMessage());
         }
     }
 
@@ -92,12 +93,10 @@ public class BrevoEmailService implements EmailService {
                 os.write(payload.getBytes());
                 os.flush();
             }
-
-            int responseCode = conn.getResponseCode();
             log.info(StringConstants.EMAIL_SENT_SUCCESS_MESSAGE + " with Brevo mail service");
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("Brevo attachment email failed", e);
+            throw new CustomInternalServerErrorException(e.getMessage());
         }
     }
 }

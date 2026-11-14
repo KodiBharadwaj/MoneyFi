@@ -140,11 +140,30 @@ export class GmailSyncDialogComponent implements OnInit {
         error: (err) => {
           this.submitting = false;
 
-          const errors = typeof err.error === 'string'
-            ? JSON.parse(err.error)
-            : err.error;
+          let errors: any;
 
-          this.applyValidationErrors(errors);
+          try {
+            errors = typeof err.error === 'string'
+              ? JSON.parse(err.error)
+              : err.error;
+          } catch {
+            errors = err.error;
+          }
+
+          // Backend validation errors (array format)
+          if (Array.isArray(errors)) {
+            this.applyValidationErrors(errors);
+            return;
+          }
+
+          // Other backend errors (object format)
+          if (errors?.message) {
+            this.toastr.error(errors.message);
+            return;
+          }
+
+          // Fallback
+          this.toastr.error('Something went wrong. Please try again.');
         }
       });
   }

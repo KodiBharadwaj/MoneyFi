@@ -1,5 +1,6 @@
 package com.moneyfi.user.controller.open;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.moneyfi.user.service.primary.user.UserCommonService;
 import com.moneyfi.user.service.primary.user.dto.request.*;
 import com.moneyfi.user.service.primary.user.dto.response.UserRequestStatusDto;
@@ -34,7 +35,7 @@ public class OpenController {
     @Operation(summary = "Api to send reference number to user for account retrieval/name change")
     @GetMapping("/{requestStatus}/{email}/reference-number-request")
     public Map<Boolean, String> requestReferenceNumber(@NotBlank @PathVariable(value = "requestStatus") String requestStatus,
-                                                       @NotBlank @Email @PathVariable(value = "email") String email){
+                                                       @NotBlank @Email @PathVariable(value = "email") String email) throws JsonProcessingException {
         return userCommonService.sendReferenceRequestNumberEmail(requestStatus, email);
     }
 
@@ -71,7 +72,7 @@ public class OpenController {
 
     @Operation(summary = "Api to send the contact us/help center details to admin via mail")
     @PostMapping("/contact-us")
-    public void sendContactUsDetailsToAdmin(@Valid @RequestBody HelpCenterContactUsRequestDto requestDto) {
+    public void sendContactUsDetailsToAdmin(@Valid @RequestBody HelpCenterContactUsRequestDto requestDto) throws JsonProcessingException {
         userCommonService.sendContactUsDetailsToAdmin(requestDto);
     }
 

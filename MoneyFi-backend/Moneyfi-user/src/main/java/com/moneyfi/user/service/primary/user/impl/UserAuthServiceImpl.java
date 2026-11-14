@@ -28,13 +28,11 @@ import com.moneyfi.user.service.primary.jwtservice.JwtService;
 import com.moneyfi.user.service.primary.jwtservice.dto.JwtToken;
 import com.moneyfi.user.service.primary.user.ProfileService;
 import com.moneyfi.user.util.constants.StringConstants;
-import com.moneyfi.user.util.enums.QueueFailureStage;
 import com.moneyfi.user.util.enums.ResendOtpType;
 import com.moneyfi.user.validator.UserValidations;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -42,6 +40,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -54,6 +53,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static com.moneyfi.constants.constants.CommonConstants.*;
+import static com.moneyfi.user.service.primary.NotificationDetailsSetter.setUserDetailsForNotificationQueue;
 import static com.moneyfi.user.util.constants.StringConstants.*;
 
 @Slf4j
@@ -76,7 +76,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
 
-    @Value("${user.session-time}")
+    @Value("${app.user.session-time}")
     private Integer configuredUserSessionTime;
 
     @Value("${app.otp.expiration-time}")
@@ -100,6 +100,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final ReusableCodeClass reusableCodeClass;
     private final PrimaryToSecondaryDbFlow primaryToSecondaryDbFlow;
     private final EmailNotificationFailedService emailNotificationFailedService;
+    private final BCryptPasswordEncoder encoder;
 
     private static final String GOOGLE_AUTH_CONSTANT_PASSWORD = null;
     private static final String GITHUB_AUTH_CONSTANT_PASSWORD = null;
@@ -109,13 +110,13 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public UserAuthModel registerUser(UserProfile userProfile, String loginMode, String address) {
+    public UserAuthModel registerUser(UserProfile userProfile, String loginMode, String address) throws JsonProcessingException {
         UserValidations.checkForUserAlreadyExistenceValidation(userRepository.getUserDetailsByUsername(userProfile.getUsername().trim()).orElse(null));
         UserAuthModel userAuthModel = new UserAuthModel();
         setUserAuthDetails(userAuthModel, userProfile.getUsername());
 
         if (loginMode.equalsIgnoreCase(LoginMode.EMAIL_PASSWORD.name())) {
-            userAuthModel.setPassword(StringConstants.encoder.encode(userProfile.getPassword()));
+            userAuthModel.setPassword(encoder.encode(userProfile.getPassword()));
             userAuthModel.setLoginCodeValue(LoginMode.EMAIL_PASSWORD.getLoginProcessCode());
         } else if (loginMode.equalsIgnoreCase(LoginMode.GOOGLE_OAUTH.name())) {
             userAuthModel.setPassword(null);
@@ -126,14 +127,11 @@ public class UserAuthServiceImpl implements UserAuthService {
         }
         userAuthModel.setRoleId(StringConstants.functionToGetRoleIdBasedOnRoleName(userProfile.getRole()));
         UserAuthModel user = userRepository.save(userAuthModel);
-
-        if (!userRoleAssociation.get(user.getRoleId()).equalsIgnoreCase(UserRoles.ADMIN.name())) {
-            saveUserProfileDetails(user.getId(), userProfile, address);
-            reusableCodeClass.sendNotificationToUser(
-                    NotificationQueueEnum.USER_ACCOUNT_CREATION_MAIL.name(),
-                    user.getUsername() + STRING_SEPARATOR + userProfile.getName()
-            );
-        }
+        saveUserProfileDetails(user.getId(), userProfile, address);
+        reusableCodeClass.sendNotificationToUser(
+                NotificationQueueEnum.USER_ACCOUNT_CREATION_MAIL.name(),
+                objectMapper.writeValueAsString(setUserDetailsForNotificationQueue(user.getUsername(), userProfile.getName(), NotificationQueueEnum.USER_ACCOUNT_CREATION_MAIL.name(), emailNotificationFailedService))
+        );
         return user;
     }
 
@@ -194,6 +192,10 @@ public class UserAuthServiceImpl implements UserAuthService {
                 userRoleToken.put(ERROR, "Agent details not found. Please contact maintainer");
             if (requestDto.getRole().equalsIgnoreCase(UserRoles.ADMIN.name()))
                 userRoleToken.put(ERROR, "Admin details not found. Please contact maintainer");
+            if (requestDto.getRole().equalsIgnoreCase(UserRoles.USER.name()))
+                userRoleToken.put(ERROR, USER_NOT_FOUND_SIGNUP);
+            if (requestDto.getRole().equalsIgnoreCase(UserRoles.MAINTAINER.name()))
+                userRoleToken.put(ERROR, "Maintainer not found. Please contact product owner");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userRoleToken);
         } catch (Exception ex) {
             log.error("Exception occurred: {}", ex.getMessage());
@@ -364,23 +366,9 @@ public class UserAuthServiceImpl implements UserAuthService {
 
         reusableCodeClass.sendNotificationToUser(
                 NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name(),
-                objectMapper.writeValueAsString(setUserDetailsForNotificationQueue(email, user, verificationCode))
+                objectMapper.writeValueAsString(setUserDetailsForNotificationQueue(email, profileService.getUserDetailsByUserId(user.getId()), verificationCode, NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name(), emailNotificationFailedService))
         );
         return VERIFICATION_CODE_SENT_MESSAGE;
-    }
-
-    private Map<String, Object> setUserDetailsForNotificationQueue(String email, UserAuthModel user, String verificationCode) throws JsonProcessingException {
-        try {
-            return Map.of(
-                    STRING_USER_NAME, profileService.getUserDetailsByUserId(user.getId()),
-                    STRING_USERNAME, email,
-                    STRING_VERIFICATION_CODE, verificationCode,
-                    STRING_MDC_REQUEST_ID, MDC.get(MDC_REQUEST_ID));
-        } catch (Exception e) {
-            log.error("Error occurred: {}", e.getMessage());
-            emailNotificationFailedService.saveFailedEmailNotificationDetails(user.getId(), email, e.getMessage(), QueueFailureStage.SOURCE_SERVICE.name(), NotificationQueueEnum.OTP_FOR_FORGOT_PASSWORD.name());
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -417,7 +405,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     }
 
     @Override
-    public void resendOtp(String username, String type) {
+    public void resendOtp(String username, String type) throws JsonProcessingException {
         if (StringUtils.isBlank(username)) throw new ScenarioNotPossibleException("Username cannot be empty");
         if (ResendOtpType.BLOCK.name().equalsIgnoreCase(type) || ResendOtpType.DELETE.name().equalsIgnoreCase(type)) {
             resendOtpForUserBlockOrDeleteOperation(username, type);
@@ -461,23 +449,23 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void changePassword(ChangePasswordDto changePasswordDto) {
+    public void changePassword(ChangePasswordDto changePasswordDto) throws JsonProcessingException {
         UserAuthModel user = userRepository.findById(changePasswordDto.getUserId()).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
-        UserValidations.changePasswordValidations(changePasswordDto, user);
+        UserValidations.changePasswordValidations(changePasswordDto, user, encoder);
         user.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
         user.setOtpCount(user.getOtpCount() + 1);
-        user.setVerificationCodeExpiration(LocalDateTime.now());
+        user.setVerificationCodeExpiration(LocalDateTime.now(ZoneId.systemDefault()));
         userRepository.save(user);
-        userAuthHistRepository.save(new UserAuthHist(changePasswordDto.getUserId(), LocalDateTime.now(), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE), changePasswordDto.getDescription(), changePasswordDto.getUserId()));
+        userAuthHistRepository.save(new UserAuthHist(changePasswordDto.getUserId(), LocalDateTime.now(ZoneId.systemDefault()), reasonCodeIdAssociation.get(ReasonEnum.PASSWORD_CHANGE), changePasswordDto.getDescription(), changePasswordDto.getUserId()));
         reusableCodeClass.sendNotificationToUser(
                 NotificationQueueEnum.USER_PASSWORD_CHANGE_ALERT_MAIL.name(),
-                profileService.getUserDetailsByUserId(user.getId()) + STRING_SEPARATOR + user.getUsername()
+                objectMapper.writeValueAsString(setUserDetailsForNotificationQueue(user.getUsername(), profileService.getUserDetailsByUserId(user.getId()), NotificationQueueEnum.USER_PASSWORD_CHANGE_ALERT_MAIL.name(), emailNotificationFailedService))
         );
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResponseEntity<String> sendOtpToBlockAccount(String username, String type) {
+    public ResponseEntity<String> sendOtpToBlockAccount(String username, String type) throws JsonProcessingException {
         UserAuthModel userData = userRepository.getUserDetailsByUsername(username).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         UserValidations.userAlreadyDeactivatedCheckValidation(userData);
 
@@ -493,19 +481,19 @@ public class UserAuthServiceImpl implements UserAuthService {
                 });
         reusableCodeClass.sendNotificationToUser(
                 NotificationQueueEnum.OTP_FOR_USER_BLOCK.name(),
-                username + STRING_SEPARATOR + profileService.getUserDetailsByUserId(userData.getId()) + STRING_SEPARATOR + verificationCode + STRING_SEPARATOR + type
+                objectMapper.writeValueAsString(setUserDetailsForNotificationQueue(username, profileService.getUserDetailsByUserId(userData.getId()), verificationCode, type, NotificationQueueEnum.OTP_FOR_USER_BLOCK.name(), emailNotificationFailedService))
         );
         return ResponseEntity.ok(EMAIL_SENT_SUCCESS_MESSAGE);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String sendOtpForSignup(String email, String name) {
+    public String sendOtpForSignup(String email, String name) throws JsonProcessingException {
         UserValidations.checkForUserAlreadyExistenceValidation(userRepository.getUserDetailsByUsername(email).orElse(null));
         String verificationCode = generateVerificationCode();
         reusableCodeClass.sendNotificationToUser(
                 NotificationQueueEnum.OTP_MAIL_FOR_USER_SIGNUP.name(),
-                email + STRING_SEPARATOR + name + STRING_SEPARATOR + verificationCode
+                objectMapper.writeValueAsString(setUserDetailsForNotificationQueue(email, name, verificationCode, NotificationQueueEnum.OTP_MAIL_FOR_USER_SIGNUP.name(), emailNotificationFailedService))
         );
 
         Optional<OtpTempModel> tempModel = otpTempRepository.findByEmail(email).stream()
@@ -587,16 +575,16 @@ public class UserAuthServiceImpl implements UserAuthService {
         gmailSyncRepository.save(gmailAuth);
     }
 
-    private void resendOtpForUserBlockOrDeleteOperation(String username, String type) {
+    private void resendOtpForUserBlockOrDeleteOperation(String username, String type) throws JsonProcessingException {
         String otpType = functionToGetOtpType(type);
         String verificationCode = otpTempRepository.findByEmail(username).stream()
-                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(otpType) && tempOtp.getExpirationTime().isAfter(LocalDateTime.now()))
+                .filter(tempOtp -> tempOtp.getOtpType().equalsIgnoreCase(otpType) && tempOtp.getExpirationTime().isAfter(LocalDateTime.now(ZoneId.systemDefault())))
                 .map(OtpTempModel::getOtp)
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException(OTP_RESEND_FAILURE_MESSAGE));
         reusableCodeClass.sendNotificationToUser(
                 NotificationQueueEnum.OTP_FOR_USER_BLOCK.name(),
-                username + STRING_SEPARATOR + profileService.getUserDetailsByUserId(getUserIdByUsername(username)) + STRING_SEPARATOR + verificationCode + STRING_SEPARATOR + type
+                objectMapper.writeValueAsString(setUserDetailsForNotificationQueue(username, profileService.getUserDetailsByUserId(getUserIdByUsername(username)), verificationCode, type, NotificationQueueEnum.OTP_FOR_USER_BLOCK.name(), emailNotificationFailedService))
         );
     }
 

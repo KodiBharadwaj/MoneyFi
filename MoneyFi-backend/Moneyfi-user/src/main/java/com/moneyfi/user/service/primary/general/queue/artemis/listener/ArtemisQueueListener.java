@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "app.communication.queue-provider", havingValue = "artemis", matchIfMissing = true)
 public class ArtemisQueueListener {
 
-    private final EmailNotificationFailedService emailNotificationFailedService;
     private final ObjectMapper objectMapper;
+    private final EmailNotificationFailedService emailNotificationFailedService;
 
     @JmsListener(destination = "${spring.artemis.feedback-queue}")
     public void receiveMessage(String message) throws JsonProcessingException {
