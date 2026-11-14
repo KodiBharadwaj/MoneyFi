@@ -96,6 +96,12 @@ export class AdminRequestsComponent implements OnInit {
     else if(status === 'Unblock') this.requestType = 'ACCOUNT_UNBLOCK_REQUEST';
     else if(status === 'Retrieve') this.requestType = 'ACCOUNT_NOT_DELETE_REQUEST';
     else if(status === 'Other' && request.requestType === 'Gmail Sync Count Increase Request') this.requestType = 'GMAIL_SYNC_REQUEST_TYPE';
+    else if(status === 'All'){
+      if(request.requestType === 'Account Unblock') this.requestType = 'ACCOUNT_UNBLOCK_REQUEST';
+      else if(request.requestType === 'Name Change') this.requestType = 'NAME_CHANGE_REQUEST';
+      else if(request.requestType === 'Account Retrieval') this.requestType = 'ACCOUNT_NOT_DELETE_REQUEST';
+      else if(request.requestType === 'Gmail Sync Count Increase Request') this.requestType = 'GMAIL_SYNC_REQUEST_TYPE';
+    }
 
     const dialogRef = this.dialog.open(AdminRequestDeclineDialogComponent, {
       width: '400px',

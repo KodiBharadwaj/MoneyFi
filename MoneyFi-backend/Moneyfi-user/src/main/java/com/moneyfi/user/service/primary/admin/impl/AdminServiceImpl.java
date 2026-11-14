@@ -78,7 +78,7 @@ public class AdminServiceImpl implements AdminService {
     @Value("${excel.export.output-dir:./exports}")
     private String outputDirectory;
 
-    @Value("${request.gmail-sync-count}")
+    @Value("${app.request.gmail-sync-count}")
     private Integer gmailSyncRequestConfigured;
 
     @Autowired
@@ -190,7 +190,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<UserRequestsGridDto> getUserRequestsGridForAdmin(String status, PaginatedRequestDto requestDto) {
-        String requestReason = null;
+        String requestReason;
 
         switch (status) {
             case "Rename" -> requestReason = RequestReason.NAME_CHANGE_REQUEST.name();
@@ -494,7 +494,7 @@ public class AdminServiceImpl implements AdminService {
                 if (!user.isBlocked())
                     throw new ScenarioNotPossibleException("User account is already unblocked");
                 if (requestId == null)
-                    throw new ScenarioNotPossibleException("Invalid request");
+                    throw new ScenarioNotPossibleException("You are not allowed to unblock. Please ask user to raise unblock request");
 
                 ContactUs blockRequestDetails = contactUsRepository.findById(requestId).orElseThrow(() -> new ResourceNotFoundException(REQUEST_NOT_FOUND));
                 ContactUsHist unblockRequest = contactUsHistRepository.findByContactUsIdList(blockRequestDetails.getId()).stream()
@@ -695,10 +695,10 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    private void functionCallToChangeDetails(UserAuthModel user, ProfileModel userProfile, String email, ContactUs contactUs, String requestStatus, Long adminUserId, int gmailSyncRequestCount) throws JsonProcessingException {
+    private void functionCallToChangeDetails(UserAuthModel user, ProfileModel userProfile, String email, ContactUs contactUs, String requestType, Long adminUserId, int gmailSyncRequestCount) throws JsonProcessingException {
         ContactUsHist requestUserHist = new ContactUsHist();
 
-        switch (RequestReason.valueOf(requestStatus)) {
+        switch (RequestReason.valueOf(requestType)) {
             case ACCOUNT_UNBLOCK_REQUEST -> {
                 user.setBlocked(Boolean.FALSE);
                 userRepository.save(user);

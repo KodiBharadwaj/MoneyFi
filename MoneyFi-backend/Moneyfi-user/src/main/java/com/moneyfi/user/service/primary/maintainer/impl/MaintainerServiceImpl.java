@@ -20,6 +20,7 @@ import com.moneyfi.user.util.enums.AccDeactivationType;
 import com.moneyfi.user.validator.UserValidations;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +33,6 @@ import static com.moneyfi.constants.constants.CommonConstants.reasonCodeIdAssoci
 import static com.moneyfi.constants.constants.CommonConstants.userRoleAssociation;
 import static com.moneyfi.constants.enums.ReasonEnum.*;
 import static com.moneyfi.user.util.constants.StringConstants.USER_NOT_FOUND;
-import static com.moneyfi.user.util.constants.StringConstants.encoder;
 
 @Slf4j
 @Service
@@ -43,6 +43,7 @@ public class MaintainerServiceImpl implements MaintainerService {
     private final UserAuthHistRepository userAuthHistRepository;
     private final SessionTokenRepository sessionTokenRepository;
     private final PrimaryToSecondaryDbFlow primaryToSecondaryDbFlow;
+    private final BCryptPasswordEncoder encoder;
 
     public static final String RE_REGISTERING_AS_AGENT_IN_SECONDARY_DB = "Re Registering as agent in secondary db";
     public static final String AGENT_IS_ALREADY_REGISTERED = "Agent is already registered";
@@ -54,7 +55,7 @@ public class MaintainerServiceImpl implements MaintainerService {
         UserValidations.validateExistingUserCheck(requestDto, userRepository);
         UserAuthModel user = new UserAuthModel();
         user.setUsername(requestDto.getUsername().trim());
-        user.setPassword(StringConstants.encoder.encode(requestDto.getPassword().trim()));
+        user.setPassword(encoder.encode(requestDto.getPassword().trim()));
         user.setOtpCount(0);
         user.setDeleted(Boolean.FALSE);
         user.setBlocked(Boolean.FALSE);

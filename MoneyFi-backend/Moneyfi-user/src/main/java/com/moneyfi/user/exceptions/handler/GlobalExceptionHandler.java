@@ -15,6 +15,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static com.moneyfi.user.util.constants.StringConstants.SOMETHING_WENT_WRONG;
 
@@ -26,7 +27,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler({ResourceNotFoundException.class, NoResultException.class})
+    @ExceptionHandler(IncorrectPasswordException.class)
+    public ResponseEntity<ErrorResponse> handleIncorrectPassword(IncorrectPasswordException exception) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), exception.getMessage()));
+    }
+
+    @ExceptionHandler({ResourceNotFoundException.class, NoResultException.class, NoSuchElementException.class})
     public ResponseEntity<ErrorResponse> handleResourceNotFoundExceptionFunction(Exception exception) {
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage()), HttpStatus.NOT_FOUND);
     }

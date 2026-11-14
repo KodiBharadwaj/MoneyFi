@@ -17,7 +17,7 @@ import { ToastrService } from 'ngx-toastr';
 interface AdminActionDto {
   email: string;
   referenceNumber: string;
-  requestStatus: string;
+  requestType: string;
   declineReason: string;
   approveStatus: string;
   gmailSyncRequestCount?: number | null; // optional field
@@ -63,7 +63,7 @@ export class AdminRequestDialogComponent {
       const dto: AdminActionDto = {
       email: this.data.username,
       referenceNumber: this.enteredRefNumber,
-      requestStatus: this.data.requestType,
+      requestType: this.data.requestType,
       declineReason: '',
       approveStatus: 'Approve'
     };

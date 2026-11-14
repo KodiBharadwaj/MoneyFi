@@ -79,6 +79,14 @@ public class CommonConstants {
 
     public static final String STRING_USERNAME = "username";
     public static final String STRING_VERIFICATION_CODE = "verificationCode";
+    public static final String STRING_TYPE = "type";
+    public static final String STRING_MESSAGE = "message";
+    public static final String STRING_REASON = "reason";
+    public static final String STRING_GMAIL_SYNC_REQUEST_COUNT = "gmailSyncRequestCount";
+    public static final String STRING_NUMBER_OF_YEARS = "numberOfYears";
+    public static final String STRING_PHONE_NUMBER = "phoneNumber";
+    public static final String STRING_RATING = "rating";
+    public static final String STRING_DESCRIPTION = "description";
     public static final String STRING_REFERENCE_NUMBER = "referenceNumber";
     public static final String STRING_MDC_REQUEST_ID = "mdcRequestId";
     public static final String STRING_USER_NAME = "userName";

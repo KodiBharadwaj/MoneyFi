@@ -40,6 +40,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -75,7 +76,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
 
-    @Value("${user.session-time}")
+    @Value("${app.user.session-time}")
     private Integer configuredUserSessionTime;
 
     @Value("${app.otp.expiration-time}")
@@ -99,6 +100,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final ReusableCodeClass reusableCodeClass;
     private final PrimaryToSecondaryDbFlow primaryToSecondaryDbFlow;
     private final EmailNotificationFailedService emailNotificationFailedService;
+    private final BCryptPasswordEncoder encoder;
 
     private static final String GOOGLE_AUTH_CONSTANT_PASSWORD = null;
     private static final String GITHUB_AUTH_CONSTANT_PASSWORD = null;
@@ -114,7 +116,7 @@ public class UserAuthServiceImpl implements UserAuthService {
         setUserAuthDetails(userAuthModel, userProfile.getUsername());
 
         if (loginMode.equalsIgnoreCase(LoginMode.EMAIL_PASSWORD.name())) {
-            userAuthModel.setPassword(StringConstants.encoder.encode(userProfile.getPassword()));
+            userAuthModel.setPassword(encoder.encode(userProfile.getPassword()));
             userAuthModel.setLoginCodeValue(LoginMode.EMAIL_PASSWORD.getLoginProcessCode());
         } else if (loginMode.equalsIgnoreCase(LoginMode.GOOGLE_OAUTH.name())) {
             userAuthModel.setPassword(null);
@@ -190,6 +192,10 @@ public class UserAuthServiceImpl implements UserAuthService {
                 userRoleToken.put(ERROR, "Agent details not found. Please contact maintainer");
             if (requestDto.getRole().equalsIgnoreCase(UserRoles.ADMIN.name()))
                 userRoleToken.put(ERROR, "Admin details not found. Please contact maintainer");
+            if (requestDto.getRole().equalsIgnoreCase(UserRoles.USER.name()))
+                userRoleToken.put(ERROR, USER_NOT_FOUND_SIGNUP);
+            if (requestDto.getRole().equalsIgnoreCase(UserRoles.MAINTAINER.name()))
+                userRoleToken.put(ERROR, "Maintainer not found. Please contact product owner");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userRoleToken);
         } catch (Exception ex) {
             log.error("Exception occurred: {}", ex.getMessage());
@@ -445,7 +451,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     @Transactional(rollbackFor = Exception.class)
     public void changePassword(ChangePasswordDto changePasswordDto) throws JsonProcessingException {
         UserAuthModel user = userRepository.findById(changePasswordDto.getUserId()).orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
-        UserValidations.changePasswordValidations(changePasswordDto, user);
+        UserValidations.changePasswordValidations(changePasswordDto, user, encoder);
         user.setPassword(encoder.encode(changePasswordDto.getNewPassword()));
         user.setOtpCount(user.getOtpCount() + 1);
         user.setVerificationCodeExpiration(LocalDateTime.now(ZoneId.systemDefault()));

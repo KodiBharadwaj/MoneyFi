@@ -45,7 +45,7 @@ public class UserController {
         return "method entered";
     }
 
-    @Operation(summary = "Api to change password for logged in user")
+    @Operation(summary = "Api to change password for logged in user", description = "User can change his password by providing old password")
     @PostMapping("/change-password")
     public void changePassword(Authentication authentication,
                                @Valid @RequestBody ChangePasswordDto changePasswordDto) throws JsonProcessingException {

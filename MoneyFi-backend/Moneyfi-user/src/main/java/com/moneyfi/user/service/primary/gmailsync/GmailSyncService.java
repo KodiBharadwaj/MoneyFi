@@ -47,9 +47,11 @@ public class GmailSyncService {
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
+
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String googleClientSecret;
-    @Value("${request.gmail-sync-count}")
+
+    @Value("${app.request.gmail-sync-count}")
     private Integer gmailSyncRequestConfigured;
 
     private final GmailSyncRepository gmailSyncRepository;

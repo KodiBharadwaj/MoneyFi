@@ -53,7 +53,7 @@ declineReasonInput : string = '';
       const dto = {
         email : this.data.username,
         referenceNumber : this.enteredRefNumber,
-        requestStatus : this.data.requestType,
+        requestType : this.data.requestType,
         declineReason : this.declineReasonInput,
         approveStatus : 'Decline'
       }

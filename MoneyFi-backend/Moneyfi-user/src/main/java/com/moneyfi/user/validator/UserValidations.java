@@ -1,5 +1,6 @@
 package com.moneyfi.user.validator;
 
+import com.moneyfi.user.exceptions.IncorrectPasswordException;
 import com.moneyfi.user.exceptions.ResourceNotFoundException;
 import com.moneyfi.user.exceptions.ScenarioNotPossibleException;
 import com.moneyfi.user.model.primary.auth.OtpTempModel;
@@ -14,7 +15,7 @@ import com.moneyfi.user.util.constants.StringConstants;
 import com.moneyfi.user.util.enums.AccDeactivationType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDateTime;
 
@@ -54,7 +55,7 @@ public class UserValidations {
         }
     }
 
-    public static void otpCheckDuringAccountDeactivationValidations(AccountBlockOrDeleteRequestDto request, OtpTempModel response, UserAuthModel user) {
+    public static void otpCheckDuringAccountDeactivationValidations(AccountBlockOrDeleteRequestDto request, OtpTempModel response, UserAuthModel user, BCryptPasswordEncoder encoder) {
         if (!response.getOtp().equals(request.getOtp())) {
             throw new ScenarioNotPossibleException(PLEASE_ENTER_CORRECT_OTP);
         }
@@ -63,7 +64,7 @@ public class UserValidations {
         }
         if (request.getDeactivationType().equalsIgnoreCase(AccDeactivationType.DELETE.name())) {
             String userPassword = request.getPassword();
-            if (userPassword == null || userPassword.isEmpty() || !StringConstants.encoder.matches(userPassword, user.getPassword())) {
+            if (userPassword == null || userPassword.isEmpty() || encoder.matches(userPassword, user.getPassword())) {
                 throw new ScenarioNotPossibleException(INCORRECT_PASSWORD_MESSAGE);
             }
         }
@@ -118,12 +119,12 @@ public class UserValidations {
         }
     }
 
-    public static void changePasswordValidations(ChangePasswordDto changePasswordDto, UserAuthModel user) {
+    public static void changePasswordValidations(ChangePasswordDto changePasswordDto, UserAuthModel user, BCryptPasswordEncoder encoder) {
         if (changePasswordDto.getDescription() == null || changePasswordDto.getDescription().trim().isEmpty()) {
             throw new ScenarioNotPossibleException(DESCRIPTION_MANDATORY_MESSAGE);
         }
         if (!encoder.matches(changePasswordDto.getCurrentPassword(), user.getPassword())) {
-            throw new BadCredentialsException(INCORRECT_OLD_PASSWORD);
+            throw new IncorrectPasswordException(INCORRECT_OLD_PASSWORD);
         } else if (user.getOtpCount() >= 3) {
             throw new ScenarioNotPossibleException(PASSWORD_CHANGE_LIMIT_CROSSED_MESSAGE);
         }

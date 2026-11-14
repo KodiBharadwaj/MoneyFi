@@ -19,6 +19,7 @@ public class UserRequestsGridDto extends ReusableTotalCountDto {
     private String username;
     private String name;
     private String requestType;
+    private String requestTypeSaved;
     private String referenceNumber;
     private String description;
 

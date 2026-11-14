@@ -25,8 +25,6 @@ public class StringConstants {
 
     private StringConstants() {}
 
-    public static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
-
     public static final String ALL = "All";
     public static final String LOCAL_PROFILE = "local";
     public static final String PROD_PROFILE = "prod";

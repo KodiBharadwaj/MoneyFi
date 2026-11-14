@@ -28,7 +28,7 @@ public interface AdminService {
 
     void updateDefectStatus(Long defectId, String status, String reason, Long adminUserId) throws JsonProcessingException;
 
-    boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestStatus, Long adminUserId, String approveStatus, String declineReason, int gmailSyncRequestCount);
+    boolean accountReactivationAndNameChangeRequest(String email, String referenceNumber, String requestType, Long adminUserId, String approveStatus, String declineReason, int gmailSyncRequestCount);
 
     void blockTheUserAccountByAdmin(String email, AccDeactivationType type, String reason, MultipartFile file, Long adminUserId, Long requestId) throws JsonProcessingException;
 

@@ -35,7 +35,7 @@ public class OpenController {
     @Operation(summary = "Api to send reference number to user for account retrieval/name change")
     @GetMapping("/{requestStatus}/{email}/reference-number-request")
     public Map<Boolean, String> requestReferenceNumber(@NotBlank @PathVariable(value = "requestStatus") String requestStatus,
-                                                       @NotBlank @Email @PathVariable(value = "email") String email){
+                                                       @NotBlank @Email @PathVariable(value = "email") String email) throws JsonProcessingException {
         return userCommonService.sendReferenceRequestNumberEmail(requestStatus, email);
     }
 

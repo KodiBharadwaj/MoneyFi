@@ -17,7 +17,7 @@ import static com.moneyfi.user.util.constants.StringConstants.USER_NOT_FOUND;
 @RequiredArgsConstructor
 public class PrimaryToSecondaryDbFlowImpl implements PrimaryToSecondaryDbFlow {
 
-    @Value("${user.customer-care.conversations-count}")
+    @Value("${app.customer-care.conversations-count}")
     private int maxConcurrentConversations;
 
     private final SupportAgentWorkloadRepository supportAgentWorkloadRepository;

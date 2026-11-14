@@ -273,7 +273,7 @@ public class EmailTemplates {
                 + "<br>"
                 + "</body>"
                 + "</html>";
-        emailService.sendEmail(email, subject, body);
+        emailService.sendEmail(ADMIN_EMAIL, subject, body);
     }
 
     public void sendNameChangeRequestApprovedMailToUser(String email, String name, String referenceNumber) {
